@@ -30,7 +30,7 @@ This skill is self-contained. It runs on its own for a single task, and it compo
 
 ## Prerequisites
 
-* A tracking directory for artifacts, conventionally `.copilot-tracking/` at the repository root.
+* A tracking directory for artifacts at `.github/tracking/` in the repository.
 * The ability to start a new chat or clear context between phases.
 * For the Review phase, a working lint, build, and test command.
 
@@ -38,10 +38,10 @@ This skill is self-contained. It runs on its own for a single task, and it compo
 
 | Phase     | Constraint                                                                                                        | Artifact                                           |
 |-----------|-------------------------------------------------------------------------------------------------------------------|----------------------------------------------------|
-| Research  | Cannot plan or write code. Investigates, cites findings with file paths and line numbers, recommends one approach.  | `.copilot-tracking/YYYY-MM-DD-<topic>-research.md` |
-| Plan      | Cannot research or write code. Turns research into an ordered, checkbox task list with exit criteria.               | `.copilot-tracking/YYYY-MM-DD-<topic>-plan.md`     |
+| Research  | Cannot plan or write code. Investigates, cites findings with file paths and line numbers, recommends one approach.  | `.github/tracking/YYYY-MM-DD-<topic>-research.md` |
+| Plan      | Cannot research or write code. Turns research into an ordered, checkbox task list with exit criteria.               | `.github/tracking/YYYY-MM-DD-<topic>-plan.md`     |
 | Implement | Cannot replan. Executes the plan task by task, verifying after each.                                                | Working code and `...-changes.md`                  |
-| Review    | Cannot modify code. Validates against research and plan, runs lint, build, and test, lists follow-ups.               | `.copilot-tracking/YYYY-MM-DD-<topic>-review.md`   |
+| Review    | Cannot modify code. Validates against research and plan, runs lint, build, and test, lists follow-ups.               | `.github/tracking/YYYY-MM-DD-<topic>-review.md`   |
 
 The constraints are the mechanism. A phase that quietly does the next phase's work has defeated the point, so hold the boundary even when crossing it feels efficient.
 
@@ -90,13 +90,13 @@ RPI is a convention, not a tool. No specific extension is required. A short prom
 ```text
 Research:  "Research only. Investigate X, cite findings with file paths and line
             numbers, recommend one approach. Do not plan or implement. Save to
-            .copilot-tracking/<date>-<topic>-research.md."
+            .github/tracking/<date>-<topic>-research.md."
 
 Plan:      "Plan only. Read the research file, produce an ordered checkbox task
             list with file and line references and exit criteria. Do not implement."
 
 Implement: "Implement only. Execute the plan task by task, verify after each,
-            record changes in .copilot-tracking/<date>-<topic>-changes.md."
+            record changes in .github/tracking/<date>-<topic>-changes.md."
 
 Review:    "Review only. Validate the implementation against the research and plan.
             Run lint, build, and test. Identify follow-ups. Do not modify code."

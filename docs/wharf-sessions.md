@@ -1,19 +1,21 @@
 # Wharf MVP implementation sessions
 
 Status: Ready to start
-Source: `wharf.jsonl`
-Source SHA-256: `e7f00387c4a0b5b9c4adfe66f27e2d9028e79bafa84a5f942b1a1dea0ba6e259`
+Source: `docs/wharf.jsonl`
+Source SHA-256: `3648a03025ceafedb604b0a712918866e4f85e6e3d2a137f76aa3ba0a96482d2`
+Documentation layout: requirements and session records are under `docs/`;
+Research, Plan, Changes, and Review artifacts are under `.github/tracking/`.
 Session model: one very senior engineer paired with a frontier model
 Target duration: 60-90 focused minutes per session
 
 ## Planning rules
 
 - Each session runs one Research, Plan, Implement, Review loop.
-- Research and Plan must leave durable artifacts under `.copilot-tracking/`.
+- Research and Plan must leave durable artifacts under `.github/tracking/`.
 - The fit check may cut scope but may not remove the session's releaseable outcome.
 - New work discovered during a session goes in the parking lot.
 - Every session ends with green tests, a fast-forward merge, a dot-release tag,
-  updated repo memory, a session-log entry, and a `RETRO.md` bullet.
+  updated repo memory, a session-log entry, and a `docs/RETRO.md` bullet.
 - Long-running integration tests and benchmarks run in a named `tmux` session
   according to `RUN_MONITORING.md`.
 - A tag is not cut when the session's listed proof is missing.

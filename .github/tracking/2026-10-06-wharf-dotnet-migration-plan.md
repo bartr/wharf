@@ -1,7 +1,7 @@
 # Wharf .NET migration plan
 
 Research:
-`.copilot-tracking/2026-10-06-wharf-dotnet-migration-research.md`
+`.github/tracking/2026-10-06-wharf-dotnet-migration-research.md`
 
 ## 1. Withdraw the Go release safely
 
@@ -31,13 +31,13 @@ Exit criteria:
 
 Targets:
 
-- `wharf.md`
-- `wharf-prd.md`
-- `wharf-sessions.md`
+- `docs/wharf.md`
+- `docs/wharf-prd.md`
+- `docs/wharf-sessions.md`
 - `README.md`
 - `.github/copilot-instructions.md`
-- `session-log.md`
-- `RETRO.md`
+- `docs/session-log.md`
+- `docs/RETRO.md`
 
 Tasks:
 
@@ -108,8 +108,8 @@ Exit criteria:
 Targets:
 
 - `scripts/validate-wharf.sh` or a .NET-native validation command
-- `.copilot-tracking/2026-10-06-wharf-dotnet-migration-changes.md`
-- `.copilot-tracking/2026-10-06-wharf-dotnet-migration-review.md`
+- `.github/tracking/2026-10-06-wharf-dotnet-migration-changes.md`
+- `.github/tracking/2026-10-06-wharf-dotnet-migration-review.md`
 
 Tasks:
 

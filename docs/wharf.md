@@ -362,9 +362,9 @@ remaining compatible with Harbor task definitions.
 
 ## Requirements artifacts
 
-- keep `wharf.md` as the human-authored source of truth until the PRD is generated
-- generate `wharf-prd.md` for human readers
-- generate `wharf.jsonl` as the canonical LLM handoff format
+- keep `docs/wharf.md` as the human-authored source of truth until the PRD is generated
+- generate `docs/wharf-prd.md` for human readers
+- generate `docs/wharf.jsonl` as the canonical LLM handoff format
 - generate the human PRD and JSONL file from the same claim ledger
 - never edit the generated PRD and JSONL independently
 - use stable IDs for every goal, non-goal, constraint, decision, requirement, acceptance criterion, deliberate choice, and open question

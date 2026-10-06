@@ -2,7 +2,7 @@
 
 Intentional practice log. One entry per session. The log itself is the experiment.
 
-Copy this file into the repository root as `session-log.md` and fill it in as you go. Copy the session block for each new session. Run the mid-arc reflection after session five and the arc reflection at the end.
+Copy this file into the repository root as `docs/session-log.md` and fill it in as you go. Copy the session block for each new session. Run the mid-arc reflection after session five and the arc reflection at the end.
 
 Record the start time the moment the frame is finished and the end time during the close ritual. Do not reconstruct either from memory. During the close, cross-check against git: the first commit on the session branch is roughly the start, and the merge or tag timestamp is roughly the end.
 
@@ -33,7 +33,7 @@ Written before any other work.
 * [ ] Fast-forward merge
 * [ ] Tagged and pushed
 * [ ] Repo memory updated
-* [ ] `RETRO.md` bullet appended
+* [ ] `docs/RETRO.md` bullet appended
 * [ ] Next session starter written
 
 ### Summary

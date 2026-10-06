@@ -3,8 +3,8 @@
 Status: Draft v0.1
 Date: 2026-10-06
 Owner: Not specified
-Sources: `wharf.md` SHA-256 `63273c1d099a680653de5b9460f05c1b4452aaea6df8dfba88fe8a4cb810a498`
-Machine companion: `wharf.jsonl`
+Sources: `docs/wharf.md` SHA-256 `3e46bc8a12da5b7c74142f044777e734ff77157ae3e784d3cd18269312271ae7`
+Machine companion: `docs/wharf.jsonl`
 
 ## 1. Overview
 
@@ -14,7 +14,7 @@ evaluation engineers who run coding-agent benchmarks on customer-owned Ubuntu
 infrastructure and for engineering leaders who consume the resulting model,
 cost, and quality comparisons. V1 establishes reliable local execution,
 durable evidence, recovery, and reporting with DeepSWE and Copilot CLI before
-Wharf expands into repair/replay and additional agents. [Source: `wharf.md` >
+Wharf expands into repair/replay and additional agents. [Source: `docs/wharf.md` >
 Users, Product goals, Release scope and phases]
 
 ### 1.1 Deliberately Unspecified
@@ -33,7 +33,7 @@ contracts and acceptance criteria are met.
 
 Wharf must use normal .NET project organization, keep `Program.cs` thin, and
 satisfy the observable contracts regardless of these internal
-choices. [Source: `wharf.md` > Language, State model, Reporting and comparison,
+choices. [Source: `docs/wharf.md` > Language, State model, Reporting and comparison,
 Delivery and support]
 
 ## 2. Goals
@@ -73,7 +73,7 @@ V1 does not include:
 - Automated repair and replay; these follow stable v1 execution and reporting.
 - A second implementation language; .NET is the canonical Wharf implementation.
 
-[Source: `wharf.md` > Non-goals for v1, Release scope and phases]
+[Source: `docs/wharf.md` > Non-goals for v1, Release scope and phases]
 
 ## 4. Architecture
 
@@ -93,7 +93,7 @@ V1 does not include:
 | Reporter | Recompute static and machine-readable output | PASS@1, Enterprise Score, cost, usage, runtime, coverage |
 
 Component names are derived labels for boundaries directly required by
-`wharf.md`; internal package names remain deliberate implementation choices.
+`docs/wharf.md`; internal package names remain deliberate implementation choices.
 
 ### 4.2 Shape
 
@@ -118,7 +118,7 @@ State model, Task compatibility, Results and artifacts]
 - Existing Pier 0.3.1 job directories are accepted as migration input.
 - Wharf stores versioned configuration, append-only events, job and trial
   summaries, artifacts, and portable analytics records.
-- `wharf.jsonl` is the canonical LLM requirements handoff; it is not runtime
+- `docs/wharf.jsonl` is the canonical LLM requirements handoff; it is not runtime
   trial data. [Source: Task compatibility, Features, State model, Requirements
   artifacts]
 
@@ -188,7 +188,7 @@ Global CLI behavior:
 - Stable exit codes distinguish success, invalid input, unsupported host,
   blocked run, partial run, and internal failure.
 
-[Source: `wharf.md` > Language, CLI contract]
+[Source: `docs/wharf.md` > Language, CLI contract]
 
 ### 6.1 Validation rules
 
@@ -423,7 +423,7 @@ The README must document these steps and the exact validation command.
   completeness are reported.
 - [ ] The same retained job regenerates the same static and machine-readable
   reports.
-- [ ] `wharf.jsonl` parses one object per line, uses unique IDs, resolves every
+- [ ] `docs/wharf.jsonl` parses one object per line, uses unique IDs, resolves every
   reference, and records source provenance.
 - [ ] Each documented host profile completes DeepSWE K=4 within its published
   overnight window with no completed trials lost.
@@ -436,7 +436,7 @@ No blocking questions remain.
 
 | Question | Blocking | Owner | Source gap |
 |----------|----------|-------|------------|
-| Who is the named PRD and release owner? | No | Not specified | `wharf.md` defines users but not ownership |
+| Who is the named PRD and release owner? | No | Not specified | `docs/wharf.md` defines users but not ownership |
 | Which exact .NET SDK version is supported? | No | Wharf maintainers | The source requires documentation but does not select a version |
 | What hardware and deadlines define the 32- and 88-concurrent profiles? | No | Wharf maintainers | The source requires measured published profiles |
 
@@ -444,9 +444,9 @@ No blocking questions remain.
 
 | Source note | Date | Contributed |
 |-------------|------|-------------|
-| `wharf.md` | 2026-10-06 | All product, scope, platform, interface, execution, persistence, security, reporting, repair, delivery, development, and acceptance requirements |
+| `docs/wharf.md` | 2026-10-06 | All product, scope, platform, interface, execution, persistence, security, reporting, repair, delivery, development, and acceptance requirements |
 
-The machine companion `wharf.jsonl` contains one source-backed record per bullet,
+The machine companion `docs/wharf.jsonl` contains one source-backed record per bullet,
 including source heading and line, source hierarchy, phase, priority,
 relationships, and acceptance links. The source hash recorded in both artifacts
-is `63273c1d099a680653de5b9460f05c1b4452aaea6df8dfba88fe8a4cb810a498`.
+is `3e46bc8a12da5b7c74142f044777e734ff77157ae3e784d3cd18269312271ae7`.

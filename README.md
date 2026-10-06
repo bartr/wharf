@@ -23,3 +23,11 @@ Release builds can override the source version with:
 ```bash
 dotnet build -p:WharfVersion=<semver>
 ```
+
+## Repository layout
+
+- `src/wharf/` contains the executable implementation.
+- `tests/wharf.Tests/` contains automated tests.
+- `docs/` contains requirements, session logs, and retrospectives.
+- `.github/tracking/` contains Research, Plan, Changes, and Review artifacts
+  for implementation sessions.

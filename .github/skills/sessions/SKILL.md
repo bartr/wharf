@@ -41,8 +41,8 @@ Sessions are the outer loop. RPI is the inner loop that runs inside one session.
 * A git repository where you can merge and tag. Sessions end in a dot-release.
 * A test command that gives a clear green or red signal.
 * A repo memory file that your AI reads, such as `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`.
-* A session log. Copy [assets/session-log-template.md](assets/session-log-template.md) into the repo, commonly at `session-log.md`.
-* A tracking directory for inner-loop artifacts, conventionally `.copilot-tracking/`.
+* A session log. Copy [assets/session-log-template.md](assets/session-log-template.md) into the repo, commonly at `docs/session-log.md`.
+* A tracking directory for inner-loop artifacts at `.github/tracking/`.
 
 ## Quick Start
 
@@ -82,7 +82,7 @@ Context drift is the primary failure mode, and it is seductive because the tange
 
 ## The RPI Inner Loop
 
-The bulk of a session runs the Research, Plan, Implement, Review loop. Each phase runs under a constraint that prevents the next one, and each ends in a durable artifact under `.copilot-tracking/`. Start a new chat between phases, so findings travel in files rather than in chat history.
+The bulk of a session runs the Research, Plan, Implement, Review loop. Each phase runs under a constraint that prevents the next one, and each ends in a durable artifact under `.github/tracking/`. Start a new chat between phases, so findings travel in files rather than in chat history.
 
 Delegate the inner loop to the `rpi` skill, which owns the phase constraints, artifacts, entry points, and prompts. This skill owns what wraps it: the frame before Research, the fit check between Plan and Implement, and the close ritual after Review.
 
@@ -113,7 +113,7 @@ Every session ends the same way:
 3. Tag the dot-release, for example `git tag 0.2.0 && git push origin 0.2.0`.
 4. Update repo memory with decisions the next session needs.
 5. Write one paragraph in the session log: what you built, what you decided, where the next session starts.
-6. Append one bullet to `RETRO.md` covering what surprised you and what you would do differently.
+6. Append one bullet to `docs/RETRO.md` covering what surprised you and what you would do differently.
 7. Write the end time now, not later.
 
 That paragraph is the compounding mechanism. Without it, every session starts cold.

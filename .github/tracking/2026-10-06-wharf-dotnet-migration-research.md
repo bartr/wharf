@@ -14,18 +14,18 @@ still at its first foundation release.
 - The current repository is clean on `main` at commit `74a86cb`, with local and
   remote `main`, `v0.1.0`, and tag `0.1.0` all pointing to the Go foundation.
 - The requirements currently mandate Go and Go-specific structure and tooling:
-  `wharf.md:69-81`, `wharf-prd.md:27-34`, `wharf-prd.md:273-285`,
+  `docs/wharf.md:69-81`, `docs/wharf-prd.md:27-34`, `docs/wharf-prd.md:273-285`,
   `.github/copilot-instructions.md:14-42`.
 - The requirements explicitly defer Java and .NET enterprise suites until the
-  DeepSWE path is stable: `wharf.md:41`, `wharf.md:131`, `wharf-prd.md:74`.
+  DeepSWE path is stable: `docs/wharf.md:41`, `docs/wharf.md:131`, `docs/wharf-prd.md:74`.
 - Session 1 is the only completed implementation session. Sessions 2-20 are
   still a requirements-driven implementation sequence, so changing the
   language now avoids a large dual-maintenance cost.
 - The session plan's meaningful DeepSWE validation surface spans task loading,
   adapter execution, agent/verifier isolation, scheduling, recovery, scoring,
   reporting, smoke, scale, and release qualification
-  (`wharf-sessions.md:210-234`, `wharf-sessions.md:325-419`,
-  `wharf-sessions.md:423-598`, `wharf-sessions.md:603-737`).
+  (`docs/wharf-sessions.md:210-234`, `docs/wharf-sessions.md:325-419`,
+  `docs/wharf-sessions.md:423-598`, `docs/wharf-sessions.md:603-737`).
 - The current environment has no `dotnet` executable installed.
 
 ## Runtime recommendation
@@ -84,7 +84,7 @@ Use built-in .NET facilities first:
 
 ## Release and history strategy
 
-1. Update `wharf.md`, `wharf-prd.md`, `wharf-sessions.md`, README, and repository
+1. Update `docs/wharf.md`, `docs/wharf-prd.md`, `docs/wharf-sessions.md`, README, and repository
    memory to make .NET the canonical implementation language.
 2. Delete the remote and local `0.1.0` tag because it identifies the withdrawn
    Go implementation.

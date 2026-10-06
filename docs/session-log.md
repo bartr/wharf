@@ -32,7 +32,7 @@ Written before implementation.
 * [x] Fast-forward merge
 * [x] Tagged and pushed
 * [x] Repo memory updated
-* [x] `RETRO.md` bullet appended
+* [x] `docs/RETRO.md` bullet appended
 * [x] Next session starter written
 
 ### Summary
@@ -79,7 +79,7 @@ Written before any other work.
 * [ ] Fast-forward merge
 * [ ] Tagged and pushed
 * [ ] Repo memory updated
-* [ ] `RETRO.md` bullet appended
+* [ ] `docs/RETRO.md` bullet appended
 * [ ] Next session starter written
 
 ### Summary

@@ -29,7 +29,7 @@ Run this skill when the problem is uncertain. Skip it when the problem, users, a
 ## Prerequisites
 
 * Access to at least one person who has the problem, or written evidence from one. Interviews, tickets, transcripts, support logs, and recorded sessions all qualify.
-* A working directory for artifacts. This skill writes to `.copilot-tracking/design-thinking/{project-slug}/`.
+* A working directory for artifacts. This skill writes to `.github/tracking/design-thinking/{project-slug}/`.
 * Agreement from the requester that the proposed solution may change based on evidence.
 
 State clearly when no user evidence is available. Proceed with assumptions explicitly labeled rather than presenting guesses as findings.

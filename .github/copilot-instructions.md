@@ -8,3 +8,7 @@ Run the job in the foreground with stdout and stderr connected to the tmux pane;
 do not wrap it in shell redirection, `nohup`, backgrounding, or an outer logging
 pipeline. Follow [RUN_MONITORING.md](../RUN_MONITORING.md) for tmux lifecycle,
 read-only monitoring, and provider-specific checks.
+
+Wharf documentation lives under `docs/`. Session RPI artifacts belong under
+`.github/tracking/`; keep those artifacts with the repository so decisions and
+validation evidence survive context resets.
