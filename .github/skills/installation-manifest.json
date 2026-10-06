@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "source_repository": "https://github.com/bartr/skills",
+  "source_commit": "2bf3f1ee9f3563b2607b9edfba1d337f556012a9",
+  "profile": "full",
+  "skills": [
+    "brd",
+    "design-thinking",
+    "prd",
+    "rpi",
+    "sessions"
+  ],
+  "local_customizations": [
+    {
+      "skill": "prd",
+      "description": "Adds a readiness gate, proposed-assumption review, and a paired LLM-oriented JSONL requirements ledger."
+    }
+  ],
+  "files": [
+    {
+      "path": "brd/SKILL.md",
+      "sha256": "1ac5ed2b2e5b7d26b70178c8bb8bb392db7097af9caff272296a95aed493aac6"
+    },
+    {
+      "path": "brd/assets/brd-template.md",
+      "sha256": "d7af6ca8733bfe0dc8017ccb6d6e7432bc1983a3ac45929c0c7c67cd1a2d6fe9"
+    },
+    {
+      "path": "design-thinking/SKILL.md",
+      "sha256": "5b546a6faf7dcfb60214149a2c3dd157e29dd2797728805dbcc76362ccca764f"
+    },
+    {
+      "path": "prd/SKILL.md",
+      "sha256": "8e5d92531d80fe230409520d138e0e9509e57daaf3c991f1851dcfc2870b8850",
+      "source_sha256": "d58db41ef87c9b5a6b396602e98b8e0ef04e4a56621e0751d0f34e3e9ec16b43",
+      "locally_modified": true
+    },
+    {
+      "path": "prd/assets/prd-template.md",
+      "sha256": "bccbaefd7a62e07d259a49b2e483ff0e814cc675b6ae82a97b7970528f206f9d"
+    },
+    {
+      "path": "prd/assets/readiness-template.md",
+      "sha256": "f0af20b899212c23c4044740a3a8a65d97462c8f8874cb1c4f3f76996e92aa93",
+      "locally_added": true
+    },
+    {
+      "path": "prd/assets/requirements-jsonl.md",
+      "sha256": "31edf0bacacf71875bd0b4474798225b8ff22a07669331481a397b1149013919",
+      "locally_added": true
+    },
+    {
+      "path": "rpi/SKILL.md",
+      "sha256": "a000355d758ceca5cf517d06c2d56a855af033b31c226fb56aea034922458d0e"
+    },
+    {
+      "path": "sessions/SKILL.md",
+      "sha256": "336a161d738fbcde3a762fc95a175b698e7c5809a26aa479d4cbefc31341de7d"
+    },
+    {
+      "path": "sessions/assets/session-log-template.md",
+      "sha256": "481db89de68c237503f86bbee82b30a118d358dbd49835194c609e07a96fa301"
+    }
+  ]
+}
