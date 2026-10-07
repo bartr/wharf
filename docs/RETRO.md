@@ -67,3 +67,6 @@ what was surprising and what should be done differently in the next session.
   written; otherwise a slow telemetry sink can falsely hold a phase slot and
   undermine work-conserving behavior. Keep infrastructure retry identity
   separate from logical-attempt identity.
+- Session 13 (`0.13.0`): Recovery is safest as a pure plan over validated
+  events plus an explicit live-resource snapshot. Report orphan resources
+  separately so resume never hides cleanup or mutates retained evidence.

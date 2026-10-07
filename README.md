@@ -73,6 +73,12 @@ independently, applies timeout multipliers and overrides, and retries only
 classified infrastructure failures within a bound. Infrastructure retry
 evidence is persisted separately from logical attempts.
 
+## Recovery
+
+The `Wharf.Recovery` boundary replays retained events, resumes only unfinished
+or explicitly retryable logical attempts in stable order, preserves retry
+identity, and reports orphaned live resources for explicit reconciliation.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

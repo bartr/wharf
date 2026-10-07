@@ -94,3 +94,9 @@ gates are independent; timeouts combine phase defaults, multipliers, and
 overrides. Retryable infrastructure failures have bounded retries and
 separate retry IDs/evidence, while excluded failures surface immediately
 without changing logical-attempt accounting.
+
+Session 13 adds `Wharf.Recovery`. Resume planning replays and validates
+retained events, excludes completed and deterministic-failure logical
+attempts, resumes unfinished and explicitly retryable work in stable order,
+preserves immutable retry counts/IDs, and reports orphaned live resources
+without silently deleting evidence.

@@ -224,6 +224,48 @@ work.
 
 ---
 
+## Session 13, 2026-10-06
+
+Start time: 22:40 CDT
+End time: 22:43 CDT
+Tag: `0.13.0`
+
+### Frame
+
+* Goal, what does done look like: Reconstruct state and resume only unfinished
+  or explicitly retryable work.
+* Out of scope, what I am explicitly not doing: Operator stop cleanup,
+  notifications, and reports.
+* Failure condition, what would make this session a failure: Completed attempts
+  rerun, retry counts change, or partial state is mistaken for success.
+
+### During
+
+* Parking lot: active-run status, safe stop, and notifications remain Session
+  14.
+* Fit check decision, proceed. Recovery planning is event-driven and reports
+  orphan resources without mutating them.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added validated event replay, deterministic recovery planning, terminal versus
+retryable classification, immutable retry accounting, and live-resource orphan
+reporting.
+
+### Next session starter
+
+Make active runs observable and safely stoppable without deleting evidence.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT
