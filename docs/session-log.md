@@ -182,6 +182,48 @@ Add phase-specific resources, timeouts, and infrastructure retry semantics.
 
 ---
 
+## Session 12, 2026-10-06
+
+Start time: 22:32 CDT
+End time: 22:35 CDT
+Tag: `0.12.0`
+
+### Frame
+
+* Goal, what does done look like: Enforce phase-specific resources, timeout
+  policies, and infrastructure retry semantics.
+* Out of scope, what I am explicitly not doing: Process restart and operator
+  stop cleanup.
+* Failure condition, what would make this session a failure: An infrastructure
+  retry changes logical-attempt accounting or exceeds its bound.
+
+### During
+
+* Parking lot: interruption recovery and resume remain Session 13.
+* Fit check decision, proceed. Independent phase gates and separate retry
+  evidence preserve the scheduler's logical-attempt contract.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added independent phase resource gates, timeout multipliers and overrides,
+bounded infrastructure retries, and separate retry evidence without changing
+logical-attempt identity.
+
+### Next session starter
+
+Recover an interrupted run from retained events without repeating completed
+work.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT

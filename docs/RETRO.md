@@ -63,3 +63,7 @@ what was surprising and what should be done differently in the next session.
 - Session 11 (`0.11.0`): Logical-attempt banking belongs at admission/result
   boundaries, not in a later aggregate pass. Stable ordering and immediate
   banking make duplicate suppression and cancellation behavior observable.
+- Session 12 (`0.12.0`): Resource release must happen before retry evidence is
+  written; otherwise a slow telemetry sink can falsely hold a phase slot and
+  undermine work-conserving behavior. Keep infrastructure retry identity
+  separate from logical-attempt identity.

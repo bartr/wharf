@@ -66,6 +66,13 @@ The `Wharf.Scheduler` boundary admits attempts deterministically under
 concurrency and trial limits, banks successful logical attempts, skips
 duplicates, exposes lifecycle counts, and records cancellation transitions.
 
+## Phase execution
+
+The `Wharf.Execution` boundary gates build, agent, and verifier phases
+independently, applies timeout multipliers and overrides, and retries only
+classified infrastructure failures within a bound. Infrastructure retry
+evidence is persisted separately from logical attempts.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

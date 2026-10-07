@@ -88,3 +88,9 @@ stable attempt-ID order under explicit concurrency and trial limits.
 Successful logical-attempt IDs are banked immediately, duplicate attempts are
 skipped, lifecycle transitions are emitted through an event sink, and
 cancellation prevents new admissions while marking pending work cancelled.
+
+Session 12 adds `Wharf.Execution` phase policies. Build, agent, and verifier
+gates are independent; timeouts combine phase defaults, multipliers, and
+overrides. Retryable infrastructure failures have bounded retries and
+separate retry IDs/evidence, while excluded failures surface immediately
+without changing logical-attempt accounting.
