@@ -141,14 +141,6 @@ public sealed class SmokeService
             Path.Combine(trialDirectory, "smoke-selection.json"),
             JsonSerializer.Serialize(selection, JsonOptions));
         File.WriteAllText(
-            Path.Combine(jobDirectory, "result.json"),
-            JsonSerializer.Serialize(new
-            {
-                status = run.Status,
-                taskId = task.TaskId,
-                trials = 1
-            }, JsonOptions));
-        File.WriteAllText(
             Path.Combine(trialDirectory, "result.json"),
             JsonSerializer.Serialize(selection, JsonOptions));
         File.WriteAllText(
