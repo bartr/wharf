@@ -103,3 +103,10 @@ blocked notifications. Optional webhook delivery is HTTPS-only.
 - `docs/` contains requirements, session logs, and retrospectives.
 - `.github/tracking/` contains Research, Plan, Changes, and Review artifacts
   for implementation sessions.
+
+## Host profiles
+
+`wharf profile` emits a conservative concurrency recommendation for the
+published `on-prem-32` and `on-prem-88` targets. Recommendations never exceed
+the operator-provided `--operator-limit` or `--build-limit`, and profiles are
+not considered qualified without retained benchmark evidence.

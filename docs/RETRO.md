@@ -86,3 +86,6 @@ what was surprising and what should be done differently in the next session.
 - Session 18 (`0.18.0`): Packaging needs explicit unsigned labeling and a
   version override that is shared by the published executable and Debian
   metadata. Keep host mutation isolated behind small sudo wrappers.
+- Session 19 (`0.19.0`): Scale qualification must not invent benchmark
+  evidence. Keep hardware, deadlines, losses, and score completeness as
+  explicit retained inputs, and cap every recommendation by operator limits.

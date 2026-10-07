@@ -6,6 +6,7 @@ using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Reporting;
 using Wharf.Smoke;
+using Wharf.Qualification;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
 
@@ -65,6 +66,7 @@ public static class CommandTree
         }
         root.Subcommands.Add(CreateSmokeCommand());
         root.Subcommands.Add(CreateReportCommand());
+        root.Subcommands.Add(CreateProfileCommand());
 
         return root;
     }
@@ -275,6 +277,63 @@ public static class CommandTree
             {
                 Console.Error.WriteLine($"unable to create smoke artifacts: {exception.Message}");
                 return ExitCode.InternalFailure.Value;
+            }
+        });
+        return command;
+    }
+
+    private static CliCommand CreateProfileCommand()
+    {
+        var command = new CliCommand("profile", "Recommend conservative host concurrency limits.");
+        var profile = new Option<string>("--profile")
+        {
+            Description = "Published profile: on-prem-32 or on-prem-88.",
+            DefaultValueFactory = _ => "on-prem-32"
+        };
+        var operatorLimit = new Option<int>("--operator-limit")
+        {
+            Description = "Maximum trial concurrency the operator permits.",
+            DefaultValueFactory = _ => 1
+        };
+        var buildLimit = new Option<int>("--build-limit")
+        {
+            Description = "Maximum build concurrency the operator permits.",
+            DefaultValueFactory = _ => 1
+        };
+        var json = new Option<bool>("--json");
+        command.Options.Add(profile);
+        command.Options.Add(operatorLimit);
+        command.Options.Add(buildLimit);
+        command.Options.Add(json);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string? profileId = parseResult.GetValue(profile);
+                if (profileId is null)
+                    throw new QualificationException("profile is required");
+                HostProfile selected = HostProfiles.Get(profileId);
+                HostCapacity capacity = new(
+                    Environment.ProcessorCount,
+                    GC.GetGCMemoryInfo().TotalAvailableMemoryBytes);
+                ProfileRecommendation recommendation = new HostProfileService().Recommend(
+                    selected,
+                    capacity,
+                    parseResult.GetValue(operatorLimit),
+                    parseResult.GetValue(buildLimit));
+                if (parseResult.GetValue(json))
+                    Console.WriteLine(JsonSerializer.Serialize(recommendation, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    }));
+                else
+                    Console.WriteLine($"{recommendation.ProfileId}\tN={recommendation.RecommendedConcurrency}\tB={recommendation.RecommendedBuildConcurrency}");
+                return ExitCode.Success.Value;
+            }
+            catch (QualificationException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
             }
         });
         return command;
