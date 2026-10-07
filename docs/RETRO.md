@@ -3,6 +3,11 @@
 Append one bullet at the close of every Wharf implementation session. Record
 what was surprising and what should be done differently in the next session.
 
+- Session 20 (`1.0.0`): Release qualification must separate repeatable
+  source-level gates from infrastructure evidence. Name ownership explicitly,
+  fail automated checks loudly, and never convert unavailable signatures or
+  overnight measurements into implied passes.
+
 - Session 1 (`0.1.0`): Cobra's automatic version flag unexpectedly allowed
   trailing unknown input to succeed, and parsing lower-precedence environment
   values before changed flags weakened the precedence contract. Next session,

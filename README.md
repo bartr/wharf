@@ -110,3 +110,16 @@ blocked notifications. Optional webhook delivery is HTTPS-only.
 published `on-prem-32` and `on-prem-88` targets. Recommendations never exceed
 the operator-provided `--operator-limit` or `--build-limit`, and profiles are
 not considered qualified without retained benchmark evidence.
+
+## Release qualification
+
+Run the automated 1.0.0 qualification matrix with:
+
+```bash
+./scripts/qualify-release.sh 1.0.0
+```
+
+Set `WHARF_RELEASE_OWNER` to record the accountable operator. The matrix is
+documented in [docs/release-qualification.md](docs/release-qualification.md);
+overnight benchmark and Ubuntu/WSL gates require retained evidence from the
+target infrastructure.

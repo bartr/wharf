@@ -7,6 +7,26 @@ against the first session commit and merge or tag timestamp.
 
 ---
 
+## Session 20, 2026-10-06
+
+Tag: `1.0.0`
+
+### Close
+
+* [x] Release owner named
+* [x] Automated qualification matrix
+* [x] Requirement-to-test coverage
+* [x] Secret-scan hook
+* [x] Release notes and operator documentation
+* [x] Tests green
+
+### Summary
+
+Added repeatable v1 release qualification, explicit ownership, package and
+artifact checks, requirement coverage, and documented external infrastructure
+gates. The release does not claim unavailable overnight benchmark or signing
+evidence.
+
 ## Withdrawn Session 1, 2026-10-06
 
 Start time: 15:44 CDT
