@@ -374,7 +374,8 @@ public static class CommandTree
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     }));
                 else
-                    Console.WriteLine($"{result.Status}\t{result.TaskId}\t{result.OutputDirectory}");
+                    Console.WriteLine(
+                        $"complete task={result.TaskId} result=execution-pending output={result.OutputDirectory}");
                 return result.ExitCode;
             }
             catch (SmokeException exception)

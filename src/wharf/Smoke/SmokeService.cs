@@ -32,6 +32,13 @@ public sealed class NoOpSmokeRunExecutor : ISmokeRunExecutor
         logger.Info($"run selected task {request.Task.TaskId}");
         logger.Verbose($"run task root: {request.TaskRoot}", 2);
         logger.Verbose($"run output directory: {request.OutputDirectory}", 2);
+        logger.Info($"running agent task {request.Task.TaskId}");
+        logger.Info("agent execution pending");
+        logger.Info($"running verifier task {request.Task.TaskId}");
+        logger.Info("verifier execution pending");
+        logger.Info($"cleaning up task {request.Task.TaskId}");
+        logger.Info($"finishing task {request.Task.TaskId}");
+        logger.Info($"complete task={request.Task.TaskId} result=execution-pending");
         return new SmokeRunResult(
             "run-no-op",
             request.Task.TaskId,

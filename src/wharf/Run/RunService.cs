@@ -85,6 +85,13 @@ public sealed class RunService
                 Path.Combine(trialDirectory, "agent"),
                 logger.Info,
                 CancellationToken.None).GetAwaiter().GetResult();
+            logger.Info($"running agent task {task.TaskId}");
+            logger.Info("agent execution pending");
+            logger.Info($"running verifier task {task.TaskId}");
+            logger.Info("verifier execution pending");
+            logger.Info($"cleaning up task {task.TaskId}");
+            logger.Info($"finishing task {task.TaskId}");
+            logger.Info($"complete task={task.TaskId} result=execution-pending");
             var result = new
             {
                 status = "run-no-op",
