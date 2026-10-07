@@ -29,6 +29,17 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void UsesGptSixLunaWhenModelIsNotConfigured()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        Assert.Equal("gpt-6-luna", result.Model);
+    }
+
+    [Fact]
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(

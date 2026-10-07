@@ -144,7 +144,7 @@ public static class RunConfigurationResolver
             EnvironmentValue("WHARF_OUTPUT_DIRECTORY"),
             manifest.Output?.Directory,
             "run-output");
-        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "default");
+        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "gpt-6-luna");
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "medium");
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
