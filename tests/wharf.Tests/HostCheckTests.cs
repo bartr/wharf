@@ -18,6 +18,7 @@ public sealed class HostCheckTests
         Assert.True(report.Checks.Single(check => check.Name == "platform").Passed);
         Assert.False(report.Checks.Single(check => check.Name == "docker").Passed);
         Assert.True(report.HasBlockingFailure);
+        Assert.True(report.HasUnsupportedHost);
         Assert.Equal(4, report.ExitCode);
     }
 

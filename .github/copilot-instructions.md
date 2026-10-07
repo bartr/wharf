@@ -40,5 +40,7 @@ Supported platform classification is Ubuntu 24.04 amd64, including WSL2.
 `--allow-unsupported-host` may override only that classification; Docker
 reachability and capacity failures remain blocking. Do not make preflight pull
 images, create Docker resources, or mutate daemon configuration.
-When WSL2 uses a custom kernel that hides standard markers, `WHARF_WSL=1` is
-an explicit informational classification and does not bypass safety checks.
+The current development host `z01` is native Ubuntu, not WSL; do not set
+`WHARF_WSL` there. The explicit `WHARF_WSL=1` classification remains available
+only for a genuinely WSL2 environment whose custom kernel hides standard
+markers, and it does not bypass safety checks.
