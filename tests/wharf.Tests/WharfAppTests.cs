@@ -21,6 +21,7 @@ public sealed class WharfAppTests
         {
             int exitCode = await WharfApp.RunAsync([
                 "run",
+                "-v",
                 "--tasks", Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
                 "--output-directory", relativeOutput
             ]);

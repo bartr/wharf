@@ -128,6 +128,8 @@ public static class CommandTree
             Description = "Directory containing the dataset.toml or task.toml directories.",
             DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "tasks")
         };
+        var verbose = new Option<bool>("--verbose") { Description = "Show run discovery and artifact details." };
+        verbose.Aliases.Add("-v");
         command.Options.Add(manifest);
         command.Options.Add(dryRun);
         command.Options.Add(k);
@@ -138,6 +140,7 @@ public static class CommandTree
         command.Options.Add(model);
         command.Options.Add(effort);
         command.Options.Add(tasks);
+        command.Options.Add(verbose);
         command.SetAction(parseResult =>
         {
             if (!parseResult.GetValue(dryRun))
@@ -174,7 +177,11 @@ public static class CommandTree
                     string? taskRoot = parseResult.GetValue(tasks);
                     if (string.IsNullOrWhiteSpace(taskRoot))
                         throw new RunException("run task directory is required");
-                    using WharfLogger logger = WharfLogger.Create(configuration);
+                    WharfConfiguration loggerConfiguration = configuration with
+                    {
+                        Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
+                    };
+                    using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
                     RunResult result = new RunService().Execute(
                         taskRoot,
                         runConfiguration.OutputDirectory,
