@@ -2,6 +2,7 @@ using System.Text.Json;
 using Tomlyn;
 using Tomlyn.Model;
 using Wharf.Configuration;
+using Wharf.Image;
 using Wharf.Logging;
 using Wharf.Tasks;
 
@@ -17,9 +18,15 @@ public sealed record RunResult(
 public sealed class RunService
 {
     private readonly HarborTaskLoader taskLoader;
+    private readonly IAgentImagePreparer imagePreparer;
 
-    public RunService(HarborTaskLoader? taskLoader = null) =>
+    public RunService(
+        HarborTaskLoader? taskLoader = null,
+        IAgentImagePreparer? imagePreparer = null)
+    {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
+        this.imagePreparer = imagePreparer ?? new DockerAgentImagePreparer();
+    }
 
     public RunResult Execute(
         string taskRoot,
@@ -61,7 +68,10 @@ public sealed class RunService
         logger.Info($"run discovered {tasks.Count} task(s)");
         logger.Info($"run created {attemptDirectory} under {jobDirectory}");
 
-        foreach (HarborTask task in tasks)
+        Parallel.ForEach(
+            tasks,
+            new ParallelOptions { MaxDegreeOfParallelism = configuration.B },
+            task =>
         {
             string trialDirectory = Path.Combine(
                 jobDirectory,
@@ -70,18 +80,23 @@ public sealed class RunService
             Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+            string image = imagePreparer.PrepareAsync(
+                task,
+                Path.Combine(trialDirectory, "agent"),
+                CancellationToken.None).GetAwaiter().GetResult();
             var result = new
             {
                 status = "run-no-op",
                 taskRoot = resolvedRoot,
                 taskId = task.TaskId,
                 taskManifest = Path.Combine(task.RootPath, "task.toml"),
-                datasetManifest
+                datasetManifest,
+                agentImage = image
             };
             File.WriteAllText(
                 Path.Combine(trialDirectory, "result.json"),
                 JsonSerializer.Serialize(result, JsonOptions));
-        }
+        });
 
         return new RunResult(
             "run-no-op",

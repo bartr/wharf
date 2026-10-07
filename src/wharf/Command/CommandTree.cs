@@ -4,6 +4,7 @@ using Wharf.Configuration;
 using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
+using Wharf.Image;
 using Wharf.Reporting;
 using Wharf.Run;
 using Wharf.Smoke;
@@ -182,7 +183,8 @@ public static class CommandTree
                         Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
                     };
                     using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
-                    RunResult result = new RunService().Execute(
+                    RunResult result = new RunService(
+                        imagePreparer: new DockerAgentImagePreparer()).Execute(
                         taskRoot,
                         runConfiguration.OutputDirectory,
                         runConfiguration,
@@ -359,7 +361,8 @@ public static class CommandTree
                     Verbosity = Math.Max(getConfiguration().Verbosity, localVerbosity)
                 };
                 using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
-                SmokeResult result = new SmokeService().Run(
+                SmokeResult result = new SmokeService(
+                    imagePreparer: new DockerAgentImagePreparer()).Run(
                     selectedTaskRoot,
                     output,
                     host,

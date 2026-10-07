@@ -3,6 +3,7 @@ using Tomlyn;
 using Tomlyn.Model;
 using Wharf.Configuration;
 using Wharf.Host;
+using Wharf.Image;
 using Wharf.Logging;
 using Wharf.Tasks;
 
@@ -52,13 +53,16 @@ public sealed class SmokeService
 {
     private readonly HarborTaskLoader taskLoader;
     private readonly ISmokeRunExecutor runExecutor;
+    private readonly IAgentImagePreparer? imagePreparer;
 
     public SmokeService(
         HarborTaskLoader? taskLoader = null,
-        ISmokeRunExecutor? runExecutor = null)
+        ISmokeRunExecutor? runExecutor = null,
+        IAgentImagePreparer? imagePreparer = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
         this.runExecutor = runExecutor ?? new NoOpSmokeRunExecutor();
+        this.imagePreparer = imagePreparer;
     }
 
     public SmokeResult Run(
@@ -92,7 +96,15 @@ public sealed class SmokeService
         SmokeRunResult run = runExecutor.Run(
             new SmokeRunRequest(resolvedTaskRoot, task, resolvedOutput),
             logger);
-        WriteSmokeArtifacts(resolvedOutput, resolvedTaskRoot, task, run);
+        string trialDirectory = WriteSmokeArtifacts(resolvedOutput, resolvedTaskRoot, task, run);
+        if (imagePreparer is not null)
+        {
+            string image = imagePreparer.PrepareAsync(
+                task,
+                Path.Combine(trialDirectory, "agent"),
+                CancellationToken.None).GetAwaiter().GetResult();
+            File.WriteAllText(Path.Combine(trialDirectory, "agent", "image.txt"), image);
+        }
 
         string status = host.IsSuccess ? run.Status : "qualification-blocked";
         return new SmokeResult(
@@ -111,7 +123,7 @@ public sealed class SmokeService
         WriteIndented = true
     };
 
-    private static void WriteSmokeArtifacts(
+    private static string WriteSmokeArtifacts(
         string outputDirectory,
         string taskRoot,
         HarborTask task,
@@ -149,6 +161,7 @@ public sealed class SmokeService
         File.WriteAllText(
             Path.Combine(artifactsDirectory, "manifest.json"),
             JsonSerializer.Serialize(Array.Empty<object>(), JsonOptions));
+        return trialDirectory;
     }
 
     private static string SanitizePathPart(string value)
