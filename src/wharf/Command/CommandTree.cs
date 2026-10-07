@@ -16,6 +16,9 @@ public static class CommandTree
         var root = new RootCommand("Run trustworthy software evaluations on customer-owned infrastructure.");
         var quiet = new Option<bool>("--quiet") { Description = "Suppress non-error output." };
         var verbose = new Option<bool>("--verbose") { Description = "Enable verbose output." };
+        verbose.Aliases.Add("-v");
+        var veryVerbose = new Option<bool>("-vv") { Description = "Show each registry rate-limit retry." };
+        var diagnostic = new Option<bool>("-vvv") { Description = "Show redacted subprocess diagnostics." };
         var logFormat = new Option<string>("--log-format")
         {
             Description = "Log format: text or json.",
@@ -23,6 +26,8 @@ public static class CommandTree
         };
         root.Options.Add(quiet);
         root.Options.Add(verbose);
+        root.Options.Add(veryVerbose);
+        root.Options.Add(diagnostic);
         root.Options.Add(logFormat);
 
         root.SetAction(parseResult =>
@@ -32,10 +37,10 @@ public static class CommandTree
                 configuration = configuration with { Quiet = true };
             }
 
-            if (parseResult.GetValue(verbose))
-            {
-                configuration = configuration with { Verbose = true };
-            }
+            int selectedVerbosity = parseResult.GetValue(diagnostic) ? 3 :
+                parseResult.GetValue(veryVerbose) ? 2 :
+                parseResult.GetValue(verbose) ? 1 : configuration.Verbosity;
+            configuration = configuration with { Verbosity = selectedVerbosity };
 
             string? selectedFormat = parseResult.GetValue(logFormat);
             if (!string.IsNullOrWhiteSpace(selectedFormat))

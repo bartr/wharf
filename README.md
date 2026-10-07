@@ -24,6 +24,15 @@ Release builds can override the source version with:
 dotnet build -p:WharfVersion=<semver>
 ```
 
+## Image preparation
+
+The `Wharf.Image` library boundary inspects the local Docker image store before
+pulling, coalesces duplicate image requests, and retries only explicit registry
+rate limits with bounded exponential backoff and jitter. Image preparation can
+write versioned evidence to `image-pulls.jsonl` and
+`image-pull-summary.json`. Derived image builds and the complete preparation
+concurrency gate are introduced separately.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

@@ -38,3 +38,9 @@ what was surprising and what should be done differently in the next session.
 - Session 5 follow-up: WSL2 can run with a custom kernel that removes the
   standard Microsoft markers. Support an explicit, clearly labeled WSL
   classification without weakening any safety probe.
+- Session 6 (`0.6.0`): Rate-limit handling needs two distinct forms of
+  evidence: append each 429 immediately so interruption cannot erase it, then
+  atomically refresh the per-image aggregate with the eventual outcome.
+  Continue injecting delay and randomness at the boundary, and keep registry
+  pressure inside the preparation service so Session 7 can place the whole
+  pipeline behind one `B` gate without inventing a second semaphore.

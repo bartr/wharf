@@ -44,3 +44,14 @@ The current development host `z01` is native Ubuntu, not WSL; do not set
 `WHARF_WSL` there. The explicit `WHARF_WSL=1` classification remains available
 only for a genuinely WSL2 environment whose custom kernel hides standard
 markers, and it does not bypass safety checks.
+
+Session 6 adds image preparation through `Wharf.Image`. Inspect the local image
+store before registry access, coalesce duplicate references for the coordinator
+lifetime, and retry only explicit HTTP 429 or registry rate-limit failures.
+Backoff is capped exponential with injected jitter; registry pressure grows on
+429 responses and decays one step after success. Durable schema `1.0` evidence
+uses `image-pulls.jsonl` plus atomically replaced
+`image-pull-summary.json`. Default console output aggregates affected images;
+verbosity 2 and 3 expose each retry. Keep the complete `B` gate around pull,
+context preparation, and derived build as Session 7 work rather than adding a
+separate pull semaphore or public pull-concurrency setting.

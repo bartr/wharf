@@ -177,8 +177,8 @@ Tag: 0.3.0
 ### Close
 
 * [x] Tests green
-* [ ] Fast-forward merge
-* [ ] Tagged and pushed
+* [x] Fast-forward merge
+* [x] Tagged and pushed
 * [x] Repo memory updated
 * [x] `docs/RETRO.md` bullet appended
 * [x] Next session starter written
@@ -299,6 +299,62 @@ before continuing to image pulls.
 * Framing quality, 1 to 5: 5
 * Drift, yes or no: no
 * Close complete, yes or no: pending user review
+
+---
+
+## Session 6, 2026-10-06
+
+Start time: 20:11 CDT
+End time: 20:18 CDT
+Tag: not yet tagged
+
+### Frame
+
+* Goal, what does done look like: Pull required images once with bounded,
+  jittered, decaying 429 retries and complete durable telemetry.
+* Out of scope, what I am explicitly not doing: Derived image builds, trial
+  containers, the complete `B` gate, and release merge/tagging.
+* Failure condition, what would make this session a failure: A 429 is absent
+  from durable evidence or a deterministic registry failure is retried as a
+  rate limit.
+
+### During
+
+* Parking lot, threads I wanted to pull but did not: Session 7 must place base
+  pulls, context preparation, and derived builds behind one `B` gate.
+  Address-pool/VPN analysis, ephemeral network allocation, and required
+  local-only base-image policy remain preparation inputs where applicable.
+* Fit check decision, proceed. The coordinator and evidence boundary deliver
+  the Session 6 outcome without inventing a public pull semaphore or starting
+  Session 7 derived-build work.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] `docs/RETRO.md` bullet appended
+* [x] Next session starter written
+
+### Summary
+
+Added local-first, duplicate-coalesced Docker image pulls with strict registry
+rate-limit classification, capped jittered backoff, pressure decay, durable
+per-429 JSONL, atomic summaries, and aggregate/verbose console reporting.
+The release was fast-forwarded to `main`, tagged `0.6.0`, and followed by the
+upstream `0.7.0` branch.
+
+### Next session starter
+
+Review Session 6, then extend image preparation through the full `B`-gated
+derived-build pipeline without adding a separate pull semaphore.
+
+### Health signal
+
+* Framing quality, 1 to 5: 5
+* Drift, yes or no: no
+* Close complete, yes or no: yes
 
 ---
 

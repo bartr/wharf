@@ -19,4 +19,15 @@ public sealed class WharfAppTests
 
         Assert.Equal(1, exitCode);
     }
+
+    [Theory]
+    [InlineData("-v")]
+    [InlineData("-vv")]
+    [InlineData("-vvv")]
+    public async Task RepeatableVerbosityFormsAreAccepted(string option)
+    {
+        int exitCode = await WharfApp.RunAsync([option]);
+
+        Assert.Equal(0, exitCode);
+    }
 }
