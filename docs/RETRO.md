@@ -60,3 +60,6 @@ what was surprising and what should be done differently in the next session.
   verifier execution injectable makes the single-task proof testable without
   pretending that a local unit test is a full Docker integration. Preserve
   the manual release gate until the real environment is exercised.
+- Session 11 (`0.11.0`): Logical-attempt banking belongs at admission/result
+  boundaries, not in a later aggregate pass. Stable ordering and immediate
+  banking make duplicate suppression and cancellation behavior observable.

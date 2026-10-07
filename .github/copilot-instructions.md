@@ -82,3 +82,9 @@ workspace before applying a retained patch; never reuse the agent workspace.
 Run verifier commands sequentially with explicit timeouts, retain raw
 stdout/stderr and the patch, and atomically write a versioned trial result.
 Manual testing must approve the unmerged `0.10.0` branch before release.
+
+Session 11 adds the `Wharf.Scheduler` boundary. Attempts are admitted in
+stable attempt-ID order under explicit concurrency and trial limits.
+Successful logical-attempt IDs are banked immediately, duplicate attempts are
+skipped, lifecycle transitions are emitted through an event sink, and
+cancellation prevents new admissions while marking pending work cancelled.

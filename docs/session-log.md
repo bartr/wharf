@@ -140,6 +140,48 @@ into a deterministic work-conserving scheduler.
 
 ---
 
+## Session 11, 2026-10-06
+
+Start time: 22:22 CDT
+End time: 22:25 CDT
+Tag: `0.11.0`
+
+### Frame
+
+* Goal, what does done look like: Schedule selected task attempts
+  deterministically with an `N` trial limit and observable lifecycle states.
+* Out of scope, what I am explicitly not doing: Infrastructure retry policy,
+  phase-specific resources, and restart recovery.
+* Failure condition, what would make this session a failure: Admission order
+  changes results or successful work is not banked immediately.
+
+### During
+
+* Parking lot: resource limits, timeout multipliers, retry classification, and
+  recovery remain Sessions 12 and 13.
+* Fit check decision, proceed. The scheduler owns trial admission and logical
+  attempt banking without weakening the image-preparation `B` boundary.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added deterministic, work-conserving scheduling with concurrency and trial
+limits, successful logical-attempt banking, lifecycle events, and cancellation
+handling.
+
+### Next session starter
+
+Add phase-specific resources, timeouts, and infrastructure retry semantics.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT

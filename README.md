@@ -60,6 +60,12 @@ explicit timeouts. Raw command output, the applied patch, and an atomic
 versioned trial result are retained. The verifier never reuses the agent
 workspace.
 
+## Scheduling
+
+The `Wharf.Scheduler` boundary admits attempts deterministically under
+concurrency and trial limits, banks successful logical attempts, skips
+duplicates, exposes lifecycle counts, and records cancellation transitions.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.
