@@ -5,6 +5,7 @@ using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Reporting;
+using Wharf.Smoke;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
 
@@ -58,10 +59,11 @@ public static class CommandTree
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
         root.Subcommands.Add(CreateCheckCommand());
-        foreach (string? name in new[] { "smoke", "resume", "status", "stop" })
+        foreach (string? name in new[] { "resume", "status", "stop" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
+        root.Subcommands.Add(CreateSmokeCommand());
         root.Subcommands.Add(CreateReportCommand());
 
         return root;
@@ -222,6 +224,56 @@ public static class CommandTree
             catch (IOException exception)
             {
                 Console.Error.WriteLine($"unable to write report: {exception.Message}");
+                return ExitCode.InternalFailure.Value;
+            }
+        });
+        return command;
+    }
+
+    private static CliCommand CreateSmokeCommand()
+    {
+        var command = new CliCommand("smoke", "Run the deterministic local smoke fixture.");
+        var outputDirectory = new Option<string>("--output-directory")
+        {
+            Description = "Directory for smoke artifacts and reports.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), ".wharf-smoke")
+        };
+        var allowUnsupported = new Option<bool>("--allow-unsupported-host")
+        {
+            Description = "Override platform classification only; Docker and capacity failures still block."
+        };
+        var json = new Option<bool>("--json") { Description = "Render the smoke result as JSON." };
+        command.Options.Add(outputDirectory);
+        command.Options.Add(allowUnsupported);
+        command.Options.Add(json);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                HostCheckReport host = new HostCheckService(
+                    [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
+                    .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
+                string? output = parseResult.GetValue(outputDirectory);
+                if (output is null)
+                    throw new SmokeException("smoke output directory is required");
+                SmokeResult result = new SmokeService().Run(output, host);
+                if (parseResult.GetValue(json))
+                    Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    }));
+                else
+                    Console.WriteLine($"{result.Status}\t{result.ArtifactDirectory}\t{result.ReportPath}");
+                return result.ExitCode;
+            }
+            catch (SmokeException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (IOException exception)
+            {
+                Console.Error.WriteLine($"unable to create smoke artifacts: {exception.Message}");
                 return ExitCode.InternalFailure.Value;
             }
         });

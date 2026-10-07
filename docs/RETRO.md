@@ -80,3 +80,6 @@ what was surprising and what should be done differently in the next session.
 - Session 16 (`0.16.0`): Keeping report rendering pure over a versioned
   data-only input makes deterministic regeneration straightforward. Keep CLI
   file handling thin and test the exact JSONL line shape separately.
+- Session 17 (`0.17.0`, unreleased): A local fixture can prove artifact and
+  report wiring without pretending that host qualification passed. Keep
+  platform overrides separate from Docker and capacity gates.
