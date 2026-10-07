@@ -48,12 +48,70 @@ public static class CommandTree
 
         root.Subcommands.Add(CreateVersionCommand(configuration));
         root.Subcommands.Add(CreateCompletionCommand());
-        foreach (string? name in new[] { "check", "smoke", "run", "resume", "status", "stop", "report" })
+        root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
+        foreach (string? name in new[] { "check", "smoke", "resume", "status", "stop", "report" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
 
         return root;
+    }
+
+    private static CliCommand CreateRunCommand(
+        WharfConfiguration configuration,
+        Option<string> logFormat)
+    {
+        var command = new CliCommand("run", "Execute or preview a configured evaluation run.");
+        var manifest = new Option<string?>("--manifest") { Description = "Path to a JSON run manifest." };
+        var dryRun = new Option<bool>("--dry-run") { Description = "Validate and print a side-effect-free plan." };
+        dryRun.Aliases.Add("-d");
+        var k = new Option<int?>("--k") { Description = "Attempts per task." };
+        var n = new Option<int?>("--n") { Description = "Task concurrency." };
+        var b = new Option<int?>("--b") { Description = "Preparation/build concurrency." };
+        var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
+        var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
+        var model = new Option<string?>("--model") { Description = "Model name." };
+        var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
+        command.Options.Add(manifest);
+        command.Options.Add(dryRun);
+        command.Options.Add(k);
+        command.Options.Add(n);
+        command.Options.Add(b);
+        command.Options.Add(outputFormat);
+        command.Options.Add(outputDirectory);
+        command.Options.Add(model);
+        command.Options.Add(effort);
+        command.SetAction(parseResult =>
+        {
+            if (!parseResult.GetValue(dryRun))
+            {
+                Console.Error.WriteLine($"wharf run is not implemented in {WharfVersion.Current}");
+                return ExitCode.InternalFailure.Value;
+            }
+
+            try
+            {
+                string? rendered = DryRunService.Execute(
+                    parseResult.GetValue(manifest),
+                    new RunConfigurationOverrides(
+                        parseResult.GetValue(k),
+                        parseResult.GetValue(n),
+                        parseResult.GetValue(b),
+                        parseResult.GetValue(outputFormat),
+                        parseResult.GetValue(outputDirectory),
+                        parseResult.GetValue(model),
+                        parseResult.GetValue(effort)),
+                    parseResult.GetValue(outputFormat));
+                Console.WriteLine(rendered);
+                return ExitCode.Success.Value;
+            }
+            catch (RunConfigurationException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+        });
+        return command;
     }
 
     private static CliCommand CreateVersionCommand(WharfConfiguration configuration)
