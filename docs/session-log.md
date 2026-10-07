@@ -202,6 +202,56 @@ coupling state persistence to Docker or execution.
 
 ---
 
+## Session 4, 2026-10-06
+
+Start time: 19:40 CDT
+End time: 20:15 CDT
+Tag: 0.4.0
+
+### Frame
+
+* Goal, what does done look like: Discover, validate, checksum, filter, and
+  deterministically order Harbor-compatible DeepSWE tasks.
+* Out of scope, what I am explicitly not doing: Container creation, host
+  checks, scheduling, task execution, and reporting.
+* Failure condition, what would make this session a failure: Equivalent task
+  roots produce different task identities, checksums, order, or samples.
+
+### During
+
+* Parking lot, threads I wanted to pull but did not: Runtime dataset
+  packaging, Docker, and execution remain deferred.
+* Fit check decision, proceed. A small sanitized fixture set was selected
+  instead of vendoring the full benchmark corpus or reference material.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] `docs/RETRO.md` bullet appended
+* [x] Next session starter written
+
+### Summary
+
+Added schema-checked Harbor loading, canonical checksums, deterministic
+selection, seeded sampling, sharding, and K-attempt expansion. Vendored
+sanitized parser fixtures without solutions or hidden verifier data.
+
+### Next session starter
+
+Start Session 5 by implementing read-only supported-host and Docker preflight
+checks without mutating the host.
+
+### Health signal
+
+* Framing quality, 1 to 5: 5
+* Drift, yes or no: no
+* Close complete, yes or no: yes
+
+---
+
 ## Mid-arc reflection, after session 5
 
 * Where did framing break down?

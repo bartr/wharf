@@ -25,3 +25,7 @@ what was surprising and what should be done differently in the next session.
   materialized a summary. Add serialization round-trip tests immediately when
   introducing durable contracts, and prefer explicit converters over relying on
   constructor inference.
+- Session 4 (`0.4.0`): Harbor task manifests vary in whether the task-level
+  description is populated, while metadata consistently carries the display
+  description. Preserve the source shape but use the metadata description as
+  the explicit fallback, and keep reference material out of vendored fixtures.

@@ -27,3 +27,10 @@ an atomically replaced `summary.json`. Event IDs are idempotent, sequence
 numbers are contiguous, malformed or mismatched records fail explicitly, and
 logical attempts must remain distinct from infrastructure retries. Keep
 read-only summary access independent from the per-run writer lock.
+
+Session 4 established Harbor task loading as a library boundary. Schema `1.3`
+manifests are parsed strictly, task checksums use sorted relative paths and
+content, and selection is deterministic across language, include, exclude,
+shard, seeded-sample, and K-attempt expansion options. Vendored fixtures under
+`tests/fixtures/harbor/` are sanitized: never add solutions, hidden tests,
+reference patches, or grader-only material to the Wharf checkout.
