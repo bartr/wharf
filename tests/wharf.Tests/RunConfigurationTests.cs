@@ -37,6 +37,7 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>());
 
         Assert.Equal("gpt-6-luna", result.Model);
+        Assert.Equal("1.0.91", result.CliVersion);
     }
 
     [Fact]

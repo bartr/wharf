@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wharf.Configuration;
 using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Tasks;
@@ -113,10 +114,14 @@ public sealed class SmokeService
         HarborTask task,
         SmokeRunResult run)
     {
-        string jobDirectory = Path.Combine(outputDirectory, "smoke");
+        string jobDirectory = Path.Combine(
+            outputDirectory,
+            $"{RunConfigurationResolver.DefaultCopilotCli}-" +
+            $"{RunConfigurationResolver.DefaultCopilotModel}-max-" +
+            $"{RunConfigurationResolver.DefaultCopilotVersion}");
         string trialDirectory = Path.Combine(
             jobDirectory,
-            "wharf-no-op-1",
+            "all-1",
             $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}");
         string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
         Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));

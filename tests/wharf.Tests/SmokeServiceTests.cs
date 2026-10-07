@@ -33,6 +33,9 @@ public sealed class SmokeServiceTests
             Assert.True(Directory.Exists(FindSmokeDirectory(directory, "artifacts")));
             Assert.True(Directory.Exists(FindSmokeDirectory(directory, "agent")));
             Assert.True(Directory.Exists(FindSmokeDirectory(directory, "verifier")));
+            Assert.Contains(
+                Path.Combine("copilot-gpt-6-luna-max-1.0.91", "all-1"),
+                FindSmokeFile(directory, "smoke-selection.json"));
         }
         finally
         {

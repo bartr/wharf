@@ -122,6 +122,10 @@ public static class RunManifestLoader
 
 public static class RunConfigurationResolver
 {
+    public const string DefaultCopilotCli = "copilot";
+    public const string DefaultCopilotModel = "gpt-6-luna";
+    public const string DefaultCopilotVersion = "1.0.91";
+
     public static RunConfiguration Resolve(
         RunManifest? manifest,
         RunConfigurationOverrides overrides,
@@ -161,7 +165,7 @@ public static class RunConfigurationResolver
             directory,
             model,
             effort,
-            manifest.CliVersion ?? "default",
+            manifest.CliVersion ?? DefaultCopilotVersion,
             manifest.Mounts ?? [],
             manifest.Artifacts ?? [],
             manifest.RetentionDays ?? 30,
