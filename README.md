@@ -79,6 +79,12 @@ The `Wharf.Recovery` boundary replays retained events, resumes only unfinished
 or explicitly retryable logical attempts in stable order, preserves retry
 identity, and reports orphaned live resources for explicit reconciliation.
 
+## Operations
+
+The `Wharf.Operations` boundary provides non-mutating status snapshots,
+bounded graceful stop, targeted ephemeral cleanup, and durable completion or
+blocked notifications. Optional webhook delivery is HTTPS-only.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

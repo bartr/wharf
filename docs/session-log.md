@@ -266,6 +266,48 @@ Make active runs observable and safely stoppable without deleting evidence.
 
 ---
 
+## Session 14, 2026-10-06
+
+Start time: 22:56 CDT
+End time: 22:59 CDT
+Tag: `0.14.0`
+
+### Frame
+
+* Goal, what does done look like: Provide non-mutating status, safe stop,
+  retained evidence, and durable completion/blocked notifications.
+* Out of scope, what I am explicitly not doing: Score computation and final
+  report styling.
+* Failure condition, what would make this session a failure: Status mutates
+  state or stop removes retained evidence.
+
+### During
+
+* Parking lot: audit, scoring, and report generation remain Sessions 15 and
+  16.
+* Fit check decision, proceed. Cleanup accepts only explicitly ephemeral
+  resource IDs and status remains a pure projection.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added read-only status projections, bounded graceful stop, targeted
+ephemeral-resource cleanup, and durable completion/blocked notifications with
+optional HTTPS webhooks.
+
+### Next session starter
+
+Audit retained evidence and compute PASS@1 and Enterprise Score from fixtures.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT

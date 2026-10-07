@@ -100,3 +100,9 @@ retained events, excludes completed and deterministic-failure logical
 attempts, resumes unfinished and explicitly retryable work in stable order,
 preserves immutable retry counts/IDs, and reports orphaned live resources
 without silently deleting evidence.
+
+Session 14 adds `Wharf.Operations`. Status snapshots are read-only and derive
+counts, occupancy, retries, and ETA from retained events. Graceful stop
+cancels first, waits within a bound, and cleans only explicitly ephemeral
+resources. Completion and blocked notifications are durable; webhooks require
+an explicit HTTPS endpoint.

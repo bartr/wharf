@@ -70,3 +70,7 @@ what was surprising and what should be done differently in the next session.
 - Session 13 (`0.13.0`): Recovery is safest as a pure plan over validated
   events plus an explicit live-resource snapshot. Report orphan resources
   separately so resume never hides cleanup or mutates retained evidence.
+- Session 14 (`0.14.0`): Cleanup safety is easiest to prove by making
+  ephemeral-resource IDs an explicit input and never deriving them from the
+  retained evidence tree. Keep status as a pure projection so operators can
+  inspect runs without changing recovery state.
