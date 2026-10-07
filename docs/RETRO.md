@@ -77,3 +77,6 @@ what was surprising and what should be done differently in the next session.
   ephemeral-resource IDs an explicit input and never deriving them from the
   retained evidence tree. Keep status as a pure projection so operators can
   inspect runs without changing recovery state.
+- Session 16 (`0.16.0`): Keeping report rendering pure over a versioned
+  data-only input makes deterministic regeneration straightforward. Keep CLI
+  file handling thin and test the exact JSONL line shape separately.

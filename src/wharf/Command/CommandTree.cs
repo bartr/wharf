@@ -4,6 +4,7 @@ using Wharf.Configuration;
 using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
+using Wharf.Reporting;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
 
@@ -57,10 +58,11 @@ public static class CommandTree
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
         root.Subcommands.Add(CreateCheckCommand());
-        foreach (string? name in new[] { "smoke", "resume", "status", "stop", "report" })
+        foreach (string? name in new[] { "smoke", "resume", "status", "stop" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
+        root.Subcommands.Add(CreateReportCommand());
 
         return root;
     }
@@ -165,6 +167,63 @@ public static class CommandTree
             using var logger = WharfLogger.Create(configuration);
             logger.Info(WharfVersion.Current);
             return ExitCode.Success.Value;
+        });
+        return command;
+    }
+
+    private static CliCommand CreateReportCommand()
+    {
+        var command = new CliCommand("report", "Render deterministic reports from retained evidence.");
+        var input = new Option<string>("--input") { Description = "Path to a retained report input JSON file." };
+        var outputDirectory = new Option<string>("--output-directory")
+        {
+            Description = "Directory for rendered report files.",
+            DefaultValueFactory = _ => Directory.GetCurrentDirectory()
+        };
+        var format = new Option<string>("--format")
+        {
+            Description = "Report format: all, markdown, json, or jsonl.",
+            DefaultValueFactory = _ => "all"
+        };
+        command.Options.Add(input);
+        command.Options.Add(outputDirectory);
+        command.Options.Add(format);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string? inputPath = parseResult.GetValue(input);
+                string? outputPath = parseResult.GetValue(outputDirectory);
+                string? requestedFormat = parseResult.GetValue(format);
+                if (inputPath is null || outputPath is null || requestedFormat is null)
+                    throw new ReportInputException("report input, output directory, and format are required");
+
+                ReportInput report = ReportRenderer.Load(inputPath);
+                ReportRenderer renderer = new();
+                string directory = outputPath;
+                string selectedFormat = requestedFormat.ToLowerInvariant();
+                if (selectedFormat is not ("all" or "markdown" or "json" or "jsonl"))
+                    throw new ReportInputException("report format must be all, markdown, json, or jsonl");
+
+                Directory.CreateDirectory(directory);
+                if (selectedFormat is "all" or "markdown")
+                    File.WriteAllText(Path.Combine(directory, "report.md"), renderer.RenderMarkdown(report));
+                if (selectedFormat is "all" or "json")
+                    File.WriteAllText(Path.Combine(directory, "report.json"), renderer.RenderJson(report) + Environment.NewLine);
+                if (selectedFormat is "all" or "jsonl")
+                    File.WriteAllText(Path.Combine(directory, "report.jsonl"), renderer.RenderJsonLines(report));
+                return ExitCode.Success.Value;
+            }
+            catch (ReportInputException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (IOException exception)
+            {
+                Console.Error.WriteLine($"unable to write report: {exception.Message}");
+                return ExitCode.InternalFailure.Value;
+            }
         });
         return command;
     }
