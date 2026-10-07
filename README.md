@@ -24,6 +24,17 @@ Release builds can override the source version with:
 dotnet build -p:WharfVersion=<semver>
 ```
 
+Build a Debian package with checksums and SBOM metadata:
+
+```bash
+./scripts/package-wharf.sh <semver> [output-directory]
+```
+
+Set `SIGNING_KEY` to produce and verify a detached GPG signature. Install or
+upgrade a package with `scripts/wharf-bootstrap.sh`; the wrapper records the
+previous package for `scripts/wharf-rollback.sh` when `dpkg-repack` is
+available.
+
 ## Image preparation
 
 The `Wharf.Image` library boundary inspects the local Docker image store before

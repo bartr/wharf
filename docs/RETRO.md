@@ -83,3 +83,6 @@ what was surprising and what should be done differently in the next session.
 - Session 17 (`0.17.0`, unreleased): A local fixture can prove artifact and
   report wiring without pretending that host qualification passed. Keep
   platform overrides separate from Docker and capacity gates.
+- Session 18 (`0.18.0`): Packaging needs explicit unsigned labeling and a
+  version override that is shared by the published executable and Debian
+  metadata. Keep host mutation isolated behind small sudo wrappers.
