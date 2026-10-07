@@ -163,6 +163,9 @@ public static class CommandTree
                             parseResult.GetValue(effort)),
                         new Dictionary<string, string?>
                         {
+                            ["K"] = Environment.GetEnvironmentVariable("K"),
+                            ["N"] = Environment.GetEnvironmentVariable("N"),
+                            ["B"] = Environment.GetEnvironmentVariable("B"),
                             ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
                             ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
                             ["WHARF_B"] = Environment.GetEnvironmentVariable("WHARF_B"),

@@ -66,6 +66,22 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void SupportsShortConcurrencyEnvironmentNames()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["N"] = "1",
+                ["B"] = "4"
+            });
+
+        Assert.Equal(1, result.N);
+        Assert.Equal(1, result.B);
+    }
+
+    [Fact]
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(

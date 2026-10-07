@@ -133,7 +133,12 @@ public static class RunConfigurationResolver
     {
         manifest ??= new RunManifest();
         string? EnvironmentValue(string name) =>
-            environment.TryGetValue(name, out string? value) ? value : null;
+            environment.TryGetValue(name, out string? value)
+                ? value
+                : name.StartsWith("WHARF_", StringComparison.Ordinal) &&
+                  environment.TryGetValue(name["WHARF_".Length..], out string? shortValue)
+                    ? shortValue
+                    : null;
 
         int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
