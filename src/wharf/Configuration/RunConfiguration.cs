@@ -135,7 +135,7 @@ public static class RunConfigurationResolver
         string? EnvironmentValue(string name) =>
             environment.TryGetValue(name, out string? value) ? value : null;
 
-        int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 4, "K");
+        int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
         int b = PickInt(overrides.B, EnvironmentValue("WHARF_B"), manifest.B, 4, "B");
         b = Math.Min(b, n);

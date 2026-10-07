@@ -84,11 +84,13 @@ public sealed class RunService
             Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+            logger.Info($"{prefix} status=preparing-image");
             string image = imagePreparer.PrepareAsync(
                 task,
                 Path.Combine(trialDirectory, "agent"),
                 message => logger.Info($"{prefix} status={message}"),
                 CancellationToken.None).GetAwaiter().GetResult();
+            logger.Info($"{prefix} status=image-ready image={image}");
             logger.Info($"{prefix} status=running-agent");
             logger.Info($"{prefix} status=agent-execution-pending");
             logger.Info($"{prefix} status=running-verifier");
