@@ -17,7 +17,8 @@ public sealed record HarborTask(
     int? Gpus,
     double? BuildTimeoutSeconds,
     double? AgentTimeoutSeconds,
-    double? VerifierTimeoutSeconds);
+    double? VerifierTimeoutSeconds,
+    string? EnvironmentImage = null);
 
 public sealed record TaskSelection(
     string? Language = null,

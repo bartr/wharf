@@ -78,7 +78,8 @@ public sealed class HarborTaskLoader
             OptionalInt(environment, "gpus"),
             OptionalDouble(environment, "build_timeout_sec"),
             OptionalDouble(verifier, "agent_timeout_sec"),
-            OptionalDouble(verifier, "timeout_sec"));
+            OptionalDouble(verifier, "timeout_sec"),
+            OptionalString(environment, "docker_image"));
     }
 
     private static string ComputeChecksum(string directory)

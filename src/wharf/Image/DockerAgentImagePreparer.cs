@@ -38,15 +38,32 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         CancellationToken cancellationToken = default)
     {
         progress ??= this.progress;
+        Directory.CreateDirectory(evidenceDirectory);
+        if (!string.IsNullOrWhiteSpace(task.EnvironmentImage))
+        {
+            progress?.Invoke($"agent image checking {task.EnvironmentImage}");
+            ImagePullResult environmentImage = await imagePulls.PrepareAsync(
+                task.EnvironmentImage,
+                cancellationToken);
+            progress?.Invoke(
+                $"agent image {environmentImage.Outcome}: {task.EnvironmentImage}");
+            File.WriteAllText(
+                Path.Combine(evidenceDirectory, "image-pull.json"),
+                System.Text.Json.JsonSerializer.Serialize(environmentImage));
+            return task.EnvironmentImage;
+        }
+
         string context = Path.Combine(task.RootPath, "environment");
         string dockerfile = Path.Combine(context, "Dockerfile");
         if (!File.Exists(dockerfile))
             throw new AgentImageException($"agent Dockerfile does not exist: {dockerfile}");
 
-        string baseImage = ReadBaseImage(dockerfile);
+        string configuredBaseImage = ReadBaseImage(dockerfile);
+        string baseImage = ResolveLocalBaseImage(configuredBaseImage);
         string image = $"wharf-agent:{task.SourceChecksum[..12]}";
-        Directory.CreateDirectory(evidenceDirectory);
         progress?.Invoke($"agent image preparing task {task.TaskId}");
+        if (!string.Equals(configuredBaseImage, baseImage, StringComparison.Ordinal))
+            progress?.Invoke($"agent image substituting {configuredBaseImage} with {baseImage}");
         progress?.Invoke($"agent image checking base {baseImage}");
         ImagePullResult baseResult = await imagePulls.PrepareAsync(baseImage, cancellationToken);
         progress?.Invoke($"agent image base {baseResult.Outcome}: {baseImage}");
@@ -73,6 +90,13 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 
         throw new AgentImageException($"Dockerfile has no FROM instruction: {dockerfile}");
     }
+
+    private static string ResolveLocalBaseImage(string image) =>
+        image.Equals(
+            "public.ecr.aws/x8v8d7g8/mars-base:latest",
+            StringComparison.OrdinalIgnoreCase)
+            ? "mars-base:latest"
+            : image;
 
     private static async Task<ProcessResult> RunDockerAsync(
         IReadOnlyList<string> arguments,
