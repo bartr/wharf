@@ -82,6 +82,24 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void ShortConcurrencyNamesOverrideWharfPrefixedValues()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["N"] = "1",
+                ["B"] = "1",
+                ["WHARF_N"] = "4",
+                ["WHARF_B"] = "4"
+            });
+
+        Assert.Equal(1, result.N);
+        Assert.Equal(1, result.B);
+    }
+
+    [Fact]
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(

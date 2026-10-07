@@ -132,13 +132,15 @@ public static class RunConfigurationResolver
         IReadOnlyDictionary<string, string?> environment)
     {
         manifest ??= new RunManifest();
-        string? EnvironmentValue(string name) =>
-            environment.TryGetValue(name, out string? value)
-                ? value
-                : name.StartsWith("WHARF_", StringComparison.Ordinal) &&
-                  environment.TryGetValue(name["WHARF_".Length..], out string? shortValue)
-                    ? shortValue
-                    : null;
+        string? EnvironmentValue(string name)
+        {
+            if (name.StartsWith("WHARF_", StringComparison.Ordinal) &&
+                environment.TryGetValue(name["WHARF_".Length..], out string? shortValue) &&
+                !string.IsNullOrWhiteSpace(shortValue))
+                return shortValue;
+
+            return environment.TryGetValue(name, out string? value) ? value : null;
+        }
 
         int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
