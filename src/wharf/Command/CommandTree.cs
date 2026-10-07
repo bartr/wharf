@@ -5,6 +5,7 @@ using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Reporting;
+using Wharf.Run;
 using Wharf.Smoke;
 using Wharf.Qualification;
 using Wharf.Tasks;
@@ -122,6 +123,11 @@ public static class CommandTree
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var model = new Option<string?>("--model") { Description = "Model name." };
         var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
+        var tasks = new Option<string>("--tasks")
+        {
+            Description = "Directory containing the dataset.toml or task.toml directories.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "tasks")
+        };
         command.Options.Add(manifest);
         command.Options.Add(dryRun);
         command.Options.Add(k);
@@ -131,12 +137,67 @@ public static class CommandTree
         command.Options.Add(outputDirectory);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(tasks);
         command.SetAction(parseResult =>
         {
             if (!parseResult.GetValue(dryRun))
             {
-                Console.Error.WriteLine($"wharf run is not implemented in {WharfVersion.Current}");
-                return ExitCode.InternalFailure.Value;
+                try
+                {
+                    RunManifest runManifest = parseResult.GetValue(manifest) is { } manifestPath
+                        ? RunManifestLoader.Load(manifestPath)
+                        : new RunManifest();
+                    RunConfiguration runConfiguration = RunConfigurationResolver.Resolve(
+                        runManifest,
+                        new RunConfigurationOverrides(
+                            parseResult.GetValue(k),
+                            parseResult.GetValue(n),
+                            parseResult.GetValue(b),
+                            parseResult.GetValue(outputFormat),
+                            parseResult.GetValue(outputDirectory),
+                            parseResult.GetValue(model),
+                            parseResult.GetValue(effort)),
+                        new Dictionary<string, string?>
+                        {
+                            ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
+                            ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
+                            ["WHARF_B"] = Environment.GetEnvironmentVariable("WHARF_B"),
+                            ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
+                            ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
+                            ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
+                            ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                            ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                            ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                            ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
+                        });
+                    RunConfigurationValidator.Validate(runManifest, runConfiguration);
+                    string? taskRoot = parseResult.GetValue(tasks);
+                    if (string.IsNullOrWhiteSpace(taskRoot))
+                        throw new RunException("run task directory is required");
+                    using WharfLogger logger = WharfLogger.Create(configuration);
+                    RunResult result = new RunService().Execute(
+                        taskRoot,
+                        runConfiguration.OutputDirectory,
+                        runConfiguration,
+                        logger);
+                    Console.WriteLine($"{result.Status}\t{result.TaskCount}\t{result.OutputDirectory}");
+                    return ExitCode.Success.Value;
+                }
+                catch (RunException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InvalidInput.Value;
+                }
+                catch (RunConfigurationException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InvalidInput.Value;
+                }
+                catch (IOException exception)
+                {
+                    Console.Error.WriteLine($"unable to create run artifacts: {exception.Message}");
+                    return ExitCode.InternalFailure.Value;
+                }
             }
 
             try

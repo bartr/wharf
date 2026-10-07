@@ -147,7 +147,7 @@ public static class RunConfigurationResolver
             overrides.OutputDirectory,
             EnvironmentValue("WHARF_OUTPUT_DIRECTORY"),
             manifest.Output?.Directory,
-            "run-output");
+            "jobs");
         string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "gpt-6-luna");
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "medium");
         SecretSettings credentials = new(
