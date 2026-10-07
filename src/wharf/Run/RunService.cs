@@ -83,6 +83,7 @@ public sealed class RunService
             string image = imagePreparer.PrepareAsync(
                 task,
                 Path.Combine(trialDirectory, "agent"),
+                logger.Info,
                 CancellationToken.None).GetAwaiter().GetResult();
             var result = new
             {

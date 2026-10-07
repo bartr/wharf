@@ -29,7 +29,7 @@ public sealed class NoOpSmokeRunExecutor : ISmokeRunExecutor
 {
     public SmokeRunResult Run(SmokeRunRequest request, WharfLogger logger)
     {
-        logger.Info($"run selected task {request.Task.TaskId} (execution is currently a no-op)");
+        logger.Info($"run selected task {request.Task.TaskId}");
         logger.Verbose($"run task root: {request.TaskRoot}", 2);
         logger.Verbose($"run output directory: {request.OutputDirectory}", 2);
         return new SmokeRunResult(
@@ -102,6 +102,7 @@ public sealed class SmokeService
             string image = imagePreparer.PrepareAsync(
                 task,
                 Path.Combine(trialDirectory, "agent"),
+                logger.Info,
                 CancellationToken.None).GetAwaiter().GetResult();
             File.WriteAllText(Path.Combine(trialDirectory, "agent", "image.txt"), image);
         }

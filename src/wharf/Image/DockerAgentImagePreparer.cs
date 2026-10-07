@@ -9,26 +9,35 @@ public interface IAgentImagePreparer
     Task<string> PrepareAsync(
         HarborTask task,
         string evidenceDirectory,
+        Action<string>? progress = null,
         CancellationToken cancellationToken = default);
 }
 
 public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 {
     private readonly ImagePullCoordinator imagePulls;
+    private readonly Action<string>? progress;
 
-    public DockerAgentImagePreparer(ImagePullCoordinator? imagePulls = null) =>
+    public DockerAgentImagePreparer(
+        ImagePullCoordinator? imagePulls = null,
+        Action<string>? progress = null)
+    {
         this.imagePulls = imagePulls ?? new ImagePullCoordinator(
             new DockerImageClient(),
             new SystemAsyncDelay(),
             new SystemRandomSource(),
             new NullImagePullTelemetry(),
             new ImagePullConsole(0));
+        this.progress = progress;
+    }
 
     public async Task<string> PrepareAsync(
         HarborTask task,
         string evidenceDirectory,
+        Action<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        progress ??= this.progress;
         string context = Path.Combine(task.RootPath, "environment");
         string dockerfile = Path.Combine(context, "Dockerfile");
         if (!File.Exists(dockerfile))
@@ -37,7 +46,11 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         string baseImage = ReadBaseImage(dockerfile);
         string image = $"wharf-agent:{task.SourceChecksum[..12]}";
         Directory.CreateDirectory(evidenceDirectory);
-        await imagePulls.PrepareAsync(baseImage, cancellationToken);
+        progress?.Invoke($"agent image preparing task {task.TaskId}");
+        progress?.Invoke($"agent image checking base {baseImage}");
+        ImagePullResult baseResult = await imagePulls.PrepareAsync(baseImage, cancellationToken);
+        progress?.Invoke($"agent image base {baseResult.Outcome}: {baseImage}");
+        progress?.Invoke($"agent image building {image}");
 
         ProcessResult build = await RunDockerAsync(
             ["image", "build", "--file", dockerfile, "--tag", image, context],
@@ -45,6 +58,7 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         File.WriteAllText(
             Path.Combine(evidenceDirectory, "image-build.log"),
             build.StandardOutput + build.StandardError);
+        progress?.Invoke($"agent image built {image}");
         return image;
     }
 

@@ -184,7 +184,7 @@ public static class CommandTree
                     };
                     using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
                     RunResult result = new RunService(
-                        imagePreparer: new DockerAgentImagePreparer()).Execute(
+                        imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
                         taskRoot,
                         runConfiguration.OutputDirectory,
                         runConfiguration,
@@ -362,7 +362,7 @@ public static class CommandTree
                 };
                 using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
                 SmokeResult result = new SmokeService(
-                    imagePreparer: new DockerAgentImagePreparer()).Run(
+                    imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Run(
                     selectedTaskRoot,
                     output,
                     host,
