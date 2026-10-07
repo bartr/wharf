@@ -29,7 +29,10 @@ public sealed class SmokeServiceTests
             Assert.Equal(0, result.ExitCode);
             Assert.Equal("smoke-go", result.TaskId);
             Assert.Equal("smoke-go", executor.TaskId);
-            Assert.True(File.Exists(Path.Combine(directory, "smoke-selection.json")));
+            Assert.True(File.Exists(FindSmokeFile(directory, "smoke-selection.json")));
+            Assert.True(Directory.Exists(FindSmokeDirectory(directory, "artifacts")));
+            Assert.True(Directory.Exists(FindSmokeDirectory(directory, "agent")));
+            Assert.True(Directory.Exists(FindSmokeDirectory(directory, "verifier")));
         }
         finally
         {
@@ -57,7 +60,7 @@ public sealed class SmokeServiceTests
 
             Assert.Equal("qualification-blocked", result.Status);
             Assert.Equal(4, result.ExitCode);
-            Assert.True(File.Exists(Path.Combine(directory, "smoke-selection.json")));
+            Assert.True(File.Exists(FindSmokeFile(directory, "smoke-selection.json")));
         }
         finally
         {
@@ -86,6 +89,12 @@ public sealed class SmokeServiceTests
             directory = directory.Parent;
         return directory?.FullName ?? throw new DirectoryNotFoundException("repository root not found");
     }
+
+    private static string FindSmokeFile(string directory, string fileName) =>
+        Directory.GetFiles(directory, fileName, SearchOption.AllDirectories).Single();
+
+    private static string FindSmokeDirectory(string directory, string name) =>
+        Directory.GetDirectories(directory, name, SearchOption.AllDirectories).Single();
 
     private sealed class RecordingExecutor : ISmokeRunExecutor
     {

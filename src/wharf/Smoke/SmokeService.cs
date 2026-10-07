@@ -88,15 +88,7 @@ public sealed class SmokeService
         SmokeRunResult run = runExecutor.Run(
             new SmokeRunRequest(resolvedTaskRoot, task, resolvedOutput),
             logger);
-        File.WriteAllText(
-            Path.Combine(resolvedOutput, "smoke-selection.json"),
-            JsonSerializer.Serialize(new
-            {
-                taskRoot = resolvedTaskRoot,
-                taskId = task.TaskId,
-                taskManifest = Path.Combine(task.RootPath, "task.toml"),
-                status = run.Status
-            }, JsonOptions));
+        WriteSmokeArtifacts(resolvedOutput, resolvedTaskRoot, task, run);
 
         string status = host.IsSuccess ? run.Status : "qualification-blocked";
         return new SmokeResult(
@@ -114,6 +106,55 @@ public sealed class SmokeService
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true
     };
+
+    private static void WriteSmokeArtifacts(
+        string outputDirectory,
+        string taskRoot,
+        HarborTask task,
+        SmokeRunResult run)
+    {
+        string jobDirectory = Path.Combine(outputDirectory, "smoke");
+        string trialDirectory = Path.Combine(
+            jobDirectory,
+            "wharf-no-op-1",
+            $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}");
+        string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
+        Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
+        Directory.CreateDirectory(artifactsDirectory);
+        Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+
+        var selection = new
+        {
+            taskRoot,
+            taskId = task.TaskId,
+            taskManifest = Path.Combine(task.RootPath, "task.toml"),
+            status = run.Status
+        };
+        File.WriteAllText(
+            Path.Combine(trialDirectory, "smoke-selection.json"),
+            JsonSerializer.Serialize(selection, JsonOptions));
+        File.WriteAllText(
+            Path.Combine(jobDirectory, "result.json"),
+            JsonSerializer.Serialize(new
+            {
+                status = run.Status,
+                taskId = task.TaskId,
+                trials = 1
+            }, JsonOptions));
+        File.WriteAllText(
+            Path.Combine(trialDirectory, "result.json"),
+            JsonSerializer.Serialize(selection, JsonOptions));
+        File.WriteAllText(
+            Path.Combine(artifactsDirectory, "manifest.json"),
+            JsonSerializer.Serialize(Array.Empty<object>(), JsonOptions));
+    }
+
+    private static string SanitizePathPart(string value)
+    {
+        var invalidCharacters = new HashSet<char>(Path.GetInvalidFileNameChars());
+        return new string(value.Select(character =>
+            invalidCharacters.Contains(character) ? '_' : character).ToArray());
+    }
 }
 
 public sealed class SmokeException(string message) : Exception(message);
