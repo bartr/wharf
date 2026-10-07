@@ -37,6 +37,15 @@ public sealed class HostCheckTests
         Assert.Equal(0, report.ExitCode);
     }
 
+    [Fact]
+    public void DefaultInotifyThresholdsMatchLinuxKernelSettings()
+    {
+        HostCheckOptions options = new();
+
+        Assert.Equal(1_024, options.MinimumInotifyInstances);
+        Assert.Equal(65_536, options.MinimumInotifyWatches);
+    }
+
     private sealed class FixedProbe(HostCheck result) : IHostProbe
     {
         public HostCheck Check(HostCheckOptions options) => result;

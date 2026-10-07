@@ -31,5 +31,7 @@ what was surprising and what should be done differently in the next session.
   the explicit fallback, and keep reference material out of vendored fixtures.
 - Session 5 (`0.5.0`): A real host probe exposed that a machine can have a
   healthy Docker daemon while still failing workload capacity, such as a low
-  inotify limit. Keep platform, daemon, and capacity outcomes separate so an
-  unsupported-host override cannot hide a safety failure.
+  inotify limit. The first implementation also conflated inotify instances
+  and watches; validate related kernel settings independently and keep
+  platform, daemon, and capacity outcomes separate so an unsupported-host
+  override cannot hide a safety failure.

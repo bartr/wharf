@@ -25,7 +25,8 @@ public sealed record HostCheckOptions(
     long MinimumMemoryBytes = 8L * 1024 * 1024 * 1024,
     long MinimumDiskBytes = 50L * 1024 * 1024 * 1024,
     long MinimumFileDescriptors = 65_536,
-    long MinimumInotifyInstances = 524_288,
+    long MinimumInotifyInstances = 1_024,
+    long MinimumInotifyWatches = 65_536,
     long MinimumPids = 32_768);
 
 public interface IHostProbe
@@ -119,17 +120,19 @@ public sealed class CapacityProbe : IHostProbe
         long disk = new DriveInfo("/").AvailableFreeSpace;
         long fileDescriptors = ReadLong("/proc/sys/fs/file-max");
         long inotify = ReadLong("/proc/sys/fs/inotify/max_user_instances");
+        long inotifyWatches = ReadLong("/proc/sys/fs/inotify/max_user_watches");
         long pids = ReadLong("/proc/sys/kernel/pid_max");
         bool passed = memory >= options.MinimumMemoryBytes &&
             disk >= options.MinimumDiskBytes &&
             fileDescriptors >= options.MinimumFileDescriptors &&
             inotify >= options.MinimumInotifyInstances &&
+            inotifyWatches >= options.MinimumInotifyWatches &&
             pids >= options.MinimumPids;
         return new HostCheck(
             "capacity",
             passed,
             false,
-            $"memory={memory}; disk={disk}; fileDescriptors={fileDescriptors}; inotify={inotify}; pids={pids}");
+            $"memory={memory}; disk={disk}; fileDescriptors={fileDescriptors}; inotifyInstances={inotify}; inotifyWatches={inotifyWatches}; pids={pids}");
     }
 
     private static long ReadMemAvailable()
