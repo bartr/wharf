@@ -65,14 +65,18 @@ public sealed class RunService
             $"{configuration.Model}-max-{configuration.CliVersion}");
         Directory.CreateDirectory(jobDirectory);
         string attemptDirectory = CreateAttemptDirectory(jobDirectory);
-        logger.Info($"run discovered {tasks.Count} task(s)");
+        int plannedRuns = checked(tasks.Count * configuration.K);
+        logger.Info($"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns}");
         logger.Info($"run created {attemptDirectory} under {jobDirectory}");
 
         Parallel.ForEach(
-            tasks,
+            tasks.Select((task, index) => (task, index)),
             new ParallelOptions { MaxDegreeOfParallelism = configuration.B },
-            task =>
+            item =>
         {
+            HarborTask task = item.task;
+            int runNumber = (item.index * configuration.K) + 1;
+            string prefix = FormatRunPrefix(runNumber, plannedRuns, task, 1, configuration.K);
             string trialDirectory = Path.Combine(
                 jobDirectory,
                 attemptDirectory,
@@ -83,15 +87,14 @@ public sealed class RunService
             string image = imagePreparer.PrepareAsync(
                 task,
                 Path.Combine(trialDirectory, "agent"),
-                logger.Info,
+                message => logger.Info($"{prefix} status={message}"),
                 CancellationToken.None).GetAwaiter().GetResult();
-            logger.Info($"running agent task {task.TaskId}");
-            logger.Info("agent execution pending");
-            logger.Info($"running verifier task {task.TaskId}");
-            logger.Info("verifier execution pending");
-            logger.Info($"cleaning up task {task.TaskId}");
-            logger.Info($"finishing task {task.TaskId}");
-            logger.Info($"complete task={task.TaskId} result=execution-pending");
+            logger.Info($"{prefix} status=running-agent");
+            logger.Info($"{prefix} status=agent-execution-pending");
+            logger.Info($"{prefix} status=running-verifier");
+            logger.Info($"{prefix} status=verifier-execution-pending");
+            logger.Info($"{prefix} status=cleaning-up");
+            logger.Info($"{prefix} status=complete result=execution-pending");
             var result = new
             {
                 status = "run-no-op",
@@ -113,6 +116,18 @@ public sealed class RunService
             tasks.Count,
             resolvedOutput);
     }
+
+    private static string FormatRunPrefix(
+        int runNumber,
+        int totalRuns,
+        HarborTask task,
+        int attempt,
+        int attempts) =>
+        $"run={runNumber:D3}/{totalRuns:D3} task={ShortTaskName(task.TaskId)} " +
+        $"attempt={attempt}/{attempts}";
+
+    private static string ShortTaskName(string taskId) =>
+        taskId.Length <= 32 ? taskId : taskId[..32];
 
     private static string CreateAttemptDirectory(string jobDirectory)
     {

@@ -12,7 +12,9 @@ namespace Wharf.Smoke;
 public sealed record SmokeRunRequest(
     string TaskRoot,
     HarborTask Task,
-    string OutputDirectory);
+    string OutputDirectory,
+    int RunNumber = 1,
+    int TotalRuns = 1);
 
 public sealed record SmokeRunResult(
     string Status,
@@ -29,22 +31,25 @@ public sealed class NoOpSmokeRunExecutor : ISmokeRunExecutor
 {
     public SmokeRunResult Run(SmokeRunRequest request, WharfLogger logger)
     {
-        logger.Info($"run selected task {request.Task.TaskId}");
+        string prefix = FormatRunPrefix(request);
+        logger.Info($"{prefix} status=selected");
         logger.Verbose($"run task root: {request.TaskRoot}", 2);
         logger.Verbose($"run output directory: {request.OutputDirectory}", 2);
-        logger.Info($"running agent task {request.Task.TaskId}");
-        logger.Info("agent execution pending");
-        logger.Info($"running verifier task {request.Task.TaskId}");
-        logger.Info("verifier execution pending");
-        logger.Info($"cleaning up task {request.Task.TaskId}");
-        logger.Info($"finishing task {request.Task.TaskId}");
-        logger.Info($"complete task={request.Task.TaskId} result=execution-pending");
+        logger.Info($"{prefix} status=running-agent");
+        logger.Info($"{prefix} status=agent-execution-pending");
+        logger.Info($"{prefix} status=running-verifier");
+        logger.Info($"{prefix} status=verifier-execution-pending");
+        logger.Info($"{prefix} status=cleaning-up");
+        logger.Info($"{prefix} status=complete result=execution-pending");
         return new SmokeRunResult(
             "run-no-op",
             request.Task.TaskId,
             request.TaskRoot,
             request.OutputDirectory);
     }
+
+    private static string FormatRunPrefix(SmokeRunRequest request) =>
+        $"run={request.RunNumber:D3}/{request.TotalRuns:D3} task={request.Task.TaskId} attempt=1/1";
 }
 
 public sealed record SmokeResult(
@@ -101,7 +106,7 @@ public sealed class SmokeService
 
         Directory.CreateDirectory(resolvedOutput);
         SmokeRunResult run = runExecutor.Run(
-            new SmokeRunRequest(resolvedTaskRoot, task, resolvedOutput),
+            new SmokeRunRequest(resolvedTaskRoot, task, resolvedOutput, 1, 1),
             logger);
         string trialDirectory = WriteSmokeArtifacts(resolvedOutput, resolvedTaskRoot, task, run);
         if (imagePreparer is not null)
@@ -109,7 +114,11 @@ public sealed class SmokeService
             string image = imagePreparer.PrepareAsync(
                 task,
                 Path.Combine(trialDirectory, "agent"),
-                logger.Info,
+                message => logger.Info(
+                    $"{FormatRunPrefix(new SmokeRunRequest(
+                        resolvedTaskRoot,
+                        task,
+                        resolvedOutput))} status={message}"),
                 CancellationToken.None).GetAwaiter().GetResult();
             File.WriteAllText(Path.Combine(trialDirectory, "agent", "image.txt"), image);
         }
@@ -178,6 +187,9 @@ public sealed class SmokeService
         return new string(value.Select(character =>
             invalidCharacters.Contains(character) ? '_' : character).ToArray());
     }
+
+    private static string FormatRunPrefix(SmokeRunRequest request) =>
+        $"run={request.RunNumber:D3}/{request.TotalRuns:D3} task={request.Task.TaskId} attempt=1/1";
 
     private static HarborTask SelectTask(
         string taskRoot,
