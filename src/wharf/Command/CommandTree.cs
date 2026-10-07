@@ -244,7 +244,10 @@ public static class CommandTree
         var outputDirectory = new Option<string>("--output-directory")
         {
             Description = "Directory for smoke artifacts and reports.",
-            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "jobs")
+            DefaultValueFactory = _ => Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "jobs",
+                "smoke")
         };
         var allowUnsupported = new Option<bool>("--allow-unsupported-host")
         {
