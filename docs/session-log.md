@@ -54,6 +54,50 @@ Complete and validate the .NET 10 CLI foundation before recreating `0.1.0`.
 
 ---
 
+## Session 9, 2026-10-06
+
+Start time: 22:13 CDT
+End time: 22:16 CDT
+Tag: `0.9.0`
+
+### Frame
+
+* Goal, what does done look like: Execute one prepared task in an isolated
+  agent environment and retain its complete trajectory and patch.
+* Out of scope, what I am explicitly not doing: Verifier execution, patch
+  application, and multi-task scheduling.
+* Failure condition, what would make this session a failure: The agent sees
+  hidden verifier material or an empty patch is treated as success.
+
+### During
+
+* Parking lot: verifier execution and pristine patch application belong to
+  Session 10.
+* Fit check decision, proceed. The runner boundary permits fake-agent tests
+  without weakening the Docker isolation contract.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added isolated agent execution contracts and a Docker runner with explicit
+mounts, network, and unprivileged UID. Durable evidence includes logs,
+trajectory, patch, timing, usage, and result status; empty patches are
+explicitly unfinished.
+
+### Next session starter
+
+Apply the retained patch to a pristine verifier and complete the single-task
+vertical slice.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT

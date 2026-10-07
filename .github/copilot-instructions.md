@@ -69,3 +69,10 @@ normalized frontier effort, and allows only explicitly allowlisted HTTPS
 endpoints. Environment, file, and stdin credential sources retain source
 metadata only; credential values must never enter arguments, environment
 configuration, or redacted command output.
+
+Session 9 adds the `Wharf.Agent` execution boundary. Agent source and
+workspace directories must be distinct absolute mounts, hidden verifier paths
+must not be inside either mount, and Docker runs as UID `1000:1000` on an
+explicit network. Persist stdout, stderr, trajectory, patch, timing, usage,
+and a versioned result summary. An empty patch is `unfinished`, not success,
+and all evidence must be retained before reporting the error.

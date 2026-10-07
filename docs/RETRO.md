@@ -52,3 +52,7 @@ what was surprising and what should be done differently in the next session.
   values never enter the adapter's data model at all. Pass source metadata,
   validate it at the boundary, and make redacted command output structurally
   incapable of containing the credential.
+- Session 9 (`0.9.0`): Isolation is clearest when mount validation happens
+  before any runner is invoked. Keep fake-agent tests at that boundary, and
+  persist an unfinished result before rejecting an empty patch so debugging
+  evidence survives failed execution.

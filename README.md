@@ -44,6 +44,14 @@ explicit HTTPS allowlist, and supports environment, file, and stdin
 credential sources. Credential values are never included in invocation
 arguments, environment configuration, or redacted command output.
 
+## Agent execution
+
+The `Wharf.Agent` boundary validates separate source and workspace mounts,
+keeps hidden verifier material outside the agent, and provides an unprivileged
+Docker runner with explicit network and mounts. Agent stdout, stderr,
+trajectory, patch, timing, usage, and result evidence are retained. Empty
+patches are recorded as unfinished rather than successful.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.
