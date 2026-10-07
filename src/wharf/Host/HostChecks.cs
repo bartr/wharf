@@ -59,14 +59,33 @@ public sealed class PlatformProbe : IHostProbe
             release.Contains("VERSION_ID=\"24.04\"", StringComparison.Ordinal);
         bool amd64 = RuntimeInformation.OSArchitecture == Architecture.X64;
         bool supported = ubuntu && amd64;
-        string detail = $"ubuntu24.04={ubuntu}; amd64={amd64}; wsl={IsWsl()}";
+        (bool wsl, string wslSource) = IsWsl();
+        string detail = $"ubuntu24.04={ubuntu}; amd64={amd64}; wsl={wsl} ({wslSource})";
         return new HostCheck("platform", supported, true, detail);
     }
 
-    private static bool IsWsl() =>
-        Environment.GetEnvironmentVariable("WSL_INTEROP") is not null ||
-        (File.Exists("/proc/version") &&
-         File.ReadAllText("/proc/version").Contains("microsoft", StringComparison.OrdinalIgnoreCase));
+    private static (bool Detected, string Source) IsWsl()
+    {
+        string? explicitValue = Environment.GetEnvironmentVariable("WHARF_WSL");
+        if (explicitValue is "1" or "true" or "yes")
+        {
+            return (true, "explicit");
+        }
+
+        if (Environment.GetEnvironmentVariable("WSL_INTEROP") is not null ||
+            Environment.GetEnvironmentVariable("WSL_DISTRO_NAME") is not null)
+        {
+            return (true, "environment");
+        }
+
+        if (File.Exists("/proc/version") &&
+            File.ReadAllText("/proc/version").Contains("microsoft", StringComparison.OrdinalIgnoreCase))
+        {
+            return (true, "kernel");
+        }
+
+        return (false, "not detected");
+    }
 }
 
 public sealed class DockerProbe : IHostProbe
