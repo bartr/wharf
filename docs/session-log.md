@@ -150,6 +150,58 @@ One sentence naming where the next session begins.
 
 ---
 
+## Session 3, 2026-10-06
+
+Start time: 19:45 CDT
+End time: 20:05 CDT
+Tag: 0.3.0
+
+### Frame
+
+* Goal, what does done look like: Establish durable filesystem-backed state
+  contracts with append-only events, replay, atomic summaries, and idempotent
+  recovery.
+* Out of scope, what I am explicitly not doing: Harbor loading, Docker and
+  host checks, scheduling, execution, reporting, and operator commands.
+* Failure condition, what would make this session a failure: State can be
+  corrupted, duplicated, partially written, or replayed into a different
+  result without an explicit error.
+
+### During
+
+* Parking lot, threads I wanted to pull but did not: Runtime lifecycle
+  integration and later operational features remain deferred.
+* Fit check decision, proceed. The filesystem contract, replay logic, atomic
+  summary replacement, and focused tests fit the approved session boundary.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] `docs/RETRO.md` bullet appended
+* [x] Next session starter written
+
+### Summary
+
+Added validated versioned state contracts, JSONL persistence, deterministic
+replay, idempotent duplicate handling, atomic summaries, and concurrent reader
+proofs. The next session begins Harbor task loading and checksum validation.
+
+### Next session starter
+
+Start Session 4 by loading and validating Harbor task definitions without
+coupling state persistence to Docker or execution.
+
+### Health signal
+
+* Framing quality, 1 to 5: 5
+* Drift, yes or no: no
+* Close complete, yes or no: yes
+
+---
+
 ## Mid-arc reflection, after session 5
 
 * Where did framing break down?

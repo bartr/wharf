@@ -20,3 +20,10 @@ plan without creating output directories, run state, Docker resources, or
 network activity. Manifest and `WHARF_API_KEY`, `WHARF_TOKEN`, and
 `WHARF_PASSWORD` values are redacted in rendered output. Keep configuration
 validation before any output-directory creation.
+
+Session 3 established a filesystem-backed `1.0` state contract. Each run
+stores its effective configuration, an append-only `events.jsonl` stream, and
+an atomically replaced `summary.json`. Event IDs are idempotent, sequence
+numbers are contiguous, malformed or mismatched records fail explicitly, and
+logical attempts must remain distinct from infrastructure retries. Keep
+read-only summary access independent from the per-run writer lock.

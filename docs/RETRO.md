@@ -20,3 +20,8 @@ what was surprising and what should be done differently in the next session.
   boundary than directing the agent through the repository session workflow.
   Keep future test prompts self-contained, while retaining implementation
   evidence separately in `.github/tracking/`.
+- Session 3 (`0.3.0`): Custom identifier structs initially compiled but did
+  not round-trip through JSON deserialization, which surfaced only when replay
+  materialized a summary. Add serialization round-trip tests immediately when
+  introducing durable contracts, and prefer explicit converters over relying on
+  constructor inference.
