@@ -41,6 +41,30 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void DefaultsConcurrencyToFour()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        Assert.Equal(4, result.N);
+        Assert.Equal(4, result.B);
+    }
+
+    [Fact]
+    public void CapsBuildConcurrencyAtTaskConcurrency()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(N: 2, B: 8),
+            new Dictionary<string, string?>());
+
+        Assert.Equal(2, result.N);
+        Assert.Equal(2, result.B);
+    }
+
+    [Fact]
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
