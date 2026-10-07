@@ -239,12 +239,12 @@ public static class CommandTree
         var taskRoot = new Option<string>("--tasks")
         {
             Description = "Directory containing smoke task.toml directories.",
-            DefaultValueFactory = _ => "smoke-tasks"
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "smoke-tasks")
         };
         var outputDirectory = new Option<string>("--output-directory")
         {
             Description = "Directory for smoke artifacts and reports.",
-            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), ".wharf-smoke")
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "jobs")
         };
         var allowUnsupported = new Option<bool>("--allow-unsupported-host")
         {
