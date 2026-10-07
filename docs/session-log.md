@@ -54,6 +54,50 @@ Complete and validate the .NET 10 CLI foundation before recreating `0.1.0`.
 
 ---
 
+## Session 8, 2026-10-06
+
+Start time: 22:11 CDT
+End time: 22:14 CDT
+Tag: `0.8.0`
+
+### Frame
+
+* Goal, what does done look like: Pin and validate Copilot CLI metadata and
+  construct a secret-safe headless invocation.
+* Out of scope, what I am explicitly not doing: Full task execution, agent
+  containers, verifier execution, and patch capture.
+* Failure condition, what would make this session a failure: Requested and
+  effective versions differ silently or a synthetic credential appears in
+  invocation data.
+
+### During
+
+* Parking lot: CLI installation and isolated execution belong to Session 9.
+* Fit check decision, proceed. The adapter boundary is injectable and
+  validates the secret and endpoint constraints before execution exists.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added typed Copilot version, effort, endpoint, credential-source, and
+invocation contracts with exact version matching and fake-CLI tests. The
+adapter supports environment, file, and stdin credential sources without
+retaining credential values.
+
+### Next session starter
+
+Run Copilot in an isolated agent container and retain its complete trajectory
+and patch.
+
+---
+
 ## Session 2, 2026-10-06
 
 Start time: 19:01 CDT

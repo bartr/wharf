@@ -62,3 +62,10 @@ SHA-256 keys include the base image, ordered scripts, sorted versions, and
 sorted configuration. Normal identical builds coalesce and successful results
 are reused; `ForceBuild` bypasses the cache. Caller cancellation only cancels
 that caller's wait, and failed in-flight operations are removed for retry.
+
+Session 8 adds the `Wharf.Copilot` adapter boundary. It requires exact
+requested/effective three-part CLI version equality, records native and
+normalized frontier effort, and allows only explicitly allowlisted HTTPS
+endpoints. Environment, file, and stdin credential sources retain source
+metadata only; credential values must never enter arguments, environment
+configuration, or redacted command output.

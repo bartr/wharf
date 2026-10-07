@@ -36,6 +36,14 @@ the configured `B` limit across base preparation, context preparation, and
 derived builds. Deterministic cache keys allow normal builds to be reused and
 coalesced; force builds bypass the cache.
 
+## Copilot adapter
+
+The `Wharf.Copilot` boundary validates exact requested/effective CLI versions,
+records native and normalized frontier effort, restricts endpoints to an
+explicit HTTPS allowlist, and supports environment, file, and stdin
+credential sources. Credential values are never included in invocation
+arguments, environment configuration, or redacted command output.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

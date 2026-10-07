@@ -48,3 +48,7 @@ what was surprising and what should be done differently in the next session.
   cancellation; otherwise one cancelled waiter can poison every duplicate
   request. Keep cancellation at the wait boundary and remove failed
   operations from the in-flight map so recovery is explicit and testable.
+- Session 8 (`0.8.0`): Secret safety is easiest to preserve when credential
+  values never enter the adapter's data model at all. Pass source metadata,
+  validate it at the boundary, and make redacted command output structurally
+  incapable of containing the credential.
