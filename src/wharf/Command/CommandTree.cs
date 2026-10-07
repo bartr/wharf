@@ -246,8 +246,7 @@ public static class CommandTree
             Description = "Directory for smoke artifacts and reports.",
             DefaultValueFactory = _ => Path.Combine(
                 Directory.GetCurrentDirectory(),
-                "jobs",
-                "smoke")
+                "jobs")
         };
         var allowUnsupported = new Option<bool>("--allow-unsupported-host")
         {

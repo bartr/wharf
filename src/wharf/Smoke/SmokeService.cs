@@ -119,9 +119,11 @@ public sealed class SmokeService
             $"{RunConfigurationResolver.DefaultCopilotCli}-" +
             $"{RunConfigurationResolver.DefaultCopilotModel}-max-" +
             $"{RunConfigurationResolver.DefaultCopilotVersion}");
+        Directory.CreateDirectory(jobDirectory);
+        string attemptDirectory = CreateAttemptDirectory(jobDirectory);
         string trialDirectory = Path.Combine(
             jobDirectory,
-            "all-1",
+            attemptDirectory,
             $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}");
         string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
         Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
@@ -159,6 +161,20 @@ public sealed class SmokeService
         var invalidCharacters = new HashSet<char>(Path.GetInvalidFileNameChars());
         return new string(value.Select(character =>
             invalidCharacters.Contains(character) ? '_' : character).ToArray());
+    }
+
+    private static string CreateAttemptDirectory(string jobDirectory)
+    {
+        for (int attempt = 1; ; attempt++)
+        {
+            string name = $"smoke-{attempt}";
+            string path = Path.Combine(jobDirectory, name);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+                return name;
+            }
+        }
     }
 }
 
