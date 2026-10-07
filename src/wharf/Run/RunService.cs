@@ -66,12 +66,15 @@ public sealed class RunService
         Directory.CreateDirectory(jobDirectory);
         string attemptDirectory = CreateAttemptDirectory(jobDirectory);
         int plannedRuns = checked(tasks.Count * configuration.K);
-        logger.Info($"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns}");
+        int imageConcurrency = Math.Min(configuration.N, configuration.B);
+        logger.Info(
+            $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
+            $"task-concurrency={configuration.N} image-concurrency={imageConcurrency}");
         logger.Info($"run created {attemptDirectory} under {jobDirectory}");
 
         Parallel.ForEach(
             tasks.Select((task, index) => (task, index)),
-            new ParallelOptions { MaxDegreeOfParallelism = configuration.B },
+            new ParallelOptions { MaxDegreeOfParallelism = imageConcurrency },
             item =>
         {
             HarborTask task = item.task;

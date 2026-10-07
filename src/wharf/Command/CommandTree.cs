@@ -192,7 +192,8 @@ public static class CommandTree
                         runConfiguration.OutputDirectory,
                         runConfiguration,
                         logger);
-                    Console.WriteLine($"{result.Status}\t{result.TaskCount}\t{result.OutputDirectory}");
+                    Console.WriteLine(
+                        $"complete runs={result.TaskCount} result=execution-pending output={result.OutputDirectory}");
                     return ExitCode.Success.Value;
                 }
                 catch (RunException exception)
