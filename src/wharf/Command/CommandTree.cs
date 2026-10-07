@@ -318,6 +318,11 @@ public static class CommandTree
         verbose.Aliases.Add("-v");
         var veryVerbose = new Option<bool>("-vv") { Description = "Show task metadata and checksums." };
         var diagnostic = new Option<bool>("-vvv") { Description = "Show diagnostic task paths and resources." };
+        var include = new Option<string?>("--include")
+        {
+            Description = "Select a smoke task by ID or dataset name."
+        };
+        include.Aliases.Add("-i");
         command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
         command.Options.Add(allowUnsupported);
@@ -325,6 +330,7 @@ public static class CommandTree
         command.Options.Add(verbose);
         command.Options.Add(veryVerbose);
         command.Options.Add(diagnostic);
+        command.Options.Add(include);
         command.SetAction(parseResult =>
         {
             try
@@ -350,7 +356,8 @@ public static class CommandTree
                     selectedTaskRoot,
                     output,
                     host,
-                    logger);
+                    logger,
+                    parseResult.GetValue(include));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {

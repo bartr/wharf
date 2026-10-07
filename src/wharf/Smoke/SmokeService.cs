@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Tomlyn;
+using Tomlyn.Model;
 using Wharf.Configuration;
 using Wharf.Host;
 using Wharf.Logging;
@@ -63,7 +65,8 @@ public sealed class SmokeService
         string taskRoot,
         string outputDirectory,
         HostCheckReport host,
-        WharfLogger logger)
+        WharfLogger logger,
+        string? include = null)
     {
         if (string.IsNullOrWhiteSpace(taskRoot) || !Directory.Exists(taskRoot))
             throw new SmokeException($"smoke task directory does not exist: {taskRoot}");
@@ -77,7 +80,7 @@ public sealed class SmokeService
         if (tasks.Count == 0)
             throw new SmokeException($"smoke task directory contains no task.toml files: {resolvedTaskRoot}");
 
-        HarborTask task = tasks.OrderBy(item => item.TaskId, StringComparer.Ordinal).First();
+        HarborTask task = SelectTask(resolvedTaskRoot, tasks, include);
         logger.Verbose($"smoke discovered {tasks.Count} task(s)", 1);
         logger.Info($"smoke selected task {task.TaskId}");
         logger.Verbose($"task manifest: {Path.Combine(task.RootPath, "task.toml")}", 2);
@@ -154,6 +157,62 @@ public sealed class SmokeService
         return new string(value.Select(character =>
             invalidCharacters.Contains(character) ? '_' : character).ToArray());
     }
+
+    private static HarborTask SelectTask(
+        string taskRoot,
+        IReadOnlyList<HarborTask> tasks,
+        string? include)
+    {
+        string? datasetPath = Path.Combine(taskRoot, "dataset.toml");
+        if (File.Exists(datasetPath))
+        {
+            TomlTable dataset;
+            try
+            {
+                dataset = Toml.ToModel(File.ReadAllText(datasetPath));
+            }
+            catch (TomlException exception)
+            {
+                throw new SmokeException($"invalid smoke dataset manifest: {datasetPath}: {exception.Message}");
+            }
+
+            if (dataset.TryGetValue("tasks", out object? value) &&
+                value is TomlTableArray entries)
+            {
+                TomlTable? selected = entries
+                    .Where(entry => entry.TryGetValue("name", out object? name) && name is string)
+                    .FirstOrDefault(entry => include is null ||
+                        MatchesInclude((string)entry["name"], include));
+                if (selected is not null &&
+                    selected.TryGetValue("name", out object? nameValue) &&
+                    nameValue is string name)
+                {
+                    string taskId = name.Split('/').Last();
+                    HarborTask? task = tasks.FirstOrDefault(item =>
+                        string.Equals(item.TaskId, taskId, StringComparison.Ordinal) ||
+                        string.Equals(Path.GetFileName(item.RootPath), taskId, StringComparison.Ordinal));
+                    if (task is not null)
+                        return task;
+                }
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(include))
+        {
+            HarborTask? included = tasks.FirstOrDefault(item =>
+                MatchesInclude(item.TaskId, include) ||
+                MatchesInclude(Path.GetFileName(item.RootPath), include));
+            if (included is not null)
+                return included;
+            throw new SmokeException($"smoke task include did not match a task: {include}");
+        }
+
+        return tasks.OrderBy(item => item.TaskId, StringComparer.Ordinal).First();
+    }
+
+    private static bool MatchesInclude(string value, string include) =>
+        string.Equals(value, include, StringComparison.OrdinalIgnoreCase) ||
+        value.EndsWith('/' + include, StringComparison.OrdinalIgnoreCase);
 
     private static string CreateAttemptDirectory(string jobDirectory)
     {
