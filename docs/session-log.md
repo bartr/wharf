@@ -54,6 +54,58 @@ Complete and validate the .NET 10 CLI foundation before recreating `0.1.0`.
 
 ---
 
+## Session 2, 2026-10-06
+
+Start time: 19:01 CDT
+End time: 19:28 CDT
+Tag: 0.2.0
+
+### Frame
+
+* Goal, what does done look like: Add reproducible typed run configuration,
+  strict validation, redaction, and side-effect-free dry-run behavior.
+* Out of scope, what I am explicitly not doing: Docker, host checks, durable
+  run state, task discovery, scheduling, agent execution, verifier execution,
+  and reporting.
+* Failure condition, what would make this session a failure: Configuration is
+  not reproducible or a secret or side effect escapes validation and dry-run.
+
+### During
+
+* Parking lot, threads I wanted to pull but did not: Docker and runtime
+  execution remain with later sessions.
+* Fit check decision, proceed. The configuration model, resolver, validator,
+  renderer, and focused tests fit the session without expanding into runtime
+  orchestration.
+
+### Close
+
+* [x] Tests green
+* [x] Fast-forward merge
+* [x] Tagged and pushed
+* [x] Repo memory updated
+* [x] `docs/RETRO.md` bullet appended
+* [x] Next session starter written
+
+### Summary
+
+Added strict versioned manifests, explicit layered configuration precedence,
+redacted deterministic rendering, and an offline dry-run path. The next
+session begins durable event and summary contracts for validated runs.
+
+### Next session starter
+
+Create durable append-only event and summary contracts with replay and
+idempotency guarantees.
+
+### Health signal
+
+* Framing quality, 1 to 5: 5
+* Drift, yes or no: no
+* Close complete, yes or no: yes
+
+---
+
 ## Session N, YYYY-MM-DD
 
 Start time:

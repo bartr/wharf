@@ -16,3 +16,7 @@ what was surprising and what should be done differently in the next session.
   implementation before the first supported release avoids maintaining two
   languages. Keep the .NET process boundary and compiled CLI probes as the
   first proof of the restarted release.
+- Session 2 (`0.2.0`): A standalone task prompt produced a clearer enterprise
+  boundary than directing the agent through the repository session workflow.
+  Keep future test prompts self-contained, while retaining implementation
+  evidence separately in `.github/tracking/`.
