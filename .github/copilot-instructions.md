@@ -76,3 +76,9 @@ must not be inside either mount, and Docker runs as UID `1000:1000` on an
 explicit network. Persist stdout, stderr, trajectory, patch, timing, usage,
 and a versioned result summary. An empty patch is `unfinished`, not success,
 and all evidence must be retained before reporting the error.
+
+Session 10 adds the `Wharf.Verifier` boundary. Copy task source into a fresh
+workspace before applying a retained patch; never reuse the agent workspace.
+Run verifier commands sequentially with explicit timeouts, retain raw
+stdout/stderr and the patch, and atomically write a versioned trial result.
+Manual testing must approve the unmerged `0.10.0` branch before release.

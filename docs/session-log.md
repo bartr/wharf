@@ -98,6 +98,48 @@ vertical slice.
 
 ---
 
+## Session 10, 2026-10-06
+
+Start time: 22:16 CDT
+End time: 22:19 CDT
+Tag: not released (manual testing required)
+
+### Frame
+
+* Goal, what does done look like: Verify one retained agent patch in a
+  separate pristine environment and persist a trustworthy result.
+* Out of scope, what I am explicitly not doing: Concurrent datasets, resume,
+  scoring aggregates, polished reports, and release approval.
+* Failure condition, what would make this session a failure: Verification
+  reuses the agent workspace or exposes verifier-only material.
+
+### During
+
+* Parking lot: scheduler and recovery work remain for Sessions 11-13.
+* Fit check decision, proceed. The verifier boundary is injectable and
+  manually testable without releasing the branch.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added pristine workspace creation, patch application, sequential verifier
+commands with timeouts, raw evidence retention, and atomic trial results.
+The `0.10.0` branch remains unmerged and untagged for manual testing.
+
+### Next session starter
+
+After manual approval, release `0.10.0`; then expand the proven one-task path
+into a deterministic work-conserving scheduler.
+
+---
+
 ## Session 8, 2026-10-06
 
 Start time: 22:11 CDT

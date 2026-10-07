@@ -52,6 +52,14 @@ Docker runner with explicit network and mounts. Agent stdout, stderr,
 trajectory, patch, timing, usage, and result evidence are retained. Empty
 patches are recorded as unfinished rather than successful.
 
+## Pristine verification
+
+The `Wharf.Verifier` boundary copies task source into a fresh workspace,
+applies a retained patch, and runs verifier commands sequentially with
+explicit timeouts. Raw command output, the applied patch, and an atomic
+versioned trial result are retained. The verifier never reuses the agent
+workspace.
+
 ## Repository layout
 
 - `src/wharf/` contains the executable implementation.

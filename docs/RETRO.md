@@ -56,3 +56,7 @@ what was surprising and what should be done differently in the next session.
   before any runner is invoked. Keep fake-agent tests at that boundary, and
   persist an unfinished result before rejecting an empty patch so debugging
   evidence survives failed execution.
+- Session 10 (`0.10.0`): Keeping workspace creation, patch application, and
+  verifier execution injectable makes the single-task proof testable without
+  pretending that a local unit test is a full Docker integration. Preserve
+  the manual release gate until the real environment is exercised.
