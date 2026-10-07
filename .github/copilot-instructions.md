@@ -55,3 +55,10 @@ uses `image-pulls.jsonl` plus atomically replaced
 verbosity 2 and 3 expose each retry. Keep the complete `B` gate around pull,
 context preparation, and derived build as Session 7 work rather than adding a
 separate pull semaphore or public pull-concurrency setting.
+
+Session 7 adds `DerivedImageCoordinator`. It applies one `B` gate across base
+image preparation, context preparation, and derived build. Deterministic
+SHA-256 keys include the base image, ordered scripts, sorted versions, and
+sorted configuration. Normal identical builds coalesce and successful results
+are reused; `ForceBuild` bypasses the cache. Caller cancellation only cancels
+that caller's wait, and failed in-flight operations are removed for retry.

@@ -44,3 +44,7 @@ what was surprising and what should be done differently in the next session.
   Continue injecting delay and randomness at the boundary, and keep registry
   pressure inside the preparation service so Session 7 can place the whole
   pipeline behind one `B` gate without inventing a second semaphore.
+- Session 7 (`0.7.0`): A shared build task must outlive an individual caller's
+  cancellation; otherwise one cancelled waiter can poison every duplicate
+  request. Keep cancellation at the wait boundary and remove failed
+  operations from the in-flight map so recovery is explicit and testable.

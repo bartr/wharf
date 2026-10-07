@@ -306,7 +306,7 @@ before continuing to image pulls.
 
 Start time: 20:11 CDT
 End time: 20:18 CDT
-Tag: not yet tagged
+Tag: `0.6.0`
 
 ### Frame
 
@@ -331,8 +331,8 @@ Tag: not yet tagged
 ### Close
 
 * [x] Tests green
-* [ ] Fast-forward merge
-* [ ] Tagged and pushed
+* [x] Fast-forward merge
+* [x] Tagged and pushed
 * [x] Repo memory updated
 * [x] `docs/RETRO.md` bullet appended
 * [x] Next session starter written
@@ -349,6 +349,49 @@ upstream `0.7.0` branch.
 
 Review Session 6, then extend image preparation through the full `B`-gated
 derived-build pipeline without adding a separate pull semaphore.
+
+---
+
+## Session 7, 2026-10-06
+
+Start time: 22:03 CDT
+End time: 22:06 CDT
+Tag: `0.7.0` (pending release close)
+
+### Frame
+
+* Goal, what does done look like: Prepare reusable derived agent images behind
+  one complete `B` concurrency gate.
+* Out of scope, what I am explicitly not doing: Copilot execution, verifier
+  containers, and multi-task scheduling.
+* Failure condition, what would make this session a failure: Base pulls escape
+  the gate or identical builds run twice.
+
+### During
+
+* Parking lot: Docker command wiring and trial-container execution remain for
+  later sessions behind the backend boundary.
+* Fit check decision, proceed. The coordinator owns the complete gate and
+  deterministic cache lifecycle without adding a second pull semaphore.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] Research, plan, changes, and review artifacts written
+
+### Summary
+
+Added deterministic derived-image cache keys and a reusable coordinator with
+one `B` gate across base preparation, context preparation, and image builds.
+Normal requests coalesce and reuse successful images; force builds bypass the
+cache, and failed or caller-cancelled work does not poison later requests.
+
+### Next session starter
+
+Pin, validate, and invoke Copilot CLI without leaking credentials.
 
 ### Health signal
 

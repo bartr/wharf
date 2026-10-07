@@ -31,7 +31,10 @@ pulling, coalesces duplicate image requests, and retries only explicit registry
 rate limits with bounded exponential backoff and jitter. Image preparation can
 write versioned evidence to `image-pulls.jsonl` and
 `image-pull-summary.json`. Derived image builds and the complete preparation
-concurrency gate are introduced separately.
+concurrency gate are coordinated by `DerivedImageCoordinator`, which applies
+the configured `B` limit across base preparation, context preparation, and
+derived builds. Deterministic cache keys allow normal builds to be reused and
+coalesced; force builds bypass the cache.
 
 ## Repository layout
 
