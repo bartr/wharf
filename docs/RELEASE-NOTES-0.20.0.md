@@ -1,7 +1,6 @@
-# Wharf 1.0.0
+# Wharf 0.20.0
 
-Wharf 1.0.0 is the v1 qualification release for the trustworthy evaluation
-workflow.
+Wharf 0.20.0 is a qualification checkpoint, not the MVP release.
 
 ## Highlights
 
@@ -19,7 +18,7 @@ workflow.
 Run:
 
 ```bash
-./scripts/qualify-release.sh 1.0.0
+./scripts/qualify-release.sh 0.20.0
 ```
 
 The automated source-level matrix passed. Overnight DeepSWE K=4 and
@@ -33,7 +32,7 @@ fabricated benchmark results.
 Build the package and checksums with:
 
 ```bash
-./scripts/package-wharf.sh 1.0.0 dist
+./scripts/package-wharf.sh 0.20.0 dist
 ```
 
 Provide `SIGNING_KEY` to produce and verify a detached GPG signature.

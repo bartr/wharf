@@ -1,11 +1,11 @@
-# Wharf 1.0.0 release qualification
+# Wharf 0.20.0 release qualification checkpoint
 
 ## Ownership
 
 Release owner: **Wharf maintainers** (`WHARF_RELEASE_OWNER` may identify the
 specific accountable operator when running the qualification script).
 
-## Automated matrix
+## Automated checkpoint matrix
 
 | Gate | Evidence | Status |
 | --- | --- | --- |
@@ -18,6 +18,10 @@ specific accountable operator when running the qualification script).
 | Secret scan | `scripts/qualify-release.sh` | PASS |
 | Report regeneration | `ReportRendererTests` | PASS |
 | Host recommendation | `HostProfileTests` | PASS |
+
+The first actual MVP/1.0 release remains blocked until real non-dry-run
+`wharf run`, the container-backed smoke path, HydraFusion, and overnight
+DeepSWE evidence pass.
 
 ## Evidence-backed gates
 

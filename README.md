@@ -113,13 +113,17 @@ not considered qualified without retained benchmark evidence.
 
 ## Release qualification
 
-Run the automated 1.0.0 qualification matrix with:
+Run the automated 0.20.0 qualification checkpoint with:
 
 ```bash
-./scripts/qualify-release.sh 1.0.0
+./scripts/qualify-release.sh 0.20.0
 ```
 
 Set `WHARF_RELEASE_OWNER` to record the accountable operator. The matrix is
 documented in [docs/release-qualification.md](docs/release-qualification.md);
 overnight benchmark and Ubuntu/WSL gates require retained evidence from the
 target infrastructure.
+
+The first actual MVP/1.0 release is deferred until real `wharf smoke`,
+non-dry-run `wharf run`, and HydraFusion provider support are proven. See
+[`docs/wharf-sessions.md`](docs/wharf-sessions.md) for the follow-on plan.

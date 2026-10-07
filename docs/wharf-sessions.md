@@ -1,6 +1,6 @@
 # Wharf MVP implementation sessions
 
-Status: Ready to start
+Status: MVP deferred pending real `smoke`, `run`, and HydraFusion support
 Source: `docs/wharf.jsonl`
 Source SHA-256: `3648a03025ceafedb604b0a712918866e4f85e6e3d2a137f76aa3ba0a96482d2`
 Documentation layout: requirements and session records are under `docs/`;
@@ -43,11 +43,20 @@ durable versioned evidence.
 
 ### Arc 2: overnight operation and v1 release
 
-Sessions 11-20, tags `0.11.0` through `1.0.0`.
+Sessions 11-20, tags `0.11.0` through `0.20.0`.
 
-The arc is complete when Wharf can schedule, interrupt, resume, stop, score,
-report, bootstrap, package, and qualify a full DeepSWE run on documented
-Ubuntu host profiles.
+This arc is a qualification checkpoint, not MVP completion. MVP remains
+blocked until a real agent/verifier `run`, a real end-to-end `smoke`, and
+HydraFusion support are proven on documented Ubuntu host profiles.
+
+### Arc 3: MVP completion and HydraFusion
+
+Sessions 21-24, tags `0.21.0` onward.
+
+This arc wires the existing execution services into the operator CLI, replaces
+the local smoke fixture with a real container-backed path, adds the HydraFusion
+provider boundary, and reruns the full acceptance matrix before the first
+actual MVP/1.0 release.
 
 ## Session 1: .NET CLI foundation
 
@@ -691,12 +700,12 @@ Run the complete acceptance matrix, close release ownership, and cut v1.
 
 ## Session 20: v1 release qualification
 
-Target tag: `1.0.0`
+Target tag: `0.20.0`
 
 ### Frame
 
-- Goal: close every v1 acceptance criterion and publish the first supported
-  Wharf release.
+- Goal: preserve a qualified release checkpoint while explicitly deferring MVP
+  until real `smoke`, `run`, and HydraFusion support are complete.
 - Out of scope: post-v1 repair/replay, Claude Code, Codex, Java, and .NET.
 - Failure condition: any acceptance criterion is waived without a written,
   source-approved scope change.
@@ -713,8 +722,8 @@ Target tag: `1.0.0`
 - Confirm every v1 non-goal remains absent.
 - Publish release notes, operator documentation, checksums, SBOM, and signed
   package.
-- Fast-forward merge, tag and push `1.0.0`, update repo memory and session log,
-  append the final retro bullet, and complete the arc reflection.
+- Fast-forward merge, tag and push `0.20.0`, update repo memory and session log,
+  and record the deferred MVP gates.
 
 ### Traceability
 
@@ -733,3 +742,36 @@ Target tag: `1.0.0`
 - Sessions 19-20 establish scale evidence and release qualification.
 - Post-v1 requirements remain visible but are intentionally not scheduled in
   this MVP plan.
+
+## Session 21: real run wiring
+
+Target tag: `0.21.0`
+
+- Wire `wharf run` through task loading, image preparation, agent, verifier,
+  scheduler, recovery, audit, and reporting boundaries.
+- Fail if a non-dry-run command remains a placeholder or reports success
+  without retained evidence.
+
+## Session 22: HydraFusion provider
+
+Target tag: `0.22.0`
+
+- Add a HydraFusion adapter with version pinning, effort mapping, endpoint
+  allowlisting, credential redaction, usage/cost evidence, and provider-neutral
+  agent contracts.
+- Keep HydraFusion secrets and provider-specific behavior behind the adapter.
+
+## Session 23: real smoke path
+
+Target tag: `0.23.0`
+
+- Replace the local fixture-only smoke path with a real deterministic
+  container-backed task that invokes the same path as `run`.
+- Retain patch, verifier, report, and host evidence.
+
+## Session 24: MVP qualification
+
+Target tag: `0.24.0`
+
+- Rerun the complete acceptance matrix and cut the first honest MVP/1.0
+  release only after real `smoke`, `run`, and HydraFusion evidence passes.

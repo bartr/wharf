@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${1:-1.0.0}"
+VERSION="${1:-0.20.0}"
 OWNER="${WHARF_RELEASE_OWNER:-Wharf maintainers}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT

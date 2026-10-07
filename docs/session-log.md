@@ -7,9 +7,9 @@ against the first session commit and merge or tag timestamp.
 
 ---
 
-## Session 20, 2026-10-06
+## Session 20, 2026-10-07
 
-Tag: `1.0.0`
+Tag: `0.20.0`
 
 ### Close
 
@@ -22,10 +22,10 @@ Tag: `1.0.0`
 
 ### Summary
 
-Added repeatable v1 release qualification, explicit ownership, package and
+Added repeatable release qualification, explicit ownership, package and
 artifact checks, requirement coverage, and documented external infrastructure
-gates. The release does not claim unavailable overnight benchmark or signing
-evidence.
+gates. MVP remains deferred because real `smoke`, non-dry-run `run`, and
+HydraFusion support are not yet implemented.
 
 ## Withdrawn Session 1, 2026-10-06
 
