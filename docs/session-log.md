@@ -252,6 +252,56 @@ checks without mutating the host.
 
 ---
 
+## Session 5, 2026-10-06
+
+Start time: 19:44 CDT
+End time:
+Tag: not yet tagged
+
+### Frame
+
+* Goal, what does done look like: Make `wharf check` classify supported hosts,
+  Docker readiness, and capacity without mutating the host.
+* Out of scope, what I am explicitly not doing: Docker configuration changes,
+  image pulls, container creation, and release merge/tagging.
+* Failure condition, what would make this session a failure: An unsafe host
+  passes silently or an unsupported-host override hides a Docker/capacity
+  failure.
+
+### During
+
+* Parking lot, threads I wanted to pull but did not: Network allocation and
+  required image checks remain with image preparation sessions.
+* Fit check decision, proceed. The probe boundary and CLI fit the session;
+  release closeout is intentionally deferred for user inspection.
+
+### Close
+
+* [x] Tests green
+* [ ] Fast-forward merge
+* [ ] Tagged and pushed
+* [x] Repo memory updated
+* [x] `docs/RETRO.md` bullet appended
+* [x] Next session starter written
+
+### Summary
+
+Added injectable platform, Docker, and capacity probes plus read-only
+`wharf check` output. This branch remains unmerged and untagged by request.
+
+### Next session starter
+
+Review Session 5, then either release `0.5.0` or adjust preflight evidence
+before continuing to image pulls.
+
+### Health signal
+
+* Framing quality, 1 to 5: 5
+* Drift, yes or no: no
+* Close complete, yes or no: pending user review
+
+---
+
 ## Mid-arc reflection, after session 5
 
 * Where did framing break down?

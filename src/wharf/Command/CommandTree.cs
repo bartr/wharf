@@ -1,6 +1,8 @@
 using System.CommandLine;
+using System.Text.Json;
 using Wharf.Configuration;
 using Wharf.ExitCodes;
+using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
@@ -49,12 +51,48 @@ public static class CommandTree
         root.Subcommands.Add(CreateVersionCommand(configuration));
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
-        foreach (string? name in new[] { "check", "smoke", "resume", "status", "stop", "report" })
+        root.Subcommands.Add(CreateCheckCommand());
+        foreach (string? name in new[] { "smoke", "resume", "status", "stop", "report" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
 
         return root;
+    }
+
+    private static CliCommand CreateCheckCommand()
+    {
+        var command = new CliCommand("check", "Validate the host and Docker prerequisites.");
+        var allowUnsupported = new Option<bool>("--allow-unsupported-host")
+        {
+            Description = "Continue past platform classification failures with a warning."
+        };
+        var json = new Option<bool>("--json") { Description = "Render the report as JSON." };
+        command.Options.Add(allowUnsupported);
+        command.Options.Add(json);
+        command.SetAction(parseResult =>
+        {
+            HostCheckReport report = new HostCheckService(
+                [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
+                .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
+            if (parseResult.GetValue(json))
+            {
+                Console.WriteLine(JsonSerializer.Serialize(report, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                }));
+            }
+            else
+            {
+                foreach (HostCheck check in report.Checks)
+                {
+                    Console.WriteLine($"{(check.Passed ? "PASS" : "FAIL")} {check.Name}: {check.Detail}");
+                }
+            }
+
+            return report.ExitCode;
+        });
+        return command;
     }
 
     private static CliCommand CreateRunCommand(

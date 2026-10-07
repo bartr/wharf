@@ -34,3 +34,9 @@ content, and selection is deterministic across language, include, exclude,
 shard, seeded-sample, and K-attempt expansion options. Vendored fixtures under
 `tests/fixtures/harbor/` are sanitized: never add solutions, hidden tests,
 reference patches, or grader-only material to the Wharf checkout.
+
+Session 5 adds read-only host and Docker preflight through `wharf check`.
+Supported platform classification is Ubuntu 24.04 amd64, including WSL2.
+`--allow-unsupported-host` may override only that classification; Docker
+reachability and capacity failures remain blocking. Do not make preflight pull
+images, create Docker resources, or mutate daemon configuration.
