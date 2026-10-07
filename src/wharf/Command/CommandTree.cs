@@ -7,6 +7,7 @@ using Wharf.Logging;
 using Wharf.Reporting;
 using Wharf.Smoke;
 using Wharf.Qualification;
+using Wharf.Tasks;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
 
@@ -64,7 +65,7 @@ public static class CommandTree
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
-        root.Subcommands.Add(CreateSmokeCommand());
+        root.Subcommands.Add(CreateSmokeCommand(() => configuration));
         root.Subcommands.Add(CreateReportCommand());
         root.Subcommands.Add(CreateProfileCommand());
 
@@ -232,9 +233,14 @@ public static class CommandTree
         return command;
     }
 
-    private static CliCommand CreateSmokeCommand()
+    private static CliCommand CreateSmokeCommand(Func<WharfConfiguration> getConfiguration)
     {
-        var command = new CliCommand("smoke", "Run the deterministic local smoke fixture.");
+        var command = new CliCommand("smoke", "Run one task through the run pipeline.");
+        var taskRoot = new Option<string>("--tasks")
+        {
+            Description = "Directory containing smoke task.toml directories.",
+            DefaultValueFactory = _ => "smoke-tasks"
+        };
         var outputDirectory = new Option<string>("--output-directory")
         {
             Description = "Directory for smoke artifacts and reports.",
@@ -245,27 +251,50 @@ public static class CommandTree
             Description = "Override platform classification only; Docker and capacity failures still block."
         };
         var json = new Option<bool>("--json") { Description = "Render the smoke result as JSON." };
+        var verbose = new Option<bool>("--verbose") { Description = "Show smoke and run selection details." };
+        verbose.Aliases.Add("-v");
+        var veryVerbose = new Option<bool>("-vv") { Description = "Show task metadata and checksums." };
+        var diagnostic = new Option<bool>("-vvv") { Description = "Show diagnostic task paths and resources." };
+        command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
         command.Options.Add(allowUnsupported);
         command.Options.Add(json);
+        command.Options.Add(verbose);
+        command.Options.Add(veryVerbose);
+        command.Options.Add(diagnostic);
         command.SetAction(parseResult =>
         {
             try
             {
+                string? selectedTaskRoot = parseResult.GetValue(taskRoot);
+                if (selectedTaskRoot is null)
+                    throw new SmokeException("smoke task directory is required");
                 HostCheckReport host = new HostCheckService(
                     [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
                     .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
                 string? output = parseResult.GetValue(outputDirectory);
                 if (output is null)
                     throw new SmokeException("smoke output directory is required");
-                SmokeResult result = new SmokeService().Run(output, host);
+                int localVerbosity = parseResult.GetValue(diagnostic) ? 3 :
+                    parseResult.GetValue(veryVerbose) ? 2 :
+                    parseResult.GetValue(verbose) ? 1 : 0;
+                WharfConfiguration loggerConfiguration = getConfiguration() with
+                {
+                    Verbosity = Math.Max(getConfiguration().Verbosity, localVerbosity)
+                };
+                using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
+                SmokeResult result = new SmokeService().Run(
+                    selectedTaskRoot,
+                    output,
+                    host,
+                    logger);
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     }));
                 else
-                    Console.WriteLine($"{result.Status}\t{result.ArtifactDirectory}\t{result.ReportPath}");
+                    Console.WriteLine($"{result.Status}\t{result.TaskId}\t{result.OutputDirectory}");
                 return result.ExitCode;
             }
             catch (SmokeException exception)

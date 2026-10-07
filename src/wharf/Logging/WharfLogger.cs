@@ -21,6 +21,14 @@ public sealed class WharfLogger : IDisposable
         Write("info", message, Console.Out);
     }
 
+    public void Verbose(string message, int requiredLevel = 1)
+    {
+        if (!configuration.Quiet && configuration.Verbosity >= requiredLevel)
+        {
+            Write("debug", message, Console.Out);
+        }
+    }
+
     public void Error(string message) => Write("error", message, Console.Error);
 
     public void Dispose()

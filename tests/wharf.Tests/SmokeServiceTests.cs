@@ -1,4 +1,5 @@
 using Wharf.Host;
+using Wharf.Logging;
 using Wharf.Smoke;
 
 namespace Wharf.Tests;
@@ -6,7 +7,7 @@ namespace Wharf.Tests;
 public sealed class SmokeServiceTests
 {
     [Fact]
-    public void RunsLocalFixtureAndWritesArtifacts()
+    public void SelectsOneTaskAndCallsRunExecutor()
     {
         string directory = Path.Combine(Path.GetTempPath(), "wharf-smoke-" + Guid.NewGuid().ToString("N"));
         try
@@ -16,15 +17,19 @@ public sealed class SmokeServiceTests
                 new HostCheck("docker", true, false, "reachable"),
                 new HostCheck("capacity", true, false, "sufficient")
             ]);
-            SmokeResult result = new SmokeService().Run(directory, host);
+            RecordingExecutor executor = new();
+            using WharfLogger logger = WharfLogger.Create(new());
+            SmokeResult result = new SmokeService(runExecutor: executor).Run(
+                Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
+                directory,
+                host,
+                logger);
 
-            Assert.Equal("completed", result.Status);
+            Assert.Equal("run-no-op", result.Status);
             Assert.Equal(0, result.ExitCode);
-            Assert.True(File.Exists(result.TrialPath));
-            Assert.True(File.Exists(result.ReportPath));
-            Assert.Contains("verified", File.ReadAllText(Path.Combine(directory, "smoke.txt")));
-            Assert.True(File.Exists(Path.Combine(directory, "report.jsonl")));
-            Assert.True(File.Exists(Path.Combine(directory, "host-check.json")));
+            Assert.Equal("smoke-go", result.TaskId);
+            Assert.Equal("smoke-go", executor.TaskId);
+            Assert.True(File.Exists(Path.Combine(directory, "smoke-selection.json")));
         }
         finally
         {
@@ -43,16 +48,53 @@ public sealed class SmokeServiceTests
                 new HostCheck("platform", true, true, "supported"),
                 new HostCheck("docker", false, false, "daemon unavailable")
             ]);
-            SmokeResult result = new SmokeService().Run(directory, host);
+            using WharfLogger logger = WharfLogger.Create(new());
+            SmokeResult result = new SmokeService().Run(
+                Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
+                directory,
+                host,
+                logger);
 
             Assert.Equal("qualification-blocked", result.Status);
             Assert.Equal(4, result.ExitCode);
-            Assert.True(File.Exists(result.ReportPath));
+            Assert.True(File.Exists(Path.Combine(directory, "smoke-selection.json")));
         }
         finally
         {
             if (Directory.Exists(directory))
                 Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void RejectsMissingSmokeTaskDirectory()
+    {
+        using WharfLogger logger = WharfLogger.Create(new());
+        HostCheckReport host = new([]);
+
+        Assert.Throws<SmokeException>(() => new SmokeService().Run(
+            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N")),
+            Path.GetTempPath(),
+            host,
+            logger));
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "smoke-tasks")))
+            directory = directory.Parent;
+        return directory?.FullName ?? throw new DirectoryNotFoundException("repository root not found");
+    }
+
+    private sealed class RecordingExecutor : ISmokeRunExecutor
+    {
+        public string? TaskId { get; private set; }
+
+        public SmokeRunResult Run(SmokeRunRequest request, WharfLogger logger)
+        {
+            TaskId = request.Task.TaskId;
+            return new SmokeRunResult("run-no-op", request.Task.TaskId, request.TaskRoot, request.OutputDirectory);
         }
     }
 }
