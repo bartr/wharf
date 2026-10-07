@@ -542,6 +542,26 @@ sanitized parser fixtures without solutions or hidden verifier data.
 Start Session 5 by implementing read-only supported-host and Docker preflight
 checks without mutating the host.
 
+## Session 15, 2026-10-06
+
+### Close
+
+* [x] Typed audit evidence and completeness states
+* [x] PASS@1 and task-equal Enterprise Score
+* [x] Cost, usage, coverage, regression, and runtime aggregation
+* [x] Focused scoring fixtures
+
+### Summary
+
+Added deterministic scoring over expected and observed tasks. Missing, invalid,
+partial, and zero measurements remain visible and cannot produce success-shaped
+results. Enterprise scoring follows the documented 80/20 coverage/pass policy
+and task-equal weighting.
+
+### Next session starter
+
+Render deterministic static and machine reports from audited retained state.
+
 ### Health signal
 
 * Framing quality, 1 to 5: 5

@@ -35,6 +35,9 @@ what was surprising and what should be done differently in the next session.
   and watches; validate related kernel settings independently and keep
   platform, daemon, and capacity outcomes separate so an unsupported-host
   override cannot hide a safety failure.
+- Session 15 (`0.15.0`): Scoring is safest when every measurement carries an
+  explicit state. Keep missing and invalid evidence distinct from measured
+  zero, and preserve the documented task-equal weighting in fixtures.
 - Session 5 follow-up: WSL2 can run with a custom kernel that removes the
   standard Microsoft markers. Support an explicit, clearly labeled WSL
   classification without weakening any safety probe.
