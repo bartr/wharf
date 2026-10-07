@@ -1,0 +1,13 @@
+diff --git a/cmd/hello/main.go b/cmd/hello/main.go
+index eac8144..1982d2d 100644
+--- a/cmd/hello/main.go
++++ b/cmd/hello/main.go
+@@ -6,7 +6,7 @@ import "fmt"
+ 
+ // greet returns the greeting printed by the CLI.
+ func greet() string {
+-	return "Hello"
++	return "Hello world!"
+ }
+ 
+ func main() {

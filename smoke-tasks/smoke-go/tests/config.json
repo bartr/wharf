@@ -1,0 +1,18 @@
+{
+ "base_commit": "62b380d84cd04ad32ff8056a59fe9c57b2601a21",
+ "f2p_node_ids": [
+  "github.com/bartr/hello-go/cmd/hello.TestGreetHello"
+ ],
+ "p2p_node_ids": [
+  "github.com/bartr/hello-go/cmd/hello.TestGreetNonEmpty"
+ ],
+ "grade": {
+  "format": "ctrf",
+  "node_id": "suite.name",
+  "tool_label": "go-ctrf-json-reporter",
+  "reports": [
+   "/logs/verifier/base-ctrf.json",
+   "/logs/verifier/new-ctrf.json"
+  ]
+ }
+}

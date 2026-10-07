@@ -1,0 +1,17 @@
+diff --git a/cmd/hello/greet_solved_test.go b/cmd/hello/greet_solved_test.go
+new file mode 100644
+index 0000000..1b26120
+--- /dev/null
++++ b/cmd/hello/greet_solved_test.go
+@@ -0,0 +1,11 @@
++package main
++
++import "testing"
++
++// TestGreetHello is the fail-to-pass check: greet must return exactly
++// "Hello world!" once the task is solved.
++func TestGreetHello(t *testing.T) {
++	if got := greet(); got != "Hello world!" {
++		t.Fatalf("greet() = %q, want %q", got, "Hello world!")
++	}
++}
