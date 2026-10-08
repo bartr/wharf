@@ -275,7 +275,7 @@ public sealed partial class CopilotAdapter
     }
 
     [GeneratedRegex(
-        @"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
+        @"^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?$",
         RegexOptions.CultureInvariant)]
     private static partial Regex SemverRegex();
 }
@@ -304,7 +304,7 @@ public sealed class ProcessCopilotCliProbe(string executable = "copilot") : ICop
 
         Match match = Regex.Match(
             output,
-            @"(?<!\d)v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?",
+            @"(?<!\d)v?\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?",
             RegexOptions.CultureInvariant);
         if (!match.Success)
             throw new CopilotAdapterException("Copilot CLI returned no semantic version");

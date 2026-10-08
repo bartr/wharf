@@ -23,6 +23,19 @@ Target duration: 60-90 focused minutes per session
   settle and pin the .NET SDK before scaffolding the application.
 - Post-v1 repair/replay requirements `REQ-153` through `REQ-180` and `AC-019`
   are excluded from this MVP arc.
+- Post-MVP work includes the Pier-style derived agent-image cache: install the
+  requested Copilot version into local task images, reuse those images across
+  K=4 and future runs, retain the images locally to avoid Copilot CLI download
+  rate limits, support Docker-based inspection/restart, and provide bounded
+  image retention and cleanup. Earlier test runs demonstrated that repeated
+  CLI downloads can fail due to package-registry throttling.
+- Post-MVP scale work includes resource admission and validated host profiles
+  for N=160 and N=256 workloads, including Docker, disk, process, network, and
+  Copilot API limits.
+- The 64-vCPU host profile uses network-attached storage. Its lower throughput
+  and higher latency must be measured explicitly. The MVP should retain
+  Wharf's no-derived-agent-image startup path because Pier image builds
+  exceeded ten minutes at full load and capped that host near N=80.
 - Native Windows, Kubernetes, multi-node orchestration, hosted control-plane
   work, licensing automation, non-Ubuntu distributions, Claude Code, Codex,
   and Java

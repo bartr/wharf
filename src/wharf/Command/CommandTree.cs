@@ -178,6 +178,11 @@ public static class CommandTree
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var model = new Option<string?>("--model") { Description = "Model name." };
         var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
+        var include = new Option<string?>("--include")
+        {
+            Description = "Run only tasks matching the task ID, category, or language."
+        };
+        include.Aliases.Add("-i");
         var tasks = new Option<string>("--tasks")
         {
             Description = "Directory containing the dataset.toml or task.toml directories.",
@@ -194,6 +199,7 @@ public static class CommandTree
         command.Options.Add(outputDirectory);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(include);
         command.Options.Add(tasks);
         command.Options.Add(verbose);
         command.SetAction(parseResult =>
@@ -236,6 +242,19 @@ public static class CommandTree
                     string? taskRoot = parseResult.GetValue(tasks);
                     if (string.IsNullOrWhiteSpace(taskRoot))
                         throw new RunException("run task directory is required");
+                    IReadOnlyList<HarborTask>? selectedTasks = null;
+                    if (parseResult.GetValue(include) is { } includeExpression)
+                    {
+                        HarborTaskLoader loader = new();
+                        selectedTasks = TaskSelector.Select(
+                            loader.Load(taskRoot),
+                            new TaskSelection(Include: includeExpression));
+                        if (selectedTasks.Count == 0)
+                        {
+                            throw new RunException(
+                                $"run task include did not match a task: {includeExpression}");
+                        }
+                    }
                     WharfConfiguration loggerConfiguration = configuration with
                     {
                         Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
@@ -246,7 +265,8 @@ public static class CommandTree
                         taskRoot,
                         runConfiguration.OutputDirectory,
                         runConfiguration,
-                        logger);
+                        logger,
+                        selectedTasks);
                     Console.WriteLine(
                         $"complete runs={result.TaskCount} result=execution-pending output={result.OutputDirectory}");
                     return ExitCode.Success.Value;

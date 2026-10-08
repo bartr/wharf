@@ -63,18 +63,49 @@ public sealed class PristineVerifierService
         string status = results.Any(result => result.TimedOut || result.ExitCode != 0)
             ? "failed"
             : "passed";
+        VerifierMetrics? metrics = ReadMetrics(evidenceDirectory);
         var trial = new TrialResult(
             TrialResultSchema.Version,
             request.TaskId,
             status,
             workspace,
             results,
-            Path.Combine(evidenceDirectory, "patch.diff"));
+            Path.Combine(evidenceDirectory, "patch.diff"),
+            metrics);
         File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), patch);
         AtomicFile.Replace(
             Path.Combine(evidenceDirectory, "trial-result.json"),
             JsonSerializer.Serialize(trial, StateJson.Options));
         return trial;
+    }
+
+    private static VerifierMetrics? ReadMetrics(string evidenceDirectory)
+    {
+        string path = Path.Combine(evidenceDirectory, "reward.json");
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+            JsonElement root = document.RootElement;
+            int passAt = root.TryGetProperty("reward", out JsonElement reward)
+                ? reward.GetInt32()
+                : 0;
+            double f2p = root.TryGetProperty("f2p", out JsonElement f2pValue)
+                ? f2pValue.GetDouble() * 100
+                : 0;
+            double p2p = root.TryGetProperty("p2p", out JsonElement p2pValue)
+                ? p2pValue.GetDouble() * 100
+                : 0;
+            return new VerifierMetrics(passAt, f2p, p2p);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     private static void WriteCommandEvidence(
@@ -146,6 +177,15 @@ public sealed class GitPatchApplier : IPatchApplier
     }
 }
 
+public sealed class RetainingPatchApplier : IPatchApplier
+{
+    public Task ApplyAsync(
+        string workspaceDirectory,
+        string patch,
+        CancellationToken cancellationToken) =>
+        Task.CompletedTask;
+}
+
 public sealed class ProcessVerifierRunner : IVerifierRunner
 {
     public async Task<VerifierCommandResult> RunAsync(
@@ -171,6 +211,77 @@ public sealed class ProcessVerifierRunner : IVerifierRunner
 
         using Process process = Process.Start(startInfo)
             ?? throw new VerifierExecutionException("verifier process could not be started");
+        var stopwatch = Stopwatch.StartNew();
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(command.Timeout);
+        bool timedOut = false;
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            timedOut = true;
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+        }
+
+        stopwatch.Stop();
+        return new VerifierCommandResult(
+            command.Name,
+            process.ExitCode,
+            await outputTask,
+            await errorTask,
+            (long)stopwatch.Elapsed.TotalMilliseconds,
+            timedOut);
+    }
+}
+
+public sealed class DockerVerifierRunner : IVerifierRunner
+{
+    public async Task<VerifierCommandResult> RunAsync(
+        VerifierRequest request,
+        string workspaceDirectory,
+        VerifierCommand command,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Image))
+        {
+            throw new VerifierExecutionException("Docker verifier image is required");
+        }
+
+        string evidenceDirectory = Path.GetFullPath(
+            request.EvidenceDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier evidence directory is required for Docker verification"));
+        string artifactsDirectory = Path.GetFullPath(
+            request.ArtifactsDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier artifacts directory is required for Docker verification"));
+        var arguments = new List<string>
+        {
+            "run", "--rm", "--network", request.Network,
+            "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
+            "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
+            request.Image,
+            command.Command
+        };
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        using Process process = Process.Start(startInfo)
+            ?? throw new VerifierExecutionException("Docker verifier process could not be started");
         var stopwatch = Stopwatch.StartNew();
         Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);

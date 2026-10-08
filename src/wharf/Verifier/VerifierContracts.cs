@@ -9,7 +9,10 @@ public sealed record VerifierRequest(
     string Network,
     IReadOnlyList<VerifierCommand> Commands,
     IReadOnlyList<string> HiddenPaths,
-    IReadOnlyList<string> CredentialEnvironmentVariables)
+    IReadOnlyList<string> CredentialEnvironmentVariables,
+    string? Image = null,
+    string? EvidenceDirectory = null,
+    string? ArtifactsDirectory = null)
 {
     public void Validate()
     {
@@ -75,7 +78,13 @@ public sealed record TrialResult(
     string Status,
     string WorkspaceDirectory,
     IReadOnlyList<VerifierCommandResult> Commands,
-    string PatchApplied);
+    string PatchApplied,
+    VerifierMetrics? Metrics = null);
+
+public sealed record VerifierMetrics(
+    int PassAt,
+    double F2pPercent,
+    double P2pPercent);
 
 public interface IPristineWorkspaceFactory
 {

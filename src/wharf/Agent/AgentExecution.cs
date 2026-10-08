@@ -130,7 +130,15 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add(request.AgentImage);
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
-        arguments.Add("cp -a /app/. /workspace/ && cd /workspace/ && exec \"$@\"");
+        arguments.Add(
+            "if ! command -v npm >/dev/null 2>&1; then " +
+            "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
+            "rm -rf /tmp/wharf-copilot; " +
+            $"npm install --prefix /tmp/wharf-copilot --no-fund --no-audit " +
+            $"@github/copilot@{request.Invocation.EffectiveVersion} >/tmp/wharf-copilot-install.log 2>&1 || " +
+            "{ cat /tmp/wharf-copilot-install.log >&2; exit 127; }; " +
+            "export PATH=/tmp/wharf-copilot/node_modules/.bin:$PATH; " +
+            "cp -a /app/. /workspace/ && cd /workspace/ && exec \"$@\"");
         arguments.Add("--");
         arguments.Add(request.Invocation.Executable);
         arguments.AddRange(request.Invocation.Arguments);
@@ -180,6 +188,7 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             DebugLogDirectory: debugLogDirectory,
             Usage: usage);
     }
+
 
     internal static partial class CopilotUsageParser
     {

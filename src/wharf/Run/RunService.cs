@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Diagnostics;
 using Tomlyn;
 using Tomlyn.Model;
 using Wharf.Agent;
@@ -7,6 +8,7 @@ using Wharf.Copilot;
 using Wharf.Image;
 using Wharf.Logging;
 using Wharf.Tasks;
+using Wharf.Verifier;
 
 namespace Wharf.Run;
 
@@ -22,15 +24,21 @@ public sealed class RunService
     private readonly HarborTaskLoader taskLoader;
     private readonly IAgentImagePreparer imagePreparer;
     private readonly AgentExecutionService agentExecution;
+    private readonly PristineVerifierService verifier;
 
     public RunService(
         HarborTaskLoader? taskLoader = null,
         IAgentImagePreparer? imagePreparer = null,
-        AgentExecutionService? agentExecution = null)
+        AgentExecutionService? agentExecution = null,
+        PristineVerifierService? verifier = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
         this.imagePreparer = imagePreparer ?? new DockerAgentImagePreparer();
         this.agentExecution = agentExecution ?? new AgentExecutionService(new DockerAgentRunner());
+        this.verifier = verifier ?? new PristineVerifierService(
+            new FilePristineWorkspaceFactory(),
+            new GitPatchApplier(),
+            new ProcessVerifierRunner());
     }
 
     public RunResult Execute(
@@ -117,6 +125,7 @@ public sealed class RunService
             string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
             Directory.CreateDirectory(workspaceDirectory);
             logger.Info($"{prefix} status=running-agent");
+            bool agentSucceeded = false;
             if (invocation is null)
             {
                 File.WriteAllText(
@@ -150,6 +159,7 @@ public sealed class RunService
                         Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
                         overwrite: true);
+                    agentSucceeded = agentEvidence.Status == "completed";
                     logger.Info($"{prefix} status=agent-complete result={agentEvidence.Status}");
                 }
                 catch (AgentExecutionException exception)
@@ -160,19 +170,94 @@ public sealed class RunService
                     logger.Info($"{prefix} status=agent-failed error={exception.Message}");
                 }
             }
-            logger.Info($"{prefix} status=running-verifier");
-            logger.Info($"{prefix} status=verifier-execution-pending");
+            string taskStatus = "agent-failed";
+            string? patch = null;
+            string sourceDirectory = ResolveVerifierSource(task);
+            string verifierError = "agent execution did not produce a patch";
+            string? agentPatchPath = Path.Combine(trialDirectory, "agent", "patch.diff");
+            if (File.Exists(agentPatchPath))
+            {
+                patch = File.ReadAllText(agentPatchPath);
+            }
+
+            if (agentSucceeded && !string.IsNullOrWhiteSpace(patch))
+            {
+                logger.Info($"{prefix} status=running-verifier");
+                try
+                {
+                    string verifierDirectory = Path.Combine(trialDirectory, "verifier");
+                    string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
+                    File.Copy(
+                        agentPatchPath!,
+                        Path.Combine(artifactsDirectory, "model.patch"),
+                        overwrite: true);
+                    string? verifierImage = PrepareVerifierImage(
+                        task,
+                        trialDirectory,
+                        runId,
+                        logger,
+                        prefix);
+                    PristineVerifierService verifierService = verifierImage is null
+                        ? verifier
+                        : new PristineVerifierService(
+                            new FilePristineWorkspaceFactory(),
+                            new RetainingPatchApplier(),
+                            new DockerVerifierRunner());
+                    TrialResult verification = verifierService.VerifyAsync(
+                        new VerifierRequest(
+                            task.TaskId,
+                            sourceDirectory,
+                            workspaceDirectory,
+                            verifierImage is null ? "bridge" : "none",
+                            [new VerifierCommand(
+                                verifierImage is null ? "tests" : "grader",
+                                verifierImage is null ? VerifierCommandFor(task.Language) : "/tests/test.sh",
+                                TimeSpan.FromSeconds(task.VerifierTimeoutSeconds ?? 1800))],
+                            [],
+                            [],
+                            verifierImage,
+                            verifierDirectory,
+                            artifactsDirectory),
+                        patch,
+                        verifierDirectory,
+                        CancellationToken.None).GetAwaiter().GetResult();
+                    taskStatus = verification.Status;
+                    if (verification.Metrics is { } metrics)
+                    {
+                        logger.Info(
+                            $"{prefix} status=verifier-complete result={taskStatus} " +
+                            $"pass@1={metrics.PassAt} f2p={metrics.F2pPercent:0.##}% " +
+                            $"p2p={metrics.P2pPercent:0.##}%");
+                    }
+                    else
+                    {
+                        logger.Info(
+                            $"{prefix} status=verifier-complete result={taskStatus} " +
+                            "metrics=unavailable");
+                    }
+                }
+                catch (VerifierExecutionException exception)
+                {
+                    verifierError = exception.Message;
+                    logger.Info($"{prefix} status=verifier-failed error={verifierError}");
+                }
+            }
+            else
+            {
+                logger.Info($"{prefix} status=verifier-skipped reason={verifierError}");
+            }
             logger.Info($"{prefix} status=cleaning-up");
-            logger.Info($"{prefix} status=complete result=execution-pending");
+            logger.Info($"{prefix} status=complete result={taskStatus}");
             var result = new
             {
-                status = "execution-pending",
+                status = taskStatus,
                 taskRoot = resolvedRoot,
                 taskId = task.TaskId,
                 taskManifest = Path.Combine(task.RootPath, "task.toml"),
                 datasetManifest,
                 agentImage = image,
-                agentWorkspace = workspaceDirectory
+                agentWorkspace = workspaceDirectory,
+                verifierError
             };
             File.WriteAllText(
                 Path.Combine(trialDirectory, "result.json"),
@@ -180,11 +265,69 @@ public sealed class RunService
         });
 
         return new RunResult(
-            "execution-pending",
+            "completed",
             resolvedRoot,
             datasetManifest,
             tasks.Count,
             resolvedOutput);
+    }
+
+    private static string ResolveVerifierSource(HarborTask task)
+    {
+        string appDirectory = Path.Combine(task.RootPath, "environment", "app");
+        return Directory.Exists(appDirectory) ? appDirectory : task.RootPath;
+    }
+
+    private static string VerifierCommandFor(string language) =>
+        language.Trim().ToLowerInvariant() switch
+        {
+            "go" => "go test ./...",
+            "python" or "python3" => "python -m pytest",
+            "javascript" or "typescript" or "node" => "npm test",
+            _ => "true"
+        };
+
+    private static string? PrepareVerifierImage(
+        HarborTask task,
+        string trialDirectory,
+        string runId,
+        WharfLogger logger,
+        string prefix)
+    {
+        string context = Path.Combine(task.RootPath, "tests");
+        string dockerfile = Path.Combine(context, "Dockerfile");
+        if (!File.Exists(dockerfile))
+        {
+            return null;
+        }
+
+        string image = $"{SanitizePathPart(task.TaskId)}__verifier__{runId}:latest";
+        logger.Info($"{prefix} status=preparing-verifier-image image={image}");
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (string argument in new[] { "image", "build", "--file", dockerfile, "--tag", image, context })
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+        using Process process = Process.Start(startInfo)
+            ?? throw new RunException("Docker verifier image process could not be started");
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        File.WriteAllText(Path.Combine(trialDirectory, "verifier", "image-build.log"), output + error);
+        if (process.ExitCode != 0)
+        {
+            throw new RunException(
+                $"Docker verifier image build failed: {(string.IsNullOrWhiteSpace(error) ? output : error).Trim()}");
+        }
+
+        logger.Info($"{prefix} status=verifier-image-ready image={image}");
+        return image;
     }
 
     private static string FormatRunPrefix(
@@ -192,9 +335,22 @@ public sealed class RunService
         int totalRuns,
         HarborTask task,
         int attempt,
-        int attempts) =>
-        $"run={runNumber:D3}/{totalRuns:D3} task={ShortTaskName(task.TaskId)} " +
-        $"attempt={attempt}/{attempts}";
+        int attempts)
+    {
+        var parts = new List<string>();
+        if (totalRuns > 1)
+        {
+            parts.Add($"run={runNumber:D3}/{totalRuns:D3}");
+        }
+
+        parts.Add($"task={ShortTaskName(task.TaskId)}");
+        if (attempts > 1)
+        {
+            parts.Add($"attempt={attempt}/{attempts}");
+        }
+
+        return string.Join(' ', parts);
+    }
 
     private static string ShortTaskName(string taskId) =>
         taskId.Length <= 32 ? taskId : taskId[..32];

@@ -42,6 +42,44 @@ remaining compatible with Harbor task definitions.
   initial task provider and future enterprise suites are added through the same
   provider boundaries
 
+## Post-MVP execution and scale requirements
+
+The MVP may install the requested Copilot CLI inside each temporary agent
+container and reuse the task's configured environment image. After MVP,
+`wharf build` must support the Pier-style derived-image workflow:
+
+- Build a local, version-pinned agent image from each task environment image.
+- Install the requested Copilot CLI and its runtime dependencies in the
+  derived image rather than during every agent startup.
+- Retain the derived image in the local Docker image store for reuse. This is
+  required not only for startup performance, but also to avoid repeatedly
+  downloading the Copilot CLI and triggering package-registry rate limits. A
+  small number of earlier test runs failed because the CLI could not be
+  downloaded frequently enough.
+- Use the derived image as the base for agent containers, while retaining a
+  separate writable per-run workspace.
+- Cache and reuse derived images across K=4 attempts and later runs so those
+  attempts do not reinstall or redownload the CLI. The cache key must include
+  the source image digest, Copilot CLI version, installation inputs, and
+  relevant task configuration.
+- Keep different Copilot versions isolated; never silently reuse an image built
+  for another requested version.
+- Provide explicit image inventory, retention, pruning, and cleanup behavior
+  so large task suites do not leave unbounded local image storage.
+- Preserve enough image metadata to restart or inspect an agent run with
+  Docker after the run has started.
+- Add resource admission and host-profile validation for high-concurrency
+  workloads, including the planned N=160 and N=256 profiles.
+- Include storage-aware host profiles. The 64-vCPU profile uses a
+  network-attached disk with higher latency and lower throughput than local
+  storage; qualification must measure Docker layer, workspace, log, and
+  verifier I/O under that constraint.
+- Preserve the MVP's no-derived-agent-image startup path for this profile.
+  Earlier Pier image builds took more than ten minutes at full load and
+  limited a 64-vCPU host to approximately N=80. Avoiding those builds is an
+  important cold-start and concurrency advantage until a persistent,
+  rate-limit-safe image cache is available.
+
 ## Non-goals for v1
 
 - native Windows workers and native PowerShell execution

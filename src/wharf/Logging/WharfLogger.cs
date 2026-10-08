@@ -38,15 +38,15 @@ public sealed class WharfLogger : IDisposable
 
     private void Write(string level, string message, TextWriter writer)
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        string timestamp = now.ToString("O", CultureInfo.InvariantCulture);
+        DateTimeOffset utcNow = DateTimeOffset.UtcNow;
         if (configuration.LogFormat.Equals("json", StringComparison.OrdinalIgnoreCase))
         {
+            string timestamp = utcNow.ToString("O", CultureInfo.InvariantCulture);
             writer.WriteLine(JsonSerializer.Serialize(new { timestamp, level, message }));
             return;
         }
 
-        string humanTimestamp = now.ToString(
+        string humanTimestamp = DateTimeOffset.Now.ToString(
             "MM-dd HH:mm:ss",
             CultureInfo.InvariantCulture);
         writer.WriteLine($"{humanTimestamp} {message}");
