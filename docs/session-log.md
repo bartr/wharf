@@ -764,3 +764,45 @@ Pin, validate, and invoke Copilot CLI without leaking credentials.
 * Close ritual completion rate:
 * Did intentional sessions compound faster than accidental ones?
 * What would the next arc look like with this discipline in place?
+
+---
+
+## N=32 qualification checkpoint, 2026-10-08
+
+### Frame
+
+* Goal: qualify the real 113-task Copilot run at K=1, N=32, and B=12 on z01,
+  compare clean matched outcomes with Pier, and convert every observed
+  reliability defect into retained, tested behavior.
+* Out of scope: claiming a final score before the active run completes or
+  committing benchmark solutions and verifier-only material.
+* Failure condition: trust success-shaped command exits, lose patches from
+  failed agents, allow known OOM loops to block the run, or compare unlike
+  timing boundaries as if they were equivalent.
+
+### Summary
+
+The qualification exposed pnpm recursion, 4 GiB cgroup OOMs, misleading
+progress accounting, AI Credit unit conversion, leading-dash prompt parsing,
+a transient Copilot HTTP 400, missing agent/build timeout enforcement, reward
+zero misclassification, and incomplete patch capture. Wharf now uses 8 GiB
+agent/verifier limits for future runs, stops on Docker OOM events, enforces all
+four task timeouts, retries the explicit transient Copilot failure once,
+captures complete patches, and verifies every nonempty patch regardless of
+agent exit status.
+
+Manual Koota verification proved the failed-agent policy: the PID-exhausted
+agent was stopped with exit 137, but its complete preserved patch passed 43/43
+F2P and 172/172 P2P tests for reward 1.
+
+### Validation
+
+* Focused agent, verifier, and loader tests: 26/26 passed.
+* Build: passed.
+* Manual Koota verifier: reward 1.
+* Full suite: deferred until the active N=32 run releases Docker capacity.
+
+### Next session starter
+
+Finish and rescore the active run from retained evidence, then repeat
+K=1/N=32/B=12 with the corrected binary.

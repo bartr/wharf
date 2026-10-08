@@ -136,7 +136,6 @@ public sealed class RunService
             Directory.CreateDirectory(workspaceDirectory);
             string image = string.Empty;
             AgentExecutionRequest? agentRequest = null;
-            bool agentSucceeded = false;
             try
             {
                 logger.Info($"{prefix} status=waiting-preparation");
@@ -249,7 +248,6 @@ public sealed class RunService
                         Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
                         overwrite: true);
-                    agentSucceeded = agentEvidence.Status == "completed";
                     string cost = agentOutcome.TotalCost?.ToString(
                         "0.####",
                         System.Globalization.CultureInfo.InvariantCulture)
@@ -284,7 +282,7 @@ public sealed class RunService
                 patch = File.ReadAllText(agentPatchPath);
             }
 
-            if (agentSucceeded && !string.IsNullOrWhiteSpace(patch))
+            if (ShouldRunVerifier(patch))
             {
                 logger.Info($"{prefix} status=running-verifier");
                 try
@@ -323,7 +321,7 @@ public sealed class RunService
                             verifierImage,
                             verifierDirectory,
                             artifactsDirectory),
-                        patch,
+                        patch!,
                         verifierDirectory,
                         trialCancellationToken);
                     taskStatus = verification.Status;
@@ -553,6 +551,9 @@ public sealed class RunService
 
     internal static string BuildPromptArgument(string prompt) =>
         $"--prompt={prompt}";
+
+    internal static bool ShouldRunVerifier(string? patch) =>
+        !string.IsNullOrWhiteSpace(patch);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

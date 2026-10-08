@@ -235,6 +235,9 @@ public sealed partial class DockerAgentRunner : IAgentRunner
     {
         request.Validate();
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
+        string baseCommit = await ReadHeadAsync(
+            request.WorkspaceDirectory,
+            cancellationToken);
         Stopwatch stopwatch = Stopwatch.StartNew();
         IReadOnlyList<string> arguments = BuildAgentArguments(request, containerName);
         string? credentialVariable = request.Invocation.Environment.TryGetValue(
@@ -281,7 +284,10 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         stopwatch.Stop();
         string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
         AgentUsage? usage = CopilotUsageParser.Parse(agent.StandardError, debugLogDirectory);
-        string patch = await ReadPatchAsync(request.WorkspaceDirectory, cancellationToken);
+        string patch = await ReadPatchAsync(
+            request.WorkspaceDirectory,
+            baseCommit,
+            cancellationToken);
         return new AgentRunResult(
             agent.ExitCode,
             agent.StandardOutput,
@@ -403,8 +409,84 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         private static partial Regex AiCreditsRegex();
     }
 
-    private static async Task<string> ReadPatchAsync(
+    private static async Task<string> ReadHeadAsync(
         string workspace,
+        CancellationToken cancellationToken)
+    {
+        GitProcessResult result = await RunGitAsync(
+            workspace,
+            ["rev-parse", "HEAD"],
+            cancellationToken);
+        if (result.ExitCode != 0 || string.IsNullOrWhiteSpace(result.StandardOutput))
+        {
+            throw new AgentExecutionException(
+                $"agent workspace HEAD could not be read: {result.StandardError.Trim()}");
+        }
+
+        return result.StandardOutput.Trim();
+    }
+
+    internal static async Task<string> ReadPatchAsync(
+        string workspace,
+        string baseCommit,
+        CancellationToken cancellationToken)
+    {
+        GitProcessResult tracked = await RunGitAsync(
+            workspace,
+            ["diff", "--binary", "--no-ext-diff", baseCommit],
+            cancellationToken);
+        if (tracked.ExitCode != 0)
+        {
+            throw new AgentExecutionException(
+                $"patch capture failed: {tracked.StandardError.Trim()}");
+        }
+
+        GitProcessResult untracked = await RunGitAsync(
+            workspace,
+            ["ls-files", "--others", "--exclude-standard", "-z"],
+            cancellationToken);
+        if (untracked.ExitCode != 0)
+        {
+            throw new AgentExecutionException(
+                $"untracked file discovery failed: {untracked.StandardError.Trim()}");
+        }
+
+        var patch = new System.Text.StringBuilder(tracked.StandardOutput);
+        foreach (string path in untracked.StandardOutput.Split(
+                     '\0',
+                     StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (IsWharfRuntimePath(path))
+            {
+                continue;
+            }
+
+            GitProcessResult added = await RunGitAsync(
+                workspace,
+                ["diff", "--binary", "--no-index", "--", "/dev/null", path],
+                cancellationToken);
+            if (added.ExitCode is not 0 and not 1)
+            {
+                throw new AgentExecutionException(
+                    $"untracked patch capture failed for {path}: {added.StandardError.Trim()}");
+            }
+
+            patch.Append(added.StandardOutput);
+        }
+
+        return patch.ToString();
+    }
+
+    private static bool IsWharfRuntimePath(string path)
+    {
+        string first = path.Split('/', 2)[0];
+        return first is ".cache" or ".home" or ".wharf-copilot" or ".copilot-logs" ||
+            path == ".wharf-copilot-install.log";
+    }
+
+    private static async Task<GitProcessResult> RunGitAsync(
+        string workspace,
+        IReadOnlyList<string> arguments,
         CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo("git")
@@ -416,52 +498,26 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         };
         startInfo.ArgumentList.Add("-C");
         startInfo.ArgumentList.Add(workspace);
-        startInfo.ArgumentList.Add("diff");
-        startInfo.ArgumentList.Add("--binary");
-        startInfo.ArgumentList.Add("--no-ext-diff");
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
         using Process process = Process.Start(startInfo)
-            ?? throw new AgentExecutionException("git patch capture process could not be started");
+            ?? throw new AgentExecutionException("git process could not be started");
         string output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
         string error = await process.StandardError.ReadToEndAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
-        if (process.ExitCode != 0)
-        {
-            throw new AgentExecutionException($"patch capture failed: {error.Trim()}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(output))
-        {
-            return output;
-        }
-
-        var committedStartInfo = new ProcessStartInfo("git")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        committedStartInfo.ArgumentList.Add("-C");
-        committedStartInfo.ArgumentList.Add(workspace);
-        committedStartInfo.ArgumentList.Add("diff");
-        committedStartInfo.ArgumentList.Add("--binary");
-        committedStartInfo.ArgumentList.Add("--no-ext-diff");
-        committedStartInfo.ArgumentList.Add("HEAD^");
-        using Process committedProcess = Process.Start(committedStartInfo)
-            ?? throw new AgentExecutionException("committed patch capture process could not be started");
-        string committedOutput = await committedProcess.StandardOutput.ReadToEndAsync(cancellationToken);
-        _ = await committedProcess.StandardError.ReadToEndAsync(cancellationToken);
-        await committedProcess.WaitForExitAsync(cancellationToken);
-        if (committedProcess.ExitCode == 0 && !string.IsNullOrWhiteSpace(committedOutput))
-        {
-            return committedOutput;
-        }
-
-        return output;
+        return new GitProcessResult(process.ExitCode, output, error);
     }
 
     private static bool IsEnvironmentVariable(string value) =>
         value.All(character => char.IsLetterOrDigit(character) || character == '_');
+
+    private sealed record GitProcessResult(
+        int ExitCode,
+        string StandardOutput,
+        string StandardError);
 
 }
 

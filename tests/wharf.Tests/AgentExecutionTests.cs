@@ -182,6 +182,45 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
+    public void VerifiesEveryNonEmptyPatch()
+    {
+        Assert.True(RunService.ShouldRunVerifier("diff --git a/file b/file"));
+        Assert.False(RunService.ShouldRunVerifier(""));
+        Assert.False(RunService.ShouldRunVerifier(null));
+    }
+
+    [Fact]
+    public async Task PatchIncludesCommittedUncommittedAndNewFiles()
+    {
+        using TemporaryDirectory workspace = new();
+        RunGit(workspace.Path, "init");
+        RunGit(workspace.Path, "config", "user.email", "test@example.com");
+        RunGit(workspace.Path, "config", "user.name", "Test User");
+        File.WriteAllText(Path.Combine(workspace.Path, "tracked.txt"), "base\n");
+        RunGit(workspace.Path, "add", "tracked.txt");
+        RunGit(workspace.Path, "commit", "-m", "base");
+        string baseCommit = RunGit(workspace.Path, "rev-parse", "HEAD").Trim();
+
+        File.WriteAllText(Path.Combine(workspace.Path, "tracked.txt"), "committed\n");
+        RunGit(workspace.Path, "add", "tracked.txt");
+        RunGit(workspace.Path, "commit", "-m", "agent commit");
+        File.AppendAllText(Path.Combine(workspace.Path, "tracked.txt"), "uncommitted\n");
+        File.WriteAllText(Path.Combine(workspace.Path, "new-file.txt"), "new\n");
+        Directory.CreateDirectory(Path.Combine(workspace.Path, ".home"));
+        File.WriteAllText(Path.Combine(workspace.Path, ".home", "runtime.txt"), "exclude\n");
+
+        string patch = await DockerAgentRunner.ReadPatchAsync(
+            workspace.Path,
+            baseCommit,
+            CancellationToken.None);
+
+        Assert.Contains("committed", patch);
+        Assert.Contains("uncommitted", patch);
+        Assert.Contains("new-file.txt", patch);
+        Assert.DoesNotContain("runtime.txt", patch);
+    }
+
+    [Fact]
     public async Task RetriesCopilotInternalServerFailureWithSeparateEvidence()
     {
         using TemporaryDirectory source = new();
@@ -298,6 +337,30 @@ public sealed class AgentExecutionTests
         Assert.True(index >= 0, $"Missing Docker option {option}");
         Assert.True(index + 1 < arguments.Count, $"Missing value for Docker option {option}");
         Assert.Equal(value, arguments[index + 1]);
+    }
+
+    private static string RunGit(string workspace, params string[] arguments)
+    {
+        var startInfo = new System.Diagnostics.ProcessStartInfo("git")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+        startInfo.ArgumentList.Add("-C");
+        startInfo.ArgumentList.Add(workspace);
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        using System.Diagnostics.Process process =
+            System.Diagnostics.Process.Start(startInfo)!;
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        Assert.True(process.ExitCode == 0, error);
+        return output;
     }
 
     private static AgentExecutionRequest Request(

@@ -81,6 +81,11 @@ container and reuse the task's configured environment image. After MVP,
 - Retry a Copilot HTTP 400 reported as an internal server error once in a fresh
   workspace. Retain the failed execution and a separate infrastructure-retry
   record, and include both executions in the task's reported cost.
+- Capture the complete patch from the pre-agent commit through the final
+  workspace, including agent commits, later uncommitted edits, and new
+  non-runtime files. Run the verifier whenever that patch is nonempty even if
+  the agent exits nonzero, times out, or is stopped after an OOM; the verifier's
+  reward remains authoritative while the agent failure evidence is retained.
 - Cache and reuse derived images across K=4 attempts and later runs so those
   attempts do not reinstall or redownload the CLI. The cache key must include
   the source image digest, Copilot CLI version, installation inputs, and
