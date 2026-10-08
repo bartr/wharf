@@ -9,7 +9,12 @@ public interface IAgentImagePreparer
     Task<string> PrepareAsync(
         HarborTask task,
         string evidenceDirectory,
+        string imageName,
         Action<string>? progress = null,
+        CancellationToken cancellationToken = default);
+
+    Task RemoveImageAsync(
+        string image,
         CancellationToken cancellationToken = default);
 }
 
@@ -34,6 +39,7 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
     public async Task<string> PrepareAsync(
         HarborTask task,
         string evidenceDirectory,
+        string imageName,
         Action<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
@@ -60,7 +66,9 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 
         string configuredBaseImage = ReadBaseImage(dockerfile);
         string baseImage = ResolveLocalBaseImage(configuredBaseImage);
-        string image = $"wharf-agent:{task.SourceChecksum[..12]}";
+        if (string.IsNullOrWhiteSpace(imageName))
+            throw new AgentImageException("agent image name is required");
+        string image = imageName;
         progress?.Invoke($"agent image preparing task {task.TaskId}");
         if (!string.Equals(configuredBaseImage, baseImage, StringComparison.Ordinal))
             progress?.Invoke($"agent image substituting {configuredBaseImage} with {baseImage}");
@@ -69,8 +77,12 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         progress?.Invoke($"agent image base {baseResult.Outcome}: {baseImage}");
         progress?.Invoke($"agent image building {image}");
 
+        string buildDockerfile = Path.Combine(evidenceDirectory, "Dockerfile.wharf");
+        File.WriteAllLines(
+            buildDockerfile,
+            RewriteBaseImage(File.ReadLines(dockerfile), configuredBaseImage, baseImage));
         ProcessResult build = await RunDockerAsync(
-            ["image", "build", "--file", dockerfile, "--tag", image, context],
+            ["image", "build", "--file", buildDockerfile, "--tag", image, context],
             cancellationToken);
         File.WriteAllText(
             Path.Combine(evidenceDirectory, "image-build.log"),
@@ -89,6 +101,31 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         }
 
         throw new AgentImageException($"Dockerfile has no FROM instruction: {dockerfile}");
+    }
+
+    private static IEnumerable<string> RewriteBaseImage(
+        IEnumerable<string> lines,
+        string configuredBaseImage,
+        string baseImage)
+    {
+        bool replaced = false;
+        foreach (string line in lines)
+        {
+            if (!replaced &&
+                Regex.IsMatch(line, @"^\s*FROM\s+" + Regex.Escape(configuredBaseImage) + @"(?:\s|$)", RegexOptions.IgnoreCase))
+            {
+                yield return Regex.Replace(
+                    line,
+                    Regex.Escape(configuredBaseImage),
+                    baseImage,
+                    RegexOptions.IgnoreCase);
+                replaced = true;
+            }
+            else
+            {
+                yield return line;
+            }
+        }
     }
 
     private static string ResolveLocalBaseImage(string image) =>
@@ -127,6 +164,15 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         string.IsNullOrWhiteSpace(result.StandardError)
             ? result.StandardOutput.Trim()
             : result.StandardError.Trim();
+
+    public async Task RemoveImageAsync(
+        string image,
+        CancellationToken cancellationToken = default)
+    {
+        ProcessResult result = await RunDockerAsync(
+            ["image", "rm", image],
+            cancellationToken);
+    }
 
     private sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
 }

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using Wharf.Configuration;
 
 namespace Wharf.Logging;
@@ -37,12 +38,17 @@ public sealed class WharfLogger : IDisposable
 
     private void Write(string level, string message, TextWriter writer)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        string timestamp = now.ToString("O", CultureInfo.InvariantCulture);
         if (configuration.LogFormat.Equals("json", StringComparison.OrdinalIgnoreCase))
         {
-            writer.WriteLine(JsonSerializer.Serialize(new { level, message }));
+            writer.WriteLine(JsonSerializer.Serialize(new { timestamp, level, message }));
             return;
         }
 
-        writer.WriteLine(message);
+        string humanTimestamp = now.ToString(
+            "MM-dd HH:mm:ss",
+            CultureInfo.InvariantCulture);
+        writer.WriteLine($"{humanTimestamp} {message}");
     }
 }

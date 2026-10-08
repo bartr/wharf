@@ -3,54 +3,11 @@ using Tomlyn;
 using Tomlyn.Model;
 using Wharf.Configuration;
 using Wharf.Host;
-using Wharf.Image;
 using Wharf.Logging;
+using Wharf.Run;
 using Wharf.Tasks;
 
 namespace Wharf.Smoke;
-
-public sealed record SmokeRunRequest(
-    string TaskRoot,
-    HarborTask Task,
-    string OutputDirectory,
-    int RunNumber = 1,
-    int TotalRuns = 1);
-
-public sealed record SmokeRunResult(
-    string Status,
-    string TaskId,
-    string TaskRoot,
-    string OutputDirectory);
-
-public interface ISmokeRunExecutor
-{
-    SmokeRunResult Run(SmokeRunRequest request, WharfLogger logger);
-}
-
-public sealed class NoOpSmokeRunExecutor : ISmokeRunExecutor
-{
-    public SmokeRunResult Run(SmokeRunRequest request, WharfLogger logger)
-    {
-        string prefix = FormatRunPrefix(request);
-        logger.Info($"{prefix} status=selected");
-        logger.Verbose($"run task root: {request.TaskRoot}", 2);
-        logger.Verbose($"run output directory: {request.OutputDirectory}", 2);
-        logger.Info($"{prefix} status=running-agent");
-        logger.Info($"{prefix} status=agent-execution-pending");
-        logger.Info($"{prefix} status=running-verifier");
-        logger.Info($"{prefix} status=verifier-execution-pending");
-        logger.Info($"{prefix} status=cleaning-up");
-        logger.Info($"{prefix} status=complete result=execution-pending");
-        return new SmokeRunResult(
-            "run-no-op",
-            request.Task.TaskId,
-            request.TaskRoot,
-            request.OutputDirectory);
-    }
-
-    private static string FormatRunPrefix(SmokeRunRequest request) =>
-        $"run={request.RunNumber:D3}/{request.TotalRuns:D3} task={request.Task.TaskId} attempt=1/1";
-}
 
 public sealed record SmokeResult(
     HostCheckReport Host,
@@ -64,17 +21,14 @@ public sealed record SmokeResult(
 public sealed class SmokeService
 {
     private readonly HarborTaskLoader taskLoader;
-    private readonly ISmokeRunExecutor runExecutor;
-    private readonly IAgentImagePreparer? imagePreparer;
+    private readonly RunService runService;
 
     public SmokeService(
         HarborTaskLoader? taskLoader = null,
-        ISmokeRunExecutor? runExecutor = null,
-        IAgentImagePreparer? imagePreparer = null)
+        RunService? runService = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
-        this.runExecutor = runExecutor ?? new NoOpSmokeRunExecutor();
-        this.imagePreparer = imagePreparer;
+        this.runService = runService ?? new RunService(taskLoader);
     }
 
     public SmokeResult Run(
@@ -97,106 +51,95 @@ public sealed class SmokeService
             throw new SmokeException($"smoke task directory contains no task.toml files: {resolvedTaskRoot}");
 
         HarborTask task = SelectTask(resolvedTaskRoot, tasks, include);
-        logger.Verbose($"smoke discovered {tasks.Count} task(s)", 1);
         logger.Info($"smoke selected task {task.TaskId}");
-        logger.Verbose($"task manifest: {Path.Combine(task.RootPath, "task.toml")}", 2);
-        logger.Verbose($"task checksum: {task.SourceChecksum}", 2);
-        logger.Verbose($"instruction: {task.InstructionPath}", 3);
-        logger.Verbose($"resources: cpus={task.Cpus}; memory_mb={task.MemoryMb}; storage_mb={task.StorageMb}", 3);
-
-        Directory.CreateDirectory(resolvedOutput);
-        SmokeRunResult run = runExecutor.Run(
-            new SmokeRunRequest(resolvedTaskRoot, task, resolvedOutput, 1, 1),
-            logger);
-        string trialDirectory = WriteSmokeArtifacts(resolvedOutput, resolvedTaskRoot, task, run);
-        if (imagePreparer is not null)
+        if (!host.IsSuccess)
         {
-            string image = imagePreparer.PrepareAsync(
-                task,
-                Path.Combine(trialDirectory, "agent"),
-                message => logger.Info(
-                    $"{FormatRunPrefix(new SmokeRunRequest(
-                        resolvedTaskRoot,
-                        task,
-                        resolvedOutput))} status={message}"),
-                CancellationToken.None).GetAwaiter().GetResult();
-            File.WriteAllText(Path.Combine(trialDirectory, "agent", "image.txt"), image);
+            return new SmokeResult(
+                host,
+                "qualification-blocked",
+                task.TaskId,
+                resolvedTaskRoot,
+                Path.Combine(task.RootPath, "task.toml"),
+                resolvedOutput,
+                host.ExitCode);
         }
 
-        string status = host.IsSuccess ? run.Status : "qualification-blocked";
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(
+                K: 1,
+                N: 1,
+                B: 1,
+                OutputDirectory: resolvedOutput),
+            new Dictionary<string, string?>
+            {
+                ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
+                ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
+                ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
+            });
+        RunResult result = runService.Execute(
+            resolvedTaskRoot,
+            resolvedOutput,
+            configuration,
+            logger,
+            [task],
+            "smoke");
+
+        WriteSmokeSelection(resolvedOutput, task, result.Status, resolvedTaskRoot);
         return new SmokeResult(
             host,
-            status,
+            result.Status,
             task.TaskId,
             resolvedTaskRoot,
             Path.Combine(task.RootPath, "task.toml"),
             resolvedOutput,
-            host.IsSuccess ? 0 : host.ExitCode);
+            0);
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true
-    };
-
-    private static string WriteSmokeArtifacts(
+    private static void WriteSmokeSelection(
         string outputDirectory,
-        string taskRoot,
         HarborTask task,
-        SmokeRunResult run)
+        string status,
+        string taskRoot)
     {
         string jobDirectory = Path.Combine(
             outputDirectory,
             $"{RunConfigurationResolver.DefaultCopilotCli}-" +
             $"{RunConfigurationResolver.DefaultCopilotModel}-max-" +
             $"{RunConfigurationResolver.DefaultCopilotVersion}");
-        Directory.CreateDirectory(jobDirectory);
-        string attemptDirectory = CreateAttemptDirectory(jobDirectory);
-        string trialDirectory = Path.Combine(
-            jobDirectory,
-            attemptDirectory,
-            $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}");
-        string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
-        Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
-        Directory.CreateDirectory(artifactsDirectory);
-        Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+        string? trialDirectory = Directory
+            .EnumerateDirectories(jobDirectory, $"{SanitizePathPart(task.TaskId)}__*", SearchOption.AllDirectories)
+            .OrderByDescending(path => path, StringComparer.Ordinal)
+            .FirstOrDefault();
+        if (trialDirectory is null)
+            return;
 
         var selection = new
         {
             taskRoot,
             taskId = task.TaskId,
             taskManifest = Path.Combine(task.RootPath, "task.toml"),
-            status = run.Status
+            status
+        };
+        JsonSerializerOptions options = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
         };
         File.WriteAllText(
             Path.Combine(trialDirectory, "smoke-selection.json"),
-            JsonSerializer.Serialize(selection, JsonOptions));
-        File.WriteAllText(
-            Path.Combine(trialDirectory, "result.json"),
-            JsonSerializer.Serialize(selection, JsonOptions));
-        File.WriteAllText(
-            Path.Combine(artifactsDirectory, "manifest.json"),
-            JsonSerializer.Serialize(Array.Empty<object>(), JsonOptions));
-        return trialDirectory;
+            JsonSerializer.Serialize(selection, options));
     }
-
-    private static string SanitizePathPart(string value)
-    {
-        var invalidCharacters = new HashSet<char>(Path.GetInvalidFileNameChars());
-        return new string(value.Select(character =>
-            invalidCharacters.Contains(character) ? '_' : character).ToArray());
-    }
-
-    private static string FormatRunPrefix(SmokeRunRequest request) =>
-        $"run={request.RunNumber:D3}/{request.TotalRuns:D3} task={request.Task.TaskId} attempt=1/1";
 
     private static HarborTask SelectTask(
         string taskRoot,
         IReadOnlyList<HarborTask> tasks,
         string? include)
     {
-        string? datasetPath = Path.Combine(taskRoot, "dataset.toml");
+        string datasetPath = Path.Combine(taskRoot, "dataset.toml");
         if (File.Exists(datasetPath))
         {
             TomlTable dataset;
@@ -247,18 +190,11 @@ public sealed class SmokeService
         string.Equals(value, include, StringComparison.OrdinalIgnoreCase) ||
         value.EndsWith('/' + include, StringComparison.OrdinalIgnoreCase);
 
-    private static string CreateAttemptDirectory(string jobDirectory)
+    private static string SanitizePathPart(string value)
     {
-        for (int attempt = 1; ; attempt++)
-        {
-            string name = $"smoke-{attempt}";
-            string path = Path.Combine(jobDirectory, name);
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-                return name;
-            }
-        }
+        var invalidCharacters = new HashSet<char>(Path.GetInvalidFileNameChars());
+        return new string(value.Select(character =>
+            invalidCharacters.Contains(character) ? '_' : character).ToArray());
     }
 }
 

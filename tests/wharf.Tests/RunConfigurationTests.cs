@@ -38,7 +38,18 @@ public sealed class RunConfigurationTests
 
         Assert.Equal(1, result.K);
         Assert.Equal("gpt-6-luna", result.Model);
-        Assert.Equal("1.0.91", result.CliVersion);
+        Assert.Equal("latest", result.CliVersion);
+    }
+
+    [Fact]
+    public void ReadsHydraFusionFromShortModelEnvironmentVariable()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["MODEL"] = "hydrafusion" });
+
+        Assert.Equal("hydrafusion", result.Model);
     }
 
     [Fact]

@@ -1,6 +1,9 @@
 using System.CommandLine;
 using System.Text.Json;
 using Wharf.Configuration;
+using Wharf.Build;
+using Wharf.Agent;
+using Wharf.Copilot;
 using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
@@ -61,6 +64,7 @@ public static class CommandTree
 
         root.Subcommands.Add(CreateVersionCommand(configuration));
         root.Subcommands.Add(CreateCompletionCommand());
+        root.Subcommands.Add(CreateBuildCommand(() => configuration));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
         root.Subcommands.Add(CreateCheckCommand());
         foreach (string? name in new[] { "resume", "status", "stop" })
@@ -105,6 +109,56 @@ public static class CommandTree
             }
 
             return report.ExitCode;
+        });
+        return command;
+    }
+
+    private static CliCommand CreateBuildCommand(Func<WharfConfiguration> getConfiguration)
+    {
+        var command = new CliCommand("build", "Pre-build task images and retain Docker build cache.");
+        var tasks = new Option<string>("--tasks")
+        {
+            Description = "Directory containing the dataset.toml or task.toml directories.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "tasks")
+        };
+        var verbose = new Option<bool>("--verbose") { Description = "Show image preparation details." };
+        verbose.Aliases.Add("-v");
+        command.Options.Add(tasks);
+        command.Options.Add(verbose);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                WharfConfiguration configuration = getConfiguration() with
+                {
+                    Verbosity = Math.Max(
+                        getConfiguration().Verbosity,
+                        parseResult.GetValue(verbose) ? 1 : 0)
+                };
+                using WharfLogger logger = WharfLogger.Create(configuration);
+                string? taskRoot = parseResult.GetValue(tasks);
+                if (string.IsNullOrWhiteSpace(taskRoot))
+                    throw new BuildException("build task directory is required");
+                BuildResult result = new BuildService(
+                    imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
+                    taskRoot,
+                    logger);
+                Console.WriteLine(
+                    $"complete tasks={result.TaskCount} prepared={result.PreparedCount} " +
+                    $"built={result.BuiltCount} " +
+                    $"cache=retained output=none");
+                return ExitCode.Success.Value;
+            }
+            catch (BuildException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (AgentImageException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InternalFailure.Value;
+            }
         });
         return command;
     }
@@ -171,6 +225,7 @@ public static class CommandTree
                             ["WHARF_B"] = Environment.GetEnvironmentVariable("WHARF_B"),
                             ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
                             ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
+                            ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
                             ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                             ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                             ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
@@ -205,6 +260,11 @@ public static class CommandTree
                 {
                     Console.Error.WriteLine(exception.Message);
                     return ExitCode.InvalidInput.Value;
+                }
+                catch (CopilotAdapterException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InternalFailure.Value;
                 }
                 catch (IOException exception)
                 {
@@ -365,8 +425,7 @@ public static class CommandTree
                     Verbosity = Math.Max(getConfiguration().Verbosity, localVerbosity)
                 };
                 using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
-                SmokeResult result = new SmokeService(
-                    imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Run(
+                SmokeResult result = new SmokeService().Run(
                     selectedTaskRoot,
                     output,
                     host,
@@ -379,13 +438,18 @@ public static class CommandTree
                     }));
                 else
                     Console.WriteLine(
-                        $"complete task={result.TaskId} result=execution-pending output={result.OutputDirectory}");
+                        $"complete task={result.TaskId} result={result.Status} output={result.OutputDirectory}");
                 return result.ExitCode;
             }
             catch (SmokeException exception)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;
+            }
+            catch (CopilotAdapterException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InternalFailure.Value;
             }
             catch (IOException exception)
             {

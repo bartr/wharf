@@ -124,7 +124,7 @@ public static class RunConfigurationResolver
 {
     public const string DefaultCopilotCli = "copilot";
     public const string DefaultCopilotModel = "gpt-6-luna";
-    public const string DefaultCopilotVersion = "1.0.91";
+    public const string DefaultCopilotVersion = "latest";
 
     public static RunConfiguration Resolve(
         RunManifest? manifest,

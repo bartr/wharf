@@ -9,7 +9,8 @@ public sealed record AgentExecutionRequest(
     string WorkspaceDirectory,
     string Network,
     CopilotInvocation Invocation,
-    IReadOnlyList<string> HiddenPaths)
+    IReadOnlyList<string> HiddenPaths,
+    string? ContainerName = null)
 {
     public void Validate()
     {
@@ -70,7 +71,8 @@ public sealed record AgentRunResult(
     int? Tokens = null,
     int? Steps = null,
     int? Requests = null,
-    decimal? Cost = null);
+    decimal? Cost = null,
+    string? DebugLogDirectory = null);
 
 public sealed record AgentEvidenceSummary(
     string SchemaVersion,
