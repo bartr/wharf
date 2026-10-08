@@ -18,7 +18,8 @@ public sealed class ProgressServiceTests
                 Record("run=001/004 task=build-task status=agent image checking base"),
                 Record("run=002/004 task=agent-task status=running-agent"),
                 Record("run=003/004 task=verifier-task status=preparing-verifier-image"),
-                Record("run=004/004 task=done-task status=complete result=passed cost=19")
+                Record("run=004/005 task=done-task status=complete result=passed cost=19"),
+                Record("run=005/005 task=failed-task status=agent-failed result=failed")
             ]);
 
             RunProgress progress = ProgressService.Read(path);
@@ -27,7 +28,10 @@ public sealed class ProgressServiceTests
             Assert.Equal(1, progress.Building);
             Assert.Equal(1, progress.Agents);
             Assert.Equal(1, progress.Verifiers);
-            Assert.Equal(1, progress.TestsCompleted);
+            Assert.Equal(2, progress.TestsCompleted);
+            Assert.Equal(1, progress.Errors);
+            Assert.Equal(1, progress.PassAtTotal);
+            Assert.Equal(50m, progress.PassPercent);
             Assert.Equal(0.19m, progress.AverageCost);
             Assert.Equal(0.19m, progress.TotalCost);
         }

@@ -369,13 +369,14 @@ public static class CommandTree
                         $"running={progress.TestsRunning} building={progress.Building} agent={progress.Agents} " +
                         $"verifier={progress.Verifiers} " +
                         $"completed={progress.TestsCompleted} errors={progress.Errors} " +
-                        $"pass@={progress.PassAtTotal} " +
+                        $"pass@={progress.PassAtTotal} pass-rate={FormatPercent(progress.PassPercent)} " +
                         $"avg-cost={FormatCost(progress.AverageCost)} " +
                         $"total-cost={FormatCost(progress.TotalCost)}");
                     foreach ((int k, ProgressGroup group) in progress.ByK.OrderBy(item => item.Key))
                     {
                         Console.WriteLine(
                             $"k={k} completed={group.TestsCompleted} pass@={group.PassAtTotal} " +
+                            $"pass-rate={FormatPercent(group.PassPercent)} " +
                             $"avg-cost={FormatCost(group.AverageCost)} " +
                             $"total-cost={FormatCost(group.TotalCost)}");
                     }
@@ -399,6 +400,11 @@ public static class CommandTree
 
     private static string FormatCost(decimal? cost) =>
         cost?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) ?? "unknown";
+
+    private static string FormatPercent(decimal? value) =>
+        value.HasValue
+            ? value.Value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + "%"
+            : "unknown";
 
     private static CliCommand CreateVersionCommand(WharfConfiguration configuration)
     {

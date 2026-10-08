@@ -252,23 +252,7 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             throw new VerifierExecutionException("Docker verifier image is required");
         }
 
-        string evidenceDirectory = Path.GetFullPath(
-            request.EvidenceDirectory
-            ?? throw new VerifierExecutionException(
-                "verifier evidence directory is required for Docker verification"));
-        string artifactsDirectory = Path.GetFullPath(
-            request.ArtifactsDirectory
-            ?? throw new VerifierExecutionException(
-                "verifier artifacts directory is required for Docker verification"));
-        var arguments = new List<string>
-        {
-            "run", "--rm", "--label", "com.bartr.wharf.managed=true",
-            "--network", request.Network,
-            "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
-            "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
-            request.Image,
-            command.Command
-        };
+        IReadOnlyList<string> arguments = BuildArguments(request, command);
         var startInfo = new ProcessStartInfo("docker")
         {
             RedirectStandardOutput = true,
@@ -308,5 +292,35 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             await errorTask,
             (long)stopwatch.Elapsed.TotalMilliseconds,
             timedOut);
+    }
+
+    internal static IReadOnlyList<string> BuildArguments(
+        VerifierRequest request,
+        VerifierCommand command)
+    {
+        if (string.IsNullOrWhiteSpace(request.Image))
+        {
+            throw new VerifierExecutionException("Docker verifier image is required");
+        }
+
+        string evidenceDirectory = Path.GetFullPath(
+            request.EvidenceDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier evidence directory is required for Docker verification"));
+        string artifactsDirectory = Path.GetFullPath(
+            request.ArtifactsDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier artifacts directory is required for Docker verification"));
+        return
+        [
+            "run", "--rm", "--label", "com.bartr.wharf.managed=true",
+            "--network", request.Network,
+            "--memory", "8g",
+            "--memory-swap", "8g",
+            "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
+            "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
+            request.Image,
+            command.Command
+        ];
     }
 }

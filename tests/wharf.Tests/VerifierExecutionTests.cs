@@ -81,6 +81,39 @@ public sealed class VerifierExecutionTests
         Assert.Throws<VerifierExecutionException>(request.Validate);
     }
 
+    [Fact]
+    public void LimitsDockerVerifierMemoryWithoutAdditionalSwap()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        using TemporaryDirectory artifacts = new();
+        VerifierRequest request = Request(source.Path, agent.Path) with
+        {
+            Image = "verifier:1",
+            EvidenceDirectory = evidence.Path,
+            ArtifactsDirectory = artifacts.Path
+        };
+
+        IReadOnlyList<string> arguments = DockerVerifierRunner.BuildArguments(
+            request,
+            request.Commands.Single());
+
+        AssertArgumentsContain(arguments, "--memory", "8g");
+        AssertArgumentsContain(arguments, "--memory-swap", "8g");
+    }
+
+    private static void AssertArgumentsContain(
+        IReadOnlyList<string> arguments,
+        string option,
+        string value)
+    {
+        int index = arguments.ToList().IndexOf(option);
+        Assert.True(index >= 0, $"Missing Docker option {option}");
+        Assert.True(index + 1 < arguments.Count, $"Missing value for Docker option {option}");
+        Assert.Equal(value, arguments[index + 1]);
+    }
+
     private static VerifierRequest Request(string source, string agent) =>
         new(
             "task-1",

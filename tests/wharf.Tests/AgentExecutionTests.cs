@@ -108,8 +108,8 @@ public sealed class AgentExecutionTests
 
         AssertArgumentsContain(arguments, "--name", "task-agent");
         AssertArgumentsContain(arguments, "--user", "1000:1000");
-        AssertArgumentsContain(arguments, "--memory", "4g");
-        AssertArgumentsContain(arguments, "--memory-swap", "4g");
+        AssertArgumentsContain(arguments, "--memory", "8g");
+        AssertArgumentsContain(arguments, "--memory-swap", "8g");
         AssertArgumentsContain(arguments, "--pids-limit", "512");
         int pnpmEnvironmentIndex = arguments.ToList().IndexOf(
             "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false");

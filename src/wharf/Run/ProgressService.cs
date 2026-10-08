@@ -14,6 +14,7 @@ public sealed record RunProgress(
     int Errors,
     IReadOnlyDictionary<string, int> ErrorTypes,
     int PassAtTotal,
+    decimal? PassPercent,
     IReadOnlyDictionary<int, ProgressGroup> ByK,
     decimal? AverageCost,
     decimal? TotalCost);
@@ -21,6 +22,7 @@ public sealed record RunProgress(
 public sealed record ProgressGroup(
     int TestsCompleted,
     int PassAtTotal,
+    decimal? PassPercent,
     decimal? AverageCost,
     decimal? TotalCost);
 
@@ -139,12 +141,13 @@ public static class ProgressService
             record.Status is not null);
         IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed && !record.Failed);
         IEnumerable<ProgressRecord> failed = records.Values.Where(record => record.Failed);
+        List<ProgressRecord> terminal = completed.Concat(failed).ToList();
         foreach (ProgressRecord record in failed)
         {
             string type = record.ErrorType ?? "Run";
             errorTypes[type] = errorTypes.TryGetValue(type, out int count) ? count + 1 : 1;
         }
-        var groups = completed
+        var groups = terminal
             .GroupBy(record => record.K)
             .ToDictionary(
                 group => group.Key,
@@ -161,10 +164,12 @@ public static class ProgressService
             active.Count(record => IsBuilding(record.Status)),
             active.Count(record => IsAgent(record.Status)),
             active.Count(record => IsVerifier(record.Status)),
-            completed.Count(),
+            terminal.Count,
             failed.Count(),
             errorTypes,
             completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+            Percentage(completed.Count(record =>
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
             groups,
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
@@ -189,17 +194,25 @@ public static class ProgressService
 
     private static ProgressGroup ToGroup(IEnumerable<ProgressRecord> records)
     {
-        List<ProgressRecord> completed = records.Where(record => record.Completed).ToList();
+        List<ProgressRecord> terminal = records.ToList();
+        List<ProgressRecord> completed = terminal
+            .Where(record => record.Completed && !record.Failed)
+            .ToList();
         List<decimal> costs = completed
             .Where(record => record.Cost.HasValue)
             .Select(record => record.Cost!.Value)
             .ToList();
         return new ProgressGroup(
-            completed.Count,
+            terminal.Count,
             completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+            Percentage(completed.Count(record =>
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
     }
+
+    private static decimal? Percentage(int numerator, int denominator) =>
+        denominator == 0 ? null : numerator * 100m / denominator;
 
     private static string ErrorTypeFromMessage(string message)
     {
