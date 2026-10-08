@@ -17,8 +17,14 @@ public static class WharfApp
         ConsoleCancelEventHandler handler = (_, eventArgs) =>
         {
             eventArgs.Cancel = true;
-            cancellation.Cancel();
-            DockerRunCleanup.CleanupAll();
+            try
+            {
+                cancellation.Cancel();
+            }
+            finally
+            {
+                DockerRunCleanup.CleanupAll();
+            }
         };
         Console.CancelKeyPress += handler;
         try

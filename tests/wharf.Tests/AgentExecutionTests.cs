@@ -108,6 +108,13 @@ public sealed class AgentExecutionTests
 
         AssertArgumentsContain(arguments, "--name", "task-agent");
         AssertArgumentsContain(arguments, "--user", "1000:1000");
+        AssertArgumentsContain(arguments, "--memory", "4g");
+        AssertArgumentsContain(arguments, "--memory-swap", "4g");
+        AssertArgumentsContain(arguments, "--pids-limit", "512");
+        int pnpmEnvironmentIndex = arguments.ToList().IndexOf(
+            "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false");
+        Assert.True(pnpmEnvironmentIndex > 0);
+        Assert.Equal("--env", arguments[pnpmEnvironmentIndex - 1]);
         Assert.DoesNotContain(arguments, argument => argument.Contains("cp -a /app", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, argument => argument.Contains("npm install", StringComparison.Ordinal));
     }

@@ -151,10 +151,14 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             "--name", containerName,
             "--label", "com.bartr.wharf.managed=true",
             "--user", "1000:1000", "--network", request.Network,
+            "--memory", "4g",
+            "--memory-swap", "4g",
+            "--pids-limit", "512",
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
             "--env", "HOME=/workspace/.home",
-            "--env", "XDG_CACHE_HOME=/workspace/.cache"
+            "--env", "XDG_CACHE_HOME=/workspace/.cache",
+            "--env", "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false"
         };
         if (request.Invocation.Environment.TryGetValue(
                 "WHARF_COPILOT_CREDENTIAL_VARIABLE",

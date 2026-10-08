@@ -62,6 +62,11 @@ container and reuse the task's configured environment image. After MVP,
   assign the copied tree to UID/GID `1000:1000`. Run Copilot and all task
   commands only after that handoff, as `1000:1000`; image files that are
   root-readable must not force the agent itself to run as root.
+- Limit each agent container to 4 GiB of memory with no additional swap and
+  512 processes. Disable pnpm's automatic package-manager version switching in
+  the agent environment because the retained writable home is inside the
+  workspace; pnpm self-install staging below that home can otherwise rediscover
+  the parent project and recursively invoke itself.
 - Cache and reuse derived images across K=4 attempts and later runs so those
   attempts do not reinstall or redownload the CLI. The cache key must include
   the source image digest, Copilot CLI version, installation inputs, and
