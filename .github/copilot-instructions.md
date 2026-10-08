@@ -127,3 +127,13 @@ workspace creation, and patch application. Release the permit before agent or
 verifier commands execute. Durable `preparation-gate` events record ordered
 waiting, acquired, released, and cancelled transitions with capacity,
 occupancy, queue depth, operation type, and acquisition wait time.
+
+The controlled benchmark decision made before the next result excludes All-1
+from comparative scoring because it predates the finalized memory, OOM, retry,
+patch-capture, failed-agent verification, and cost contracts. Retain its
+evidence unchanged as pre-contract qualification history; do not delete it.
+All-2 remains transitional and All-3 remains supporting `0.22.0` evidence.
+The next primary benchmark is a fresh z01 K=2/N=32/P=12 run on the pushed
+`0.23.0` code. Its primary metrics are passes divided by 226 and USD cost per
+task attempt, with cost coverage reported separately. Include every OOM,
+timeout, retry, and verifier result; do not add post-result exclusions.

@@ -879,3 +879,26 @@ Proceed. The plan fits if the releaseable cut remains configuration rename,
 shared gate boundary, durable telemetry, tests, and normative documentation;
 interactive progress visualization, default tuning, and the cold benchmark
 remain out of scope.
+
+### Controlled K=2 benchmark decision, 2026-10-08 15:36 CDT
+
+Before starting another benchmark or seeing its outcome, exclude All-1 from
+comparative scoring. It predates the finalized 8 GiB memory policy, Docker OOM
+handling, bounded trial retry, complete patch capture, failed-agent
+verification, and reliable cost propagation. Retain the complete All-1
+directory unchanged as auditable pre-contract qualification evidence rather
+than deleting it.
+
+All-2 remains transitional qualification evidence because it crossed the
+hardening period, and All-3 remains the first clean released `0.22.0` K=1
+result. Neither will be combined with the new run and presented as one
+homogeneous K cohort. The next primary result is a fresh z01 run on the pushed
+`0.23.0` code with K=2, N=32, and P=12 across the fixed 113-task suite.
+
+The result is accepted regardless of outcome. Primary pass rate is passing
+trials divided by 226. Primary cost is USD per task attempt, never aggregate
+run cost; report cost coverage separately and label any optional imputation.
+All OOMs, timeouts, infrastructure retries, trial retries, and verifier
+outcomes remain in the result. Record the source commit, effective Wharf and
+Copilot versions, manifest, task checksum, and warm/cold Docker state before
+interpreting the run.
