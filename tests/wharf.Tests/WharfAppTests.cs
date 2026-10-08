@@ -1,16 +1,35 @@
 using Wharf;
+using System.Diagnostics;
 using System.Text.Json;
+using Wharf.Versioning;
 
 namespace Wharf.Tests;
 
 public sealed class WharfAppTests
 {
     [Fact]
-    public async Task VersionCommandSucceeds()
+    public async Task VersionCommandPrintsOnlySemanticVersion()
     {
-        int exitCode = await WharfApp.RunAsync(["version"]);
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo("dotnet")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            }
+        };
+        process.StartInfo.ArgumentList.Add(typeof(WharfApp).Assembly.Location);
+        process.StartInfo.ArgumentList.Add("version");
 
-        Assert.Equal(0, exitCode);
+        Assert.True(process.Start());
+        string stdout = await process.StandardOutput.ReadToEndAsync();
+        string stderr = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+
+        Assert.Equal(0, process.ExitCode);
+        Assert.Equal(WharfVersion.Current + Environment.NewLine, stdout);
+        Assert.Empty(stderr);
     }
 
     [Fact]

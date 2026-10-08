@@ -64,7 +64,7 @@ public static class CommandTree
             return ExitCode.Success.Value;
         });
 
-        root.Subcommands.Add(CreateVersionCommand(configuration));
+        root.Subcommands.Add(CreateVersionCommand());
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateBuildCommand(() => configuration));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
@@ -460,13 +460,12 @@ public static class CommandTree
             ? value.Value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + "%"
             : "unknown";
 
-    private static CliCommand CreateVersionCommand(WharfConfiguration configuration)
+    private static CliCommand CreateVersionCommand()
     {
         var command = new CliCommand("version", "Print the Wharf version.");
-        command.SetAction(parseResult =>
+        command.SetAction(_ =>
         {
-            using var logger = WharfLogger.Create(configuration);
-            logger.Info(WharfVersion.Current);
+            Console.WriteLine(WharfVersion.Current);
             return ExitCode.Success.Value;
         });
         return command;
