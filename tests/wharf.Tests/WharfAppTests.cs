@@ -43,6 +43,23 @@ public sealed class WharfAppTests
             Assert.Contains(
                 File.ReadLines(runLog),
                 line => line.Contains("status=verifier-image-cleaned", StringComparison.Ordinal));
+            JsonElement[] stageEvents = File.ReadLines(runLog)
+                .Select(line => JsonDocument.Parse(line).RootElement.Clone())
+                .Where(record =>
+                    record.TryGetProperty("eventType", out JsonElement eventType) &&
+                    eventType.GetString() == "stage")
+                .ToArray();
+            foreach (string stage in new[] { "preparation", "agent", "verifier", "cleanup" })
+            {
+                Assert.Contains(stageEvents, record =>
+                    record.GetProperty("stage").GetString() == stage &&
+                    record.GetProperty("transition").GetString() == "started");
+                JsonElement completed = Assert.Single(stageEvents, record =>
+                    record.GetProperty("stage").GetString() == stage &&
+                    record.GetProperty("transition").GetString() == "completed");
+                Assert.Equal("smoke-go", completed.GetProperty("taskId").GetString());
+                Assert.True(completed.GetProperty("durationMilliseconds").GetInt64() >= 0);
+            }
         }
 
         finally

@@ -159,6 +159,50 @@ public sealed class RunService
                 string image = string.Empty;
                 AgentExecutionRequest? agentRequest = null;
                 string? trialErrorType = null;
+                StageLogContext Stage(string stage) => new(
+                    runNumber,
+                    plannedRuns,
+                    task.TaskId,
+                    attempt.AttemptNumber,
+                    trialRetry,
+                    stage);
+                StageLogContext preparationStage = Stage("preparation");
+                var preparationDuration = Stopwatch.StartNew();
+                bool preparationCompleted = false;
+                StageLogContext agentStage = Stage("agent");
+                Stopwatch? agentDuration = null;
+                bool agentCompleted = false;
+
+                void CompleteExecutionStage(
+                    string result,
+                    string error,
+                    string errorType)
+                {
+                    if (!preparationCompleted)
+                    {
+                        preparationDuration.Stop();
+                        logger.StageCompleted(
+                            preparationStage,
+                            preparationDuration.Elapsed,
+                            result,
+                            error,
+                            errorType);
+                        preparationCompleted = true;
+                    }
+                    else if (!agentCompleted && agentDuration is not null)
+                    {
+                        agentDuration.Stop();
+                        logger.StageCompleted(
+                            agentStage,
+                            agentDuration.Elapsed,
+                            result,
+                            error,
+                            errorType);
+                        agentCompleted = true;
+                    }
+                }
+
+                logger.StageStarted(preparationStage);
                 try
                 {
                     logger.Info($"{prefix} status=waiting-preparation");
@@ -218,6 +262,17 @@ public sealed class RunService
                             return request;
                         },
                         trialCancellationToken);
+                    preparationDuration.Stop();
+                    string preparationResult = agentRequest is null ? "failed" : "completed";
+                    logger.StageCompleted(
+                        preparationStage,
+                        preparationDuration.Elapsed,
+                        preparationResult,
+                        agentRequest is null ? invocationError : null,
+                        agentRequest is null ? "Invocation" : null);
+                    preparationCompleted = true;
+                    agentDuration = Stopwatch.StartNew();
+                    logger.StageStarted(agentStage);
 
                     if (agentRequest is null)
                     {
@@ -293,10 +348,33 @@ public sealed class RunService
                             trialErrorType = agentEvidence.ErrorType ?? "AgentExecution";
                         }
                     }
+                    agentDuration.Stop();
+                    string agentResult = trialErrorType is null ? "completed" : "failed";
+                    logger.StageCompleted(
+                        agentStage,
+                        agentDuration.Elapsed,
+                        agentResult,
+                        trialErrorType is null
+                            ? null
+                            : "agent execution did not complete successfully",
+                        trialErrorType);
+                    agentCompleted = true;
+                }
+                catch (OperationCanceledException exception)
+                {
+                    CompleteExecutionStage(
+                        "cancelled",
+                        exception.Message,
+                        "Cancellation");
+                    throw;
                 }
                 catch (AgentExecutionException exception)
                 {
                     trialErrorType = exception.ErrorType;
+                    CompleteExecutionStage(
+                        "failed",
+                        exception.Message,
+                        exception.ErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
@@ -308,6 +386,7 @@ public sealed class RunService
                 catch (AgentImageException exception)
                 {
                     trialErrorType = "AgentImage";
+                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
@@ -319,6 +398,7 @@ public sealed class RunService
                 catch (ImagePullException exception)
                 {
                     trialErrorType = "ImagePull";
+                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
@@ -330,6 +410,7 @@ public sealed class RunService
                 catch (DockerImageException exception)
                 {
                     trialErrorType = "DockerImage";
+                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
@@ -350,6 +431,12 @@ public sealed class RunService
 
                 if (ShouldRunVerifier(patch))
                 {
+                    StageLogContext verifierStage = Stage("verifier");
+                    var verifierDuration = Stopwatch.StartNew();
+                    string verifierStageResult = "failed";
+                    string? verifierStageError = null;
+                    string? verifierStageErrorType = null;
+                    logger.StageStarted(verifierStage);
                     logger.Info($"{prefix} status=running-verifier");
                     string? verifierImage = null;
                     try
@@ -392,6 +479,7 @@ public sealed class RunService
                             verifierDirectory,
                             trialCancellationToken);
                         taskStatus = verification.Status;
+                        verifierStageResult = taskStatus;
                         verifierError = null;
                         if (verification.Metrics is { } metrics)
                         {
@@ -411,6 +499,8 @@ public sealed class RunService
                     {
                         trialErrorType = exception.ErrorType;
                         verifierError = exception.Message;
+                        verifierStageError = exception.Message;
+                        verifierStageErrorType = exception.ErrorType;
                         logger.Info(
                             $"{prefix} status=verifier-failed error={verifierError}",
                             verifierError,
@@ -418,17 +508,37 @@ public sealed class RunService
                     }
                     finally
                     {
+                        verifierDuration.Stop();
+                        logger.StageCompleted(
+                            verifierStage,
+                            verifierDuration.Elapsed,
+                            trialCancellationToken.IsCancellationRequested
+                                ? "cancelled"
+                                : verifierStageResult,
+                            verifierStageError,
+                            verifierStageErrorType);
                         if (verifierImage is not null)
                             CleanupVerifierImage(verifierImage, logger, prefix);
                     }
                 }
                 else
                 {
+                    StageLogContext verifierStage = Stage("verifier");
+                    logger.StageStarted(verifierStage);
+                    logger.StageCompleted(
+                        verifierStage,
+                        TimeSpan.Zero,
+                        "skipped",
+                        verifierError,
+                        "AgentExecution");
                     logger.Info(
                         $"{prefix} status=verifier-skipped reason={verifierError}",
                         verifierError,
                         "AgentExecution");
                 }
+                StageLogContext cleanupStage = Stage("cleanup");
+                var cleanupDuration = Stopwatch.StartNew();
+                logger.StageStarted(cleanupStage);
                 logger.Info($"{prefix} status=cleaning-up");
                 string? workspaceCleanupError = null;
                 if (!configuration.RetainWorkspaces)
@@ -457,6 +567,17 @@ public sealed class RunService
                             exception.Message,
                             "WorkspaceCleanup");
                     }
+                    catch (OperationCanceledException exception)
+                    {
+                        cleanupDuration.Stop();
+                        logger.StageCompleted(
+                            cleanupStage,
+                            cleanupDuration.Elapsed,
+                            "cancelled",
+                            exception.Message,
+                            "Cancellation");
+                        throw;
+                    }
                 }
                 bool workspaceRetained = HasWorkspaceDirectories(trialDirectory);
                 logger.Info($"{prefix} status=complete result={taskStatus}");
@@ -481,6 +602,13 @@ public sealed class RunService
                 File.WriteAllText(
                     Path.Combine(trialDirectory, "result.json"),
                     JsonSerializer.Serialize(result, JsonOptions));
+                cleanupDuration.Stop();
+                logger.StageCompleted(
+                    cleanupStage,
+                    cleanupDuration.Elapsed,
+                    workspaceCleanupError is null ? "completed" : "failed",
+                    workspaceCleanupError,
+                    workspaceCleanupError is null ? null : "WorkspaceCleanup");
                 if (!ShouldRetryTrial(
                         taskStatus,
                         trialErrorType,

@@ -354,8 +354,14 @@ public static class CommandTree
             DefaultValueFactory = _ => "run.jsonl"
         };
         var json = new Option<bool>("--json") { Description = "Render the summary as JSON." };
+        var verbose = new Option<bool>("--verbose")
+        {
+            Description = "List active trials by descending stage duration."
+        };
+        verbose.Aliases.Add("-v");
         command.Options.Add(logFile);
         command.Options.Add(json);
+        command.Options.Add(verbose);
         command.SetAction(parseResult =>
         {
             try
@@ -377,29 +383,10 @@ public static class CommandTree
                 }
                 else
                 {
-                    Console.WriteLine(
-                        $"running={progress.TestsRunning} building={progress.Building} agent={progress.Agents} " +
-                        $"verifier={progress.Verifiers} " +
-                        $"completed={progress.TestsCompleted} failed={progress.FailedTests} " +
-                        $"timeouts={progress.Timeouts} errors={progress.Errors} " +
-                        $"pass@={progress.PassAtTotal} pass-rate={FormatPercent(progress.PassPercent)} " +
-                        $"avg-cost={FormatCost(progress.AverageCost)} " +
-                        $"total-cost={FormatCost(progress.TotalCost)}");
-                    foreach ((int k, ProgressGroup group) in progress.ByK.OrderBy(item => item.Key))
-                    {
-                        Console.WriteLine(
-                            $"k={k} completed={group.TestsCompleted} failed={group.FailedTests} " +
-                            $"timeouts={group.Timeouts} errors={group.Errors} " +
-                            $"pass@={group.PassAtTotal} " +
-                            $"pass-rate={FormatPercent(group.PassPercent)} " +
-                            $"avg-cost={FormatCost(group.AverageCost)} " +
-                            $"total-cost={FormatCost(group.TotalCost)}");
-                    }
-
-                    foreach ((string type, int count) in progress.ErrorTypes.OrderBy(item => item.Key))
-                    {
-                        Console.WriteLine($"error-type={type} count={count}");
-                    }
+                    foreach (string line in FormatProgress(
+                                 progress,
+                                 parseResult.GetValue(verbose)))
+                        Console.WriteLine(line);
                 }
 
                 return ExitCode.Success.Value;
@@ -411,6 +398,58 @@ public static class CommandTree
             }
         });
         return command;
+    }
+
+    internal static IReadOnlyList<string> FormatProgress(
+        RunProgress progress,
+        bool verbose = false)
+    {
+        var lines = new List<string>
+        {
+            (
+                        $"completed={progress.TestsCompleted} pass-rate={FormatPercent(progress.PassPercent)} " +
+                        $"pass@={progress.PassAtTotal} failed={progress.FailedTests} " +
+                        $"errors={progress.Errors} timeouts={progress.Timeouts}"),
+            (
+                        $"running={progress.TestsRunning} building={progress.Building} " +
+                        $"agent={progress.Agents} verifier={progress.Verifiers} cleanup={progress.Cleanup}"),
+            (
+                        $"avg-cost={FormatCost(progress.AverageCost)} " +
+                        $"total-cost={FormatCost(progress.TotalCost)}")
+        };
+        if (progress.ByK.Keys.Any(k => k > 1))
+        {
+            foreach ((int k, ProgressGroup group) in progress.ByK.OrderBy(item => item.Key))
+            {
+                lines.Add(
+                            $"k={k} completed={group.TestsCompleted} " +
+                            $"pass-rate={FormatPercent(group.PassPercent)} " +
+                            $"pass@={group.PassAtTotal} failed={group.FailedTests} " +
+                            $"errors={group.Errors} timeouts={group.Timeouts}");
+                lines.Add(
+                            $"k={k} avg-cost={FormatCost(group.AverageCost)} " +
+                            $"total-cost={FormatCost(group.TotalCost)}");
+            }
+        }
+
+        foreach ((string type, int count) in progress.ErrorTypes.OrderBy(item => item.Key))
+            lines.Add($"error-type={type} count={count}");
+        if (verbose && progress.ActiveTrials.Count > 0)
+        {
+            lines.Add(string.Empty);
+            int stageWidth = progress.ActiveTrials.Count == 0
+                ? 0
+                : progress.ActiveTrials.Max(trial => trial.Stage.Length);
+            foreach (ActiveTrialProgress trial in progress.ActiveTrials)
+            {
+                lines.Add(
+                    $"{WharfLogger.FormatElapsed(
+                        TimeSpan.FromMilliseconds(trial.DurationMilliseconds))} " +
+                    $"{trial.Stage.PadRight(stageWidth)} {trial.Name}");
+            }
+        }
+
+        return lines;
     }
 
     private static string FormatCost(decimal? cost) =>

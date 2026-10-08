@@ -104,6 +104,54 @@ public sealed class WharfLoggerTests
         }
     }
 
+    [Fact]
+    public void WritesStructuredStageEvents()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-logger-{Guid.NewGuid():N}");
+        string path = Path.Combine(directory, "run.jsonl");
+        try
+        {
+            using WharfLogger logger = WharfLogger.Create(Configuration(), path);
+            var context = new StageLogContext(
+                7,
+                113,
+                "full-untruncated-task-identifier",
+                2,
+                1,
+                "verifier");
+
+            logger.StageStarted(context);
+            logger.StageCompleted(
+                context,
+                TimeSpan.FromMilliseconds(1234),
+                "passed");
+
+            JsonElement[] records = File.ReadLines(path)
+                .Select(line => JsonDocument.Parse(line).RootElement.Clone())
+                .Where(record => record.TryGetProperty("eventType", out _))
+                .ToArray();
+            Assert.Equal(2, records.Length);
+            Assert.Equal("started", records[0].GetProperty("transition").GetString());
+            Assert.Equal("completed", records[1].GetProperty("transition").GetString());
+            Assert.Equal(
+                "full-untruncated-task-identifier",
+                records[1].GetProperty("taskId").GetString());
+            Assert.Equal(7, records[1].GetProperty("runNumber").GetInt32());
+            Assert.Equal(2, records[1].GetProperty("logicalAttempt").GetInt32());
+            Assert.Equal(1, records[1].GetProperty("trialRetry").GetInt32());
+            Assert.Equal("verifier", records[1].GetProperty("stage").GetString());
+            Assert.Equal("passed", records[1].GetProperty("result").GetString());
+            Assert.Equal(1234, records[1].GetProperty("durationMilliseconds").GetInt64());
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private static WharfConfiguration Configuration() =>
         new(LogFormat: "text", Quiet: true, Verbosity: 0);
 

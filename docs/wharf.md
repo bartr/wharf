@@ -183,15 +183,39 @@ container and reuse the task's configured environment image. After MVP,
     prefix later records with elapsed `HH:mm:ss`; durable JSON timestamps remain
     absolute
   - `wharf progress` reports active lifecycle occupancy as `building=<count>`,
-    `agent=<count>`, and `verifier=<count>` in addition to the aggregate running
-    and terminal counts. `completed` includes every terminal trial, `failed`
-    counts successfully graded reward-zero outcomes, `timeouts` counts bounded
-    phase expirations, `errors` counts other infrastructure failures, and
-    `pass-rate` is `pass@ / completed`; raw record counts remain available only
-    in JSON output
+    `agent=<count>`, `verifier=<count>`, and `cleanup=<count>` after the
+    aggregate running count. Agent infrastructure retries remain agent work,
+    whole-trial retry backoff remains building work, and post-verifier evidence
+    cleanup is reported separately so the lifecycle counts sum to `running`.
+    Terminal fields are printed first as `completed`, `pass-rate`, `pass@`,
+    `failed`, `errors`, and `timeouts`. `completed` includes every terminal
+    trial, `failed` counts successfully graded reward-zero outcomes, `timeouts`
+    counts bounded phase expirations, `errors` counts other infrastructure
+    failures, and `pass-rate` is `pass@ / completed`; raw record counts remain
+    available only in JSON output. Human output places terminal results, active
+    occupancy, and costs on separate lines. Per-K lines are omitted for K=1 and
+    remain hidden for a multi-K run until attempt 2 has actually started; once
+    shown, they group results by the `attempt=K/total` identity rather than the
+    configured total K. `wharf progress -v` appends every active trial as
+    unlabelled duration, stage, and name columns, ordered by descending time in
+    the current stage. The stage column is padded so task names align. Runs with
+    structured stage events use the full task ID; older logs retain their
+    historical shortened task names.
   - agent evidence retains Copilot's raw AI Credit count; progress converts each
     AI Credit to USD at $0.01 and displays average and total cost with two decimal
     places
+  - the run-local `run.jsonl` contains additive durable stage events for
+    `preparation`, `agent`, `verifier`, and `cleanup`; each event includes
+    `eventType`, `runNumber`, `plannedRuns`, the full `taskId`,
+    `logicalAttempt`, `trialRetry`, `stage`, and `transition`
+  - stage completion events also include `result` and non-negative
+    `durationMilliseconds`; failed completions retain `error` and `errorType`
+    when available, and skipped or cancelled stages report that result
+    explicitly
+  - verifier duration includes verifier-image preparation and verifier execution
+    but excludes verifier-image cleanup
+  - query completed verifier timings from one run with:
+    `jq -s '[.[] | select(.eventType == "stage" and .stage == "verifier" and .transition == "completed") | {taskId, logicalAttempt, trialRetry, result, durationMilliseconds}]' all-N/run.jsonl`
   - verifier command success means the grader executed; when retained
     `reward.json` reports `reward=0`, Wharf records a failed test rather than an
     infrastructure error

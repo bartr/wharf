@@ -10,6 +10,7 @@ public sealed record RunProgress(
     int Building,
     int Agents,
     int Verifiers,
+    int Cleanup,
     int TestsCompleted,
     int FailedTests,
     int Timeouts,
@@ -19,7 +20,13 @@ public sealed record RunProgress(
     decimal? PassPercent,
     IReadOnlyDictionary<int, ProgressGroup> ByK,
     decimal? AverageCost,
-    decimal? TotalCost);
+    decimal? TotalCost,
+    IReadOnlyList<ActiveTrialProgress> ActiveTrials);
+
+public sealed record ActiveTrialProgress(
+    string Name,
+    string Stage,
+    long DurationMilliseconds);
 
 public sealed record ProgressGroup(
     int TestsCompleted,
@@ -36,7 +43,7 @@ public static class ProgressService
     private const decimal UsdPerAiCredit = 0.01m;
 
     private static readonly Regex RunPattern = new(
-        @"(?:run=(?<run>\d+)/\d+.*?)?\btask=(?<task>\S+)(?:.*?\b[Kk]=(?<k>\d+))?",
+        @"(?:run=(?<run>\d+)/\d+.*?)?\btask=(?<task>\S+)(?:.*?\battempt=(?<attempt>\d+)/\d+)?",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private static readonly Regex StatusPattern = new(
         @"\bstatus=(?<status>\S+)",
@@ -51,13 +58,14 @@ public static class ProgressService
         @"\bcost=(?<cost>[0-9]+(?:\.[0-9]+)?)\b",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    public static RunProgress Read(string path)
+    public static RunProgress Read(string path, DateTimeOffset? now = null)
     {
         if (!File.Exists(path))
             throw new FileNotFoundException($"run log does not exist: {path}", path);
 
         var records = new Dictionary<string, ProgressRecord>(StringComparer.Ordinal);
         var errorTypes = new Dictionary<string, int>(StringComparer.Ordinal);
+        var fullTaskNames = new Dictionary<int, string>();
         int totalRecords = 0;
 
         foreach (string line in File.ReadLines(path))
@@ -78,24 +86,46 @@ public static class ProgressService
             if (log is null)
                 continue;
             totalRecords++;
+            if (log.EventType == "stage" &&
+                log.RunNumber is int stageRunNumber &&
+                !string.IsNullOrWhiteSpace(log.TaskId))
+            {
+                fullTaskNames[stageRunNumber] = log.TaskId;
+                continue;
+            }
             Match match = RunPattern.Match(log.Message);
             if (!match.Success)
                 continue;
 
             string key = $"{match.Groups["run"].Value}:{match.Groups["task"].Value}";
-            int k = match.Groups["k"].Success
-                ? int.Parse(match.Groups["k"].Value, CultureInfo.InvariantCulture)
+            int runNumber = match.Groups["run"].Success
+                ? int.Parse(match.Groups["run"].Value, CultureInfo.InvariantCulture)
+                : 1;
+            int k = match.Groups["attempt"].Success
+                ? int.Parse(match.Groups["attempt"].Value, CultureInfo.InvariantCulture)
                 : 1;
             ProgressRecord record = records.TryGetValue(key, out ProgressRecord? existing)
                 ? existing with { K = k }
-                : new ProgressRecord(k);
+                : new ProgressRecord(k, runNumber, match.Groups["task"].Value);
             Match status = StatusPattern.Match(log.Message);
             if (status.Success)
             {
                 string currentStatus = status.Groups["status"].Value;
+                string? stage = StageForStatus(currentStatus);
+                DateTimeOffset? observedAt = DateTimeOffset.TryParse(
+                    log.Timestamp,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.RoundtripKind,
+                    out DateTimeOffset parsedTimestamp)
+                    ? parsedTimestamp
+                    : null;
                 record = record with
                 {
                     Status = currentStatus,
+                    Stage = stage ?? record.Stage,
+                    StageStartedAt = stage is not null && stage != record.Stage
+                        ? observedAt
+                        : record.StageStartedAt,
                     Failed = currentStatus.Contains("failed", StringComparison.Ordinal),
                     Completed = currentStatus == "trial-retry" ? false : record.Completed,
                     Result = currentStatus == "trial-retry" ? null : record.Result,
@@ -172,15 +202,30 @@ public static class ProgressService
             string type = record.ErrorType ?? "Run";
             errorTypes[type] = errorTypes.TryGetValue(type, out int count) ? count + 1 : 1;
         }
-        var groups = terminal
+        var groups = records.Values
             .GroupBy(record => record.K)
             .ToDictionary(
                 group => group.Key,
-                group => ToGroup(group),
+                group => ToGroup(group.Where(record => record.Completed || record.Failed)),
                 EqualityComparer<int>.Default);
         List<decimal> costs = completed
             .Where(record => record.Cost.HasValue)
             .Select(record => record.Cost!.Value)
+            .ToList();
+        DateTimeOffset currentTime = now ?? DateTimeOffset.UtcNow;
+        List<ActiveTrialProgress> activeTrials = active
+            .Select(record => new ActiveTrialProgress(
+                fullTaskNames.TryGetValue(record.RunNumber, out string? fullName)
+                    ? fullName
+                    : record.Name,
+                record.Stage ?? StageForStatus(record.Status) ?? "unknown",
+                record.StageStartedAt is null
+                    ? 0
+                    : Math.Max(
+                        0,
+                        (long)(currentTime - record.StageStartedAt.Value).TotalMilliseconds)))
+            .OrderByDescending(record => record.DurationMilliseconds)
+            .ThenBy(record => record.Name, StringComparer.Ordinal)
             .ToList();
 
         return new RunProgress(
@@ -189,6 +234,7 @@ public static class ProgressService
             active.Count(record => IsBuilding(record.Status)),
             active.Count(record => IsAgent(record.Status)),
             active.Count(record => IsVerifier(record.Status)),
+            active.Count(record => IsCleanup(record.Status)),
             terminal.Count,
             failedTests.Count,
             timeouts.Count,
@@ -199,11 +245,13 @@ public static class ProgressService
                 string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
             groups,
             costs.Count == 0 ? null : costs.Average(),
-            costs.Count == 0 ? null : costs.Sum());
+            costs.Count == 0 ? null : costs.Sum(),
+            activeTrials);
     }
 
     private static bool IsBuilding(string? status) =>
-        status is "waiting-preparation" or
+        status is "trial-retry" or
+            "waiting-preparation" or
             "preparing-image" or
             "agent" or
             "image-ready" or
@@ -211,13 +259,33 @@ public static class ProgressService
             "workspace-ready";
 
     private static bool IsAgent(string? status) =>
-        status is "running-agent" or "agent-complete";
+        status is "running-agent" or
+            "agent-infrastructure-retry" or
+            "agent-complete";
 
     private static bool IsVerifier(string? status) =>
         status is "running-verifier" or
             "preparing-verifier-image" or
             "verifier-image-ready" or
             "verifier-complete";
+
+    private static bool IsCleanup(string? status) =>
+        status is "verifier-image-cleaned" or
+            "cleaning-up" or
+            "workspace-cleanup-failed";
+
+    private static string? StageForStatus(string? status)
+    {
+        if (IsBuilding(status))
+            return "building";
+        if (IsAgent(status))
+            return "agent";
+        if (IsVerifier(status))
+            return "verifier";
+        if (IsCleanup(status))
+            return "cleanup";
+        return null;
+    }
 
     private static ProgressGroup ToGroup(IEnumerable<ProgressRecord> records)
     {
@@ -272,15 +340,22 @@ public static class ProgressService
         string Level,
         string Message,
         string? Error = null,
-        string? ErrorType = null);
+        string? ErrorType = null,
+        string? EventType = null,
+        int? RunNumber = null,
+        string? TaskId = null);
     private sealed record ProgressRecord(
         int K,
+        int RunNumber,
+        string Name,
         string? Status = null,
         string? Result = null,
         decimal? Cost = null,
         bool Completed = false,
         bool Failed = false,
-        string? ErrorType = null);
+        string? ErrorType = null,
+        string? Stage = null,
+        DateTimeOffset? StageStartedAt = null);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

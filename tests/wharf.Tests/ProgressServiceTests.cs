@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wharf.Command;
 using Wharf.Run;
 
 namespace Wharf.Tests;
@@ -28,6 +29,7 @@ public sealed class ProgressServiceTests
             Assert.Equal(1, progress.Building);
             Assert.Equal(1, progress.Agents);
             Assert.Equal(1, progress.Verifiers);
+            Assert.Equal(0, progress.Cleanup);
             Assert.Equal(2, progress.TestsCompleted);
             Assert.Equal(0, progress.FailedTests);
             Assert.Equal(0, progress.Timeouts);
@@ -36,6 +38,280 @@ public sealed class ProgressServiceTests
             Assert.Equal(50m, progress.PassPercent);
             Assert.Equal(0.19m, progress.AverageCost);
             Assert.Equal(0.19m, progress.TotalCost);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void CountsInfrastructureRetryAsActiveAgentWork()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record("run=001/001 task=retrying-task status=running-agent"),
+                Record(
+                    "run=001/001 task=retrying-task status=agent-infrastructure-retry " +
+                    "retry=1 reason=copilot-service")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(0, progress.Building);
+            Assert.Equal(1, progress.Agents);
+            Assert.Equal(0, progress.Verifiers);
+            Assert.Equal(0, progress.Cleanup);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void ReportsCleanupAsActiveLifecycleOccupancy()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record("run=001/002 task=image-cleanup status=verifier-image-cleaned"),
+                Record("run=002/002 task=workspace-cleanup status=cleaning-up")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(2, progress.TestsRunning);
+            Assert.Equal(0, progress.Building);
+            Assert.Equal(0, progress.Agents);
+            Assert.Equal(0, progress.Verifiers);
+            Assert.Equal(2, progress.Cleanup);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void CountsTrialRetryBackoffAsBuildingOccupancy()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/001 task=retry-task status=agent-complete result=failed",
+                    "agent container reported a cgroup OOM kill",
+                    "OutOfMemory"),
+                Record("run=001/001 task=retry-task status=trial-retry retry=1 reason=OutOfMemory")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(1, progress.Building);
+            Assert.Equal(0, progress.Agents);
+            Assert.Equal(0, progress.Verifiers);
+            Assert.Equal(0, progress.Cleanup);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void ShowsPerKLinesOnlyAfterSecondAttemptStarts()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/002 task=first-task attempt=1/2 K=2 " +
+                    "status=complete result=passed cost=10")
+            ]);
+            RunProgress firstAttemptOnly = ProgressService.Read(path);
+
+            Assert.DoesNotContain(
+                CommandTree.FormatProgress(firstAttemptOnly),
+                line => line.StartsWith("k=", StringComparison.Ordinal));
+
+            File.AppendAllLines(path,
+            [
+                Record(
+                    "run=002/002 task=second-task attempt=2/2 K=2 " +
+                    "status=running-agent")
+            ]);
+            RunProgress secondAttemptStarted = ProgressService.Read(path);
+            string[] lines = CommandTree.FormatProgress(secondAttemptStarted).ToArray();
+
+            Assert.Contains(lines, line => line.StartsWith("k=1 completed=", StringComparison.Ordinal));
+            Assert.Contains(lines, line => line.StartsWith("k=2 completed=", StringComparison.Ordinal));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void FormatsTerminalActiveAndCostSummariesOnSeparateLines()
+    {
+        var progress = new RunProgress(
+            1,
+            1,
+            0,
+            1,
+            0,
+            0,
+            2,
+            1,
+            0,
+            0,
+            new Dictionary<string, int>(),
+            1,
+            50m,
+            new Dictionary<int, ProgressGroup>(),
+            0.25m,
+            0.50m,
+            []);
+
+        IReadOnlyList<string> lines = CommandTree.FormatProgress(progress);
+
+        Assert.Equal(
+            "completed=2 pass-rate=50.00% pass@=1 failed=1 errors=0 timeouts=0",
+            lines[0]);
+        Assert.Equal(
+            "running=1 building=0 agent=1 verifier=0 cleanup=0",
+            lines[1]);
+        Assert.Equal("avg-cost=0.25 total-cost=0.50", lines[2]);
+    }
+
+    [Fact]
+    public void VerboseProgressOrdersActiveTrialsByStageDuration()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/002 task=short-task status=running-agent",
+                    timestamp: "2026-10-08T12:09:00Z"),
+                Record(
+                    "run=002/002 task=long-task status=waiting-preparation",
+                    timestamp: "2026-10-08T12:00:00Z"),
+                Record(
+                    "run=002/002 task=long-task status=running-agent",
+                    timestamp: "2026-10-08T12:05:00Z")
+            ]);
+
+            RunProgress progress = ProgressService.Read(
+                path,
+                DateTimeOffset.Parse("2026-10-08T12:10:00Z"));
+            IReadOnlyList<string> lines = CommandTree.FormatProgress(progress, verbose: true);
+            Assert.Equal(string.Empty, lines[3]);
+            string[] details = lines.Skip(4).ToArray();
+
+            Assert.Equal(
+                "00:05:00 agent long-task",
+                details[0]);
+            Assert.Equal(
+                "00:01:00 agent short-task",
+                details[1]);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void VerboseProgressAlignsNamesAfterLongestStage()
+    {
+        var progress = new RunProgress(
+            1,
+            2,
+            0,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            new Dictionary<string, int>(),
+            0,
+            null,
+            new Dictionary<int, ProgressGroup>(),
+            null,
+            null,
+            [
+                new ActiveTrialProgress("agent-task", "agent", 120_000),
+                new ActiveTrialProgress("verifier-task", "verifier", 60_000)
+            ]);
+
+        IReadOnlyList<string> lines = CommandTree.FormatProgress(progress, verbose: true);
+        Assert.Equal(string.Empty, lines[3]);
+        string[] details = lines.Skip(4).ToArray();
+
+        Assert.Equal("00:02:00 agent    agent-task", details[0]);
+        Assert.Equal("00:01:00 verifier verifier-task", details[1]);
+        Assert.Equal(details[0].IndexOf("agent-task"), details[1].IndexOf("verifier-task"));
+    }
+
+    [Fact]
+    public void VerboseProgressUsesFullTaskNameFromStructuredStageEvent()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                JsonSerializer.Serialize(new
+                {
+                    timestamp = "2026-10-08T12:00:00Z",
+                    level = "info",
+                    message =
+                        "run=001/002 task=full-task-name-beyond-human-prefix " +
+                        "stage=agent transition=started attempt=1 retry=0",
+                    eventType = "stage",
+                    runNumber = 1,
+                    taskId = "full-task-name-beyond-human-prefix"
+                }),
+                Record(
+                    "run=001/002 task=full-task-name-beyond-human-pref status=running-agent",
+                    timestamp: "2026-10-08T12:00:00Z")
+            ]);
+
+            RunProgress progress = ProgressService.Read(
+                path,
+                DateTimeOffset.Parse("2026-10-08T12:01:00Z"));
+
+            ActiveTrialProgress active = Assert.Single(progress.ActiveTrials);
+            Assert.Equal("full-task-name-beyond-human-prefix", active.Name);
         }
         finally
         {
@@ -216,10 +492,11 @@ public sealed class ProgressServiceTests
     private static string Record(
         string message,
         string? error = null,
-        string? errorType = null) =>
+        string? errorType = null,
+        string timestamp = "2026-10-08T00:00:00Z") =>
         JsonSerializer.Serialize(new
         {
-            timestamp = "2026-10-08T00:00:00Z",
+            timestamp,
             level = "info",
             message,
             error,
