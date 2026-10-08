@@ -45,7 +45,7 @@ public sealed class HarborTaskLoader
         if (unknownEstimates.Length > 0)
         {
             throw new HarborTaskException(
-                $"agent duration estimates contain unknown tasks: {string.Join(", ", unknownEstimates)}");
+                $"duration estimates contain unknown tasks: {string.Join(", ", unknownEstimates)}");
         }
 
         return tasks;
@@ -88,7 +88,7 @@ public sealed class HarborTaskLoader
             !string.Equals(durationEstimate.Language, language, StringComparison.Ordinal))
         {
             throw new HarborTaskException(
-                $"agent duration estimate language for '{taskId}' does not match its manifest");
+                $"duration estimate language for '{taskId}' does not match its manifest");
         }
         string instructionPath = Path.Combine(directory, "instruction.md");
         if (!File.Exists(instructionPath))
@@ -118,7 +118,8 @@ public sealed class HarborTaskLoader
             OptionalDouble(verifier, "timeout_sec"),
             OptionalString(environment, "docker_image"),
             durationEstimate?.MedianAgentDurationSeconds,
-            durationEstimate?.SchedulingAgentDurationSeconds);
+            durationEstimate?.MedianVerifierDurationSeconds,
+            durationEstimate?.SchedulingDurationSeconds);
     }
 
     private static IReadOnlyDictionary<string, AgentDurationEstimate> LoadDurationEstimates(
@@ -145,24 +146,24 @@ public sealed class HarborTaskLoader
                 $"invalid agent duration estimates: {path}: {exception.Message}");
         }
 
-        if (document.SchemaVersion != "1.1")
+        if (document.SchemaVersion != "1.2")
         {
             throw new HarborTaskException(
-                $"unsupported agent duration estimates schema version: {document.SchemaVersion}");
+                $"unsupported duration estimates schema version: {document.SchemaVersion}");
         }
         if (!string.Equals(document.Aggregation, "median", StringComparison.Ordinal) ||
             !string.Equals(document.Unit, "seconds", StringComparison.Ordinal))
         {
             throw new HarborTaskException(
-                "agent duration estimates require median aggregation in seconds");
+                "duration estimates require median aggregation in seconds");
         }
         if (string.IsNullOrWhiteSpace(document.Source))
         {
-            throw new HarborTaskException("agent duration estimates require a source");
+            throw new HarborTaskException("duration estimates require a source");
         }
         if (document.Tasks is null)
         {
-            throw new HarborTaskException("agent duration estimates require a tasks object");
+            throw new HarborTaskException("duration estimates require a tasks object");
         }
         if (document.Scheduling is null ||
             document.Scheduling.Strategy != "language-stride" ||
@@ -170,7 +171,7 @@ public sealed class HarborTaskLoader
             document.Scheduling.FirstPosition < 1 ||
             document.Scheduling.Spacing < 1)
         {
-            throw new HarborTaskException("agent duration estimates require valid scheduling metadata");
+            throw new HarborTaskException("duration estimates require valid scheduling metadata");
         }
         foreach ((string taskId, AgentDurationEstimate estimate) in document.Tasks)
         {
@@ -178,11 +179,13 @@ public sealed class HarborTaskLoader
                 string.IsNullOrWhiteSpace(estimate.Language) ||
                 !double.IsFinite(estimate.MedianAgentDurationSeconds) ||
                 estimate.MedianAgentDurationSeconds <= 0 ||
-                !double.IsFinite(estimate.SchedulingAgentDurationSeconds) ||
-                estimate.SchedulingAgentDurationSeconds <= 0)
+                !double.IsFinite(estimate.MedianVerifierDurationSeconds) ||
+                estimate.MedianVerifierDurationSeconds <= 0 ||
+                !double.IsFinite(estimate.SchedulingDurationSeconds) ||
+                estimate.SchedulingDurationSeconds <= 0)
             {
                 throw new HarborTaskException(
-                    $"invalid agent duration estimate for task '{taskId}'");
+                    $"invalid duration estimate for task '{taskId}'");
             }
         }
 
@@ -258,6 +261,8 @@ public sealed class HarborTaskLoader
         [property: JsonPropertyName("language")] string Language,
         [property: JsonPropertyName("medianAgentDurationSeconds")]
         double MedianAgentDurationSeconds,
-        [property: JsonPropertyName("schedulingAgentDurationSeconds")]
-        double SchedulingAgentDurationSeconds);
+        [property: JsonPropertyName("medianVerifierDurationSeconds")]
+        double MedianVerifierDurationSeconds,
+        [property: JsonPropertyName("schedulingDurationSeconds")]
+        double SchedulingDurationSeconds);
 }

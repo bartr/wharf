@@ -34,8 +34,11 @@ public sealed class HarborTaskTests
             42.5,
             tasks.Single(task => task.TaskId == "smoke-go").EstimatedAgentDurationSeconds);
         Assert.Equal(
-            40,
-            tasks.Single(task => task.TaskId == "smoke-go").SchedulingAgentDurationSeconds);
+            7.5,
+            tasks.Single(task => task.TaskId == "smoke-go").EstimatedVerifierDurationSeconds);
+        Assert.Equal(
+            50,
+            tasks.Single(task => task.TaskId == "smoke-go").SchedulingDurationSeconds);
     }
 
     [Fact]
@@ -62,7 +65,8 @@ public sealed class HarborTaskTests
         HarborTask shortTask = tasks.First(task => task.TaskId != "smoke-go") with
         {
             EstimatedAgentDurationSeconds = 100,
-            SchedulingAgentDurationSeconds = 10
+            EstimatedVerifierDurationSeconds = 1,
+            SchedulingDurationSeconds = 10
         };
 
         IReadOnlyList<TaskAttempt> ordered = TaskSelector.OrderAttemptsForAdmission(
@@ -76,6 +80,34 @@ public sealed class HarborTaskTests
                 $"{shortTask.TaskId}#attempt-2"
             ],
             ordered.Select(attempt => attempt.AttemptId));
+    }
+
+    [Fact]
+    public void AdmissionOrderIncludesVerifierDuration()
+    {
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);
+        HarborTask template = tasks.Single(task => task.TaskId == "smoke-go");
+        HarborTask agentHeavy = template with
+        {
+            TaskId = "agent-heavy",
+            EstimatedAgentDurationSeconds = 100,
+            EstimatedVerifierDurationSeconds = 1,
+            SchedulingDurationSeconds = null
+        };
+        HarborTask verifierHeavy = template with
+        {
+            TaskId = "verifier-heavy",
+            EstimatedAgentDurationSeconds = 20,
+            EstimatedVerifierDurationSeconds = 100,
+            SchedulingDurationSeconds = null
+        };
+
+        IReadOnlyList<TaskAttempt> ordered = TaskSelector.OrderAttemptsForAdmission(
+            TaskSelector.ExpandAttempts([agentHeavy, verifierHeavy], 1));
+
+        Assert.Equal(
+            ["verifier-heavy", "agent-heavy"],
+            ordered.Select(attempt => attempt.Task.TaskId));
     }
 
     [Fact]

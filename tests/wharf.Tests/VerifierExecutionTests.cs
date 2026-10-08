@@ -92,6 +92,36 @@ public sealed class VerifierExecutionTests
         Assert.Equal(0, result.Metrics?.PassAt);
     }
 
+    [Theory]
+    [InlineData(137, false, "VerifierInfrastructure")]
+    [InlineData(143, false, "VerifierInfrastructure")]
+    [InlineData(137, true, "VerifierTimeout")]
+    public async Task RetainsEvidenceBeforeReportingRetryableVerifierFailure(
+        int exitCode,
+        bool timedOut,
+        string expectedErrorType)
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        var service = new PristineVerifierService(
+            new FakeWorkspaceFactory(source.Path),
+            new RecordingPatchApplier(),
+            new FixedResultVerifierRunner(exitCode, timedOut));
+
+        VerifierExecutionException exception =
+            await Assert.ThrowsAsync<VerifierExecutionException>(
+                () => service.VerifyAsync(
+                    Request(source.Path, agent.Path),
+                    "patch",
+                    evidence.Path));
+
+        Assert.Equal(expectedErrorType, exception.ErrorType);
+        Assert.True(File.Exists(Path.Combine(evidence.Path, "check.stdout.log")));
+        Assert.True(File.Exists(Path.Combine(evidence.Path, "patch.diff")));
+        Assert.True(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
+    }
+
     [Fact]
     public void RejectsAgentWorkspaceReuse()
     {
@@ -216,6 +246,24 @@ public sealed class VerifierExecutionTests
                 1,
                 false));
         }
+    }
+
+    private sealed class FixedResultVerifierRunner(
+        int exitCode,
+        bool timedOut) : IVerifierRunner
+    {
+        public Task<VerifierCommandResult> RunAsync(
+            VerifierRequest request,
+            string workspaceDirectory,
+            VerifierCommand command,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new VerifierCommandResult(
+                command.Name,
+                exitCode,
+                "stdout",
+                "stderr",
+                1,
+                timedOut));
     }
 
     private sealed class TemporaryDirectory : IDisposable

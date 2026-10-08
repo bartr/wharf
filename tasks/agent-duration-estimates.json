@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1",
+  "schemaVersion": "1.2",
   "source": "pier/copilot-gpt-5.6-luna-max-1.0.91/all-1",
   "aggregation": "median",
   "unit": "seconds",
@@ -13,567 +13,680 @@
     "abs-module-cache-flags": {
       "language": "go",
       "medianAgentDurationSeconds": 840.006,
-      "schedulingAgentDurationSeconds": 796.870011
+      "medianVerifierDurationSeconds": 754.111,
+      "schedulingDurationSeconds": 1585.363013
     },
     "abs-stepped-slices": {
       "language": "go",
       "medianAgentDurationSeconds": 582.622,
-      "schedulingAgentDurationSeconds": 543.385003
+      "medianVerifierDurationSeconds": 631.527,
+      "schedulingDurationSeconds": 1214.149002
     },
     "actionlint-action-pinning-lint": {
       "language": "go",
       "medianAgentDurationSeconds": 958.615,
-      "schedulingAgentDurationSeconds": 917.449021
+      "medianVerifierDurationSeconds": 770.795,
+      "schedulingDurationSeconds": 1691.508023
     },
     "adaptix-name-mapping-aliases": {
       "language": "python",
       "medianAgentDurationSeconds": 1232.852,
-      "schedulingAgentDurationSeconds": 1226.60305
+      "medianVerifierDurationSeconds": 771.794,
+      "schedulingDurationSeconds": 1977.755047
     },
     "aiomonitor-task-snapshots-diff": {
       "language": "python",
       "medianAgentDurationSeconds": 483.484,
-      "schedulingAgentDurationSeconds": 483.484001
+      "medianVerifierDurationSeconds": 695.324,
+      "schedulingDurationSeconds": 1178.808001
     },
     "anko-default-function-arguments": {
       "language": "go",
       "medianAgentDurationSeconds": 1129.234,
-      "schedulingAgentDurationSeconds": 1103.14304
+      "medianVerifierDurationSeconds": 757.806,
+      "schedulingDurationSeconds": 1869.556035
     },
     "anko-typed-variable-bindings": {
       "language": "go",
       "medianAgentDurationSeconds": 736.152,
-      "schedulingAgentDurationSeconds": 704.942006
+      "medianVerifierDurationSeconds": 783.546,
+      "schedulingDurationSeconds": 1464.206008
     },
     "arcane-drift-detection-baselines": {
       "language": "go",
       "medianAgentDurationSeconds": 2289.176,
-      "schedulingAgentDurationSeconds": 2307.815095
+      "medianVerifierDurationSeconds": 1517.608,
+      "schedulingDurationSeconds": 3869.080101
     },
     "arktype-json-schema-refs-dependencies": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2307.815,
-      "schedulingAgentDurationSeconds": 2321.755096
+      "medianVerifierDurationSeconds": 1131.076,
+      "schedulingDurationSeconds": 3487.441098
     },
     "awilix-async-container-initialization": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1086.994,
-      "schedulingAgentDurationSeconds": 1083.835036
+      "medianVerifierDurationSeconds": 711.892,
+      "schedulingDurationSeconds": 1794.647028
     },
     "bandit-incremental-cache-control": {
       "language": "python",
       "medianAgentDurationSeconds": 915.845,
-      "schedulingAgentDurationSeconds": 895.878018
+      "medianVerifierDurationSeconds": 795.135,
+      "schedulingDurationSeconds": 1683.659022
     },
     "bandit-interprocedural-taint-checks": {
       "language": "python",
       "medianAgentDurationSeconds": 895.878,
-      "schedulingAgentDurationSeconds": 876.389016
+      "medianVerifierDurationSeconds": 754.05,
+      "schedulingDurationSeconds": 1613.920017
     },
     "bandit-structured-nosec-directives": {
       "language": "python",
       "medianAgentDurationSeconds": 1072.711,
-      "schedulingAgentDurationSeconds": 1067.172033
+      "medianVerifierDurationSeconds": 796.845,
+      "schedulingDurationSeconds": 1813.732033
     },
     "boa-hierarchical-evaluation-cancellation": {
       "language": "rust",
       "medianAgentDurationSeconds": 2395.167,
-      "schedulingAgentDurationSeconds": 1859.174081
+      "medianVerifierDurationSeconds": 1036.377,
+      "schedulingDurationSeconds": 2697.536081
     },
     "cattrs-partial-structuring-recovery": {
       "language": "python",
       "medianAgentDurationSeconds": 1246.801,
-      "schedulingAgentDurationSeconds": 1241.812052
+      "medianVerifierDurationSeconds": 682.621,
+      "schedulingDurationSeconds": 1924.63704
     },
     "clack-async-autocomplete-options": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1164.779,
-      "schedulingAgentDurationSeconds": 1129.234042
+      "medianVerifierDurationSeconds": 763.396,
+      "schedulingDurationSeconds": 1922.480039
     },
     "claude-code-by-agents-recursive-delegation": {
       "language": "typescript",
       "medianAgentDurationSeconds": 543.385,
-      "schedulingAgentDurationSeconds": 531.286002
+      "medianVerifierDurationSeconds": 841.358,
+      "schedulingDurationSeconds": 1298.884004
     },
     "cliffy-config-file-parsing": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1553.848,
-      "schedulingAgentDurationSeconds": 1553.848071
+      "medianVerifierDurationSeconds": 870.086,
+      "schedulingDurationSeconds": 2423.934067
     },
     "csstree-shorthand-expansion-compression": {
       "language": "javascript",
       "medianAgentDurationSeconds": 1101.669,
-      "schedulingAgentDurationSeconds": 1086.670037
+      "medianVerifierDurationSeconds": 647.023,
+      "schedulingDurationSeconds": 1710.980024
     },
     "dasel-html-document-format": {
       "language": "go",
       "medianAgentDurationSeconds": 777.02,
-      "schedulingAgentDurationSeconds": 736.152008
+      "medianVerifierDurationSeconds": 904.669,
+      "schedulingDurationSeconds": 1649.928019
     },
     "dateutil-rfc5545-timezone-interop": {
       "language": "python",
       "medianAgentDurationSeconds": 1031.581,
-      "schedulingAgentDurationSeconds": 985.028026
+      "medianVerifierDurationSeconds": 769.884,
+      "schedulingDurationSeconds": 1796.166029
     },
     "drizzle-orm-window-function-builders": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1509.402,
-      "schedulingAgentDurationSeconds": 1509.402068
+      "medianVerifierDurationSeconds": 778.302,
+      "schedulingDurationSeconds": 2281.094062
     },
     "dynamodb-toolbox-conditional-attribute-requirements": {
       "language": "typescript",
       "medianAgentDurationSeconds": 3415.81,
-      "schedulingAgentDurationSeconds": 3415.810108
+      "medianVerifierDurationSeconds": 1001.736,
+      "schedulingDurationSeconds": 4440.513106
     },
     "dynamodb-toolbox-lazy-recursive-schemas": {
       "language": "typescript",
       "medianAgentDurationSeconds": 5371.641,
-      "schedulingAgentDurationSeconds": 4845.723112
+      "medianVerifierDurationSeconds": 552.844,
+      "schedulingDurationSeconds": 5634.392112
     },
     "effect-sse-httpapi-streaming": {
       "language": "typescript",
       "medianAgentDurationSeconds": 4845.723,
-      "schedulingAgentDurationSeconds": 3964.680111
+      "medianVerifierDurationSeconds": 699.121,
+      "schedulingDurationSeconds": 4817.33011
     },
     "eicrud-keyset-pagination-cursor": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1149.756,
-      "schedulingAgentDurationSeconds": 1126.020041
+      "medianVerifierDurationSeconds": 1152.688,
+      "schedulingDurationSeconds": 2287.704063
     },
     "etree-xml-diff-patch": {
       "language": "go",
       "medianAgentDurationSeconds": 1086.67,
-      "schedulingAgentDurationSeconds": 1072.711035
+      "medianVerifierDurationSeconds": 727.062,
+      "schedulingDurationSeconds": 1801.465031
     },
     "expr-try-catch-errors": {
       "language": "go",
       "medianAgentDurationSeconds": 1398.342,
-      "schedulingAgentDurationSeconds": 1390.32206
+      "medianVerifierDurationSeconds": 1141.848,
+      "schedulingDurationSeconds": 2540.190074
     },
     "fastapi-deprecation-response-headers": {
       "language": "python",
       "medianAgentDurationSeconds": 1203.78,
-      "schedulingAgentDurationSeconds": 1182.597046
+      "medianVerifierDurationSeconds": 968.895,
+      "schedulingDurationSeconds": 2162.450057
     },
     "fastapi-implicit-head-options": {
       "language": "python",
       "medianAgentDurationSeconds": 1528.964,
-      "schedulingAgentDurationSeconds": 1528.96407
+      "medianVerifierDurationSeconds": 976.433,
+      "schedulingDurationSeconds": 2505.397071
     },
     "fd-deterministic-multi-key-sorting": {
       "language": "rust",
       "medianAgentDurationSeconds": 704.942,
-      "schedulingAgentDurationSeconds": 1433.496065
+      "medianVerifierDurationSeconds": 759.264,
+      "schedulingDurationSeconds": 2318.493065
     },
     "geo-shapeindex-serialization": {
       "language": "go",
       "medianAgentDurationSeconds": 1421.892,
-      "schedulingAgentDurationSeconds": 1421.075063
+      "medianVerifierDurationSeconds": 846.14,
+      "schedulingDurationSeconds": 2254.25006
     },
     "go-critic-doc-link-checker": {
       "language": "go",
       "medianAgentDurationSeconds": 1308.797,
-      "schedulingAgentDurationSeconds": 1299.403055
+      "medianVerifierDurationSeconds": 770.09,
+      "schedulingDurationSeconds": 2058.735053
     },
     "go-genai-streamed-function-args": {
       "language": "go",
       "medianAgentDurationSeconds": 1045.355,
-      "schedulingAgentDurationSeconds": 1031.581028
+      "medianVerifierDurationSeconds": 750.811,
+      "schedulingDurationSeconds": 1768.421027
     },
     "go-git-worktree-merge-conflicts": {
       "language": "go",
       "medianAgentDurationSeconds": 2027.317,
-      "schedulingAgentDurationSeconds": 2112.417088
+      "medianVerifierDurationSeconds": 855.756,
+      "schedulingDurationSeconds": 2895.127086
     },
     "goreleaser-retry-publish-auditing": {
       "language": "go",
       "medianAgentDurationSeconds": 2321.755,
-      "schedulingAgentDurationSeconds": 2354.872098
+      "medianVerifierDurationSeconds": 1165.686,
+      "schedulingDurationSeconds": 3514.971099
     },
     "gql-incremental-graphql-delivery": {
       "language": "python",
       "medianAgentDurationSeconds": 1421.075,
-      "schedulingAgentDurationSeconds": 1412.830062
+      "medianVerifierDurationSeconds": 703.712,
+      "schedulingDurationSeconds": 2100.294055
     },
     "happy-dom-abort-pending-body-reads": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1852.774,
-      "schedulingAgentDurationSeconds": 1852.77408
+      "medianVerifierDurationSeconds": 803.503,
+      "schedulingDurationSeconds": 2656.277078
     },
     "happy-dom-deterministic-intersectionobserver": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2022.671,
-      "schedulingAgentDurationSeconds": 2027.317087
+      "medianVerifierDurationSeconds": 855.556,
+      "schedulingDurationSeconds": 2883.073085
     },
     "helm-array-merge-strategies": {
       "language": "go",
       "medianAgentDurationSeconds": 2711.215,
-      "schedulingAgentDurationSeconds": 2899.844104
+      "medianVerifierDurationSeconds": 1157.865,
+      "schedulingDurationSeconds": 3995.238102
     },
     "helm-unified-manifest-stream": {
       "language": "go",
       "medianAgentDurationSeconds": 2001.627,
-      "schedulingAgentDurationSeconds": 2022.671086
+      "medianVerifierDurationSeconds": 1140.91,
+      "schedulingDurationSeconds": 3339.145095
     },
     "httpx-deterministic-cookie-store": {
       "language": "typescript",
       "medianAgentDurationSeconds": 917.449,
-      "schedulingAgentDurationSeconds": 902.693019
+      "medianVerifierDurationSeconds": 774.059,
+      "schedulingDurationSeconds": 1681.689021
     },
     "httpx-multipart-response-parsing": {
       "language": "python",
       "medianAgentDurationSeconds": 857.835,
-      "schedulingAgentDurationSeconds": 831.614012
+      "medianVerifierDurationSeconds": 727.528,
+      "schedulingDurationSeconds": 1559.189011
     },
     "httpx-streaming-json-iteration": {
       "language": "python",
       "medianAgentDurationSeconds": 1020.8,
-      "schedulingAgentDurationSeconds": 971.656025
+      "medianVerifierDurationSeconds": 653.884,
+      "schedulingDurationSeconds": 1645.158018
     },
     "igel-persist-feature-schema": {
       "language": "python",
       "medianAgentDurationSeconds": 891.212,
-      "schedulingAgentDurationSeconds": 867.382015
+      "medianVerifierDurationSeconds": 701.875,
+      "schedulingDurationSeconds": 1579.843012
     },
     "ink-grid-box-layout": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1817.655,
-      "schedulingAgentDurationSeconds": 1817.655077
+      "medianVerifierDurationSeconds": 711.311,
+      "schedulingDurationSeconds": 2528.966073
     },
     "ipython-session-bundle-replay": {
       "language": "python",
       "medianAgentDurationSeconds": 902.693,
-      "schedulingAgentDurationSeconds": 891.212017
+      "medianVerifierDurationSeconds": 742.465,
+      "schedulingDurationSeconds": 1611.444016
     },
     "katex-multicolumn-array-spans": {
       "language": "javascript",
       "medianAgentDurationSeconds": 1390.322,
-      "schedulingAgentDurationSeconds": 1345.694059
+      "medianVerifierDurationSeconds": 709.972,
+      "schedulingDurationSeconds": 2078.887054
     },
     "kcp-go-multiplexed-kcp-streams": {
       "language": "go",
       "medianAgentDurationSeconds": 1241.812,
-      "schedulingAgentDurationSeconds": 1232.852051
+      "medianVerifierDurationSeconds": 813.551,
+      "schedulingDurationSeconds": 2044.900051
     },
     "kea-atomic-signal-selectors": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2175.465,
-      "schedulingAgentDurationSeconds": 2289.176094
+      "medianVerifierDurationSeconds": 746.766,
+      "schedulingDurationSeconds": 2951.122088
     },
     "kgateway-consistent-hash-policy": {
       "language": "go",
       "medianAgentDurationSeconds": 2346.436,
-      "schedulingAgentDurationSeconds": 2395.167099
+      "medianVerifierDurationSeconds": 3287.956,
+      "schedulingDurationSeconds": 5544.844111
     },
     "kombu-single-active-consumer-priority": {
       "language": "python",
       "medianAgentDurationSeconds": 876.389,
-      "schedulingAgentDurationSeconds": 857.835014
+      "medianVerifierDurationSeconds": 735.055,
+      "schedulingDurationSeconds": 1593.087014
     },
     "kombu-virtual-queue-dead-lettering": {
       "language": "python",
       "medianAgentDurationSeconds": 1226.603,
-      "schedulingAgentDurationSeconds": 1203.780048
+      "medianVerifierDurationSeconds": 714.437,
+      "schedulingDurationSeconds": 1928.175041
     },
     "koota-composite-trait-aspects": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2151.4,
-      "schedulingAgentDurationSeconds": 2161.578091
+      "medianVerifierDurationSeconds": 743.727,
+      "schedulingDurationSeconds": 2922.231087
     },
     "koota-deferred-mutation-buffer": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2354.872,
-      "schedulingAgentDurationSeconds": 2460.5441
+      "medianVerifierDurationSeconds": 740.749,
+      "schedulingDurationSeconds": 3105.533093
     },
     "koota-entity-snapshot-rollback": {
       "language": "python",
       "medianAgentDurationSeconds": 867.382,
-      "schedulingAgentDurationSeconds": 840.006013
+      "medianVerifierDurationSeconds": 651.93,
+      "schedulingDurationSeconds": 1463.565007
     },
     "koota-pair-relation-tracking": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2115.527,
-      "schedulingAgentDurationSeconds": 2151.40009
+      "medianVerifierDurationSeconds": 632.281,
+      "schedulingDurationSeconds": 2858.680083
     },
     "koota-query-predicates": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2162.332,
-      "schedulingAgentDurationSeconds": 2175.465093
+      "medianVerifierDurationSeconds": 797.516,
+      "schedulingDurationSeconds": 3044.83009
     },
     "kysely-window-grouping-helpers": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1319.086,
-      "schedulingAgentDurationSeconds": 1308.797056
+      "medianVerifierDurationSeconds": 914.363,
+      "schedulingDurationSeconds": 2172.675058
     },
     "langchain-request-coalescing": {
       "language": "python",
       "medianAgentDurationSeconds": 1470.951,
-      "schedulingAgentDurationSeconds": 1470.951067
+      "medianVerifierDurationSeconds": 691.499,
+      "schedulingDurationSeconds": 2124.787056
     },
     "mashumaro-flattened-dataclass-fields": {
       "language": "python",
       "medianAgentDurationSeconds": 1345.694,
-      "schedulingAgentDurationSeconds": 1334.210058
+      "medianVerifierDurationSeconds": 972.799,
+      "schedulingDurationSeconds": 2302.444064
     },
     "meriyah-explicit-resource-declarations": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1679.706,
-      "schedulingAgentDurationSeconds": 1679.706074
+      "medianVerifierDurationSeconds": 1178.974,
+      "schedulingDurationSeconds": 2878.227084
     },
     "mnamer-daemon-watch-lifecycle": {
       "language": "python",
       "medianAgentDurationSeconds": 1126.02,
-      "schedulingAgentDurationSeconds": 1101.669039
+      "medianVerifierDurationSeconds": 826.125,
+      "schedulingDurationSeconds": 1929.422042
     },
     "mobly-grouped-test-barriers": {
       "language": "python",
       "medianAgentDurationSeconds": 1058.873,
-      "schedulingAgentDurationSeconds": 1040.074029
+      "medianVerifierDurationSeconds": 735.774,
+      "schedulingDurationSeconds": 1748.692026
     },
     "narwhals-rolling-window-suite": {
       "language": "python",
       "medianAgentDurationSeconds": 1334.21,
-      "schedulingAgentDurationSeconds": 1319.086057
+      "medianVerifierDurationSeconds": 1097.479,
+      "schedulingDurationSeconds": 2431.689068
     },
     "numba-stencil-boundary-modes": {
       "language": "python",
       "medianAgentDurationSeconds": 2899.844,
-      "schedulingAgentDurationSeconds": 3032.786105
+      "medianVerifierDurationSeconds": 1540.669,
+      "schedulingDurationSeconds": 4471.490107
     },
     "obsidian-linter-auto-table-of-contents": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1527.256,
-      "schedulingAgentDurationSeconds": 1527.256069
+      "medianVerifierDurationSeconds": 883.406,
+      "schedulingDurationSeconds": 2410.662066
     },
     "obsidian-linter-link-format-conversion": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1713.099,
-      "schedulingAgentDurationSeconds": 1713.099075
+      "medianVerifierDurationSeconds": 783.646,
+      "schedulingDurationSeconds": 2496.745069
     },
     "obsidian-linter-scoped-ignore-markers": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1180.732,
-      "schedulingAgentDurationSeconds": 1149.756043
+      "medianVerifierDurationSeconds": 778.41,
+      "schedulingDurationSeconds": 1941.040043
     },
     "ofetch-per-origin-circuit-breaker": {
       "language": "typescript",
       "medianAgentDurationSeconds": 776.534,
-      "schedulingAgentDurationSeconds": 715.046007
+      "medianVerifierDurationSeconds": 687.031,
+      "schedulingDurationSeconds": 1440.424006
     },
     "onedump-dump-encryption-pipeline": {
       "language": "go",
       "medianAgentDurationSeconds": 1463.691,
-      "schedulingAgentDurationSeconds": 1463.691066
+      "medianVerifierDurationSeconds": 1045.446,
+      "schedulingDurationSeconds": 2509.137072
     },
     "opa-rego-rule-profiling": {
       "language": "go",
       "medianAgentDurationSeconds": 1743.187,
-      "schedulingAgentDurationSeconds": 1743.187076
+      "medianVerifierDurationSeconds": 954.349,
+      "schedulingDurationSeconds": 2747.808082
     },
     "opa-template-string-reconstruction": {
       "language": "go",
       "medianAgentDurationSeconds": 3225.885,
-      "schedulingAgentDurationSeconds": 3225.885107
+      "medianVerifierDurationSeconds": 892.323,
+      "schedulingDurationSeconds": 4350.173104
     },
     "optique-conditional-option-dependencies": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2535.25,
-      "schedulingAgentDurationSeconds": 2709.231102
+      "medianVerifierDurationSeconds": 803.895,
+      "schedulingDurationSeconds": 3431.544096
     },
     "oxvg-structural-selector-preservation": {
       "language": "rust",
       "medianAgentDurationSeconds": 3169.521,
-      "schedulingAgentDurationSeconds": 2346.436097
+      "medianVerifierDurationSeconds": 1647.809,
+      "schedulingDurationSeconds": 5924.485113
     },
     "participle-grammar-conflict-analysis": {
       "language": "go",
       "medianAgentDurationSeconds": 1083.835,
-      "schedulingAgentDurationSeconds": 1069.010034
+      "medianVerifierDurationSeconds": 786.798,
+      "schedulingDurationSeconds": 1841.942034
     },
     "pebble-durability-wait-apis": {
       "language": "go",
       "medianAgentDurationSeconds": 3690.174,
-      "schedulingAgentDurationSeconds": 3690.17411
+      "medianVerifierDurationSeconds": 781.316,
+      "schedulingDurationSeconds": 4643.794108
     },
     "pest-character-class-coalescing": {
       "language": "rust",
       "medianAgentDurationSeconds": 531.286,
-      "schedulingAgentDurationSeconds": 1205.011049
+      "medianVerifierDurationSeconds": 692.341,
+      "schedulingDurationSeconds": 2004.646049
     },
     "prometheus-transactional-reload-status": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1974.637,
-      "schedulingAgentDurationSeconds": 2001.627085
+      "medianVerifierDurationSeconds": 1130.896,
+      "schedulingDurationSeconds": 3142.537094
     },
     "prometheus-typed-label-sorting": {
       "language": "go",
       "medianAgentDurationSeconds": 985.028,
-      "schedulingAgentDurationSeconds": 960.828024
+      "medianVerifierDurationSeconds": 1019.909,
+      "schedulingDurationSeconds": 1996.304048
     },
     "psd-tools-blend-range-api": {
       "language": "python",
       "medianAgentDurationSeconds": 831.614,
-      "schedulingAgentDurationSeconds": 777.02001
+      "medianVerifierDurationSeconds": 748.229,
+      "schedulingDurationSeconds": 1519.69801
     },
     "pwntools-tube-multiplexing": {
       "language": "python",
       "medianAgentDurationSeconds": 932.871,
-      "schedulingAgentDurationSeconds": 915.84502
+      "medianVerifierDurationSeconds": 681.049,
+      "schedulingDurationSeconds": 1594.117015
     },
     "python-statemachine-state-data-scoping": {
       "language": "python",
       "medianAgentDurationSeconds": 2709.231,
-      "schedulingAgentDurationSeconds": 2711.215103
+      "medianVerifierDurationSeconds": 805.74,
+      "schedulingDurationSeconds": 3806.7841
     },
     "query-persist-restored-query-state": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2460.544,
-      "schedulingAgentDurationSeconds": 2535.250101
+      "medianVerifierDurationSeconds": 584.286,
+      "schedulingDurationSeconds": 3092.762091
     },
     "quill-shared-toolbar-focus": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1825.155,
-      "schedulingAgentDurationSeconds": 1825.155079
+      "medianVerifierDurationSeconds": 750.158,
+      "schedulingDurationSeconds": 2575.313076
     },
     "returns-validated-error-accumulation": {
       "language": "python",
       "medianAgentDurationSeconds": 1182.597,
-      "schedulingAgentDurationSeconds": 1164.779044
+      "medianVerifierDurationSeconds": 739.883,
+      "schedulingDurationSeconds": 1887.040037
     },
     "scc-bounded-memory-spilling": {
       "language": "go",
       "medianAgentDurationSeconds": 1040.074,
-      "schedulingAgentDurationSeconds": 1020.800027
+      "medianVerifierDurationSeconds": 956.23,
+      "schedulingDurationSeconds": 1972.343046
     },
     "scriggo-method-declarations": {
       "language": "go",
       "medianAgentDurationSeconds": 3032.786,
-      "schedulingAgentDurationSeconds": 3169.521106
+      "medianVerifierDurationSeconds": 962.452,
+      "schedulingDurationSeconds": 4118.208103
     },
     "skrub-duration-encoding": {
       "language": "python",
       "medianAgentDurationSeconds": 1950.247,
-      "schedulingAgentDurationSeconds": 1961.476083
+      "medianVerifierDurationSeconds": 2693.547,
+      "schedulingDurationSeconds": 4730.254109
     },
     "sql-formatter-bigquery-pipe-formatting": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1205.011,
-      "schedulingAgentDurationSeconds": 1189.006047
+      "medianVerifierDurationSeconds": 772.744,
+      "schedulingDurationSeconds": 1959.142045
     },
     "sqlfmt-create-table-ddl-formatting": {
       "language": "python",
       "medianAgentDurationSeconds": 1621.145,
-      "schedulingAgentDurationSeconds": 1621.145073
+      "medianVerifierDurationSeconds": 1075.171,
+      "schedulingDurationSeconds": 2696.31608
     },
     "sqlite-utils-safe-import-checkpoints": {
       "language": "python",
       "medianAgentDurationSeconds": 1299.403,
-      "schedulingAgentDurationSeconds": 1248.468054
+      "medianVerifierDurationSeconds": 759.332,
+      "schedulingDurationSeconds": 2055.363052
     },
     "superjson-error-stack-serialization": {
       "language": "typescript",
       "medianAgentDurationSeconds": 1189.006,
-      "schedulingAgentDurationSeconds": 1180.732045
+      "medianVerifierDurationSeconds": 719.08,
+      "schedulingDurationSeconds": 1870.633036
     },
     "task-task-graph-export": {
       "language": "go",
       "medianAgentDurationSeconds": 1595.938,
-      "schedulingAgentDurationSeconds": 1595.938072
+      "medianVerifierDurationSeconds": 963.176,
+      "schedulingDurationSeconds": 2559.114075
     },
     "tengo-callable-instance-isolation": {
       "language": "go",
       "medianAgentDurationSeconds": 2112.417,
-      "schedulingAgentDurationSeconds": 2115.527089
+      "medianVerifierDurationSeconds": 838.705,
+      "schedulingDurationSeconds": 2959.848089
     },
     "tengo-destructuring-bindings": {
       "language": "go",
       "medianAgentDurationSeconds": 1069.01,
-      "schedulingAgentDurationSeconds": 1065.134032
+      "medianVerifierDurationSeconds": 739.581,
+      "schedulingDurationSeconds": 1798.88603
     },
     "termenv-preserve-ansi-resets": {
       "language": "go",
       "medianAgentDurationSeconds": 682.561,
-      "schedulingAgentDurationSeconds": 582.622004
+      "medianVerifierDurationSeconds": 757.863,
+      "schedulingDurationSeconds": 1384.743005
     },
     "testem-bail-on-test-failure": {
       "language": "javascript",
       "medianAgentDurationSeconds": 1248.468,
-      "schedulingAgentDurationSeconds": 1246.801053
+      "medianVerifierDurationSeconds": 723.875,
+      "schedulingDurationSeconds": 1952.145044
     },
     "testem-per-launcher-reports": {
       "language": "javascript",
       "medianAgentDurationSeconds": 971.656,
-      "schedulingAgentDurationSeconds": 958.615023
+      "medianVerifierDurationSeconds": 712.003,
+      "schedulingDurationSeconds": 1674.68402
     },
     "textual-kitty-key-phases": {
       "language": "python",
       "medianAgentDurationSeconds": 1961.476,
-      "schedulingAgentDurationSeconds": 1974.637084
+      "medianVerifierDurationSeconds": 708.707,
+      "schedulingDurationSeconds": 2670.183079
     },
     "textual-richlog-follow-state": {
       "language": "python",
       "medianAgentDurationSeconds": 1412.83,
-      "schedulingAgentDurationSeconds": 1398.342061
+      "medianVerifierDurationSeconds": 868.264,
+      "schedulingDurationSeconds": 2268.032061
     },
     "tomlkit-toml-table-converters": {
       "language": "python",
       "medianAgentDurationSeconds": 1433.496,
-      "schedulingAgentDurationSeconds": 1421.892064
+      "medianVerifierDurationSeconds": 820.754,
+      "schedulingDurationSeconds": 2233.449059
     },
     "true-myth-iterable-collection-combinators": {
       "language": "typescript",
       "medianAgentDurationSeconds": 796.87,
-      "schedulingAgentDurationSeconds": 776.534009
+      "medianVerifierDurationSeconds": 762.319,
+      "schedulingDurationSeconds": 1519.312009
     },
     "ts-pattern-match-each": {
       "language": "typescript",
       "medianAgentDurationSeconds": 715.046,
-      "schedulingAgentDurationSeconds": 682.561005
+      "medianVerifierDurationSeconds": 583.838,
+      "schedulingDurationSeconds": 1223.627003
     },
     "updo-policy-alerting": {
       "language": "go",
       "medianAgentDurationSeconds": 1067.172,
-      "schedulingAgentDurationSeconds": 1058.873031
+      "medianVerifierDurationSeconds": 977.728,
+      "schedulingDurationSeconds": 2004.93705
     },
     "valibot-recursive-schema-composition": {
       "language": "typescript",
       "medianAgentDurationSeconds": 3470.356,
-      "schedulingAgentDurationSeconds": 3470.356109
+      "medianVerifierDurationSeconds": 879.817,
+      "schedulingDurationSeconds": 4417.546105
     },
     "vitest-duration-sharding": {
       "language": "typescript",
       "medianAgentDurationSeconds": 2161.578,
-      "schedulingAgentDurationSeconds": 2162.332092
+      "medianVerifierDurationSeconds": 931.184,
+      "schedulingDurationSeconds": 3095.621092
     },
     "vulture-persistent-analysis-cache": {
       "language": "python",
       "medianAgentDurationSeconds": 1065.134,
-      "schedulingAgentDurationSeconds": 1045.35503
+      "medianVerifierDurationSeconds": 703.287,
+      "schedulingDurationSeconds": 1729.410025
     },
     "wasmi-trap-coredumps": {
       "language": "rust",
       "medianAgentDurationSeconds": 3964.68,
-      "schedulingAgentDurationSeconds": 5371.641113
+      "medianVerifierDurationSeconds": 765.574,
+      "schedulingDurationSeconds": 3438.891097
     },
     "wazero-multi-module-snapshots": {
       "language": "go",
       "medianAgentDurationSeconds": 1103.143,
-      "schedulingAgentDurationSeconds": 1086.994038
+      "medianVerifierDurationSeconds": 821.494,
+      "schedulingDurationSeconds": 1908.086038
     },
     "yaegi-go-embed-directives": {
       "language": "go",
       "medianAgentDurationSeconds": 1859.174,
-      "schedulingAgentDurationSeconds": 1950.247082
+      "medianVerifierDurationSeconds": 757.364,
+      "schedulingDurationSeconds": 2616.538077
     },
     "yjs-map-conflict-detection": {
       "language": "javascript",
       "medianAgentDurationSeconds": 1824.914,
-      "schedulingAgentDurationSeconds": 1824.914078
+      "medianVerifierDurationSeconds": 679.282,
+      "schedulingDurationSeconds": 2504.19607
     },
     "ytt-jsonpath-query-api": {
       "language": "go",
       "medianAgentDurationSeconds": 960.828,
-      "schedulingAgentDurationSeconds": 932.871022
+      "medianVerifierDurationSeconds": 881.114,
+      "schedulingDurationSeconds": 1808.591032
     }
   }
 }

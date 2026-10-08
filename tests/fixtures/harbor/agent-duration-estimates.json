@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.1",
+  "schemaVersion": "1.2",
   "source": "test-fixture",
   "aggregation": "median",
   "unit": "seconds",
@@ -13,7 +13,8 @@
     "smoke-go": {
       "language": "go",
       "medianAgentDurationSeconds": 42.5,
-      "schedulingAgentDurationSeconds": 40.0
+      "medianVerifierDurationSeconds": 7.5,
+      "schedulingDurationSeconds": 50.0
     }
   }
 }

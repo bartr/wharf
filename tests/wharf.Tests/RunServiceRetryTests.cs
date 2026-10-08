@@ -9,6 +9,7 @@ public sealed class RunServiceRetryTests
     [InlineData("failed", "OutOfMemory")]
     [InlineData("failed", "AgentTimeout")]
     [InlineData("failed", "VerifierTimeout")]
+    [InlineData("failed", "VerifierInfrastructure")]
     public void RetriesExceptionalNonPassingTrials(string status, string errorType)
     {
         Assert.True(RunService.ShouldRetryTrial(status, errorType, 0, 1));

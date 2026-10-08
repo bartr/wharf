@@ -19,7 +19,9 @@ public sealed class DeterministicScheduler
         options.Validate();
         IReadOnlyList<ScheduledAttempt> ordered = attempts
             .OrderBy(attempt => attempt.AttemptNumber)
-            .ThenByDescending(attempt => attempt.EstimatedAgentDurationSeconds ?? 0)
+            .ThenByDescending(attempt =>
+                (attempt.EstimatedAgentDurationSeconds ?? 0) +
+                (attempt.EstimatedVerifierDurationSeconds ?? 0))
             .ThenBy(attempt => attempt.TaskId, StringComparer.Ordinal)
             .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
             .ToArray();

@@ -50,10 +50,10 @@ public sealed class SchedulerTests
 
         SchedulerResult result = await scheduler.RunAsync(
             [
-                new ScheduledAttempt("short-2", "short", "short", 2, 10),
-                new ScheduledAttempt("long-2", "long", "long", 2, 100),
-                new ScheduledAttempt("short-1", "short", "short", 1, 10),
-                new ScheduledAttempt("long-1", "long", "long", 1, 100)
+                new ScheduledAttempt("short-2", "short", "short", 2, 10, 5),
+                new ScheduledAttempt("long-2", "long", "long", 2, 100, 1),
+                new ScheduledAttempt("short-1", "short", "short", 1, 10, 5),
+                new ScheduledAttempt("long-1", "long", "long", 1, 20, 81)
             ],
             new SchedulerOptions(1, 4));
 

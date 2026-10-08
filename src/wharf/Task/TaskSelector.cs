@@ -71,9 +71,9 @@ public static class TaskSelector
         attempts
             .OrderBy(attempt => attempt.AttemptNumber)
             .ThenByDescending(attempt =>
-                attempt.Task.SchedulingAgentDurationSeconds ??
-                attempt.Task.EstimatedAgentDurationSeconds ??
-                0)
+                attempt.Task.SchedulingDurationSeconds ??
+                (attempt.Task.EstimatedAgentDurationSeconds ?? 0) +
+                (attempt.Task.EstimatedVerifierDurationSeconds ?? 0))
             .ThenBy(attempt => attempt.Task.TaskId, StringComparer.Ordinal)
             .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
             .ToArray();

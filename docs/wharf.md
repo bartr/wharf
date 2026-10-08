@@ -76,7 +76,10 @@ container and reuse the task's configured environment image. After MVP,
   verifier-image build, and verifier execution timeouts. Timed-out processes
   and containers are terminated, and agent and build timeouts are retained as
   explicit `AgentTimeout`, `AgentBuildTimeout`, or `VerifierBuildTimeout`
-  failures.
+  failures. Retain verifier command evidence before surfacing
+  `VerifierTimeout`; classify externally terminated verifier containers as
+  `VerifierInfrastructure`. Both are eligible for the bounded whole-trial
+  retry, while an ordinary reward-zero verifier remains a failed test.
 - Pass task instructions as an attached `--prompt=<text>` argument so a prompt
   beginning with a dash cannot be parsed as another CLI option.
 - Retry a Copilot HTTP 400 reported as an internal server error once in a fresh
@@ -292,12 +295,13 @@ container and reuse the task's configured environment image. After MVP,
 
 - Read Harbor task metadata, instructions, environment definitions, artifacts, tests, and verifier settings.
 - Load optional versioned `agent-duration-estimates.json` metadata from the task
-  root. Each entry retains its language, median agent execution seconds from a
-  named reference run, and a separate scheduling duration. These estimates do
-  not alter task source checksums.
+  root. Each entry retains its language, median agent and verifier execution
+  seconds from a named reference run, and a separate combined scheduling
+  duration. These estimates do not alter task source checksums.
 - Admit all attempt-1 work before attempt-2 work, continuing through K. Within
-  each attempt wave, admit tasks by descending scheduling duration with stable
-  task and attempt IDs as tie-breakers. The DeepSWE estimate profile spaces
+  each attempt wave, admit tasks by descending combined agent-plus-verifier
+  scheduling duration with stable task and attempt IDs as tie-breakers. The
+  DeepSWE estimate profile spaces
   duration-ordered Rust tasks at positions 1, 17, 33, 49, and 65 so their
   resource-heavy builds are not front-loaded. Tasks without estimates follow
   estimated tasks in stable order.

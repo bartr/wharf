@@ -17,7 +17,8 @@ public sealed record ScheduledAttempt(
     string LogicalAttemptId,
     string TaskId,
     int AttemptNumber = 1,
-    double? EstimatedAgentDurationSeconds = null);
+    double? EstimatedAgentDurationSeconds = null,
+    double? EstimatedVerifierDurationSeconds = null);
 
 public sealed record TrialExecutionResult(
     bool Succeeded,

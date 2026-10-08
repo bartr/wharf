@@ -78,6 +78,24 @@ public sealed class PristineVerifierService
         AtomicFile.Replace(
             Path.Combine(evidenceDirectory, "trial-result.json"),
             JsonSerializer.Serialize(trial, StateJson.Options));
+        VerifierCommandResult? timeout = results.FirstOrDefault(result => result.TimedOut);
+        if (timeout is not null)
+        {
+            throw new VerifierExecutionException(
+                $"verifier command '{timeout.Name}' exceeded its timeout",
+                "VerifierTimeout");
+        }
+
+        VerifierCommandResult? terminated = results.FirstOrDefault(result =>
+            result.ExitCode is 137 or 143);
+        if (terminated is not null)
+        {
+            throw new VerifierExecutionException(
+                $"verifier command '{terminated.Name}' was externally terminated " +
+                $"with exit code {terminated.ExitCode}",
+                "VerifierInfrastructure");
+        }
+
         return trial;
     }
 
