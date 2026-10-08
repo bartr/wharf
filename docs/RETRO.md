@@ -7,6 +7,10 @@ what was surprising and what should be done differently in the next session.
   source-level gates from infrastructure evidence. Name ownership explicitly,
   fail automated checks loudly, and never convert unavailable signatures or
   overnight measurements into implied passes.
+- Session 22 (`0.22.0`): Environment overrides are not sufficient protection
+  when project configuration has higher precedence. Keep package-manager homes
+  outside project trees, retain hard resource limits as containment, and use
+  isolated task reruns to qualify the root-cause fix before another full run.
 
 - Session 1 (`0.1.0`): Cobra's automatic version flag unexpectedly allowed
   trailing unknown input to succeed, and parsing lower-precedence environment

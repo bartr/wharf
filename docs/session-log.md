@@ -806,3 +806,52 @@ F2P and 172/172 P2P tests for reward 1.
 
 Finish and rescore the active run from retained evidence, then repeat
 K=1/N=32/B=12 with the corrected binary.
+
+---
+
+## Session 22 close: `0.22.0`, 2026-10-08
+
+### Frame
+
+* Goal: harden and qualify Wharf for reliable K=1/N=32 benchmark execution,
+  preserving complete evidence through infrastructure failures and drain-tail
+  behavior.
+* Out of scope: changing the public preparation-concurrency contract or
+  claiming final results for the newly started `all-3` run.
+* Failure condition: lose retained patches, permit unbounded container resource
+  failure, or tag behavior that had not passed focused regression and isolated
+  Koota qualification.
+* Start: qualification continued from the earlier checkpoint; an exact session
+  start time was not recorded.
+* End: 2026-10-08 13:28 CDT.
+
+### Summary
+
+`0.22.0` adds structured stage progress, corrected occupancy and K grouping,
+combined agent-plus-verifier scheduling estimates, Docker default swap
+allowance under the retained 8 GiB memory limit, retryable verifier timeout and
+external termination, and a separate retained agent home mounted outside the
+project workspace. The home change fixes the pnpm self-install recursion that
+exhausted Koota's PID limit. An isolated Koota K=1/N=1/B=1 run completed in
+18 minutes 9 seconds with no trial retry and passed 100% F2P and P2P.
+
+The full `all-3` K=1/N=32/B=12 run started with the `0.22.0` binary and remains
+qualification evidence in progress; it is not treated as a completed release
+gate.
+
+### Close
+
+* Focused external-home tests: 28/28 passed.
+* Isolated Koota verifier: reward 1, F2P 100%, P2P 100%.
+* Full unit suite: 147/147 passed.
+* Framing quality: 4/5.
+* Drift: yes; live-run failures expanded the qualification hardening scope.
+* Close complete: pending merge and tag at the time of this entry.
+
+### Next session starter
+
+Start `0.23.0` by replacing public `B` build concurrency with `P` preparation
+concurrency. Apply one shared preparation gate to agent image/workspace/Copilot
+setup and verifier image/workspace/patch setup, while releasing the permit
+before verifier commands execute. Add occupancy and wait-time telemetry before
+using the cold Docker run to tune P.

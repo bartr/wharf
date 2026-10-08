@@ -106,3 +106,15 @@ counts, occupancy, retries, and ETA from retained events. Graceful stop
 cancels first, waits within a bound, and cleans only explicitly ephemeral
 resources. Completion and blocked notifications are durable; webhooks require
 an explicit HTTPS endpoint.
+
+Session 22 releases the `0.22.0` qualification hardening. Structured stage
+events drive reconciled progress occupancy and active-stage timing. Agent and
+verifier containers keep an 8 GiB memory limit without disabling Docker's
+default swap allowance. Scheduling uses combined historical agent and verifier
+durations. Verifier timeouts and exits 137/143 retain evidence before entering
+bounded whole-trial retry. Agent homes are retained as sibling directories
+mounted at `/home/wharf`, never below `/workspace`, so project-level pnpm
+version management cannot recursively rediscover its own staging tree. The
+next release replaces public `B` build concurrency with `P` preparation
+concurrency and applies the shared gate to both agent and verifier preparation,
+but not verifier execution.
