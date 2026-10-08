@@ -106,9 +106,11 @@ public sealed class RunService
             $"run created {attemptDirectory} under {jobDirectory}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
 
+        IReadOnlyList<TaskAttempt> scheduledAttempts = TaskSelector.OrderAttemptsForAdmission(
+            TaskSelector.ExpandAttempts(tasks, configuration.K));
         using var preparationGate = new PreparationGate(configuration.B);
         Parallel.ForEachAsync(
-            tasks.Select((task, index) => (task, index)),
+            scheduledAttempts.Select((attempt, index) => (attempt, index)),
             new ParallelOptions
             {
                 MaxDegreeOfParallelism = configuration.N,
@@ -116,19 +118,25 @@ public sealed class RunService
             },
             async (item, trialCancellationToken) =>
         {
-            HarborTask task = item.task;
-            int runNumber = (item.index * configuration.K) + 1;
+            TaskAttempt attempt = item.attempt;
+            HarborTask task = attempt.Task;
+            int runNumber = item.index + 1;
             string prefix = FormatRunPrefix(
                 runNumber,
                 plannedRuns,
                 task,
-                1,
+                attempt.AttemptNumber,
                 configuration.K,
                 configuration.K);
+            string attemptSuffix = configuration.K > 1
+                ? $"__attempt-{attempt.AttemptNumber}"
+                : string.Empty;
+            string executionName =
+                $"{SanitizePathPart(task.TaskId)}{attemptSuffix}__{runId}";
             string trialDirectory = Path.Combine(
                 jobDirectory,
                 attemptDirectory,
-                $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}");
+                $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}{attemptSuffix}");
             Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
@@ -153,7 +161,7 @@ public sealed class RunService
                                 image = await imagePreparer.PrepareAsync(
                                     task,
                                     Path.Combine(trialDirectory, "agent"),
-                                    $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
+                                    $"{executionName}:latest",
                                     message => logger.Info($"{prefix} status={message}"),
                                     buildTimeout.Token);
                             }
@@ -185,7 +193,7 @@ public sealed class RunService
                                     .ToArray()
                             },
                             [],
-                            $"{SanitizePathPart(task.TaskId)}__{runId}",
+                            executionName,
                             TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400));
                         logger.Info($"{prefix} status=preparing-workspace");
                         await workspacePreparer.PrepareAsync(
@@ -213,7 +221,7 @@ public sealed class RunService
                         await agentExecution.ExecuteWithInfrastructureRetryAsync(
                         agentRequest,
                         Path.Combine(trialDirectory, "agent"),
-                        $"{task.TaskId}__{task.SourceChecksum[..8]}",
+                        $"{task.TaskId}__{task.SourceChecksum[..8]}{attemptSuffix}",
                         maximumRetries: 1,
                         async (failedRequest, retryNumber, retryCancellationToken) =>
                         {
@@ -227,7 +235,7 @@ public sealed class RunService
                             AgentExecutionRequest retryRequest = failedRequest with
                             {
                                 WorkspaceDirectory = retryWorkspace,
-                                ContainerName = $"{SanitizePathPart(task.TaskId)}__{runId}-retry-{retryNumber}"
+                                ContainerName = $"{executionName}-retry-{retryNumber}"
                             };
                             await preparationGate.ExecuteAsync(
                                 async prepareCancellationToken =>
@@ -296,7 +304,7 @@ public sealed class RunService
                     string? verifierImage = await PrepareVerifierImageAsync(
                         task,
                         trialDirectory,
-                        runId,
+                        $"{runId}{attemptSuffix}",
                         logger,
                         prefix,
                         trialCancellationToken);
@@ -369,6 +377,7 @@ public sealed class RunService
                 status = taskStatus,
                 taskRoot = resolvedRoot,
                 taskId = task.TaskId,
+                attempt = attempt.AttemptNumber,
                 taskManifest = Path.Combine(task.RootPath, "task.toml"),
                 datasetManifest,
                 agentImage = image,

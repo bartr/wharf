@@ -66,6 +66,15 @@ public static class TaskSelector
             .ToArray();
     }
 
+    public static IReadOnlyList<TaskAttempt> OrderAttemptsForAdmission(
+        IReadOnlyList<TaskAttempt> attempts) =>
+        attempts
+            .OrderBy(attempt => attempt.AttemptNumber)
+            .ThenByDescending(attempt => attempt.Task.EstimatedAgentDurationSeconds ?? 0)
+            .ThenBy(attempt => attempt.Task.TaskId, StringComparer.Ordinal)
+            .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
+            .ToArray();
+
     private static bool Matches(HarborTask task, string expression) =>
         task.TaskId.Equals(expression, StringComparison.OrdinalIgnoreCase) ||
         task.Category.Equals(expression, StringComparison.OrdinalIgnoreCase) ||

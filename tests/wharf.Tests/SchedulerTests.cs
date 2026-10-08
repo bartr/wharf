@@ -42,6 +42,27 @@ public sealed class SchedulerTests
     }
 
     [Fact]
+    public async Task AdmitsEveryKWaveLongestFirstBeforeNextWave()
+    {
+        var scheduler = new DeterministicScheduler(
+            new RecordingRunner(),
+            new RecordingSink());
+
+        SchedulerResult result = await scheduler.RunAsync(
+            [
+                new ScheduledAttempt("short-2", "short", "short", 2, 10),
+                new ScheduledAttempt("long-2", "long", "long", 2, 100),
+                new ScheduledAttempt("short-1", "short", "short", 1, 10),
+                new ScheduledAttempt("long-1", "long", "long", 1, 100)
+            ],
+            new SchedulerOptions(1, 4));
+
+        Assert.Equal(
+            ["long-1", "short-1"],
+            result.StartedAttempts.Select(attempt => attempt.AttemptId));
+    }
+
+    [Fact]
     public async Task EnforcesMaximumTrialLimit()
     {
         var scheduler = new DeterministicScheduler(

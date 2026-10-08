@@ -237,6 +237,13 @@ container and reuse the task's configured environment image. After MVP,
 ## Task compatibility
 
 - Read Harbor task metadata, instructions, environment definitions, artifacts, tests, and verifier settings.
+- Load optional versioned `agent-duration-estimates.json` metadata from the task
+  root. Estimates are median agent execution seconds imported from a named
+  reference run and do not alter task source checksums.
+- Admit all attempt-1 work before attempt-2 work, continuing through K. Within
+  each attempt wave, admit tasks by descending estimated agent duration with
+  stable task and attempt IDs as tie-breakers. Tasks without estimates follow
+  estimated tasks in stable order.
 - Respect task CPU, memory, storage, GPU, build-timeout, agent-timeout, and verifier-timeout declarations.
 - Support separate agent and verifier environments.
 - Capture the agent patch and apply it to a pristine verifier environment.

@@ -15,7 +15,9 @@ public static class SchedulerLifecycle
 public sealed record ScheduledAttempt(
     string AttemptId,
     string LogicalAttemptId,
-    string TaskId);
+    string TaskId,
+    int AttemptNumber = 1,
+    double? EstimatedAgentDurationSeconds = null);
 
 public sealed record TrialExecutionResult(
     bool Succeeded,

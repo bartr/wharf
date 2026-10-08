@@ -30,6 +30,9 @@ public sealed class HarborTaskTests
         Assert.Equal(
             1800,
             tasks.Single(task => task.TaskId == "smoke-go").AgentTimeoutSeconds);
+        Assert.Equal(
+            42.5,
+            tasks.Single(task => task.TaskId == "smoke-go").EstimatedAgentDurationSeconds);
     }
 
     [Fact]
@@ -46,6 +49,29 @@ public sealed class HarborTaskTests
         Assert.Equal(3, attempts.Count);
         Assert.Equal("attempt-1", attempts[0].AttemptId.Split('#')[1]);
         Assert.All(attempts, attempt => Assert.Equal(first[0].TaskId, attempt.Task.TaskId));
+    }
+
+    [Fact]
+    public void AdmissionOrderCompletesEachKWaveAndStartsLongestTasksFirst()
+    {
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);
+        HarborTask smoke = tasks.Single(task => task.TaskId == "smoke-go");
+        HarborTask shortTask = tasks.First(task => task.TaskId != "smoke-go") with
+        {
+            EstimatedAgentDurationSeconds = 10
+        };
+
+        IReadOnlyList<TaskAttempt> ordered = TaskSelector.OrderAttemptsForAdmission(
+            TaskSelector.ExpandAttempts([shortTask, smoke], 2));
+
+        Assert.Equal(
+            [
+                $"{smoke.TaskId}#attempt-1",
+                $"{shortTask.TaskId}#attempt-1",
+                $"{smoke.TaskId}#attempt-2",
+                $"{shortTask.TaskId}#attempt-2"
+            ],
+            ordered.Select(attempt => attempt.AttemptId));
     }
 
     [Fact]

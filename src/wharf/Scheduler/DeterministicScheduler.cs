@@ -18,7 +18,10 @@ public sealed class DeterministicScheduler
     {
         options.Validate();
         IReadOnlyList<ScheduledAttempt> ordered = attempts
-            .OrderBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
+            .OrderBy(attempt => attempt.AttemptNumber)
+            .ThenByDescending(attempt => attempt.EstimatedAgentDurationSeconds ?? 0)
+            .ThenBy(attempt => attempt.TaskId, StringComparer.Ordinal)
+            .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
             .ToArray();
         var pending = new Queue<ScheduledAttempt>(ordered);
         var started = new List<ScheduledAttempt>();
