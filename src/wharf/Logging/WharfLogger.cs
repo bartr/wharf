@@ -10,6 +10,7 @@ public sealed class WharfLogger : IDisposable
     private readonly WharfConfiguration configuration;
     private string? jsonlPath;
     private readonly bool deferJsonlPath;
+    private readonly string? jsonlPointerPath;
     private readonly List<string> deferredRecords = [];
     private readonly Stopwatch elapsed = Stopwatch.StartNew();
     private readonly object sync = new();
@@ -17,11 +18,15 @@ public sealed class WharfLogger : IDisposable
     private WharfLogger(
         WharfConfiguration configuration,
         string? jsonlPath,
-        bool deferJsonlPath = false)
+        bool deferJsonlPath = false,
+        string? jsonlPointerPath = null)
     {
         this.configuration = configuration;
         this.jsonlPath = string.IsNullOrWhiteSpace(jsonlPath) ? null : Path.GetFullPath(jsonlPath);
         this.deferJsonlPath = deferJsonlPath;
+        this.jsonlPointerPath = string.IsNullOrWhiteSpace(jsonlPointerPath)
+            ? null
+            : Path.GetFullPath(jsonlPointerPath);
         DateTimeOffset startedAt = DateTimeOffset.Now;
         Write(
             "info",
@@ -33,8 +38,14 @@ public sealed class WharfLogger : IDisposable
     public static WharfLogger Create(WharfConfiguration configuration, string? jsonlPath = null) =>
         new(configuration, jsonlPath);
 
-    public static WharfLogger CreateDeferred(WharfConfiguration configuration) =>
-        new(configuration, null, deferJsonlPath: true);
+    public static WharfLogger CreateDeferred(
+        WharfConfiguration configuration,
+        string? jsonlPointerPath = null) =>
+        new(
+            configuration,
+            null,
+            deferJsonlPath: true,
+            jsonlPointerPath: jsonlPointerPath);
 
     public string? JsonlPath
     {
@@ -47,6 +58,7 @@ public sealed class WharfLogger : IDisposable
 
     public void AttachJsonlPathIfUnset(string path)
     {
+        string? pointerError = null;
         lock (sync)
         {
             if (jsonlPath is not null)
@@ -61,6 +73,26 @@ public sealed class WharfLogger : IDisposable
                 File.AppendAllLines(jsonlPath, deferredRecords);
                 deferredRecords.Clear();
             }
+
+            try
+            {
+                UpdateJsonlPointer();
+            }
+            catch (Exception exception) when (
+                exception is IOException or
+                PlatformNotSupportedException or
+                UnauthorizedAccessException)
+            {
+                pointerError = exception.Message;
+            }
+        }
+
+        if (pointerError is not null)
+        {
+            Info(
+                $"run log pointer failed path={jsonlPointerPath} error={pointerError}",
+                pointerError,
+                "RunLogPointer");
         }
     }
 
@@ -84,6 +116,33 @@ public sealed class WharfLogger : IDisposable
 
     public void Dispose()
     {
+    }
+
+    private void UpdateJsonlPointer()
+    {
+        if (jsonlPointerPath is null ||
+            jsonlPath is null ||
+            string.Equals(jsonlPointerPath, jsonlPath, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        string? directory = Path.GetDirectoryName(jsonlPointerPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+            Directory.CreateDirectory(directory);
+        if (Directory.Exists(jsonlPointerPath))
+            throw new IOException($"run log pointer path is a directory: {jsonlPointerPath}");
+
+        var pointer = new FileInfo(jsonlPointerPath);
+        if (pointer.Exists && pointer.LinkTarget is null)
+        {
+            throw new IOException(
+                $"run log pointer path is an existing regular file: {jsonlPointerPath}");
+        }
+
+        if (pointer.LinkTarget is not null)
+            File.Delete(jsonlPointerPath);
+        File.CreateSymbolicLink(jsonlPointerPath, jsonlPath);
     }
 
     private void Write(

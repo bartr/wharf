@@ -92,8 +92,11 @@ container and reuse the task's configured environment image. After MVP,
   `all-N` run directory by default. This log retains admission order, phase
   transitions, retry history, timing, and run-wide progress. An explicit
   `--log-file` path overrides the default location. The completion line prints
-  the resolved path; from inside the run directory, `wharf progress` reads
-  `run.jsonl` by default.
+  the resolved path. While the run is active, Wharf creates or refreshes a
+  `run.jsonl` symbolic link in the launch directory, so `wharf progress` works
+  from the same shell without locating `all-N`. Wharf never overwrites a
+  regular file at that path; pointer failures are retained in the aggregate
+  log.
 - Delete terminal agent workspaces after the patch, stdout, stderr, trajectory,
   Copilot logs, verifier output, and final result have been persisted. This
   removes build outputs, package caches, and tool homes without changing the

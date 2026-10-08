@@ -278,7 +278,9 @@ public static class CommandTree
                     };
                     string? selectedLogFile = parseResult.GetValue(logFile);
                     using WharfLogger logger = selectedLogFile is null
-                        ? WharfLogger.CreateDeferred(loggerConfiguration)
+                        ? WharfLogger.CreateDeferred(
+                            loggerConfiguration,
+                            Path.Combine(Directory.GetCurrentDirectory(), "run.jsonl"))
                         : WharfLogger.Create(loggerConfiguration, selectedLogFile);
                     RunResult result = new RunService(
                         imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(

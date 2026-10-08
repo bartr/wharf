@@ -22,9 +22,12 @@ public sealed class WharfLoggerTests
             Path.GetTempPath(),
             $"wharf-logger-{Guid.NewGuid():N}");
         string path = Path.Combine(directory, "run.jsonl");
+        string pointerPath = Path.Combine(directory, "progress.jsonl");
         try
         {
-            using WharfLogger logger = WharfLogger.CreateDeferred(Configuration());
+            using WharfLogger logger = WharfLogger.CreateDeferred(
+                Configuration(),
+                pointerPath);
             logger.Info("before-attach");
 
             logger.AttachJsonlPathIfUnset(path);
@@ -36,6 +39,38 @@ public sealed class WharfLoggerTests
             Assert.Contains("started=", Message(lines[0]));
             Assert.Equal("before-attach", Message(lines[1]));
             Assert.Equal("after-attach", Message(lines[2]));
+            Assert.Equal(path, new FileInfo(pointerPath).LinkTarget);
+            Assert.Equal(lines, File.ReadAllLines(pointerPath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void DeferredLoggerDoesNotOverwriteRegularPointerFile()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-logger-{Guid.NewGuid():N}");
+        string path = Path.Combine(directory, "run.jsonl");
+        string pointerPath = Path.Combine(directory, "progress.jsonl");
+        try
+        {
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(pointerPath, "keep-me");
+            using WharfLogger logger = WharfLogger.CreateDeferred(
+                Configuration(),
+                pointerPath);
+
+            logger.AttachJsonlPathIfUnset(path);
+
+            Assert.Equal("keep-me", File.ReadAllText(pointerPath));
+            Assert.Contains(
+                File.ReadLines(path),
+                line => Message(line).Contains("run log pointer failed", StringComparison.Ordinal));
         }
         finally
         {
