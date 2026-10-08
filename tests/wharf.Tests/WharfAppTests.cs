@@ -13,11 +13,36 @@ public sealed class WharfAppTests
     }
 
     [Fact]
-    public async Task OperationalCommandFailsExplicitly()
+    public async Task RunCommandExecutesTaskDiscovery()
     {
-        int exitCode = await WharfApp.RunAsync(["run"]);
+        string relativeOutput = "run-test";
+        string outputDirectory = Path.GetFullPath(relativeOutput);
+        try
+        {
+            int exitCode = await WharfApp.RunAsync([
+                "run",
+                "-v",
+                "--tasks", Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
+                "--output-directory", relativeOutput
+            ]);
 
-        Assert.Equal(1, exitCode);
+            Assert.Equal(0, exitCode);
+        }
+
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+                Directory.Delete(outputDirectory, recursive: true);
+        }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null &&
+               !Directory.Exists(Path.Combine(directory.FullName, "smoke-tasks")))
+            directory = directory.Parent;
+        return directory?.FullName ?? throw new DirectoryNotFoundException("repository root not found");
     }
 
     [Theory]

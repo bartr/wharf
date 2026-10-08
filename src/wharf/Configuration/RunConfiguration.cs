@@ -122,18 +122,30 @@ public static class RunManifestLoader
 
 public static class RunConfigurationResolver
 {
+    public const string DefaultCopilotCli = "copilot";
+    public const string DefaultCopilotModel = "gpt-6-luna";
+    public const string DefaultCopilotVersion = "latest";
+
     public static RunConfiguration Resolve(
         RunManifest? manifest,
         RunConfigurationOverrides overrides,
         IReadOnlyDictionary<string, string?> environment)
     {
         manifest ??= new RunManifest();
-        string? EnvironmentValue(string name) =>
-            environment.TryGetValue(name, out string? value) ? value : null;
+        string? EnvironmentValue(string name)
+        {
+            if (name.StartsWith("WHARF_", StringComparison.Ordinal) &&
+                environment.TryGetValue(name["WHARF_".Length..], out string? shortValue) &&
+                !string.IsNullOrWhiteSpace(shortValue))
+                return shortValue;
 
-        int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 4, "K");
-        int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 1, "N");
-        int b = PickInt(overrides.B, EnvironmentValue("WHARF_B"), manifest.B, 1, "B");
+            return environment.TryGetValue(name, out string? value) ? value : null;
+        }
+
+        int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
+        int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
+        int b = PickInt(overrides.B, EnvironmentValue("WHARF_B"), manifest.B, 4, "B");
+        b = Math.Min(b, n);
         string format = Pick(
             overrides.OutputFormat,
             EnvironmentValue("WHARF_OUTPUT_FORMAT"),
@@ -143,8 +155,8 @@ public static class RunConfigurationResolver
             overrides.OutputDirectory,
             EnvironmentValue("WHARF_OUTPUT_DIRECTORY"),
             manifest.Output?.Directory,
-            "run-output");
-        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "default");
+            "jobs");
+        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "gpt-6-luna");
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "medium");
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
@@ -161,7 +173,7 @@ public static class RunConfigurationResolver
             directory,
             model,
             effort,
-            manifest.CliVersion ?? "default",
+            manifest.CliVersion ?? DefaultCopilotVersion,
             manifest.Mounts ?? [],
             manifest.Artifacts ?? [],
             manifest.RetentionDays ?? 30,

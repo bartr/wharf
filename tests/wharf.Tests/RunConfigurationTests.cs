@@ -29,6 +29,88 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void UsesGptSixLunaWhenModelIsNotConfigured()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        Assert.Equal(1, result.K);
+        Assert.Equal("gpt-6-luna", result.Model);
+        Assert.Equal("latest", result.CliVersion);
+    }
+
+    [Fact]
+    public void ReadsHydraFusionFromShortModelEnvironmentVariable()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["MODEL"] = "hydrafusion" });
+
+        Assert.Equal("hydrafusion", result.Model);
+    }
+
+    [Fact]
+    public void DefaultsConcurrencyToFour()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        Assert.Equal(4, result.N);
+        Assert.Equal(4, result.B);
+    }
+
+    [Fact]
+    public void CapsBuildConcurrencyAtTaskConcurrency()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(N: 2, B: 8),
+            new Dictionary<string, string?>());
+
+        Assert.Equal(2, result.N);
+        Assert.Equal(2, result.B);
+    }
+
+    [Fact]
+    public void SupportsShortConcurrencyEnvironmentNames()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["N"] = "1",
+                ["B"] = "4"
+            });
+
+        Assert.Equal(1, result.N);
+        Assert.Equal(1, result.B);
+    }
+
+    [Fact]
+    public void ShortConcurrencyNamesOverrideWharfPrefixedValues()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["N"] = "1",
+                ["B"] = "1",
+                ["WHARF_N"] = "4",
+                ["WHARF_B"] = "4"
+            });
+
+        Assert.Equal(1, result.N);
+        Assert.Equal(1, result.B);
+    }
+
+    [Fact]
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(

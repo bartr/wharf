@@ -32,6 +32,13 @@ public sealed class AgentExecutionService
             request.TaskId,
             status,
             result);
+        if (result.DebugLogDirectory is not null &&
+            Directory.Exists(result.DebugLogDirectory))
+        {
+            CopyDirectory(
+                result.DebugLogDirectory,
+                Path.Combine(evidenceDirectory, "copilot-logs"));
+        }
         if (status == "unfinished")
         {
             throw new AgentExecutionException(
@@ -39,6 +46,22 @@ public sealed class AgentExecutionService
         }
 
         return summary;
+    }
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+        foreach (string file in Directory.EnumerateFiles(source))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: true);
+        }
+
+        foreach (string directory in Directory.EnumerateDirectories(source))
+        {
+            CopyDirectory(
+                directory,
+                Path.Combine(destination, Path.GetFileName(directory)));
+        }
     }
 
     private static AgentEvidenceSummary WriteEvidence(
@@ -86,21 +109,29 @@ public sealed class DockerAgentRunner : IAgentRunner
         request.Validate();
         var arguments = new List<string>
         {
-            "run", "--rm", "--user", "1000:1000", "--network", request.Network,
+            "run", "--rm",
+            "--name", request.ContainerName ?? $"agent-{Guid.NewGuid():N}",
+            "--user", "1000:1000", "--network", request.Network,
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            request.AgentImage
+            "--env", "HOME=/tmp",
+            "--env", "XDG_CACHE_HOME=/tmp/.cache"
         };
-        arguments.AddRange(request.Invocation.Arguments);
         if (request.Invocation.Environment.TryGetValue(
                 "WHARF_COPILOT_CREDENTIAL_VARIABLE",
                 out string? credentialVariable) &&
             IsEnvironmentVariable(credentialVariable))
         {
-            int insertionPoint = arguments.Count - request.Invocation.Arguments.Count;
-            arguments.Insert(insertionPoint, "-e");
-            arguments.Insert(insertionPoint + 1, credentialVariable);
+            arguments.Add("-e");
+            arguments.Add(credentialVariable);
         }
+        arguments.Add(request.AgentImage);
+        arguments.Add("/bin/bash");
+        arguments.Add("-lc");
+        arguments.Add("cp -a /app/. /workspace/ && cd /workspace/ && exec \"$@\"");
+        arguments.Add("--");
+        arguments.Add(request.Invocation.Executable);
+        arguments.AddRange(request.Invocation.Arguments);
 
         var startInfo = new ProcessStartInfo("docker")
         {
@@ -109,6 +140,14 @@ public sealed class DockerAgentRunner : IAgentRunner
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        if (request.Invocation.CredentialValue is not null &&
+            request.Invocation.Environment.TryGetValue(
+                "WHARF_COPILOT_CREDENTIAL_VARIABLE",
+                out string? credentialVariableForProcess) &&
+            IsEnvironmentVariable(credentialVariableForProcess))
+        {
+            startInfo.Environment[credentialVariableForProcess] = request.Invocation.CredentialValue;
+        }
         foreach (string argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);
@@ -130,7 +169,8 @@ public sealed class DockerAgentRunner : IAgentRunner
             error,
             output,
             patch,
-            stopwatch.Elapsed);
+            stopwatch.Elapsed,
+            DebugLogDirectory: Path.Combine(request.WorkspaceDirectory, ".copilot-logs"));
     }
 
     private static async Task<string> ReadPatchAsync(
@@ -159,9 +199,38 @@ public sealed class DockerAgentRunner : IAgentRunner
             throw new AgentExecutionException($"patch capture failed: {error.Trim()}");
         }
 
+        if (!string.IsNullOrWhiteSpace(output))
+        {
+            return output;
+        }
+
+        var committedStartInfo = new ProcessStartInfo("git")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        committedStartInfo.ArgumentList.Add("-C");
+        committedStartInfo.ArgumentList.Add(workspace);
+        committedStartInfo.ArgumentList.Add("diff");
+        committedStartInfo.ArgumentList.Add("--binary");
+        committedStartInfo.ArgumentList.Add("--no-ext-diff");
+        committedStartInfo.ArgumentList.Add("HEAD^");
+        using Process committedProcess = Process.Start(committedStartInfo)
+            ?? throw new AgentExecutionException("committed patch capture process could not be started");
+        string committedOutput = await committedProcess.StandardOutput.ReadToEndAsync(cancellationToken);
+        _ = await committedProcess.StandardError.ReadToEndAsync(cancellationToken);
+        await committedProcess.WaitForExitAsync(cancellationToken);
+        if (committedProcess.ExitCode == 0 && !string.IsNullOrWhiteSpace(committedOutput))
+        {
+            return committedOutput;
+        }
+
         return output;
     }
 
     private static bool IsEnvironmentVariable(string value) =>
         value.All(character => char.IsLetterOrDigit(character) || character == '_');
+
 }

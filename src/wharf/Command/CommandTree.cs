@@ -1,12 +1,18 @@
 using System.CommandLine;
 using System.Text.Json;
 using Wharf.Configuration;
+using Wharf.Build;
+using Wharf.Agent;
+using Wharf.Copilot;
 using Wharf.ExitCodes;
 using Wharf.Host;
 using Wharf.Logging;
+using Wharf.Image;
 using Wharf.Reporting;
+using Wharf.Run;
 using Wharf.Smoke;
 using Wharf.Qualification;
+using Wharf.Tasks;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
 
@@ -58,13 +64,14 @@ public static class CommandTree
 
         root.Subcommands.Add(CreateVersionCommand(configuration));
         root.Subcommands.Add(CreateCompletionCommand());
+        root.Subcommands.Add(CreateBuildCommand(() => configuration));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
         root.Subcommands.Add(CreateCheckCommand());
         foreach (string? name in new[] { "resume", "status", "stop" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
-        root.Subcommands.Add(CreateSmokeCommand());
+        root.Subcommands.Add(CreateSmokeCommand(() => configuration));
         root.Subcommands.Add(CreateReportCommand());
         root.Subcommands.Add(CreateProfileCommand());
 
@@ -106,6 +113,56 @@ public static class CommandTree
         return command;
     }
 
+    private static CliCommand CreateBuildCommand(Func<WharfConfiguration> getConfiguration)
+    {
+        var command = new CliCommand("build", "Pre-build task images and retain Docker build cache.");
+        var tasks = new Option<string>("--tasks")
+        {
+            Description = "Directory containing the dataset.toml or task.toml directories.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "tasks")
+        };
+        var verbose = new Option<bool>("--verbose") { Description = "Show image preparation details." };
+        verbose.Aliases.Add("-v");
+        command.Options.Add(tasks);
+        command.Options.Add(verbose);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                WharfConfiguration configuration = getConfiguration() with
+                {
+                    Verbosity = Math.Max(
+                        getConfiguration().Verbosity,
+                        parseResult.GetValue(verbose) ? 1 : 0)
+                };
+                using WharfLogger logger = WharfLogger.Create(configuration);
+                string? taskRoot = parseResult.GetValue(tasks);
+                if (string.IsNullOrWhiteSpace(taskRoot))
+                    throw new BuildException("build task directory is required");
+                BuildResult result = new BuildService(
+                    imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
+                    taskRoot,
+                    logger);
+                Console.WriteLine(
+                    $"complete tasks={result.TaskCount} prepared={result.PreparedCount} " +
+                    $"built={result.BuiltCount} " +
+                    $"cache=retained output=none");
+                return ExitCode.Success.Value;
+            }
+            catch (BuildException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (AgentImageException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InternalFailure.Value;
+            }
+        });
+        return command;
+    }
+
     private static CliCommand CreateRunCommand(
         WharfConfiguration configuration,
         Option<string> logFormat)
@@ -121,6 +178,13 @@ public static class CommandTree
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var model = new Option<string?>("--model") { Description = "Model name." };
         var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
+        var tasks = new Option<string>("--tasks")
+        {
+            Description = "Directory containing the dataset.toml or task.toml directories.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "tasks")
+        };
+        var verbose = new Option<bool>("--verbose") { Description = "Show run discovery and artifact details." };
+        verbose.Aliases.Add("-v");
         command.Options.Add(manifest);
         command.Options.Add(dryRun);
         command.Options.Add(k);
@@ -130,12 +194,83 @@ public static class CommandTree
         command.Options.Add(outputDirectory);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(tasks);
+        command.Options.Add(verbose);
         command.SetAction(parseResult =>
         {
             if (!parseResult.GetValue(dryRun))
             {
-                Console.Error.WriteLine($"wharf run is not implemented in {WharfVersion.Current}");
-                return ExitCode.InternalFailure.Value;
+                try
+                {
+                    RunManifest runManifest = parseResult.GetValue(manifest) is { } manifestPath
+                        ? RunManifestLoader.Load(manifestPath)
+                        : new RunManifest();
+                    RunConfiguration runConfiguration = RunConfigurationResolver.Resolve(
+                        runManifest,
+                        new RunConfigurationOverrides(
+                            parseResult.GetValue(k),
+                            parseResult.GetValue(n),
+                            parseResult.GetValue(b),
+                            parseResult.GetValue(outputFormat),
+                            parseResult.GetValue(outputDirectory),
+                            parseResult.GetValue(model),
+                            parseResult.GetValue(effort)),
+                        new Dictionary<string, string?>
+                        {
+                            ["K"] = Environment.GetEnvironmentVariable("K"),
+                            ["N"] = Environment.GetEnvironmentVariable("N"),
+                            ["B"] = Environment.GetEnvironmentVariable("B"),
+                            ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
+                            ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
+                            ["WHARF_B"] = Environment.GetEnvironmentVariable("WHARF_B"),
+                            ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
+                            ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
+                            ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
+                            ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
+                            ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                            ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                            ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                            ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
+                        });
+                    RunConfigurationValidator.Validate(runManifest, runConfiguration);
+                    string? taskRoot = parseResult.GetValue(tasks);
+                    if (string.IsNullOrWhiteSpace(taskRoot))
+                        throw new RunException("run task directory is required");
+                    WharfConfiguration loggerConfiguration = configuration with
+                    {
+                        Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
+                    };
+                    using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
+                    RunResult result = new RunService(
+                        imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
+                        taskRoot,
+                        runConfiguration.OutputDirectory,
+                        runConfiguration,
+                        logger);
+                    Console.WriteLine(
+                        $"complete runs={result.TaskCount} result=execution-pending output={result.OutputDirectory}");
+                    return ExitCode.Success.Value;
+                }
+                catch (RunException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InvalidInput.Value;
+                }
+                catch (RunConfigurationException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InvalidInput.Value;
+                }
+                catch (CopilotAdapterException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InternalFailure.Value;
+                }
+                catch (IOException exception)
+                {
+                    Console.Error.WriteLine($"unable to create run artifacts: {exception.Message}");
+                    return ExitCode.InternalFailure.Value;
+                }
             }
 
             try
@@ -232,46 +367,89 @@ public static class CommandTree
         return command;
     }
 
-    private static CliCommand CreateSmokeCommand()
+    private static CliCommand CreateSmokeCommand(Func<WharfConfiguration> getConfiguration)
     {
-        var command = new CliCommand("smoke", "Run the deterministic local smoke fixture.");
+        var command = new CliCommand("smoke", "Run one task through the run pipeline.");
+        var taskRoot = new Option<string>("--tasks")
+        {
+            Description = "Directory containing smoke task.toml directories.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "smoke-tasks")
+        };
         var outputDirectory = new Option<string>("--output-directory")
         {
             Description = "Directory for smoke artifacts and reports.",
-            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), ".wharf-smoke")
+            DefaultValueFactory = _ => Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "jobs")
         };
         var allowUnsupported = new Option<bool>("--allow-unsupported-host")
         {
             Description = "Override platform classification only; Docker and capacity failures still block."
         };
         var json = new Option<bool>("--json") { Description = "Render the smoke result as JSON." };
+        var verbose = new Option<bool>("--verbose") { Description = "Show smoke and run selection details." };
+        verbose.Aliases.Add("-v");
+        var veryVerbose = new Option<bool>("-vv") { Description = "Show task metadata and checksums." };
+        var diagnostic = new Option<bool>("-vvv") { Description = "Show diagnostic task paths and resources." };
+        var include = new Option<string?>("--include")
+        {
+            Description = "Select a smoke task by ID or dataset name."
+        };
+        include.Aliases.Add("-i");
+        command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
         command.Options.Add(allowUnsupported);
         command.Options.Add(json);
+        command.Options.Add(verbose);
+        command.Options.Add(veryVerbose);
+        command.Options.Add(diagnostic);
+        command.Options.Add(include);
         command.SetAction(parseResult =>
         {
             try
             {
+                string? selectedTaskRoot = parseResult.GetValue(taskRoot);
+                if (selectedTaskRoot is null)
+                    throw new SmokeException("smoke task directory is required");
                 HostCheckReport host = new HostCheckService(
                     [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
                     .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
                 string? output = parseResult.GetValue(outputDirectory);
                 if (output is null)
                     throw new SmokeException("smoke output directory is required");
-                SmokeResult result = new SmokeService().Run(output, host);
+                int localVerbosity = parseResult.GetValue(diagnostic) ? 3 :
+                    parseResult.GetValue(veryVerbose) ? 2 :
+                    parseResult.GetValue(verbose) ? 1 : 0;
+                WharfConfiguration loggerConfiguration = getConfiguration() with
+                {
+                    Verbosity = Math.Max(getConfiguration().Verbosity, localVerbosity)
+                };
+                using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
+                SmokeResult result = new SmokeService().Run(
+                    selectedTaskRoot,
+                    output,
+                    host,
+                    logger,
+                    parseResult.GetValue(include));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     }));
                 else
-                    Console.WriteLine($"{result.Status}\t{result.ArtifactDirectory}\t{result.ReportPath}");
+                    Console.WriteLine(
+                        $"complete task={result.TaskId} result={result.Status} output={result.OutputDirectory}");
                 return result.ExitCode;
             }
             catch (SmokeException exception)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;
+            }
+            catch (CopilotAdapterException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InternalFailure.Value;
             }
             catch (IOException exception)
             {

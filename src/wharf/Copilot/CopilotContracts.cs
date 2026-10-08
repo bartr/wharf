@@ -55,7 +55,8 @@ public sealed record CopilotInvocation(
     string NativeEffort,
     string FrontierEffort,
     IReadOnlyList<string> SubagentModels,
-    IReadOnlyList<string> Endpoints)
+    IReadOnlyList<string> Endpoints,
+    string? CredentialValue = null)
 {
     public string RedactedCommand =>
         string.Join(
@@ -93,7 +94,11 @@ public sealed partial class CopilotAdapter
         ValidateOptions(options);
         CopilotCliVersion effective = await probe.GetVersionAsync(cancellationToken);
         string effectiveVersion = NormalizeVersion(effective.Value, "effective");
-        string requestedVersion = NormalizeVersion(options.RequestedVersion, "requested");
+        string requestedVersion = options.RequestedVersion.Equals(
+                "latest",
+                StringComparison.OrdinalIgnoreCase)
+            ? effectiveVersion
+            : NormalizeVersion(options.RequestedVersion, "requested");
         if (!string.Equals(requestedVersion, effectiveVersion, StringComparison.Ordinal))
         {
             throw new CopilotAdapterException(
@@ -101,12 +106,27 @@ public sealed partial class CopilotAdapter
         }
 
         string normalizedFrontierEffort = NormalizeFrontierEffort(options.FrontierEffort);
+        bool isHydraFusion = options.Model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase);
         var arguments = new List<string>
         {
             "--model", options.Model,
-            "--effort", options.NativeEffort,
-            "--frontier-effort", normalizedFrontierEffort
+            "--allow-all-tools",
+            "--no-auto-update"
         };
+        if (!isHydraFusion)
+        {
+            arguments.Add("--reasoning-effort");
+            arguments.Add(options.NativeEffort);
+        }
+
+        if (isHydraFusion)
+        {
+            arguments.Add("--experimental");
+            arguments.Add("--log-level");
+            arguments.Add("all");
+            arguments.Add("--log-dir");
+            arguments.Add("/workspace/.copilot-logs");
+        }
         foreach (string subagent in options.SubagentModels)
         {
             arguments.Add("--subagent-model");
@@ -130,8 +150,32 @@ public sealed partial class CopilotAdapter
         }
         else if (options.Credential.Kind is CopilotCredentialSourceKind.File)
         {
-            arguments.Add("--credential-file");
-            arguments.Add(options.Credential.Reference);
+            string path = ExpandHome(options.Credential.Reference);
+            if (!File.Exists(path))
+            {
+                throw new CopilotAdapterException($"credential file does not exist: {path}");
+            }
+
+            string credential = File.ReadAllText(path).Trim();
+            if (string.IsNullOrWhiteSpace(credential))
+            {
+                throw new CopilotAdapterException($"credential file is empty: {path}");
+            }
+
+            environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"] = "GH_TOKEN";
+            return new CopilotInvocation(
+                executable,
+                arguments,
+                environment,
+                stdin,
+                requestedVersion,
+                effectiveVersion,
+                options.Model,
+                options.NativeEffort,
+                normalizedFrontierEffort,
+                options.SubagentModels,
+                options.Endpoints,
+                credential);
         }
         else
         {
@@ -213,6 +257,15 @@ public sealed partial class CopilotAdapter
             _ => throw new CopilotAdapterException($"unsupported frontier effort: {effort}")
         };
 
+    private static string ExpandHome(string path) =>
+        path == "~"
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : path.StartsWith("~/", StringComparison.Ordinal)
+                ? Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    path[2..])
+                : path;
+
     private static void ValidateEffort(string effort, string name)
     {
         if (effort.Trim().ToLowerInvariant() is not ("low" or "medium" or "high"))
@@ -221,7 +274,9 @@ public sealed partial class CopilotAdapter
         }
     }
 
-    [GeneratedRegex(@"^\d+\.\d+\.\d+$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(
+        @"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$",
+        RegexOptions.CultureInvariant)]
     private static partial Regex SemverRegex();
 }
 
@@ -247,8 +302,12 @@ public sealed class ProcessCopilotCliProbe(string executable = "copilot") : ICop
                 $"Copilot CLI version probe failed: {error.Trim()}");
         }
 
-        string version = output.Trim().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).LastOrDefault()
-            ?? throw new CopilotAdapterException("Copilot CLI returned no version");
-        return new CopilotCliVersion(version);
+        Match match = Regex.Match(
+            output,
+            @"(?<!\d)v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?",
+            RegexOptions.CultureInvariant);
+        if (!match.Success)
+            throw new CopilotAdapterException("Copilot CLI returned no semantic version");
+        return new CopilotCliVersion(match.Value);
     }
 }
