@@ -57,7 +57,11 @@ container and reuse the task's configured environment image. After MVP,
   small number of earlier test runs failed because the CLI could not be
   downloaded frequently enough.
 - Use the derived image as the base for agent containers, while retaining a
-  separate writable per-run workspace.
+  separate writable per-run workspace. Materialize `/app` into that host-backed
+  workspace with a short-lived root initialization container, then recursively
+  assign the copied tree to UID/GID `1000:1000`. Run Copilot and all task
+  commands only after that handoff, as `1000:1000`; image files that are
+  root-readable must not force the agent itself to run as root.
 - Cache and reuse derived images across K=4 attempts and later runs so those
   attempts do not reinstall or redownload the CLI. The cache key must include
   the source image digest, Copilot CLI version, installation inputs, and
@@ -254,6 +258,8 @@ container and reuse the task's configured environment image. After MVP,
 - Make large cloud VMs an acceleration option, not a requirement.
 - On success, failure, cancellation, or stop, clean up per-trial containers, networks, volumes, and disposable images reliably.
 - Cleanup must delete only Docker processes and ephemeral Docker resources.
+- Ctrl-C cleanup stops Wharf-owned containers (including legacy run-name matches)
+  and removes transient per-run images while retaining reusable task and registry images.
 - Cleanup must retain every run directory and file.
 - Preserve reusable base and derived images across trials and jobs.
 - expose a separate explicit prune command for operators who choose to delete retained data

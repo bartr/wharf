@@ -109,15 +109,75 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         CancellationToken cancellationToken)
     {
         request.Validate();
+        string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        DockerProcessResult initialization = await RunDockerAsync(
+            BuildWorkspaceInitializationArguments(request, $"{containerName}-init"),
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureWorkspaceInitialized(initialization);
+
+        IReadOnlyList<string> arguments = BuildAgentArguments(request, containerName);
+        string? credentialVariable = request.Invocation.Environment.TryGetValue(
+                "WHARF_COPILOT_CREDENTIAL_VARIABLE",
+                out string? configuredCredentialVariable) &&
+            IsEnvironmentVariable(configuredCredentialVariable)
+                ? configuredCredentialVariable
+                : null;
+        DockerProcessResult agent = await RunDockerAsync(
+            arguments,
+            credentialVariable,
+            request.Invocation.CredentialValue,
+            cancellationToken);
+        stopwatch.Stop();
+        string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
+        AgentUsage? usage = CopilotUsageParser.Parse(agent.StandardError, debugLogDirectory);
+        string patch = await ReadPatchAsync(request.WorkspaceDirectory, cancellationToken);
+        return new AgentRunResult(
+            agent.ExitCode,
+            agent.StandardOutput,
+            agent.StandardError,
+            agent.StandardOutput,
+            patch,
+            stopwatch.Elapsed,
+            Tokens: usage is null ? null : checked((int)usage.TotalTokens),
+            Requests: usage?.Requests,
+            Cost: usage?.AiCredits,
+            DebugLogDirectory: debugLogDirectory,
+            Usage: usage);
+    }
+
+    internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
+        AgentExecutionRequest request,
+        string containerName) =>
+        [
+            "run", "--rm",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
+            "--user", "0:0",
+            "--network", "none",
+            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            request.AgentImage,
+            "/bin/bash",
+            "-lc",
+            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace"
+        ];
+
+    internal static IReadOnlyList<string> BuildAgentArguments(
+        AgentExecutionRequest request,
+        string containerName)
+    {
         var arguments = new List<string>
         {
             "run", "--rm",
-            "--name", request.ContainerName ?? $"agent-{Guid.NewGuid():N}",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
             "--user", "1000:1000", "--network", request.Network,
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--env", "HOME=/tmp",
-            "--env", "XDG_CACHE_HOME=/tmp/.cache"
+            "--env", "HOME=/workspace/.home",
+            "--env", "XDG_CACHE_HOME=/workspace/.cache"
         };
         if (request.Invocation.Environment.TryGetValue(
                 "WHARF_COPILOT_CREDENTIAL_VARIABLE",
@@ -133,16 +193,40 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add(
             "if ! command -v npm >/dev/null 2>&1; then " +
             "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
-            "rm -rf /tmp/wharf-copilot; " +
-            $"npm install --prefix /tmp/wharf-copilot --no-fund --no-audit " +
-            $"@github/copilot@{request.Invocation.EffectiveVersion} >/tmp/wharf-copilot-install.log 2>&1 || " +
-            "{ cat /tmp/wharf-copilot-install.log >&2; exit 127; }; " +
-            "export PATH=/tmp/wharf-copilot/node_modules/.bin:$PATH; " +
-            "cp -a /app/. /workspace/ && cd /workspace/ && exec \"$@\"");
+            "mkdir -p /workspace/.home /workspace/.cache /workspace/.wharf-copilot; " +
+            $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
+            $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
+            "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }; " +
+            "export PATH=/workspace/.wharf-copilot/node_modules/.bin:$PATH; " +
+            "cd /workspace/ && exec \"$@\"");
         arguments.Add("--");
         arguments.Add(request.Invocation.Executable);
         arguments.AddRange(request.Invocation.Arguments);
+        return arguments;
+    }
 
+    internal static void EnsureWorkspaceInitialized(DockerProcessResult result)
+    {
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        string diagnostic = string.IsNullOrWhiteSpace(result.StandardError)
+            ? result.StandardOutput.Trim()
+            : result.StandardError.Trim();
+        throw new AgentExecutionException(
+            string.IsNullOrWhiteSpace(diagnostic)
+                ? $"agent workspace initialization failed with exit code {result.ExitCode}"
+                : $"agent workspace initialization failed: {diagnostic}");
+    }
+
+    private static async Task<DockerProcessResult> RunDockerAsync(
+        IReadOnlyList<string> arguments,
+        string? credentialVariable,
+        string? credentialValue,
+        CancellationToken cancellationToken)
+    {
         var startInfo = new ProcessStartInfo("docker")
         {
             RedirectStandardOutput = true,
@@ -150,45 +234,30 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        if (request.Invocation.CredentialValue is not null &&
-            request.Invocation.Environment.TryGetValue(
-                "WHARF_COPILOT_CREDENTIAL_VARIABLE",
-                out string? credentialVariableForProcess) &&
-            IsEnvironmentVariable(credentialVariableForProcess))
+        if (credentialVariable is not null && credentialValue is not null)
         {
-            startInfo.Environment[credentialVariableForProcess] = request.Invocation.CredentialValue;
+            startInfo.Environment[credentialVariable] = credentialValue;
         }
         foreach (string argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);
         }
 
-        Stopwatch stopwatch = Stopwatch.StartNew();
         using Process process = Process.Start(startInfo)
             ?? throw new AgentExecutionException("Docker agent process could not be started");
         Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
-        string output = await outputTask;
-        string error = await errorTask;
-        stopwatch.Stop();
-        string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
-        AgentUsage? usage = CopilotUsageParser.Parse(error, debugLogDirectory);
-        string patch = await ReadPatchAsync(request.WorkspaceDirectory, cancellationToken);
-        return new AgentRunResult(
+        return new DockerProcessResult(
             process.ExitCode,
-            output,
-            error,
-            output,
-            patch,
-            stopwatch.Elapsed,
-            Tokens: usage is null ? null : checked((int)usage.TotalTokens),
-            Requests: usage?.Requests,
-            Cost: usage?.AiCredits,
-            DebugLogDirectory: debugLogDirectory,
-            Usage: usage);
+            await outputTask,
+            await errorTask);
     }
 
+    internal sealed record DockerProcessResult(
+        int ExitCode,
+        string StandardOutput,
+        string StandardError);
 
     internal static partial class CopilotUsageParser
     {

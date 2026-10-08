@@ -62,6 +62,64 @@ public sealed class AgentExecutionTests
             () => Request(source.Path, workspace.Path, [hidden]).Validate());
     }
 
+    [Fact]
+    public void InitializesWorkspaceAsRootThenAssignsAgentOwnership()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        AgentExecutionRequest request = Request(source.Path, workspace.Path);
+
+        IReadOnlyList<string> arguments =
+            DockerAgentRunner.BuildWorkspaceInitializationArguments(request, "task-init");
+
+        AssertArgumentsContain(arguments, "--name", "task-init");
+        AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
+        AssertArgumentsContain(arguments, "--user", "0:0");
+        AssertArgumentsContain(arguments, "--network", "none");
+        Assert.Contains("cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace", arguments);
+    }
+
+    [Fact]
+    public void RunsAgentAsUid1000WithoutCopyingImageContent()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        AgentExecutionRequest request = Request(source.Path, workspace.Path);
+
+        IReadOnlyList<string> arguments =
+            DockerAgentRunner.BuildAgentArguments(request, "task-agent");
+
+        AssertArgumentsContain(arguments, "--name", "task-agent");
+        AssertArgumentsContain(arguments, "--user", "1000:1000");
+        Assert.DoesNotContain(arguments, argument => argument.Contains("cp -a /app", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ReportsWorkspaceInitializationFailureWithDockerDiagnostic()
+    {
+        var result = new DockerAgentRunner.DockerProcessResult(
+            1,
+            "",
+            "cp: cannot open '/app/locked': Permission denied");
+
+        AgentExecutionException exception = Assert.Throws<AgentExecutionException>(
+            () => DockerAgentRunner.EnsureWorkspaceInitialized(result));
+
+        Assert.Contains("agent workspace initialization failed", exception.Message);
+        Assert.Contains("Permission denied", exception.Message);
+    }
+
+    private static void AssertArgumentsContain(
+        IReadOnlyList<string> arguments,
+        string option,
+        string value)
+    {
+        int index = arguments.ToList().IndexOf(option);
+        Assert.True(index >= 0, $"Missing Docker option {option}");
+        Assert.True(index + 1 < arguments.Count, $"Missing value for Docker option {option}");
+        Assert.Equal(value, arguments[index + 1]);
+    }
+
     private static AgentExecutionRequest Request(
         string source,
         string workspace,

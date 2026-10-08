@@ -19,4 +19,8 @@
     <PackageReference Include="Tomlyn" Version="0.17.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="wharf.Tests" />
+  </ItemGroup>
+
 </Project>
