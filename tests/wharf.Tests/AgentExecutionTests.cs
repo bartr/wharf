@@ -130,7 +130,13 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
         AssertArgumentsContain(arguments, "--user", "0:0");
         AssertArgumentsContain(arguments, "--network", "none");
-        Assert.Contains("cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace", arguments);
+        AssertArgumentsContain(
+            arguments,
+            "--mount",
+            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        Assert.Contains(
+            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace /home/wharf",
+            arguments);
     }
 
     [Fact]
@@ -145,9 +151,18 @@ public sealed class AgentExecutionTests
 
         AssertArgumentsContain(arguments, "--name", "task-setup");
         AssertArgumentsContain(arguments, "--user", "1000:1000");
+        AssertArgumentsContain(
+            arguments,
+            "--mount",
+            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        AssertArgumentsContain(arguments, "--env", "HOME=/home/wharf");
+        AssertArgumentsContain(arguments, "--env", "XDG_CACHE_HOME=/home/wharf/.cache");
         Assert.Contains(arguments, argument =>
             argument.Contains("npm install", StringComparison.Ordinal) &&
             argument.Contains("@github/copilot@1.2.3", StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            arguments,
+            argument => argument.Contains("HOME=/workspace", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -164,8 +179,13 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
         AssertArgumentsContain(arguments, "--user", "0:0");
         AssertArgumentsContain(arguments, "--network", "none");
+        AssertArgumentsContain(
+            arguments,
+            "--mount",
+            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
         Assert.Contains(
-            "chown -R 1000:1000 /workspace && chmod -R u+rwX /workspace",
+            "chown -R 1000:1000 /workspace /home/wharf && " +
+            "chmod -R u+rwX /workspace /home/wharf",
             arguments);
     }
 
@@ -184,10 +204,19 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--memory", "8g");
         Assert.DoesNotContain("--memory-swap", arguments);
         AssertArgumentsContain(arguments, "--pids-limit", "1024");
+        AssertArgumentsContain(
+            arguments,
+            "--mount",
+            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        AssertArgumentsContain(arguments, "--env", "HOME=/home/wharf");
+        AssertArgumentsContain(arguments, "--env", "XDG_CACHE_HOME=/home/wharf/.cache");
         int pnpmEnvironmentIndex = arguments.ToList().IndexOf(
             "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false");
         Assert.True(pnpmEnvironmentIndex > 0);
         Assert.Equal("--env", arguments[pnpmEnvironmentIndex - 1]);
+        Assert.DoesNotContain(
+            arguments,
+            argument => argument.Contains("HOME=/workspace", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, argument => argument.Contains("cp -a /app", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, argument => argument.Contains("npm install", StringComparison.Ordinal));
     }
@@ -352,10 +381,9 @@ public sealed class AgentExecutionTests
         string option,
         string value)
     {
-        int index = arguments.ToList().IndexOf(option);
-        Assert.True(index >= 0, $"Missing Docker option {option}");
-        Assert.True(index + 1 < arguments.Count, $"Missing value for Docker option {option}");
-        Assert.Equal(value, arguments[index + 1]);
+        bool found = Enumerable.Range(0, arguments.Count - 1)
+            .Any(index => arguments[index] == option && arguments[index + 1] == value);
+        Assert.True(found, $"Missing Docker option {option} {value}");
     }
 
     private static string RunGit(string workspace, params string[] arguments)

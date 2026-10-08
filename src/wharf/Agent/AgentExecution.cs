@@ -318,8 +318,10 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             "--pids-limit", "1024",
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--env", "HOME=/workspace/.home",
-            "--env", "XDG_CACHE_HOME=/workspace/.cache",
+            "--mount",
+            $"type=bind,src={DockerAgentWorkspacePreparer.AgentHomeDirectory(request)},dst=/home/wharf",
+            "--env", "HOME=/home/wharf",
+            "--env", "XDG_CACHE_HOME=/home/wharf/.cache",
             "--env", "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false"
         };
         if (request.Invocation.Environment.TryGetValue(
@@ -530,6 +532,7 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
         CancellationToken cancellationToken)
     {
         request.Validate();
+        Directory.CreateDirectory(AgentHomeDirectory(request));
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
         DockerProcessResult initialization = await DockerAgentProcess.RunAsync(
             BuildWorkspaceInitializationArguments(request, $"{containerName}-init"),
@@ -551,6 +554,7 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
         CancellationToken cancellationToken)
     {
         request.Validate();
+        Directory.CreateDirectory(AgentHomeDirectory(request));
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
         DockerProcessResult ownership = await DockerAgentProcess.RunAsync(
             BuildWorkspaceCleanupArguments(request, $"{containerName}-cleanup"),
@@ -559,6 +563,9 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             cancellationToken);
         EnsureSuccessful(ownership, "agent workspace cleanup ownership");
     }
+
+    internal static string AgentHomeDirectory(AgentExecutionRequest request) =>
+        request.WorkspaceDirectory + "-home";
 
     internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
         AgentExecutionRequest request,
@@ -570,10 +577,12 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             "--user", "0:0",
             "--network", "none",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            "--mount",
+            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
             request.AgentImage,
             "/bin/bash",
             "-lc",
-            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace"
+            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace /home/wharf"
         ];
 
     internal static IReadOnlyList<string> BuildWorkspaceSetupArguments(
@@ -586,14 +595,16 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             "--user", "1000:1000",
             "--network", request.Network,
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--env", "HOME=/workspace/.home",
-            "--env", "XDG_CACHE_HOME=/workspace/.cache",
+            "--mount",
+            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
+            "--env", "HOME=/home/wharf",
+            "--env", "XDG_CACHE_HOME=/home/wharf/.cache",
             request.AgentImage,
             "/bin/bash",
             "-lc",
             "if ! command -v npm >/dev/null 2>&1; then " +
             "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
-            "mkdir -p /workspace/.home /workspace/.cache /workspace/.wharf-copilot; " +
+            "mkdir -p /home/wharf/.cache /workspace/.wharf-copilot; " +
             $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
             $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
             "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }"
@@ -609,10 +620,13 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             "--user", "0:0",
             "--network", "none",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            "--mount",
+            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
             request.AgentImage,
             "/bin/bash",
             "-lc",
-            "chown -R 1000:1000 /workspace && chmod -R u+rwX /workspace"
+            "chown -R 1000:1000 /workspace /home/wharf && " +
+            "chmod -R u+rwX /workspace /home/wharf"
         ];
 
     internal static void EnsureSuccessful(DockerProcessResult result, string stage)

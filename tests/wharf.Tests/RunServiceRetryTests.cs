@@ -72,7 +72,7 @@ public sealed class RunServiceRetryTests
     }
 
     [Fact]
-    public void CleansOnlyWorkspaceDirectories()
+    public void CleansOnlyAgentWorkingDirectories()
     {
         string trialDirectory = Path.Combine(
             Path.GetTempPath(),
@@ -81,16 +81,22 @@ public sealed class RunServiceRetryTests
         {
             Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "workspace"));
+            Directory.CreateDirectory(Path.Combine(trialDirectory, "workspace-home"));
             Directory.CreateDirectory(
                 Path.Combine(trialDirectory, "workspace-infrastructure-retry-1"));
+            Directory.CreateDirectory(
+                Path.Combine(trialDirectory, "workspace-infrastructure-retry-1-home"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "trial-retries", "retry-1"));
             File.WriteAllText(Path.Combine(trialDirectory, "agent", "patch.diff"), "patch");
 
             RunService.CleanupWorkspaceDirectories(trialDirectory);
 
             Assert.False(Directory.Exists(Path.Combine(trialDirectory, "workspace")));
+            Assert.False(Directory.Exists(Path.Combine(trialDirectory, "workspace-home")));
             Assert.False(Directory.Exists(
                 Path.Combine(trialDirectory, "workspace-infrastructure-retry-1")));
+            Assert.False(Directory.Exists(
+                Path.Combine(trialDirectory, "workspace-infrastructure-retry-1-home")));
             Assert.True(File.Exists(Path.Combine(trialDirectory, "agent", "patch.diff")));
             Assert.True(Directory.Exists(
                 Path.Combine(trialDirectory, "trial-retries", "retry-1")));

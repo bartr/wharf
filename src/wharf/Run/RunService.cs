@@ -689,14 +689,12 @@ public sealed class RunService
 
     internal static void CleanupWorkspaceDirectories(string trialDirectory)
     {
-        foreach (string directory in Directory.EnumerateDirectories(trialDirectory).ToArray())
+        foreach (string workspace in WorkspaceDirectories(trialDirectory))
         {
-            string name = Path.GetFileName(directory);
-            if (name == "workspace" ||
-                name.StartsWith("workspace-infrastructure-retry-", StringComparison.Ordinal))
-            {
-                Directory.Delete(directory, recursive: true);
-            }
+            Directory.Delete(workspace, recursive: true);
+            string home = workspace + "-home";
+            if (Directory.Exists(home))
+                Directory.Delete(home, recursive: true);
         }
     }
 
@@ -732,7 +730,8 @@ public sealed class RunService
                 return name == "workspace" ||
                     name?.StartsWith(
                         "workspace-infrastructure-retry-",
-                        StringComparison.Ordinal) == true;
+                        StringComparison.Ordinal) == true &&
+                    !name.EndsWith("-home", StringComparison.Ordinal);
             })
             .Order(StringComparer.Ordinal)
             .ToArray();

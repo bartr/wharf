@@ -57,18 +57,20 @@ container and reuse the task's configured environment image. After MVP,
   small number of earlier test runs failed because the CLI could not be
   downloaded frequently enough.
 - Use the derived image as the base for agent containers, while retaining a
-  separate writable per-run workspace. Materialize `/app` into that host-backed
-  workspace with a short-lived root initialization container, then recursively
-  assign the copied tree to UID/GID `1000:1000`. Run Copilot and all task
-  commands only after that handoff, as `1000:1000`; image files that are
-  root-readable must not force the agent itself to run as root.
+  separate writable per-run workspace and sibling agent home. Materialize
+  `/app` into the host-backed workspace with a short-lived root initialization
+  container, then recursively assign the copied tree and home to UID/GID
+  `1000:1000`. Mount the home at `/home/wharf`, outside `/workspace`, so package
+  manager staging cannot rediscover the project through an ancestor path. Run
+  Copilot and all task commands only after that handoff, as `1000:1000`; image
+  files that are root-readable must not force the agent itself to run as root.
 - Limit each agent and verifier container to 8 GiB of memory while leaving
   Docker's default swap allowance in effect, matching Harbor behavior. Agent
-  containers also have a 1024-process limit. Disable pnpm's
-  automatic package-manager version switching in the agent environment because
-  the retained writable home is inside the workspace; pnpm self-install staging
-  below that home can otherwise rediscover the parent project and recursively
-  invoke itself.
+  containers also have a 1024-process limit. Disable pnpm's automatic
+  package-manager version switching in the agent environment as defense in
+  depth; project-level pnpm configuration can override the environment, so the
+  separate home path is the primary protection against recursive self-install
+  staging.
 - Monitor Docker OOM events for each agent. On the first cgroup OOM kill, stop
   that container, retain its evidence, and fail the trial with the explicit
   `OutOfMemory` error type instead of allowing repeated child-process kills.
