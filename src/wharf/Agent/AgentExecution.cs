@@ -316,7 +316,7 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             "--user", "1000:1000", "--network", request.Network,
             "--memory", "8g",
             "--memory-swap", "8g",
-            "--pids-limit", "512",
+            "--pids-limit", "1024",
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
             "--env", "HOME=/workspace/.home",
@@ -373,8 +373,11 @@ public sealed partial class DockerAgentRunner : IAgentRunner
                     "cache_write_tokens" => current with { CacheWriteTokens = value },
                     "reasoning_tokens" => current with { ReasoningTokens = value },
                     "request_count" => current with { Requests = checked((int)value) },
-                    "request_cost" => current with { RequestCost = decimal.Parse(
-                        match.Groups["value"].Value, System.Globalization.CultureInfo.InvariantCulture) },
+                    "request_cost" => current with
+                    {
+                        RequestCost = decimal.Parse(
+                        match.Groups["value"].Value, System.Globalization.CultureInfo.InvariantCulture)
+                    },
                     _ => current
                 };
             }
@@ -544,6 +547,20 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
         EnsureSuccessful(setup, "agent workspace setup");
     }
 
+    public async Task PrepareForHostCleanupAsync(
+        AgentExecutionRequest request,
+        CancellationToken cancellationToken)
+    {
+        request.Validate();
+        string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
+        DockerProcessResult ownership = await DockerAgentProcess.RunAsync(
+            BuildWorkspaceCleanupArguments(request, $"{containerName}-cleanup"),
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureSuccessful(ownership, "agent workspace cleanup ownership");
+    }
+
     internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
         AgentExecutionRequest request,
         string containerName) =>
@@ -581,6 +598,22 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
             $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
             "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }"
+        ];
+
+    internal static IReadOnlyList<string> BuildWorkspaceCleanupArguments(
+        AgentExecutionRequest request,
+        string containerName) =>
+        [
+            "run", "--rm",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
+            "--user", "0:0",
+            "--network", "none",
+            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            request.AgentImage,
+            "/bin/bash",
+            "-lc",
+            "chown -R 1000:1000 /workspace && chmod -R u+rwX /workspace"
         ];
 
     internal static void EnsureSuccessful(DockerProcessResult result, string stage)

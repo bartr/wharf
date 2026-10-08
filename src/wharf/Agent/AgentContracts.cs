@@ -142,6 +142,10 @@ public interface IAgentWorkspacePreparer
     Task PrepareAsync(
         AgentExecutionRequest request,
         CancellationToken cancellationToken);
+
+    Task PrepareForHostCleanupAsync(
+        AgentExecutionRequest request,
+        CancellationToken cancellationToken);
 }
 
 public sealed class AgentExecutionException(

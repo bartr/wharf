@@ -40,6 +40,8 @@ public sealed class RunConfigurationTests
         Assert.Equal("gpt-5.6-luna", result.Model);
         Assert.Equal("max", result.Effort);
         Assert.Equal("latest", result.CliVersion);
+        Assert.Equal(1, result.Retries.MaxAttempts);
+        Assert.False(result.RetainWorkspaces);
     }
 
     [Fact]
@@ -63,6 +65,52 @@ public sealed class RunConfigurationTests
 
         Assert.Equal(4, result.N);
         Assert.Equal(4, result.B);
+    }
+
+    [Fact]
+    public void AllowsWholeTrialRetriesToBeDisabled()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(Retries: new RetryPolicy(MaxAttempts: 0)),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationValidator.Validate(new RunManifest(), configuration);
+
+        Assert.Equal(0, configuration.Retries.MaxAttempts);
+    }
+
+    [Fact]
+    public void RetainWorkspacesUsesFlagEnvironmentManifestDefaultPrecedence()
+    {
+        var manifest = new RunManifest(RetainWorkspaces: true);
+
+        RunConfiguration environmentResult = RunConfigurationResolver.Resolve(
+            manifest,
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["WHARF_RETAIN_WORKSPACES"] = "0" });
+        RunConfiguration flagResult = RunConfigurationResolver.Resolve(
+            manifest,
+            new RunConfigurationOverrides(RetainWorkspaces: true),
+            new Dictionary<string, string?> { ["WHARF_RETAIN_WORKSPACES"] = "false" });
+
+        Assert.False(environmentResult.RetainWorkspaces);
+        Assert.True(flagResult.RetainWorkspaces);
+    }
+
+    [Fact]
+    public void RejectsInvalidRetainWorkspacesEnvironmentValue()
+    {
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+            () => RunConfigurationResolver.Resolve(
+                new RunManifest(),
+                new RunConfigurationOverrides(),
+                new Dictionary<string, string?>
+                {
+                    ["WHARF_RETAIN_WORKSPACES"] = "sometimes"
+                }));
+
+        Assert.Contains("retainWorkspaces", exception.Message);
     }
 
     [Fact]

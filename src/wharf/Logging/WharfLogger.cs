@@ -8,14 +8,20 @@ namespace Wharf.Logging;
 public sealed class WharfLogger : IDisposable
 {
     private readonly WharfConfiguration configuration;
-    private readonly string? jsonlPath;
+    private string? jsonlPath;
+    private readonly bool deferJsonlPath;
+    private readonly List<string> deferredRecords = [];
     private readonly Stopwatch elapsed = Stopwatch.StartNew();
     private readonly object sync = new();
 
-    private WharfLogger(WharfConfiguration configuration, string? jsonlPath)
+    private WharfLogger(
+        WharfConfiguration configuration,
+        string? jsonlPath,
+        bool deferJsonlPath = false)
     {
         this.configuration = configuration;
         this.jsonlPath = string.IsNullOrWhiteSpace(jsonlPath) ? null : Path.GetFullPath(jsonlPath);
+        this.deferJsonlPath = deferJsonlPath;
         DateTimeOffset startedAt = DateTimeOffset.Now;
         Write(
             "info",
@@ -26,6 +32,37 @@ public sealed class WharfLogger : IDisposable
 
     public static WharfLogger Create(WharfConfiguration configuration, string? jsonlPath = null) =>
         new(configuration, jsonlPath);
+
+    public static WharfLogger CreateDeferred(WharfConfiguration configuration) =>
+        new(configuration, null, deferJsonlPath: true);
+
+    public string? JsonlPath
+    {
+        get
+        {
+            lock (sync)
+                return jsonlPath;
+        }
+    }
+
+    public void AttachJsonlPathIfUnset(string path)
+    {
+        lock (sync)
+        {
+            if (jsonlPath is not null)
+                return;
+
+            jsonlPath = Path.GetFullPath(path);
+            string? directory = Path.GetDirectoryName(jsonlPath);
+            if (!string.IsNullOrWhiteSpace(directory))
+                Directory.CreateDirectory(directory);
+            if (deferredRecords.Count > 0)
+            {
+                File.AppendAllLines(jsonlPath, deferredRecords);
+                deferredRecords.Clear();
+            }
+        }
+    }
 
     public void Info(string message, string? error = null, string? errorType = null)
     {
@@ -59,30 +96,30 @@ public sealed class WharfLogger : IDisposable
     {
         DateTimeOffset utcNow = DateTimeOffset.UtcNow;
         string timestamp = utcNow.ToString("O", CultureInfo.InvariantCulture);
-        if (jsonlPath is not null)
+        var record = new Dictionary<string, object?>
         {
-            lock (sync)
+            ["timestamp"] = timestamp,
+            ["level"] = level,
+            ["message"] = message
+        };
+        if (!string.IsNullOrWhiteSpace(error))
+            record["error"] = error;
+        if (!string.IsNullOrWhiteSpace(errorType))
+            record["errorType"] = errorType;
+        string serializedRecord = JsonSerializer.Serialize(record);
+        lock (sync)
+        {
+            if (jsonlPath is not null)
             {
                 string? directory = Path.GetDirectoryName(jsonlPath);
                 if (!string.IsNullOrWhiteSpace(directory))
-                {
                     Directory.CreateDirectory(directory);
-                }
-
-                var record = new Dictionary<string, object?>
-                {
-                    ["timestamp"] = timestamp,
-                    ["level"] = level,
-                    ["message"] = message
-                };
-                if (!string.IsNullOrWhiteSpace(error))
-                    record["error"] = error;
-                if (!string.IsNullOrWhiteSpace(errorType))
-                    record["errorType"] = errorType;
                 File.AppendAllText(
                     jsonlPath,
-                    JsonSerializer.Serialize(record) + Environment.NewLine);
+                    serializedRecord + Environment.NewLine);
             }
+            else if (deferJsonlPath)
+                deferredRecords.Add(serializedRecord);
         }
 
         if (configuration.LogFormat.Equals("json", StringComparison.OrdinalIgnoreCase))

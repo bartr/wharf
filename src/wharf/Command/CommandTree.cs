@@ -182,11 +182,14 @@ public static class CommandTree
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
         {
-            Description = "JSONL progress log path.",
-            DefaultValueFactory = _ => "wharf-run.jsonl"
+            Description = "JSONL progress log path. Defaults to run.jsonl inside the run directory."
         };
         var model = new Option<string?>("--model") { Description = "Model name." };
         var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, high, or max." };
+        var retainWorkspaces = new Option<bool>("--retain-workspaces")
+        {
+            Description = "Retain terminal trial workspaces instead of deleting them after evidence capture."
+        };
         var include = new Option<string?>("--include")
         {
             Description = "Run only tasks matching the task ID, category, or language."
@@ -209,6 +212,7 @@ public static class CommandTree
         command.Options.Add(logFile);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(retainWorkspaces);
         command.Options.Add(include);
         command.Options.Add(tasks);
         command.Options.Add(verbose);
@@ -230,7 +234,8 @@ public static class CommandTree
                             parseResult.GetValue(outputFormat),
                             parseResult.GetValue(outputDirectory),
                             parseResult.GetValue(model),
-                            parseResult.GetValue(effort)),
+                            parseResult.GetValue(effort),
+                            parseResult.GetValue(retainWorkspaces) ? true : null),
                         new Dictionary<string, string?>
                         {
                             ["K"] = Environment.GetEnvironmentVariable("K"),
@@ -244,6 +249,8 @@ public static class CommandTree
                             ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
                             ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                             ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                            ["WHARF_RETAIN_WORKSPACES"] =
+                                Environment.GetEnvironmentVariable("WHARF_RETAIN_WORKSPACES"),
                             ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
                             ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
                             ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
@@ -269,9 +276,10 @@ public static class CommandTree
                     {
                         Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
                     };
-                    using WharfLogger logger = WharfLogger.Create(
-                        loggerConfiguration,
-                        parseResult.GetValue(logFile));
+                    string? selectedLogFile = parseResult.GetValue(logFile);
+                    using WharfLogger logger = selectedLogFile is null
+                        ? WharfLogger.CreateDeferred(loggerConfiguration)
+                        : WharfLogger.Create(loggerConfiguration, selectedLogFile);
                     RunResult result = new RunService(
                         imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
                         taskRoot,
@@ -281,7 +289,8 @@ public static class CommandTree
                         selectedTasks,
                         cancellationToken: cancellationToken);
                     Console.WriteLine(
-                        $"complete runs={result.TaskCount} result=execution-pending output={result.OutputDirectory}");
+                        $"complete runs={result.TaskCount} result=execution-pending " +
+                        $"output={result.OutputDirectory} log={logger.JsonlPath}");
                     return ExitCode.Success.Value;
                 }
                 catch (RunException exception)
@@ -317,7 +326,8 @@ public static class CommandTree
                         parseResult.GetValue(outputFormat),
                         parseResult.GetValue(outputDirectory),
                         parseResult.GetValue(model),
-                        parseResult.GetValue(effort)),
+                        parseResult.GetValue(effort),
+                        parseResult.GetValue(retainWorkspaces) ? true : null),
                     parseResult.GetValue(outputFormat));
                 Console.WriteLine(rendered);
                 return ExitCode.Success.Value;
@@ -339,7 +349,7 @@ public static class CommandTree
         var logFile = new Option<string>("--log-file")
         {
             Description = "JSONL progress log path.",
-            DefaultValueFactory = _ => "wharf-run.jsonl"
+            DefaultValueFactory = _ => "run.jsonl"
         };
         var json = new Option<bool>("--json") { Description = "Render the summary as JSON." };
         command.Options.Add(logFile);
@@ -368,14 +378,17 @@ public static class CommandTree
                     Console.WriteLine(
                         $"running={progress.TestsRunning} building={progress.Building} agent={progress.Agents} " +
                         $"verifier={progress.Verifiers} " +
-                        $"completed={progress.TestsCompleted} errors={progress.Errors} " +
+                        $"completed={progress.TestsCompleted} failed={progress.FailedTests} " +
+                        $"timeouts={progress.Timeouts} errors={progress.Errors} " +
                         $"pass@={progress.PassAtTotal} pass-rate={FormatPercent(progress.PassPercent)} " +
                         $"avg-cost={FormatCost(progress.AverageCost)} " +
                         $"total-cost={FormatCost(progress.TotalCost)}");
                     foreach ((int k, ProgressGroup group) in progress.ByK.OrderBy(item => item.Key))
                     {
                         Console.WriteLine(
-                            $"k={k} completed={group.TestsCompleted} pass@={group.PassAtTotal} " +
+                            $"k={k} completed={group.TestsCompleted} failed={group.FailedTests} " +
+                            $"timeouts={group.Timeouts} errors={group.Errors} " +
+                            $"pass@={group.PassAtTotal} " +
                             $"pass-rate={FormatPercent(group.PassPercent)} " +
                             $"avg-cost={FormatCost(group.AverageCost)} " +
                             $"total-cost={FormatCost(group.TotalCost)}");

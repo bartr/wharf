@@ -1,4 +1,6 @@
 using Wharf.Logging;
+using Wharf.Configuration;
+using System.Text.Json;
 
 namespace Wharf.Tests;
 
@@ -11,5 +13,68 @@ public sealed class WharfLoggerTests
     public void FormatsElapsedTimeWithoutDayWrapping(int seconds, string expected)
     {
         Assert.Equal(expected, WharfLogger.FormatElapsed(TimeSpan.FromSeconds(seconds)));
+    }
+
+    [Fact]
+    public void DeferredLoggerFlushesInitialRecordWhenRunPathIsAttached()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-logger-{Guid.NewGuid():N}");
+        string path = Path.Combine(directory, "run.jsonl");
+        try
+        {
+            using WharfLogger logger = WharfLogger.CreateDeferred(Configuration());
+            logger.Info("before-attach");
+
+            logger.AttachJsonlPathIfUnset(path);
+            logger.Info("after-attach");
+
+            Assert.Equal(Path.GetFullPath(path), logger.JsonlPath);
+            string[] lines = File.ReadAllLines(path);
+            Assert.Equal(3, lines.Length);
+            Assert.Contains("started=", Message(lines[0]));
+            Assert.Equal("before-attach", Message(lines[1]));
+            Assert.Equal("after-attach", Message(lines[2]));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ExplicitLogPathIsNotReplacedByRunDefault()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-logger-{Guid.NewGuid():N}");
+        string explicitPath = Path.Combine(directory, "explicit.jsonl");
+        string defaultPath = Path.Combine(directory, "run.jsonl");
+        try
+        {
+            using WharfLogger logger = WharfLogger.Create(Configuration(), explicitPath);
+
+            logger.AttachJsonlPathIfUnset(defaultPath);
+            logger.Info("kept-explicit");
+
+            Assert.True(File.Exists(explicitPath));
+            Assert.False(File.Exists(defaultPath));
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    private static WharfConfiguration Configuration() =>
+        new(LogFormat: "text", Quiet: true, Verbosity: 0);
+
+    private static string Message(string json)
+    {
+        using JsonDocument document = JsonDocument.Parse(json);
+        return document.RootElement.GetProperty("message").GetString()!;
     }
 }

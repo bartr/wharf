@@ -63,7 +63,7 @@ container and reuse the task's configured environment image. After MVP,
   commands only after that handoff, as `1000:1000`; image files that are
   root-readable must not force the agent itself to run as root.
 - Limit each agent and verifier container to 8 GiB of memory with no additional
-  swap. Agent containers also have a 512-process limit. Disable pnpm's
+  swap. Agent containers also have a 1024-process limit. Disable pnpm's
   automatic package-manager version switching in the agent environment because
   the retained writable home is inside the workspace; pnpm self-install staging
   below that home can otherwise rediscover the parent project and recursively
@@ -81,6 +81,30 @@ container and reuse the task's configured environment image. After MVP,
 - Retry a Copilot HTTP 400 reported as an internal server error once in a fresh
   workspace. Retain the failed execution and a separate infrastructure-retry
   record, and include both executions in the task's reported cost.
+- By default, retry a whole trial once when an agent or verifier execution
+  error does not produce a passing patch. Archive the failed execution under
+  `trial-retries/retry-1`, then use fresh workspace, container, and verifier
+  identities without incrementing K. Do not retry a successfully executed
+  reward-zero verifier or an agent failure whose retained patch passes.
+  `retries.maxAttempts` configures the number of additional whole-trial
+  executions, and `retries.backoffSeconds` delays each additional execution.
+- Persist the aggregate lifecycle log as `run.jsonl` inside the selected
+  `all-N` run directory by default. This log retains admission order, phase
+  transitions, retry history, timing, and run-wide progress. An explicit
+  `--log-file` path overrides the default location. The completion line prints
+  the resolved path; from inside the run directory, `wharf progress` reads
+  `run.jsonl` by default.
+- Delete terminal agent workspaces after the patch, stdout, stderr, trajectory,
+  Copilot logs, verifier output, and final result have been persisted. This
+  removes build outputs, package caches, and tool homes without changing the
+  retained scoring evidence. Use `--retain-workspaces`, manifest
+  `retainWorkspaces: true`, or `WHARF_RETAIN_WORKSPACES=1` for a diagnostic run
+  that must preserve writable workspaces. Cleanup failures remain visible in
+  the lifecycle log and `result.json`.
+- Remove each verifier image tag immediately after that verifier finishes or
+  fails, keeping K=4 disk use bounded by active verifier concurrency rather than
+  completed attempts. Preserve derived agent images for reuse and do not prune
+  Docker build cache as part of run cleanup.
 - Capture the complete patch from the pre-agent commit through the final
   workspace, including agent commits, later uncommitted edits, and new
   non-runtime files. Run the verifier whenever that patch is nonempty even if
@@ -157,15 +181,17 @@ container and reuse the task's configured environment image. After MVP,
     absolute
   - `wharf progress` reports active lifecycle occupancy as `building=<count>`,
     `agent=<count>`, and `verifier=<count>` in addition to the aggregate running
-    and terminal counts. `completed` includes passes and errors, `errors` is the
-    failed subset, and `pass-rate` is `pass@ / completed`; raw record counts
-    remain available only in JSON output
+    and terminal counts. `completed` includes every terminal trial, `failed`
+    counts successfully graded reward-zero outcomes, `timeouts` counts bounded
+    phase expirations, `errors` counts other infrastructure failures, and
+    `pass-rate` is `pass@ / completed`; raw record counts remain available only
+    in JSON output
   - agent evidence retains Copilot's raw AI Credit count; progress converts each
     AI Credit to USD at $0.01 and displays average and total cost with two decimal
     places
   - verifier command success means the grader executed; when retained
-    `reward.json` reports `reward=0`, Wharf records the trial as failed even if
-    the grader process exited successfully
+    `reward.json` reports `reward=0`, Wharf records a failed test rather than an
+    infrastructure error
   - console verbosity
   - default output shows concise job progress, failures, final summaries, and one aggregate warning for each image pull that encountered one or more 429 responses
   - `--verbose` and `-v` add detailed lifecycle and retry summaries

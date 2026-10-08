@@ -11,6 +11,8 @@ public sealed record RunProgress(
     int Agents,
     int Verifiers,
     int TestsCompleted,
+    int FailedTests,
+    int Timeouts,
     int Errors,
     IReadOnlyDictionary<string, int> ErrorTypes,
     int PassAtTotal,
@@ -21,6 +23,9 @@ public sealed record RunProgress(
 
 public sealed record ProgressGroup(
     int TestsCompleted,
+    int FailedTests,
+    int Timeouts,
+    int Errors,
     int PassAtTotal,
     decimal? PassPercent,
     decimal? AverageCost,
@@ -87,23 +92,30 @@ public static class ProgressService
             Match status = StatusPattern.Match(log.Message);
             if (status.Success)
             {
-                record = record with { Status = status.Groups["status"].Value };
+                string currentStatus = status.Groups["status"].Value;
+                record = record with
+                {
+                    Status = currentStatus,
+                    Failed = currentStatus.Contains("failed", StringComparison.Ordinal),
+                    Completed = currentStatus == "trial-retry" ? false : record.Completed,
+                    Result = currentStatus == "trial-retry" ? null : record.Result,
+                    ErrorType = currentStatus == "trial-retry" ? null : record.ErrorType
+                };
             }
 
             Match result = ResultPattern.Match(log.Message);
             if (result.Success)
             {
+                bool succeeded = result.Groups["result"].Value is "passed" or "completed";
+                bool isTerminal = record.Status == "complete";
                 record = record with
                 {
                     Result = result.Groups["result"].Value,
-                    Completed = record.Status == "complete" &&
-                        result.Groups["result"].Value is "passed" or "completed",
-                    Failed = record.Failed ||
-                        result.Groups["result"].Value is not ("passed" or "completed"),
-                    ErrorType = record.ErrorType ??
-                        (result.Groups["result"].Value is "passed" or "completed"
-                            ? null
-                            : "Run")
+                    Completed = isTerminal && succeeded,
+                    Failed = !succeeded,
+                    ErrorType = isTerminal && succeeded
+                        ? null
+                        : record.ErrorType
                 };
             }
 
@@ -112,7 +124,7 @@ public static class ProgressService
                 record = record with
                 {
                     Failed = true,
-                    ErrorType = log.ErrorType ?? "Run"
+                    ErrorType = record.ErrorType ?? log.ErrorType ?? "Run"
                 };
             }
 
@@ -141,8 +153,21 @@ public static class ProgressService
             record.Status is not null);
         IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed && !record.Failed);
         IEnumerable<ProgressRecord> failed = records.Values.Where(record => record.Failed);
+        List<ProgressRecord> failedTests = failed
+            .Where(record =>
+                record.ErrorType is null or "Verifier" &&
+                !IsTimeout(record))
+            .ToList();
+        List<ProgressRecord> timeouts = failed
+            .Where(IsTimeout)
+            .ToList();
+        List<ProgressRecord> errors = failed
+            .Where(record =>
+                record.ErrorType is not (null or "Verifier") &&
+                !IsTimeout(record))
+            .ToList();
         List<ProgressRecord> terminal = completed.Concat(failed).ToList();
-        foreach (ProgressRecord record in failed)
+        foreach (ProgressRecord record in errors)
         {
             string type = record.ErrorType ?? "Run";
             errorTypes[type] = errorTypes.TryGetValue(type, out int count) ? count + 1 : 1;
@@ -165,7 +190,9 @@ public static class ProgressService
             active.Count(record => IsAgent(record.Status)),
             active.Count(record => IsVerifier(record.Status)),
             terminal.Count,
-            failed.Count(),
+            failedTests.Count,
+            timeouts.Count,
+            errors.Count,
             errorTypes,
             completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
@@ -198,18 +225,34 @@ public static class ProgressService
         List<ProgressRecord> completed = terminal
             .Where(record => record.Completed && !record.Failed)
             .ToList();
+        int failedTests = terminal.Count(record =>
+            record.Failed &&
+            record.ErrorType is null or "Verifier" &&
+            !IsTimeout(record));
+        int timeouts = terminal.Count(IsTimeout);
+        int errors = terminal.Count(record =>
+            record.Failed &&
+            record.ErrorType is not (null or "Verifier") &&
+            !IsTimeout(record));
         List<decimal> costs = completed
             .Where(record => record.Cost.HasValue)
             .Select(record => record.Cost!.Value)
             .ToList();
         return new ProgressGroup(
             terminal.Count,
+            failedTests,
+            timeouts,
+            errors,
             completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
                 string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
     }
+
+    private static bool IsTimeout(ProgressRecord record) =>
+        record.Failed &&
+        record.ErrorType?.Contains("Timeout", StringComparison.Ordinal) == true;
 
     private static decimal? Percentage(int numerator, int denominator) =>
         denominator == 0 ? null : numerator * 100m / denominator;

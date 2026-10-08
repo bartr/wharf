@@ -1,4 +1,5 @@
 using Wharf;
+using System.Text.Json;
 
 namespace Wharf.Tests;
 
@@ -27,6 +28,21 @@ public sealed class WharfAppTests
             ]);
 
             Assert.Equal(0, exitCode);
+            string runLog = Assert.Single(Directory.GetFiles(
+                outputDirectory,
+                "run.jsonl",
+                SearchOption.AllDirectories));
+            string runDirectory = Path.GetDirectoryName(runLog)!;
+            string trialDirectory = Assert.Single(Directory.GetDirectories(runDirectory));
+            Assert.False(Directory.Exists(Path.Combine(trialDirectory, "workspace")));
+            using JsonDocument result = JsonDocument.Parse(
+                File.ReadAllText(Path.Combine(trialDirectory, "result.json")));
+            Assert.False(result.RootElement.GetProperty("workspaceRetained").GetBoolean());
+            Assert.Equal(JsonValueKind.Null, result.RootElement.GetProperty("agentWorkspace").ValueKind);
+            Assert.Contains("started=", File.ReadLines(runLog).First());
+            Assert.Contains(
+                File.ReadLines(runLog),
+                line => line.Contains("status=verifier-image-cleaned", StringComparison.Ordinal));
         }
 
         finally

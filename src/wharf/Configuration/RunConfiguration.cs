@@ -17,6 +17,7 @@ public sealed record RunManifest(
     [property: JsonPropertyName("mounts")] IReadOnlyList<MountSettings>? Mounts = null,
     [property: JsonPropertyName("artifacts")] IReadOnlyList<string>? Artifacts = null,
     [property: JsonPropertyName("retentionDays")] int? RetentionDays = null,
+    [property: JsonPropertyName("retainWorkspaces")] bool? RetainWorkspaces = null,
     [property: JsonPropertyName("resourcePolicy")] string? ResourcePolicy = null,
     [property: JsonPropertyName("credentials")] SecretSettings? Credentials = null);
 
@@ -58,6 +59,7 @@ public sealed record RunConfiguration(
     IReadOnlyList<MountSettings> Mounts,
     IReadOnlyList<string> Artifacts,
     int RetentionDays,
+    bool RetainWorkspaces,
     string ResourcePolicy,
     SecretSettings Credentials);
 
@@ -68,7 +70,8 @@ public sealed record RunConfigurationOverrides(
     string? OutputFormat = null,
     string? OutputDirectory = null,
     string? Model = null,
-    string? Effort = null);
+    string? Effort = null,
+    bool? RetainWorkspaces = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -162,13 +165,21 @@ public static class RunConfigurationResolver
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
             EnvironmentValue("WHARF_TOKEN") ?? manifest.Credentials?.Token,
             EnvironmentValue("WHARF_PASSWORD") ?? manifest.Credentials?.Password);
+        RetryPolicy retries = manifest.Retries ?? new RetryPolicy();
+        retries = retries with { MaxAttempts = retries.MaxAttempts ?? 1 };
+        bool retainWorkspaces = PickBool(
+            overrides.RetainWorkspaces,
+            EnvironmentValue("WHARF_RETAIN_WORKSPACES"),
+            manifest.RetainWorkspaces,
+            false,
+            "retainWorkspaces");
 
         return new RunConfiguration(
             k,
             n,
             b,
             manifest.Timeouts ?? new PhaseTimeouts(),
-            manifest.Retries ?? new RetryPolicy(),
+            retries,
             format,
             directory,
             model,
@@ -177,6 +188,7 @@ public static class RunConfigurationResolver
             manifest.Mounts ?? [],
             manifest.Artifacts ?? [],
             manifest.RetentionDays ?? 30,
+            retainWorkspaces,
             manifest.ResourcePolicy ?? "default",
             credentials);
     }
@@ -194,6 +206,26 @@ public static class RunConfigurationResolver
 
     private static string Pick(string? flag, string? environment, string? manifest, string fallback) =>
         flag ?? environment ?? manifest ?? fallback;
+
+    private static bool PickBool(
+        bool? flag,
+        string? environment,
+        bool? manifest,
+        bool fallback,
+        string name)
+    {
+        if (flag.HasValue)
+            return flag.Value;
+        if (string.IsNullOrWhiteSpace(environment))
+            return manifest ?? fallback;
+        if (bool.TryParse(environment, out bool result))
+            return result;
+        if (environment == "1")
+            return true;
+        if (environment == "0")
+            return false;
+        throw new RunConfigurationException($"{name} must be true, false, 1, or 0");
+    }
 }
 
 public static class RunConfigurationValidator
@@ -217,7 +249,7 @@ public static class RunConfigurationValidator
         ValidateTimeout(configuration.Timeouts.AgentSeconds, "agentSeconds");
         ValidateTimeout(configuration.Timeouts.VerifierSeconds, "verifierSeconds");
         ValidateTimeout(configuration.Timeouts.ReportSeconds, "reportSeconds");
-        ValidateTimeout(configuration.Retries.MaxAttempts, "maxAttempts");
+        ValidateTimeout(configuration.Retries.MaxAttempts, "maxAttempts", allowZero: true);
         ValidateTimeout(configuration.Retries.BackoffSeconds, "backoffSeconds", allowZero: true);
         ValidateValue(configuration.OutputFormat, Formats, "output format");
         ValidateValue(configuration.Effort, Efforts, "effort");

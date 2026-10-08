@@ -151,6 +151,25 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
+    public void RestoresHostOwnershipBeforeWorkspaceCleanup()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        AgentExecutionRequest request = Request(source.Path, workspace.Path);
+
+        IReadOnlyList<string> arguments =
+            DockerAgentWorkspacePreparer.BuildWorkspaceCleanupArguments(request, "task-cleanup");
+
+        AssertArgumentsContain(arguments, "--name", "task-cleanup");
+        AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
+        AssertArgumentsContain(arguments, "--user", "0:0");
+        AssertArgumentsContain(arguments, "--network", "none");
+        Assert.Contains(
+            "chown -R 1000:1000 /workspace && chmod -R u+rwX /workspace",
+            arguments);
+    }
+
+    [Fact]
     public void RunsAgentAsUid1000WithoutCopyingImageContent()
     {
         using TemporaryDirectory source = new();
@@ -164,7 +183,7 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--user", "1000:1000");
         AssertArgumentsContain(arguments, "--memory", "8g");
         AssertArgumentsContain(arguments, "--memory-swap", "8g");
-        AssertArgumentsContain(arguments, "--pids-limit", "512");
+        AssertArgumentsContain(arguments, "--pids-limit", "1024");
         int pnpmEnvironmentIndex = arguments.ToList().IndexOf(
             "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false");
         Assert.True(pnpmEnvironmentIndex > 0);
