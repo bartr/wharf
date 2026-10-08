@@ -7,16 +7,19 @@
 - Imported evidence: 452 completed Pier agent execution intervals covering 113
   tasks and four attempts per task.
 - Aggregation: median agent execution duration in seconds.
-- Output: `tasks/agent-duration-estimates.json`, schema `1.0`.
+- Output: `tasks/agent-duration-estimates.json`, schema `1.1`.
 
 The checked-in importer validates complete task coverage, rejects non-positive
-durations and unknown tasks, and produces deterministic JSON.
+durations and unknown tasks, verifies language against each task manifest, and
+produces deterministic JSON.
 
 ## Implementation
 
 - Added strict loading of optional root-level agent duration estimates without
-  changing Harbor task manifests or task source checksums.
-- Added the estimate to the in-memory Harbor task contract.
+  changing Harbor task manifests or task source checksums. Each entry includes
+  language, measured median duration, and a separate scheduling duration.
+- Added measured and scheduling durations to the in-memory Harbor task
+  contract.
 - Added deterministic admission ordering:
   1. attempt number ascending;
   2. estimated agent duration descending;
@@ -40,6 +43,22 @@ durations and unknown tasks, and produces deterministic JSON.
 
 These tasks now enter at the front of every K wave instead of becoming
 alphabetical drain-tail work.
+
+## Rust admission spacing
+
+Rust tasks are resource-heavy even when their measured agent durations differ.
+The importer keeps their true medians for ETA and assigns synthetic scheduling
+durations that place the five Rust tasks at positions 1, 17, 33, 49, and 65 in
+every K wave:
+
+1. wasmi-trap-coredumps
+2. oxvg-structural-selector-preservation
+3. boa-hierarchical-evaluation-cancellation
+4. fd-deterministic-multi-key-sorting
+5. pest-character-class-coalescing
+
+This avoids admitting the three longest Rust tasks together at positions 3, 8,
+and 15 while still starting the longest Rust work immediately.
 
 ## Validation
 

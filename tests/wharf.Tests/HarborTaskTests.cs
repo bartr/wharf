@@ -33,6 +33,9 @@ public sealed class HarborTaskTests
         Assert.Equal(
             42.5,
             tasks.Single(task => task.TaskId == "smoke-go").EstimatedAgentDurationSeconds);
+        Assert.Equal(
+            40,
+            tasks.Single(task => task.TaskId == "smoke-go").SchedulingAgentDurationSeconds);
     }
 
     [Fact]
@@ -58,7 +61,8 @@ public sealed class HarborTaskTests
         HarborTask smoke = tasks.Single(task => task.TaskId == "smoke-go");
         HarborTask shortTask = tasks.First(task => task.TaskId != "smoke-go") with
         {
-            EstimatedAgentDurationSeconds = 10
+            EstimatedAgentDurationSeconds = 100,
+            SchedulingAgentDurationSeconds = 10
         };
 
         IReadOnlyList<TaskAttempt> ordered = TaskSelector.OrderAttemptsForAdmission(

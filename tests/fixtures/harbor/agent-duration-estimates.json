@@ -1,9 +1,19 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "source": "test-fixture",
   "aggregation": "median",
   "unit": "seconds",
+  "scheduling": {
+    "strategy": "language-stride",
+    "language": "rust",
+    "firstPosition": 1,
+    "spacing": 16
+  },
   "tasks": {
-    "smoke-go": 42.5
+    "smoke-go": {
+      "language": "go",
+      "medianAgentDurationSeconds": 42.5,
+      "schedulingAgentDurationSeconds": 40.0
+    }
   }
 }

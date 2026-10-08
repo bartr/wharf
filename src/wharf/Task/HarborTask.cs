@@ -20,7 +20,8 @@ public sealed record HarborTask(
     double? VerifierBuildTimeoutSeconds,
     double? VerifierTimeoutSeconds,
     string? EnvironmentImage = null,
-    double? EstimatedAgentDurationSeconds = null);
+    double? EstimatedAgentDurationSeconds = null,
+    double? SchedulingAgentDurationSeconds = null);
 
 public sealed record TaskSelection(
     string? Language = null,

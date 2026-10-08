@@ -26,7 +26,8 @@ public sealed class HarborTaskLoader
             throw new HarborTaskException($"task root does not exist: {rootPath}");
         }
 
-        IReadOnlyDictionary<string, double> durationEstimates = LoadDurationEstimates(rootPath);
+        IReadOnlyDictionary<string, AgentDurationEstimate> durationEstimates =
+            LoadDurationEstimates(rootPath);
         var tasks = new List<HarborTask>();
         foreach (string directory in Directory.EnumerateDirectories(rootPath).OrderBy(path => path, StringComparer.Ordinal))
         {
@@ -53,7 +54,7 @@ public sealed class HarborTaskLoader
     private static HarborTask LoadTask(
         string directory,
         string manifestPath,
-        IReadOnlyDictionary<string, double> durationEstimates)
+        IReadOnlyDictionary<string, AgentDurationEstimate> durationEstimates)
     {
         TomlTable model;
         try
@@ -81,6 +82,14 @@ public sealed class HarborTaskLoader
             "environment",
             manifestPath);
         string taskId = RequiredString(metadata, "task_id", manifestPath);
+        string language = RequiredString(metadata, "language", manifestPath);
+        durationEstimates.TryGetValue(taskId, out AgentDurationEstimate? durationEstimate);
+        if (durationEstimate is not null &&
+            !string.Equals(durationEstimate.Language, language, StringComparison.Ordinal))
+        {
+            throw new HarborTaskException(
+                $"agent duration estimate language for '{taskId}' does not match its manifest");
+        }
         string instructionPath = Path.Combine(directory, "instruction.md");
         if (!File.Exists(instructionPath))
         {
@@ -94,7 +103,7 @@ public sealed class HarborTaskLoader
                 RequiredString(metadata, "display_description", manifestPath),
             RequiredString(metadata, "display_title", manifestPath),
             RequiredString(metadata, "category", manifestPath),
-            RequiredString(metadata, "language", manifestPath),
+            language,
             schemaVersion,
             directory,
             instructionPath,
@@ -108,15 +117,17 @@ public sealed class HarborTaskLoader
             OptionalDouble(verifierEnvironment, "build_timeout_sec"),
             OptionalDouble(verifier, "timeout_sec"),
             OptionalString(environment, "docker_image"),
-            durationEstimates.GetValueOrDefault(taskId));
+            durationEstimate?.MedianAgentDurationSeconds,
+            durationEstimate?.SchedulingAgentDurationSeconds);
     }
 
-    private static IReadOnlyDictionary<string, double> LoadDurationEstimates(string rootPath)
+    private static IReadOnlyDictionary<string, AgentDurationEstimate> LoadDurationEstimates(
+        string rootPath)
     {
         string path = Path.Combine(rootPath, AgentDurationEstimatesFileName);
         if (!File.Exists(path))
         {
-            return new Dictionary<string, double>(StringComparer.Ordinal);
+            return new Dictionary<string, AgentDurationEstimate>(StringComparer.Ordinal);
         }
 
         AgentDurationEstimateDocument document;
@@ -134,7 +145,7 @@ public sealed class HarborTaskLoader
                 $"invalid agent duration estimates: {path}: {exception.Message}");
         }
 
-        if (document.SchemaVersion != "1.0")
+        if (document.SchemaVersion != "1.1")
         {
             throw new HarborTaskException(
                 $"unsupported agent duration estimates schema version: {document.SchemaVersion}");
@@ -153,18 +164,31 @@ public sealed class HarborTaskLoader
         {
             throw new HarborTaskException("agent duration estimates require a tasks object");
         }
-        foreach ((string taskId, double seconds) in document.Tasks)
+        if (document.Scheduling is null ||
+            document.Scheduling.Strategy != "language-stride" ||
+            string.IsNullOrWhiteSpace(document.Scheduling.Language) ||
+            document.Scheduling.FirstPosition < 1 ||
+            document.Scheduling.Spacing < 1)
+        {
+            throw new HarborTaskException("agent duration estimates require valid scheduling metadata");
+        }
+        foreach ((string taskId, AgentDurationEstimate estimate) in document.Tasks)
         {
             if (string.IsNullOrWhiteSpace(taskId) ||
-                !double.IsFinite(seconds) ||
-                seconds <= 0)
+                string.IsNullOrWhiteSpace(estimate.Language) ||
+                !double.IsFinite(estimate.MedianAgentDurationSeconds) ||
+                estimate.MedianAgentDurationSeconds <= 0 ||
+                !double.IsFinite(estimate.SchedulingAgentDurationSeconds) ||
+                estimate.SchedulingAgentDurationSeconds <= 0)
             {
                 throw new HarborTaskException(
                     $"invalid agent duration estimate for task '{taskId}'");
             }
         }
 
-        return new Dictionary<string, double>(document.Tasks, StringComparer.Ordinal);
+        return new Dictionary<string, AgentDurationEstimate>(
+            document.Tasks,
+            StringComparer.Ordinal);
     }
 
     private static string ComputeChecksum(string directory)
@@ -220,5 +244,20 @@ public sealed class HarborTaskLoader
         [property: JsonPropertyName("source")] string Source,
         [property: JsonPropertyName("aggregation")] string Aggregation,
         [property: JsonPropertyName("unit")] string Unit,
-        [property: JsonPropertyName("tasks")] IReadOnlyDictionary<string, double> Tasks);
+        [property: JsonPropertyName("scheduling")] AgentDurationScheduling Scheduling,
+        [property: JsonPropertyName("tasks")]
+        IReadOnlyDictionary<string, AgentDurationEstimate> Tasks);
+
+    private sealed record AgentDurationScheduling(
+        [property: JsonPropertyName("strategy")] string Strategy,
+        [property: JsonPropertyName("language")] string Language,
+        [property: JsonPropertyName("firstPosition")] int FirstPosition,
+        [property: JsonPropertyName("spacing")] int Spacing);
+
+    private sealed record AgentDurationEstimate(
+        [property: JsonPropertyName("language")] string Language,
+        [property: JsonPropertyName("medianAgentDurationSeconds")]
+        double MedianAgentDurationSeconds,
+        [property: JsonPropertyName("schedulingAgentDurationSeconds")]
+        double SchedulingAgentDurationSeconds);
 }

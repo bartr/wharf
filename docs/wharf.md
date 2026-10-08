@@ -238,11 +238,14 @@ container and reuse the task's configured environment image. After MVP,
 
 - Read Harbor task metadata, instructions, environment definitions, artifacts, tests, and verifier settings.
 - Load optional versioned `agent-duration-estimates.json` metadata from the task
-  root. Estimates are median agent execution seconds imported from a named
-  reference run and do not alter task source checksums.
+  root. Each entry retains its language, median agent execution seconds from a
+  named reference run, and a separate scheduling duration. These estimates do
+  not alter task source checksums.
 - Admit all attempt-1 work before attempt-2 work, continuing through K. Within
-  each attempt wave, admit tasks by descending estimated agent duration with
-  stable task and attempt IDs as tie-breakers. Tasks without estimates follow
+  each attempt wave, admit tasks by descending scheduling duration with stable
+  task and attempt IDs as tie-breakers. The DeepSWE estimate profile spaces
+  duration-ordered Rust tasks at positions 1, 17, 33, 49, and 65 so their
+  resource-heavy builds are not front-loaded. Tasks without estimates follow
   estimated tasks in stable order.
 - Respect task CPU, memory, storage, GPU, build-timeout, agent-timeout, and verifier-timeout declarations.
 - Support separate agent and verifier environments.

@@ -70,7 +70,10 @@ public static class TaskSelector
         IReadOnlyList<TaskAttempt> attempts) =>
         attempts
             .OrderBy(attempt => attempt.AttemptNumber)
-            .ThenByDescending(attempt => attempt.Task.EstimatedAgentDurationSeconds ?? 0)
+            .ThenByDescending(attempt =>
+                attempt.Task.SchedulingAgentDurationSeconds ??
+                attempt.Task.EstimatedAgentDurationSeconds ??
+                0)
             .ThenBy(attempt => attempt.Task.TaskId, StringComparer.Ordinal)
             .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
             .ToArray();

@@ -3,10 +3,13 @@
 ## Acceptance review
 
 - Pier agent time predicts scheduling: satisfied with median
-  `agent_execution.started_at` to `finished_at` intervals.
+  `agent_execution.started_at` to `finished_at` intervals retained separately
+  from synthetic scheduling duration.
 - Estimates live in the task directory: satisfied by the versioned
   `tasks/agent-duration-estimates.json` dataset companion.
 - Long tasks enter first: satisfied within each attempt wave.
+- Rust resource spacing: satisfied at admission positions 1, 17, 33, 49, and
+  65, longest Rust task first.
 - K ordering: every attempt 1 admission precedes every attempt 2 admission,
   continuing through configured K.
 - Determinism: attempt number, estimate, task ID, and attempt ID form a complete
