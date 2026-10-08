@@ -20,7 +20,9 @@ namespace Wharf.Command;
 
 public static class CommandTree
 {
-    public static RootCommand Create(WharfConfiguration configuration)
+    public static RootCommand Create(
+        WharfConfiguration configuration,
+        CancellationToken cancellationToken = default)
     {
         var root = new RootCommand("Run trustworthy software evaluations on customer-owned infrastructure.");
         var quiet = new Option<bool>("--quiet") { Description = "Suppress non-error output." };
@@ -65,7 +67,7 @@ public static class CommandTree
         root.Subcommands.Add(CreateVersionCommand(configuration));
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateBuildCommand(() => configuration));
-        root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
+        root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
         root.Subcommands.Add(CreateProgressCommand());
         root.Subcommands.Add(CreateCheckCommand());
         foreach (string? name in new[] { "resume", "status", "stop" })
@@ -141,7 +143,7 @@ public static class CommandTree
                 if (string.IsNullOrWhiteSpace(taskRoot))
                     throw new BuildException("build task directory is required");
                 BuildResult result = new BuildService(
-                    imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
+                    imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
                     taskRoot,
                     logger);
                 Console.WriteLine(
@@ -166,7 +168,8 @@ public static class CommandTree
 
     private static CliCommand CreateRunCommand(
         WharfConfiguration configuration,
-        Option<string> logFormat)
+        Option<string> logFormat,
+        CancellationToken cancellationToken)
     {
         var command = new CliCommand("run", "Execute or preview a configured evaluation run.");
         var manifest = new Option<string?>("--manifest") { Description = "Path to a JSON run manifest." };
@@ -270,12 +273,13 @@ public static class CommandTree
                         loggerConfiguration,
                         parseResult.GetValue(logFile));
                     RunResult result = new RunService(
-                        imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
+                        imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
                         taskRoot,
                         runConfiguration.OutputDirectory,
                         runConfiguration,
                         logger,
-                        selectedTasks);
+                        selectedTasks,
+                        cancellationToken: cancellationToken);
                     Console.WriteLine(
                         $"complete runs={result.TaskCount} result=execution-pending output={result.OutputDirectory}");
                     return ExitCode.Success.Value;

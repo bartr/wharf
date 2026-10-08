@@ -47,7 +47,8 @@ public sealed class RunService
         RunConfiguration configuration,
         WharfLogger logger,
         IReadOnlyList<HarborTask>? selectedTasks = null,
-        string attemptPrefix = "all")
+        string attemptPrefix = "all",
+        CancellationToken cancellationToken = default)
     {
         string resolvedRoot = Path.GetFullPath(taskRoot);
         if (!Directory.Exists(resolvedRoot))
@@ -104,7 +105,11 @@ public sealed class RunService
 
         Parallel.ForEach(
             tasks.Select((task, index) => (task, index)),
-            new ParallelOptions { MaxDegreeOfParallelism = imageConcurrency },
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = imageConcurrency,
+                CancellationToken = cancellationToken
+            },
             item =>
         {
             HarborTask task = item.task;
@@ -129,7 +134,7 @@ public sealed class RunService
                 Path.Combine(trialDirectory, "agent"),
                 $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
                 message => logger.Info($"{prefix} status={message}"),
-                CancellationToken.None).GetAwaiter().GetResult();
+                cancellationToken).GetAwaiter().GetResult();
             logger.Info($"{prefix} status=image-ready image={image}");
             string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
             Directory.CreateDirectory(workspaceDirectory);
@@ -140,7 +145,10 @@ public sealed class RunService
                 File.WriteAllText(
                     Path.Combine(trialDirectory, "agent", "error.txt"),
                     invocationError ?? "Copilot invocation could not be prepared");
-                logger.Info($"{prefix} status=agent-failed error={invocationError}");
+                logger.Info(
+                    $"{prefix} status=agent-failed error={invocationError}",
+                    invocationError,
+                    "Invocation");
             }
             else
             {
@@ -163,7 +171,7 @@ public sealed class RunService
                     AgentEvidenceSummary agentEvidence = agentExecution.ExecuteAsync(
                         agentRequest,
                         Path.Combine(trialDirectory, "agent"),
-                        CancellationToken.None).GetAwaiter().GetResult();
+                        cancellationToken).GetAwaiter().GetResult();
                     File.Copy(
                         Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
@@ -172,14 +180,19 @@ public sealed class RunService
                     string cost = agentEvidence.Cost?.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)
                         ?? "unknown";
                     logger.Info(
-                        $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}");
+                        $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
+                        agentEvidence.Status == "failed" ? "agent execution failed" : null,
+                        agentEvidence.Status == "failed" ? "AgentExecution" : null);
                 }
                 catch (AgentExecutionException exception)
                 {
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
-                    logger.Info($"{prefix} status=agent-failed error={exception.Message}");
+                    logger.Info(
+                        $"{prefix} status=agent-failed error={exception.Message}",
+                        exception.Message,
+                        "AgentExecution");
                 }
             }
             string taskStatus = "agent-failed";
@@ -232,7 +245,7 @@ public sealed class RunService
                             artifactsDirectory),
                         patch,
                         verifierDirectory,
-                        CancellationToken.None).GetAwaiter().GetResult();
+                        cancellationToken).GetAwaiter().GetResult();
                     taskStatus = verification.Status;
                     if (verification.Metrics is { } metrics)
                     {
@@ -251,12 +264,18 @@ public sealed class RunService
                 catch (VerifierExecutionException exception)
                 {
                     verifierError = exception.Message;
-                    logger.Info($"{prefix} status=verifier-failed error={verifierError}");
+                    logger.Info(
+                        $"{prefix} status=verifier-failed error={verifierError}",
+                        verifierError,
+                        "Verifier");
                 }
             }
             else
             {
-                logger.Info($"{prefix} status=verifier-skipped reason={verifierError}");
+                logger.Info(
+                    $"{prefix} status=verifier-skipped reason={verifierError}",
+                    verifierError,
+                    "AgentExecution");
             }
             logger.Info($"{prefix} status=cleaning-up");
             logger.Info($"{prefix} status=complete result={taskStatus}");

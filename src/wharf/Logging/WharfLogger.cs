@@ -19,31 +19,34 @@ public sealed class WharfLogger : IDisposable
     public static WharfLogger Create(WharfConfiguration configuration, string? jsonlPath = null) =>
         new(configuration, jsonlPath);
 
-    public void Info(string message)
+    public void Info(string message, string? error = null, string? errorType = null)
     {
-        if (configuration.Quiet)
-        {
-            return;
-        }
-
-        Write("info", message, Console.Out);
+        Write(
+            "info",
+            message,
+            configuration.Quiet ? TextWriter.Null : Console.Out,
+            error,
+            errorType);
     }
 
     public void Verbose(string message, int requiredLevel = 1)
     {
-        if (!configuration.Quiet && configuration.Verbosity >= requiredLevel)
-        {
-            Write("debug", message, Console.Out);
-        }
+        if (configuration.Verbosity >= requiredLevel)
+            Write("debug", message, configuration.Quiet ? TextWriter.Null : Console.Out);
     }
 
-    public void Error(string message) => Write("error", message, Console.Error);
+    public void Error(string message) => Write("error", message, Console.Error, message, "Logger");
 
     public void Dispose()
     {
     }
 
-    private void Write(string level, string message, TextWriter writer)
+    private void Write(
+        string level,
+        string message,
+        TextWriter writer,
+        string? error = null,
+        string? errorType = null)
     {
         DateTimeOffset utcNow = DateTimeOffset.UtcNow;
         string timestamp = utcNow.ToString("O", CultureInfo.InvariantCulture);
@@ -57,10 +60,19 @@ public sealed class WharfLogger : IDisposable
                     Directory.CreateDirectory(directory);
                 }
 
+                var record = new Dictionary<string, object?>
+                {
+                    ["timestamp"] = timestamp,
+                    ["level"] = level,
+                    ["message"] = message
+                };
+                if (!string.IsNullOrWhiteSpace(error))
+                    record["error"] = error;
+                if (!string.IsNullOrWhiteSpace(errorType))
+                    record["errorType"] = errorType;
                 File.AppendAllText(
                     jsonlPath,
-                    JsonSerializer.Serialize(new { timestamp, level, message }) +
-                    Environment.NewLine);
+                    JsonSerializer.Serialize(record) + Environment.NewLine);
             }
         }
 

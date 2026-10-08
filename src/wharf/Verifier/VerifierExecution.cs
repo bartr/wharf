@@ -262,7 +262,8 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                 "verifier artifacts directory is required for Docker verification"));
         var arguments = new List<string>
         {
-            "run", "--rm", "--network", request.Network,
+            "run", "--rm", "--label", "com.bartr.wharf.managed=true",
+            "--network", request.Network,
             "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
             "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
             request.Image,

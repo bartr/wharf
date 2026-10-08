@@ -68,10 +68,7 @@ public static class ProgressService
             totalRecords++;
             Match match = RunPattern.Match(log.Message);
             if (!match.Success)
-            {
-                AddError(log.Message, errorTypes);
                 continue;
-            }
 
             string key = $"{match.Groups["run"].Value}:{match.Groups["task"].Value}";
             int k = match.Groups["k"].Success
@@ -87,12 +84,28 @@ public static class ProgressService
             }
 
             Match result = ResultPattern.Match(log.Message);
-            if (result.Success && record.Status == "complete")
+            if (result.Success)
             {
                 record = record with
                 {
                     Result = result.Groups["result"].Value,
-                    Completed = true
+                    Completed = record.Status == "complete" &&
+                        result.Groups["result"].Value is "passed" or "completed",
+                    Failed = record.Failed ||
+                        result.Groups["result"].Value is not ("passed" or "completed"),
+                    ErrorType = record.ErrorType ??
+                        (result.Groups["result"].Value is "passed" or "completed"
+                            ? null
+                            : "Run")
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(log.Error) || !string.IsNullOrWhiteSpace(log.ErrorType))
+            {
+                record = record with
+                {
+                    Failed = true,
+                    ErrorType = log.ErrorType ?? "Run"
                 };
             }
 
@@ -105,13 +118,23 @@ public static class ProgressService
 
             if (status.Success && status.Groups["status"].Value.Contains("failed", StringComparison.Ordinal))
             {
-                AddError(log.Message, errorTypes);
+                record = record with
+                {
+                    Failed = true,
+                    ErrorType = record.ErrorType ?? ErrorTypeFromMessage(log.Message)
+                };
             }
 
             records[key] = record;
         }
 
-        IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed);
+        IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed && !record.Failed);
+        IEnumerable<ProgressRecord> failed = records.Values.Where(record => record.Failed);
+        foreach (ProgressRecord record in failed)
+        {
+            string type = record.ErrorType ?? "Run";
+            errorTypes[type] = errorTypes.TryGetValue(type, out int count) ? count + 1 : 1;
+        }
         var groups = completed
             .GroupBy(record => record.K)
             .ToDictionary(
@@ -125,9 +148,12 @@ public static class ProgressService
 
         return new RunProgress(
             totalRecords,
-            records.Values.Count(record => !record.Completed && record.Status is not null),
+            records.Values.Count(record =>
+                !record.Completed &&
+                !record.Failed &&
+                record.Status is not null),
             completed.Count(),
-            errorTypes.Values.Sum(),
+            failed.Count(),
             errorTypes,
             completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             groups,
@@ -149,24 +175,30 @@ public static class ProgressService
             costs.Count == 0 ? null : costs.Sum());
     }
 
-    private static void AddError(string message, IDictionary<string, int> errorTypes)
+    private static string ErrorTypeFromMessage(string message)
     {
         Match match = ErrorPattern.Match(message);
         if (!match.Success)
-            return;
+            return "Run";
         string error = match.Groups["error"].Value.Trim();
         int separator = error.IndexOf(':');
-        string type = separator > 0 ? error[..separator] : error.Split(' ', 2)[0];
-        errorTypes[type] = errorTypes.TryGetValue(type, out int count) ? count + 1 : 1;
+        return separator > 0 ? error[..separator] : error.Split(' ', 2)[0];
     }
 
-    private sealed record LogRecord(string Timestamp, string Level, string Message);
+    private sealed record LogRecord(
+        string Timestamp,
+        string Level,
+        string Message,
+        string? Error = null,
+        string? ErrorType = null);
     private sealed record ProgressRecord(
         int K,
         string? Status = null,
         string? Result = null,
         decimal? Cost = null,
-        bool Completed = false);
+        bool Completed = false,
+        bool Failed = false,
+        string? ErrorType = null);
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

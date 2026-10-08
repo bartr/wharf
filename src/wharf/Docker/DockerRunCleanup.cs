@@ -1,0 +1,67 @@
+using System.Diagnostics;
+
+namespace Wharf.Docker;
+
+public static class DockerRunCleanup
+{
+    public static void CleanupAll()
+    {
+        try
+        {
+            string containerIds = string.Join(
+                Environment.NewLine,
+                new[]
+                {
+                    RunDocker(["ps", "-aq", "--filter", "name=__"]),
+                    RunDocker(["ps", "-aq", "--filter", "label=com.bartr.wharf.managed=true"])
+                }
+                .SelectMany(output => output.Split(
+                    ['\r', '\n'],
+                    StringSplitOptions.RemoveEmptyEntries))
+                .Distinct(StringComparer.Ordinal));
+            if (!string.IsNullOrWhiteSpace(containerIds))
+            {
+                RunDocker(["rm", "--force", .. containerIds
+                    .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)]);
+            }
+
+            string imageNames = RunDocker(["image", "ls", "--format", "{{.Repository}}:{{.Tag}}"]);
+            string[] transientImages = imageNames
+                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+                .Where(image => image.Contains("__", StringComparison.Ordinal))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            if (transientImages.Length > 0)
+            {
+                RunDocker(["image", "rm", "--force", .. transientImages]);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException)
+        {
+            Console.Error.WriteLine($"Docker cleanup failed: {exception.Message}");
+        }
+    }
+
+    private static string RunDocker(IReadOnlyList<string> arguments)
+    {
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        foreach (string argument in arguments)
+            startInfo.ArgumentList.Add(argument);
+
+        using Process process = Process.Start(startInfo)
+            ?? throw new IOException("Docker cleanup process could not be started");
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(error) ? output.Trim() : error.Trim());
+        return output;
+    }
+}

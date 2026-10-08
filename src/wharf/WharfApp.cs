@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Wharf.Command;
 using Wharf.Configuration;
+using Wharf.Docker;
 using Wharf.ExitCodes;
 using Wharf.Logging;
 using Wharf.Versioning;
@@ -12,7 +13,22 @@ public static class WharfApp
     public static async Task<int> RunAsync(string[] args)
     {
         var configuration = WharfConfiguration.FromEnvironment();
-        var root = CommandTree.Create(configuration);
-        return await root.Parse(args).InvokeAsync();
+        using var cancellation = new CancellationTokenSource();
+        ConsoleCancelEventHandler handler = (_, eventArgs) =>
+        {
+            eventArgs.Cancel = true;
+            cancellation.Cancel();
+            DockerRunCleanup.CleanupAll();
+        };
+        Console.CancelKeyPress += handler;
+        try
+        {
+            var root = CommandTree.Create(configuration, cancellation.Token);
+            return await root.Parse(args).InvokeAsync();
+        }
+        finally
+        {
+            Console.CancelKeyPress -= handler;
+        }
     }
 }
