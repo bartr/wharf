@@ -137,6 +137,38 @@ public sealed class ProgressServiceTests
     }
 
     [Fact]
+    public void CountsVerifierRetryAsActiveVerifierWork()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/001 task=retry-task status=verifier-failed result=failed",
+                    "verifier command exceeded its timeout",
+                    "VerifierTimeout"),
+                Record(
+                    "run=001/001 task=retry-task status=verifier-retry " +
+                    "retry=1 reason=VerifierTimeout")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(1, progress.Verifiers);
+            Assert.Equal(0, progress.Errors);
+            Assert.Equal(1, progress.Retries);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void ShowsPerKLinesOnlyAfterSecondAttemptStarts()
     {
         string path = Path.Combine(

@@ -21,6 +21,10 @@ public sealed record RunResult(
     int TaskCount,
     string OutputDirectory);
 
+internal sealed record VerifierRetryOutcome(
+    TrialResult Result,
+    int RetryCount);
+
 public sealed class RunService
 {
     private readonly HarborTaskLoader taskLoader;
@@ -427,6 +431,7 @@ public sealed class RunService
                 string? patch = null;
                 string sourceDirectory = ResolveVerifierSource(task);
                 string? verifierError = "agent execution did not produce a patch";
+                int verifierRetry = 0;
                 string? agentPatchPath = Path.Combine(trialDirectory, "agent", "patch.diff");
                 if (File.Exists(agentPatchPath))
                 {
@@ -441,8 +446,6 @@ public sealed class RunService
                     string? verifierStageError = null;
                     string? verifierStageErrorType = null;
                     logger.StageStarted(verifierStage);
-                    logger.Info($"{prefix} status=running-verifier");
-                    string? verifierImage = null;
                     try
                     {
                         string verifierDirectory = Path.Combine(trialDirectory, "verifier");
@@ -451,55 +454,95 @@ public sealed class RunService
                             agentPatchPath!,
                             Path.Combine(artifactsDirectory, "model.patch"),
                             overwrite: true);
-                        (PristineVerifierService Service, PreparedVerifierRun Prepared)
-                            preparedVerifier = await preparationGate.ExecuteAsync(
-                                PreparationOperation.Verifier,
-                                async preparationCancellationToken =>
+                        VerifierRetryOutcome verifierOutcome =
+                            await ExecuteVerifierWithRetryAsync(
+                                async (currentVerifierRetry, verifierCancellationToken) =>
                                 {
-                                    verifierImage = await PrepareVerifierImageAsync(
-                                        task,
-                                        trialDirectory,
-                                        $"{runId}{attemptSuffix}{trialRetrySuffix}",
-                                        logger,
-                                        prefix,
-                                        preparationCancellationToken);
-                                    PristineVerifierService verifierService =
-                                        verifierImage is null
-                                            ? verifier
-                                            : new PristineVerifierService(
-                                                new FilePristineWorkspaceFactory(),
-                                                new RetainingPatchApplier(),
-                                                new DockerVerifierRunner());
-                                    var verifierRequest = new VerifierRequest(
-                                        task.TaskId,
-                                        sourceDirectory,
-                                        workspaceDirectory,
-                                        verifierImage is null ? "bridge" : "none",
-                                        [new VerifierCommand(
-                                            verifierImage is null ? "tests" : "grader",
-                                            verifierImage is null
-                                                ? VerifierCommandFor(task.Language)
-                                                : "/tests/test.sh",
-                                            TimeSpan.FromSeconds(
-                                                task.VerifierTimeoutSeconds ?? 1800))],
-                                        [],
-                                        [],
-                                        verifierImage,
-                                        verifierDirectory,
-                                        artifactsDirectory);
-                                    PreparedVerifierRun prepared =
-                                        await verifierService.PrepareAsync(
-                                            verifierRequest,
-                                            patch!,
-                                            verifierDirectory,
-                                            preparationCancellationToken);
-                                    return (verifierService, prepared);
+                                    logger.Info($"{prefix} status=running-verifier");
+                                    Directory.CreateDirectory(verifierDirectory);
+                                    string? verifierImage = null;
+                                    try
+                                    {
+                                        string verifierRetrySuffix = currentVerifierRetry > 0
+                                            ? $"__verifier-retry-{currentVerifierRetry}"
+                                            : string.Empty;
+                                        (PristineVerifierService Service, PreparedVerifierRun Prepared)
+                                            preparedVerifier = await preparationGate.ExecuteAsync(
+                                                PreparationOperation.Verifier,
+                                                async preparationCancellationToken =>
+                                                {
+                                                    verifierImage = await PrepareVerifierImageAsync(
+                                                        task,
+                                                        trialDirectory,
+                                                        $"{runId}{attemptSuffix}{trialRetrySuffix}" +
+                                                        verifierRetrySuffix,
+                                                        logger,
+                                                        prefix,
+                                                        preparationCancellationToken);
+                                                    PristineVerifierService verifierService =
+                                                        verifierImage is null
+                                                            ? verifier
+                                                            : new PristineVerifierService(
+                                                                new FilePristineWorkspaceFactory(),
+                                                                new RetainingPatchApplier(),
+                                                                new DockerVerifierRunner());
+                                                    var verifierRequest = new VerifierRequest(
+                                                        task.TaskId,
+                                                        sourceDirectory,
+                                                        workspaceDirectory,
+                                                        verifierImage is null ? "bridge" : "none",
+                                                        [new VerifierCommand(
+                                                            verifierImage is null
+                                                                ? "tests"
+                                                                : "grader",
+                                                            verifierImage is null
+                                                                ? VerifierCommandFor(task.Language)
+                                                                : "/tests/test.sh",
+                                                            TimeSpan.FromSeconds(
+                                                                task.VerifierTimeoutSeconds ?? 1800))],
+                                                        [],
+                                                        [],
+                                                        verifierImage,
+                                                        verifierDirectory,
+                                                        artifactsDirectory);
+                                                    PreparedVerifierRun prepared =
+                                                        await verifierService.PrepareAsync(
+                                                            verifierRequest,
+                                                            patch!,
+                                                            verifierDirectory,
+                                                            preparationCancellationToken);
+                                                    return (verifierService, prepared);
+                                                },
+                                                verifierCancellationToken);
+                                        return await preparedVerifier.Service.VerifyPreparedAsync(
+                                            preparedVerifier.Prepared,
+                                            verifierCancellationToken);
+                                    }
+                                    finally
+                                    {
+                                        if (verifierImage is not null)
+                                            CleanupVerifierImage(verifierImage, logger, prefix);
+                                    }
                                 },
+                                (nextRetry, exception, _) =>
+                                {
+                                    logger.Info(
+                                        $"{prefix} status=verifier-failed " +
+                                        $"error={exception.Message}",
+                                        exception.Message,
+                                        exception.ErrorType);
+                                    ArchiveVerifierExecution(trialDirectory, nextRetry);
+                                    verifierRetry = nextRetry;
+                                    logger.Info(
+                                        $"{prefix} status=verifier-retry retry={nextRetry} " +
+                                        $"reason={exception.ErrorType}");
+                                    return Task.CompletedTask;
+                                },
+                                maximumTrialRetries,
+                                configuration.Retries.BackoffSeconds,
                                 trialCancellationToken);
-                        TrialResult verification =
-                            await preparedVerifier.Service.VerifyPreparedAsync(
-                                preparedVerifier.Prepared,
-                                trialCancellationToken);
+                        verifierRetry = verifierOutcome.RetryCount;
+                        TrialResult verification = verifierOutcome.Result;
                         taskStatus = verification.Status;
                         verifierStageResult = taskStatus;
                         verifierError = null;
@@ -539,8 +582,6 @@ public sealed class RunService
                                 : verifierStageResult,
                             verifierStageError,
                             verifierStageErrorType);
-                        if (verifierImage is not null)
-                            CleanupVerifierImage(verifierImage, logger, prefix);
                     }
                 }
                 else
@@ -618,6 +659,7 @@ public sealed class RunService
                     workspaceRetained,
                     workspaceCleanupError,
                     trialRetry,
+                    verifierRetry,
                     totalCost,
                     verifierError
                 };
@@ -672,7 +714,84 @@ public sealed class RunService
         !string.Equals(taskStatus, "passed", StringComparison.OrdinalIgnoreCase) &&
         !string.IsNullOrWhiteSpace(errorType) &&
         !string.Equals(errorType, "Invocation", StringComparison.Ordinal) &&
+        !IsVerifierRetryableError(errorType) &&
         completedRetries < maximumRetries;
+
+    internal static bool ShouldRetryVerifier(
+        string? errorType,
+        int completedRetries,
+        int maximumRetries,
+        CancellationToken cancellationToken = default) =>
+        !cancellationToken.IsCancellationRequested &&
+        IsVerifierRetryableError(errorType) &&
+        completedRetries < maximumRetries;
+
+    internal static async Task<VerifierRetryOutcome> ExecuteVerifierWithRetryAsync(
+        Func<int, CancellationToken, Task<TrialResult>> execute,
+        Func<int, VerifierExecutionException, CancellationToken, Task> beforeRetry,
+        int maximumRetries,
+        int? backoffSeconds,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(execute);
+        ArgumentNullException.ThrowIfNull(beforeRetry);
+        if (maximumRetries < 0)
+            throw new ArgumentOutOfRangeException(nameof(maximumRetries));
+        if (backoffSeconds is < 0)
+            throw new ArgumentOutOfRangeException(nameof(backoffSeconds));
+
+        for (int retry = 0; ; retry++)
+        {
+            try
+            {
+                return new VerifierRetryOutcome(
+                    await execute(retry, cancellationToken),
+                    retry);
+            }
+            catch (VerifierExecutionException exception) when (
+                ShouldRetryVerifier(
+                    exception.ErrorType,
+                    retry,
+                    maximumRetries,
+                    cancellationToken))
+            {
+                int nextRetry = retry + 1;
+                await beforeRetry(nextRetry, exception, cancellationToken);
+                if (backoffSeconds is > 0)
+                {
+                    await Task.Delay(
+                        TimeSpan.FromSeconds(backoffSeconds.Value),
+                        cancellationToken);
+                }
+            }
+        }
+    }
+
+    private static bool IsVerifierRetryableError(string? errorType) =>
+        errorType is "VerifierTimeout" or "VerifierInfrastructure";
+
+    internal static void ArchiveVerifierExecution(string trialDirectory, int retryNumber)
+    {
+        string verifierDirectory = Path.Combine(trialDirectory, "verifier");
+        if (!Directory.Exists(verifierDirectory))
+        {
+            throw new DirectoryNotFoundException(
+                $"verifier evidence directory does not exist: {verifierDirectory}");
+        }
+
+        string retryDirectory = Path.Combine(
+            trialDirectory,
+            "verifier-retries",
+            $"retry-{retryNumber}");
+        if (Directory.Exists(retryDirectory))
+        {
+            throw new IOException(
+                $"verifier retry evidence already exists: {retryDirectory}");
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(retryDirectory)!);
+        Directory.Move(verifierDirectory, retryDirectory);
+    }
 
     internal static void ArchiveTrialExecution(string trialDirectory, int retryNumber)
     {

@@ -1,5 +1,6 @@
 using Wharf.Run;
 using System.Text.Json;
+using Wharf.Verifier;
 
 namespace Wharf.Tests;
 
@@ -8,8 +9,6 @@ public sealed class RunServiceRetryTests
     [Theory]
     [InlineData("failed", "OutOfMemory")]
     [InlineData("failed", "AgentTimeout")]
-    [InlineData("failed", "VerifierTimeout")]
-    [InlineData("failed", "VerifierInfrastructure")]
     public void RetriesExceptionalNonPassingTrials(string status, string errorType)
     {
         Assert.True(RunService.ShouldRetryTrial(status, errorType, 0, 1));
@@ -20,12 +19,101 @@ public sealed class RunServiceRetryTests
     [InlineData("failed", null, 0)]
     [InlineData("failed", "Verifier", 1)]
     [InlineData("failed", "Invocation", 0)]
+    [InlineData("failed", "VerifierTimeout", 0)]
+    [InlineData("failed", "VerifierInfrastructure", 0)]
     public void DoesNotRetryPassingOrdinaryOrExhaustedTrials(
         string status,
         string? errorType,
         int completedRetries)
     {
         Assert.False(RunService.ShouldRetryTrial(status, errorType, completedRetries, 1));
+    }
+
+    [Theory]
+    [InlineData("VerifierTimeout")]
+    [InlineData("VerifierInfrastructure")]
+    public void RetriesVerifierInfrastructureWithoutRetryingWholeTrial(string errorType)
+    {
+        Assert.True(RunService.ShouldRetryVerifier(errorType, 0, 1));
+        Assert.False(RunService.ShouldRetryTrial("failed", errorType, 0, 1));
+    }
+
+    [Theory]
+    [InlineData(null, 0)]
+    [InlineData("Verifier", 0)]
+    [InlineData("AgentTimeout", 0)]
+    [InlineData("VerifierTimeout", 1)]
+    public void DoesNotRetryDeterministicOrExhaustedVerifierFailures(
+        string? errorType,
+        int completedRetries)
+    {
+        Assert.False(RunService.ShouldRetryVerifier(errorType, completedRetries, 1));
+    }
+
+    [Fact]
+    public async Task RetriesVerifierCallbackAndReturnsSuccessfulReplacement()
+    {
+        int executions = 0;
+        int archives = 0;
+        TrialResult expected = PassingTrial();
+
+        VerifierRetryOutcome outcome = await RunService.ExecuteVerifierWithRetryAsync(
+            (_, _) =>
+            {
+                executions++;
+                return executions == 1
+                    ? Task.FromException<TrialResult>(
+                        new VerifierExecutionException("timed out", "VerifierTimeout"))
+                    : Task.FromResult(expected);
+            },
+            (retry, exception, _) =>
+            {
+                archives++;
+                Assert.Equal(1, retry);
+                Assert.Equal("VerifierTimeout", exception.ErrorType);
+                return Task.CompletedTask;
+            },
+            maximumRetries: 1,
+            backoffSeconds: 0,
+            CancellationToken.None);
+
+        Assert.Same(expected, outcome.Result);
+        Assert.Equal(1, outcome.RetryCount);
+        Assert.Equal(2, executions);
+        Assert.Equal(1, archives);
+    }
+
+    [Fact]
+    public void ArchivesOnlyFailedVerifierEvidence()
+    {
+        string trialDirectory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-verifier-retry-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
+            Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
+            Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+            File.WriteAllText(Path.Combine(trialDirectory, "agent", "patch.diff"), "patch");
+            File.WriteAllText(Path.Combine(trialDirectory, "artifacts", "model.patch"), "patch");
+            File.WriteAllText(Path.Combine(trialDirectory, "verifier", "trial-result.json"), "{}");
+
+            RunService.ArchiveVerifierExecution(trialDirectory, 1);
+
+            Assert.False(Directory.Exists(Path.Combine(trialDirectory, "verifier")));
+            Assert.True(File.Exists(Path.Combine(trialDirectory, "agent", "patch.diff")));
+            Assert.True(File.Exists(Path.Combine(trialDirectory, "artifacts", "model.patch")));
+            Assert.True(File.Exists(Path.Combine(
+                trialDirectory,
+                "verifier-retries",
+                "retry-1",
+                "trial-result.json")));
+        }
+        finally
+        {
+            if (Directory.Exists(trialDirectory))
+                Directory.Delete(trialDirectory, recursive: true);
+        }
     }
 
     [Fact]
@@ -123,4 +211,13 @@ public sealed class RunServiceRetryTests
             ],
             arguments);
     }
+
+    private static TrialResult PassingTrial() =>
+        new(
+            TrialResultSchema.Version,
+            "task",
+            "passed",
+            "/tmp/workspace",
+            [],
+            "/tmp/patch.diff");
 }

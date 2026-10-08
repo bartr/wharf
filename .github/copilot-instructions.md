@@ -128,6 +128,13 @@ verifier commands execute. Durable `preparation-gate` events record ordered
 waiting, acquired, released, and cancelled transitions with capacity,
 occupancy, queue depth, operation type, and acquisition wait time.
 
+Verifier timeouts and externally terminated verifier commands retry only the
+verifier boundary. Preserve the exact agent patch and cost, archive failed
+verifier evidence under `verifier-retries/retry-N`, and use a fresh verifier
+image identity and pristine workspace for the retry. Agent-side typed failures
+continue to use whole-trial retry under `trial-retries/retry-N`; ordinary
+reward-zero verification is not retryable.
+
 The controlled benchmark decision made before the next result excludes All-1
 from comparative scoring because it predates the finalized memory, OOM, retry,
 patch-capture, failed-agent verification, and cost contracts. Retain its

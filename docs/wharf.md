@@ -80,20 +80,26 @@ container and reuse the task's configured environment image. After MVP,
   explicit `AgentTimeout`, `AgentBuildTimeout`, or `VerifierBuildTimeout`
   failures. Retain verifier command evidence before surfacing
   `VerifierTimeout`; classify externally terminated verifier containers as
-  `VerifierInfrastructure`. Both are eligible for the bounded whole-trial
-  retry, while an ordinary reward-zero verifier remains a failed test.
+  `VerifierInfrastructure`. Both are eligible for bounded verifier-only retry
+  against the retained patch, while an ordinary reward-zero verifier remains a
+  failed test.
 - Pass task instructions as an attached `--prompt=<text>` argument so a prompt
   beginning with a dash cannot be parsed as another CLI option.
 - Retry a Copilot HTTP 400 reported as an internal server error once in a fresh
   workspace. Retain the failed execution and a separate infrastructure-retry
   record, and include both executions in the task's reported cost.
-- By default, retry a whole trial once when an agent or verifier execution
-  error does not produce a passing patch. Archive the failed execution under
-  `trial-retries/retry-1`, then use fresh workspace, container, and verifier
-  identities without incrementing K. Do not retry a successfully executed
-  reward-zero verifier or an agent failure whose retained patch passes.
-  `retries.maxAttempts` configures the number of additional whole-trial
-  executions, and `retries.backoffSeconds` delays each additional execution.
+- By default, retry a whole trial once when an agent execution error does not
+  produce a passing patch. Archive the failed execution under
+  `trial-retries/retry-1`, then use fresh agent workspace and container
+  identities without incrementing K. Do not retry an agent failure whose
+  retained patch passes.
+- Retry verifier timeouts and externally terminated verifier commands against
+  the exact retained agent patch without rerunning the agent. Archive failed
+  verifier evidence under `verifier-retries/retry-1`, then use a fresh
+  verifier image identity and pristine workspace. Do not retry a successfully
+  executed reward-zero verifier. `retries.maxAttempts` configures the number
+  of additional agent-side whole-trial or verifier-only executions, and
+  `retries.backoffSeconds` delays each additional execution.
 - Persist the aggregate lifecycle log as `run.jsonl` inside the selected
   `all-N` run directory by default. This log retains admission order, phase
   transitions, retry history, timing, and run-wide progress. An explicit

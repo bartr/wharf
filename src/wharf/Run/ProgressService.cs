@@ -113,7 +113,8 @@ public static class ProgressService
             if (status.Success)
             {
                 string currentStatus = status.Groups["status"].Value;
-                if (currentStatus is "trial-retry" or "agent-infrastructure-retry")
+                bool isRetry = IsRetry(currentStatus);
+                if (isRetry)
                     retries++;
                 string? stage = StageForStatus(currentStatus);
                 DateTimeOffset? observedAt = DateTimeOffset.TryParse(
@@ -131,9 +132,9 @@ public static class ProgressService
                         ? observedAt
                         : record.StageStartedAt,
                     Failed = currentStatus.Contains("failed", StringComparison.Ordinal),
-                    Completed = currentStatus == "trial-retry" ? false : record.Completed,
-                    Result = currentStatus == "trial-retry" ? null : record.Result,
-                    ErrorType = currentStatus == "trial-retry" ? null : record.ErrorType
+                    Completed = isRetry ? false : record.Completed,
+                    Result = isRetry ? null : record.Result,
+                    ErrorType = isRetry ? null : record.ErrorType
                 };
             }
 
@@ -269,10 +270,16 @@ public static class ProgressService
             "agent-complete";
 
     private static bool IsVerifier(string? status) =>
-        status is "running-verifier" or
+        status is "verifier-retry" or
+            "running-verifier" or
             "preparing-verifier-image" or
             "verifier-image-ready" or
             "verifier-complete";
+
+    private static bool IsRetry(string? status) =>
+        status is "trial-retry" or
+            "agent-infrastructure-retry" or
+            "verifier-retry";
 
     private static bool IsCleanup(string? status) =>
         status is "verifier-image-cleaned" or
