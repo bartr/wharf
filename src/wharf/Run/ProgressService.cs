@@ -7,6 +7,9 @@ namespace Wharf.Run;
 public sealed record RunProgress(
     int TotalRecords,
     int TestsRunning,
+    int Building,
+    int Agents,
+    int Verifiers,
     int TestsCompleted,
     int Errors,
     IReadOnlyDictionary<string, int> ErrorTypes,
@@ -23,6 +26,8 @@ public sealed record ProgressGroup(
 
 public static class ProgressService
 {
+    private const decimal UsdPerAiCredit = 0.01m;
+
     private static readonly Regex RunPattern = new(
         @"(?:run=(?<run>\d+)/\d+.*?)?\btask=(?<task>\S+)(?:.*?\b[Kk]=(?<k>\d+))?",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -113,7 +118,7 @@ public static class ProgressService
             if (cost.Success &&
                 decimal.TryParse(cost.Groups["cost"].Value, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal value))
             {
-                record = record with { Cost = value };
+                record = record with { Cost = value * UsdPerAiCredit };
             }
 
             if (status.Success && status.Groups["status"].Value.Contains("failed", StringComparison.Ordinal))
@@ -128,6 +133,10 @@ public static class ProgressService
             records[key] = record;
         }
 
+        IEnumerable<ProgressRecord> active = records.Values.Where(record =>
+            !record.Completed &&
+            !record.Failed &&
+            record.Status is not null);
         IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed && !record.Failed);
         IEnumerable<ProgressRecord> failed = records.Values.Where(record => record.Failed);
         foreach (ProgressRecord record in failed)
@@ -148,10 +157,10 @@ public static class ProgressService
 
         return new RunProgress(
             totalRecords,
-            records.Values.Count(record =>
-                !record.Completed &&
-                !record.Failed &&
-                record.Status is not null),
+            active.Count(),
+            active.Count(record => IsBuilding(record.Status)),
+            active.Count(record => IsAgent(record.Status)),
+            active.Count(record => IsVerifier(record.Status)),
             completed.Count(),
             failed.Count(),
             errorTypes,
@@ -160,6 +169,23 @@ public static class ProgressService
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
     }
+
+    private static bool IsBuilding(string? status) =>
+        status is "waiting-preparation" or
+            "preparing-image" or
+            "agent" or
+            "image-ready" or
+            "preparing-workspace" or
+            "workspace-ready";
+
+    private static bool IsAgent(string? status) =>
+        status is "running-agent" or "agent-complete";
+
+    private static bool IsVerifier(string? status) =>
+        status is "running-verifier" or
+            "preparing-verifier-image" or
+            "verifier-image-ready" or
+            "verifier-complete";
 
     private static ProgressGroup ToGroup(IEnumerable<ProgressRecord> records)
     {

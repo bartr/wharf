@@ -133,7 +133,16 @@ container and reuse the task's configured environment image. After MVP,
 - structured logging
   - tab delimited by default for readability
   - json optional for programattic access
-- console verbosity
+  - human-readable logs begin with `00:00:00 started=<absolute date-time>` and
+    prefix later records with elapsed `HH:mm:ss`; durable JSON timestamps remain
+    absolute
+  - `wharf progress` reports active lifecycle occupancy as `building=<count>`,
+    `agent=<count>`, and `verifier=<count>` in addition to the aggregate running
+    and terminal counts; raw record counts remain available only in JSON output
+  - agent evidence retains Copilot's raw AI Credit count; progress converts each
+    AI Credit to USD at $0.01 and displays average and total cost with two decimal
+    places
+  - console verbosity
   - default output shows concise job progress, failures, final summaries, and one aggregate warning for each image pull that encountered one or more 429 responses
   - `--verbose` and `-v` add detailed lifecycle and retry summaries
   - `-vv` logs every 429 retry with its attempt number and selected delay

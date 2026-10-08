@@ -366,7 +366,8 @@ public static class CommandTree
                 else
                 {
                     Console.WriteLine(
-                        $"records={progress.TotalRecords} running={progress.TestsRunning} " +
+                        $"running={progress.TestsRunning} building={progress.Building} agent={progress.Agents} " +
+                        $"verifier={progress.Verifiers} " +
                         $"completed={progress.TestsCompleted} errors={progress.Errors} " +
                         $"pass@={progress.PassAtTotal} " +
                         $"avg-cost={FormatCost(progress.AverageCost)} " +
@@ -397,7 +398,7 @@ public static class CommandTree
     }
 
     private static string FormatCost(decimal? cost) =>
-        cost?.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) ?? "unknown";
+        cost?.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) ?? "unknown";
 
     private static CliCommand CreateVersionCommand(WharfConfiguration configuration)
     {

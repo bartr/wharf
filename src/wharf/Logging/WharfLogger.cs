@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Globalization;
 using Wharf.Configuration;
@@ -8,12 +9,19 @@ public sealed class WharfLogger : IDisposable
 {
     private readonly WharfConfiguration configuration;
     private readonly string? jsonlPath;
+    private readonly Stopwatch elapsed = Stopwatch.StartNew();
     private readonly object sync = new();
 
     private WharfLogger(WharfConfiguration configuration, string? jsonlPath)
     {
         this.configuration = configuration;
         this.jsonlPath = string.IsNullOrWhiteSpace(jsonlPath) ? null : Path.GetFullPath(jsonlPath);
+        DateTimeOffset startedAt = DateTimeOffset.Now;
+        Write(
+            "info",
+            $"started={startedAt.ToString("O", CultureInfo.InvariantCulture)}",
+            configuration.Quiet ? TextWriter.Null : Console.Out,
+            elapsedOverride: TimeSpan.Zero);
     }
 
     public static WharfLogger Create(WharfConfiguration configuration, string? jsonlPath = null) =>
@@ -46,7 +54,8 @@ public sealed class WharfLogger : IDisposable
         string message,
         TextWriter writer,
         string? error = null,
-        string? errorType = null)
+        string? errorType = null,
+        TimeSpan? elapsedOverride = null)
     {
         DateTimeOffset utcNow = DateTimeOffset.UtcNow;
         string timestamp = utcNow.ToString("O", CultureInfo.InvariantCulture);
@@ -82,9 +91,15 @@ public sealed class WharfLogger : IDisposable
             return;
         }
 
-        string humanTimestamp = DateTimeOffset.Now.ToString(
-            "MM-dd HH:mm:ss",
-            CultureInfo.InvariantCulture);
+        string humanTimestamp = FormatElapsed(elapsedOverride ?? elapsed.Elapsed);
         writer.WriteLine($"{humanTimestamp} {message}");
+    }
+
+    internal static string FormatElapsed(TimeSpan value)
+    {
+        long hours = Math.Max(0, (long)value.TotalHours);
+        return string.Create(
+            CultureInfo.InvariantCulture,
+            $"{hours:00}:{value.Minutes:00}:{value.Seconds:00}");
     }
 }
