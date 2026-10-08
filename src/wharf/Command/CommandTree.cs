@@ -409,7 +409,8 @@ public static class CommandTree
             (
                         $"completed={progress.TestsCompleted} pass-rate={FormatPercent(progress.PassPercent)} " +
                         $"pass@={progress.PassAtTotal} failed={progress.FailedTests} " +
-                        $"errors={progress.Errors} timeouts={progress.Timeouts}"),
+                        $"errors={progress.Errors} timeouts={progress.Timeouts} " +
+                        $"retries={progress.Retries}"),
             (
                         $"running={progress.TestsRunning} building={progress.Building} " +
                         $"agent={progress.Agents} verifier={progress.Verifiers} cleanup={progress.Cleanup}"),

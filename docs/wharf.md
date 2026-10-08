@@ -188,7 +188,9 @@ container and reuse the task's configured environment image. After MVP,
   - human-readable logs begin with `00:00:00 started=<absolute date-time>` and
     prefix later records with elapsed `HH:mm:ss`; durable JSON timestamps remain
     absolute
-  - `wharf progress` reports active lifecycle occupancy as `building=<count>`,
+  - `wharf progress` reports trial and agent-infrastructure retry transitions
+    as `retries=<count>` on the first summary line and active lifecycle
+    occupancy as `building=<count>`,
     `agent=<count>`, `verifier=<count>`, and `cleanup=<count>` after the
     aggregate running count. Agent infrastructure retries remain agent work,
     whole-trial retry backoff remains building work, and post-verifier evidence

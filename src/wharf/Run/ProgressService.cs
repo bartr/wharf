@@ -21,7 +21,8 @@ public sealed record RunProgress(
     IReadOnlyDictionary<int, ProgressGroup> ByK,
     decimal? AverageCost,
     decimal? TotalCost,
-    IReadOnlyList<ActiveTrialProgress> ActiveTrials);
+    IReadOnlyList<ActiveTrialProgress> ActiveTrials,
+    int Retries = 0);
 
 public sealed record ActiveTrialProgress(
     string Name,
@@ -67,6 +68,7 @@ public static class ProgressService
         var errorTypes = new Dictionary<string, int>(StringComparer.Ordinal);
         var fullTaskNames = new Dictionary<int, string>();
         int totalRecords = 0;
+        int retries = 0;
 
         foreach (string line in File.ReadLines(path))
         {
@@ -111,6 +113,8 @@ public static class ProgressService
             if (status.Success)
             {
                 string currentStatus = status.Groups["status"].Value;
+                if (currentStatus is "trial-retry" or "agent-infrastructure-retry")
+                    retries++;
                 string? stage = StageForStatus(currentStatus);
                 DateTimeOffset? observedAt = DateTimeOffset.TryParse(
                     log.Timestamp,
@@ -246,7 +250,8 @@ public static class ProgressService
             groups,
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum(),
-            activeTrials);
+            activeTrials,
+            retries);
     }
 
     private static bool IsBuilding(string? status) =>

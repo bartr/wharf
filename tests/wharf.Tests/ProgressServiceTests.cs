@@ -68,6 +68,7 @@ public sealed class ProgressServiceTests
             Assert.Equal(1, progress.Agents);
             Assert.Equal(0, progress.Verifiers);
             Assert.Equal(0, progress.Cleanup);
+            Assert.Equal(1, progress.Retries);
         }
         finally
         {
@@ -127,6 +128,7 @@ public sealed class ProgressServiceTests
             Assert.Equal(0, progress.Agents);
             Assert.Equal(0, progress.Verifiers);
             Assert.Equal(0, progress.Cleanup);
+            Assert.Equal(1, progress.Retries);
         }
         finally
         {
@@ -197,7 +199,7 @@ public sealed class ProgressServiceTests
         IReadOnlyList<string> lines = CommandTree.FormatProgress(progress);
 
         Assert.Equal(
-            "completed=2 pass-rate=50.00% pass@=1 failed=1 errors=0 timeouts=0",
+            "completed=2 pass-rate=50.00% pass@=1 failed=1 errors=0 timeouts=0 retries=0",
             lines[0]);
         Assert.Equal(
             "running=1 building=0 agent=1 verifier=0 cleanup=0",
