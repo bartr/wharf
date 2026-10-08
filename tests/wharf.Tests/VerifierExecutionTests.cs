@@ -122,7 +122,7 @@ public sealed class VerifierExecutionTests
 
         AssertArgumentsContain(arguments, "--name", "task-verifier");
         AssertArgumentsContain(arguments, "--memory", "8g");
-        AssertArgumentsContain(arguments, "--memory-swap", "8g");
+        Assert.DoesNotContain("--memory-swap", arguments);
     }
 
     private static void AssertArgumentsContain(

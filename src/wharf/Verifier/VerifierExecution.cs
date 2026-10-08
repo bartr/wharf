@@ -336,7 +336,6 @@ public sealed class DockerVerifierRunner : IVerifierRunner
         [
             "--network", request.Network,
             "--memory", "8g",
-            "--memory-swap", "8g",
             "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
             "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
             request.Image,

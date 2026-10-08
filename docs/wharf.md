@@ -62,8 +62,9 @@ container and reuse the task's configured environment image. After MVP,
   assign the copied tree to UID/GID `1000:1000`. Run Copilot and all task
   commands only after that handoff, as `1000:1000`; image files that are
   root-readable must not force the agent itself to run as root.
-- Limit each agent and verifier container to 8 GiB of memory with no additional
-  swap. Agent containers also have a 1024-process limit. Disable pnpm's
+- Limit each agent and verifier container to 8 GiB of memory while leaving
+  Docker's default swap allowance in effect, matching Harbor behavior. Agent
+  containers also have a 1024-process limit. Disable pnpm's
   automatic package-manager version switching in the agent environment because
   the retained writable home is inside the workspace; pnpm self-install staging
   below that home can otherwise rediscover the parent project and recursively

@@ -315,7 +315,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             "--label", "com.bartr.wharf.managed=true",
             "--user", "1000:1000", "--network", request.Network,
             "--memory", "8g",
-            "--memory-swap", "8g",
             "--pids-limit", "1024",
             "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
             "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
