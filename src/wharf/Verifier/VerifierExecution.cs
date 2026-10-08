@@ -60,10 +60,11 @@ public sealed class PristineVerifierService
             }
         }
 
-        string status = results.Any(result => result.TimedOut || result.ExitCode != 0)
-            ? "failed"
-            : "passed";
         VerifierMetrics? metrics = ReadMetrics(evidenceDirectory);
+        string status = results.Any(result => result.TimedOut || result.ExitCode != 0) ||
+            metrics is { PassAt: 0 }
+                ? "failed"
+                : "passed";
         var trial = new TrialResult(
             TrialResultSchema.Version,
             request.TaskId,

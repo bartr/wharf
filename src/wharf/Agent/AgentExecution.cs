@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Wharf.Execution;
 using Wharf.State;
 
 namespace Wharf.Agent;
@@ -25,7 +26,9 @@ public sealed class AgentExecutionService
 
         Directory.CreateDirectory(evidenceDirectory);
         AgentRunResult result = await runner.RunAsync(request, cancellationToken);
-        string status = string.IsNullOrWhiteSpace(result.Patch)
+        string status = result.OutOfMemory
+            ? "failed"
+            : string.IsNullOrWhiteSpace(result.Patch)
             ? "unfinished"
             : result.ExitCode == 0 ? "completed" : "failed";
         AgentEvidenceSummary summary = WriteEvidence(
@@ -47,6 +50,112 @@ public sealed class AgentExecutionService
         }
 
         return summary;
+    }
+
+    public async Task<AgentExecutionOutcome> ExecuteWithInfrastructureRetryAsync(
+        AgentExecutionRequest request,
+        string evidenceDirectory,
+        string logicalAttemptId,
+        int maximumRetries,
+        Func<AgentExecutionRequest, int, CancellationToken, Task<AgentExecutionRequest>> prepareRetry,
+        IInfrastructureRetrySink retrySink,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(maximumRetries);
+        decimal? totalCost = null;
+        int retryNumber = 0;
+        while (true)
+        {
+            AgentExecutionException? executionException = null;
+            AgentEvidenceSummary summary;
+            try
+            {
+                summary = await ExecuteAsync(
+                    request,
+                    evidenceDirectory,
+                    cancellationToken);
+            }
+            catch (AgentExecutionException exception)
+            {
+                executionException = exception;
+                summary = JsonSerializer.Deserialize<AgentEvidenceSummary>(
+                    File.ReadAllText(Path.Combine(evidenceDirectory, "result.json")),
+                    StateJson.Options)
+                    ?? throw new AgentExecutionException(
+                        "retained agent result could not be read for infrastructure retry");
+            }
+            if (summary.Cost is not null)
+            {
+                totalCost = (totalCost ?? 0) + summary.Cost;
+            }
+
+            string standardError = File.ReadAllText(
+                Path.Combine(evidenceDirectory, summary.StandardErrorPath));
+            if (summary.Status == "completed" ||
+                !IsRetryableCopilotServiceFailure(standardError) ||
+                retryNumber >= maximumRetries)
+            {
+                if (executionException is not null)
+                {
+                    throw executionException;
+                }
+
+                return new AgentExecutionOutcome(
+                    summary,
+                    request,
+                    totalCost,
+                    retryNumber);
+            }
+
+            retryNumber++;
+            string retryId = Guid.NewGuid().ToString("N");
+            ArchiveEvidence(evidenceDirectory, retryId);
+            await retrySink.RecordAsync(
+                new InfrastructureRetryEvidence(
+                    "1.0",
+                    retryId,
+                    logicalAttemptId,
+                    ExecutionPhase.Agent,
+                    retryNumber,
+                    "copilot-service",
+                    "retrying",
+                    standardError.Trim()),
+                cancellationToken);
+            request = await prepareRetry(
+                request,
+                retryNumber,
+                cancellationToken);
+        }
+    }
+
+    internal static bool IsRetryableCopilotServiceFailure(string standardError) =>
+        standardError.Contains(
+            "Execution failed: 400 internal server error",
+            StringComparison.OrdinalIgnoreCase);
+
+    private static void ArchiveEvidence(string evidenceDirectory, string retryId)
+    {
+        string retryDirectory = Path.Combine(
+            evidenceDirectory,
+            "infrastructure-retries",
+            retryId);
+        Directory.CreateDirectory(retryDirectory);
+        foreach (string name in
+            new[] { "result.json", "stdout.log", "stderr.log", "trajectory.jsonl", "patch.diff" })
+        {
+            string source = Path.Combine(evidenceDirectory, name);
+            if (File.Exists(source))
+            {
+                File.Copy(source, Path.Combine(retryDirectory, name));
+            }
+        }
+
+        string logs = Path.Combine(evidenceDirectory, "copilot-logs");
+        if (Directory.Exists(logs))
+        {
+            CopyDirectory(logs, Path.Combine(retryDirectory, "copilot-logs"));
+            Directory.Delete(logs, recursive: true);
+        }
     }
 
     private static void CopyDirectory(string source, string destination)
@@ -94,7 +203,9 @@ public sealed class AgentExecutionService
             Path.GetFileName(stdoutPath),
             Path.GetFileName(stderrPath),
             Path.GetFileName(trajectoryPath),
-            result.Usage);
+            result.Usage,
+            result.OutOfMemory ? "OutOfMemory" : null,
+            result.OutOfMemory ? "agent container reported a cgroup OOM kill" : null);
         AtomicFile.Replace(
             summaryPath,
             JsonSerializer.Serialize(summary, StateJson.Options));
@@ -104,6 +215,16 @@ public sealed class AgentExecutionService
 
 public sealed partial class DockerAgentRunner : IAgentRunner
 {
+    private readonly IDockerOomMonitor oomMonitor;
+
+    public DockerAgentRunner()
+        : this(new DockerEventOomMonitor())
+    {
+    }
+
+    internal DockerAgentRunner(IDockerOomMonitor oomMonitor) =>
+        this.oomMonitor = oomMonitor;
+
     public async Task<AgentRunResult> RunAsync(
         AgentExecutionRequest request,
         CancellationToken cancellationToken)
@@ -118,11 +239,14 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             IsEnvironmentVariable(configuredCredentialVariable)
                 ? configuredCredentialVariable
                 : null;
-        DockerProcessResult agent = await DockerAgentProcess.RunAsync(
+        await using IDockerOomWatch oomWatch = oomMonitor.Start(containerName);
+        Task<DockerProcessResult> agentTask = DockerAgentProcess.RunAsync(
             arguments,
             credentialVariable,
             request.Invocation.CredentialValue,
             cancellationToken);
+        bool outOfMemory = await oomWatch.WaitAsync(agentTask, cancellationToken);
+        DockerProcessResult agent = await agentTask;
         stopwatch.Stop();
         string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
         AgentUsage? usage = CopilotUsageParser.Parse(agent.StandardError, debugLogDirectory);
@@ -138,7 +262,8 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             Requests: usage?.Requests,
             Cost: usage?.AiCredits,
             DebugLogDirectory: debugLogDirectory,
-            Usage: usage);
+            Usage: usage,
+            OutOfMemory: outOfMemory);
     }
 
     internal static IReadOnlyList<string> BuildAgentArguments(
@@ -427,3 +552,122 @@ internal sealed record DockerProcessResult(
     int ExitCode,
     string StandardOutput,
     string StandardError);
+
+internal interface IDockerOomMonitor
+{
+    IDockerOomWatch Start(string containerName);
+}
+
+internal interface IDockerOomWatch : IAsyncDisposable
+{
+    Task<bool> WaitAsync(Task containerCompletion, CancellationToken cancellationToken);
+}
+
+internal sealed class DockerEventOomMonitor : IDockerOomMonitor
+{
+    public IDockerOomWatch Start(string containerName) =>
+        new DockerEventOomWatch(containerName);
+}
+
+internal sealed class DockerEventOomWatch : IDockerOomWatch
+{
+    private readonly string containerName;
+    private readonly Process process;
+
+    public DockerEventOomWatch(string containerName)
+    {
+        this.containerName = containerName;
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("events");
+        startInfo.ArgumentList.Add("--filter");
+        startInfo.ArgumentList.Add($"container={containerName}");
+        startInfo.ArgumentList.Add("--filter");
+        startInfo.ArgumentList.Add("event=oom");
+        startInfo.ArgumentList.Add("--filter");
+        startInfo.ArgumentList.Add("event=die");
+        startInfo.ArgumentList.Add("--format");
+        startInfo.ArgumentList.Add("{{.Action}}");
+        process = Process.Start(startInfo)
+            ?? throw new AgentExecutionException("Docker OOM monitor could not be started");
+    }
+
+    public async Task<bool> WaitAsync(
+        Task containerCompletion,
+        CancellationToken cancellationToken)
+    {
+        while (!containerCompletion.IsCompleted)
+        {
+            Task<string?> eventTask = process.StandardOutput.ReadLineAsync(cancellationToken).AsTask();
+            Task completed = await Task.WhenAny(eventTask, containerCompletion);
+            if (completed == containerCompletion)
+            {
+                completed = await Task.WhenAny(
+                    eventTask,
+                    Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken));
+                if (completed != eventTask)
+                {
+                    return false;
+                }
+            }
+
+            string? action = await eventTask;
+            if (action is null || action.Equals("die", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (action.Equals("oom", StringComparison.OrdinalIgnoreCase))
+            {
+                await StopContainerAsync(cancellationToken);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task StopContainerAsync(CancellationToken cancellationToken)
+    {
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("stop");
+        startInfo.ArgumentList.Add("--time");
+        startInfo.ArgumentList.Add("2");
+        startInfo.ArgumentList.Add(containerName);
+        using Process stop = Process.Start(startInfo)
+            ?? throw new AgentExecutionException("Docker OOM stop process could not be started");
+        Task<string> outputTask = stop.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = stop.StandardError.ReadToEndAsync(cancellationToken);
+        await stop.WaitForExitAsync(cancellationToken);
+        _ = await outputTask;
+        string error = await errorTask;
+        if (stop.ExitCode != 0 &&
+            !error.Contains("No such container", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new AgentExecutionException(
+                $"failed to stop OOM agent container {containerName}: {error.Trim()}");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!process.HasExited)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+        }
+
+        process.Dispose();
+    }
+}

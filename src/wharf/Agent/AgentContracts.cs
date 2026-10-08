@@ -73,7 +73,8 @@ public sealed record AgentRunResult(
     int? Requests = null,
     decimal? Cost = null,
     string? DebugLogDirectory = null,
-    AgentUsage? Usage = null);
+    AgentUsage? Usage = null,
+    bool OutOfMemory = false);
 
 public sealed record AgentModelUsage(
     long InputTokens,
@@ -112,7 +113,15 @@ public sealed record AgentEvidenceSummary(
     string StandardOutputPath,
     string StandardErrorPath,
     string TrajectoryPath,
-    AgentUsage? Usage = null);
+    AgentUsage? Usage = null,
+    string? ErrorType = null,
+    string? Error = null);
+
+public sealed record AgentExecutionOutcome(
+    AgentEvidenceSummary Summary,
+    AgentExecutionRequest Request,
+    decimal? TotalCost,
+    int InfrastructureRetries);
 
 public interface IAgentRunner
 {
@@ -132,5 +141,5 @@ public sealed class AgentExecutionException(string message) : Exception(message)
 
 public static class AgentEvidenceSchema
 {
-    public const string Version = "1.0";
+    public const string Version = "1.1";
 }

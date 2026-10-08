@@ -73,6 +73,26 @@ public sealed class VerifierExecutionTests
     }
 
     [Fact]
+    public async Task RewardZeroFailsTrialWhenVerifierCommandSucceeds()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        var service = new PristineVerifierService(
+            new FakeWorkspaceFactory(source.Path),
+            new RecordingPatchApplier(),
+            new RewardWritingVerifierRunner(evidence.Path, reward: 0));
+
+        TrialResult result = await service.VerifyAsync(
+            Request(source.Path, agent.Path),
+            "patch",
+            evidence.Path);
+
+        Assert.Equal("failed", result.Status);
+        Assert.Equal(0, result.Metrics?.PassAt);
+    }
+
+    [Fact]
     public void RejectsAgentWorkspaceReuse()
     {
         using TemporaryDirectory source = new();
@@ -171,6 +191,29 @@ public sealed class VerifierExecutionTests
                 fail ? "failed" : "",
                 1,
                 false));
+    }
+
+    private sealed class RewardWritingVerifierRunner(
+        string evidenceDirectory,
+        int reward) : IVerifierRunner
+    {
+        public Task<VerifierCommandResult> RunAsync(
+            VerifierRequest request,
+            string workspaceDirectory,
+            VerifierCommand command,
+            CancellationToken cancellationToken)
+        {
+            File.WriteAllText(
+                Path.Combine(evidenceDirectory, "reward.json"),
+                $$"""{"reward":{{reward}},"f2p":0.5,"p2p":1.0}""");
+            return Task.FromResult(new VerifierCommandResult(
+                command.Name,
+                0,
+                "stdout",
+                "",
+                1,
+                false));
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable

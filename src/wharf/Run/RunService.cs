@@ -5,6 +5,7 @@ using Tomlyn.Model;
 using Wharf.Agent;
 using Wharf.Configuration;
 using Wharf.Copilot;
+using Wharf.Execution;
 using Wharf.Image;
 using Wharf.Logging;
 using Wharf.Tasks;
@@ -164,7 +165,7 @@ public sealed class RunService
                             invocation with
                             {
                                 Arguments = invocation.Arguments
-                                    .Concat(["-p", File.ReadAllText(task.InstructionPath)])
+                                    .Append(BuildPromptArgument(File.ReadAllText(task.InstructionPath)))
                                     .ToArray()
                             },
                             [],
@@ -191,21 +192,58 @@ public sealed class RunService
                 else
                 {
                     logger.Info($"{prefix} status=running-agent");
-                    AgentEvidenceSummary agentEvidence = await agentExecution.ExecuteAsync(
+                    AgentExecutionOutcome agentOutcome =
+                        await agentExecution.ExecuteWithInfrastructureRetryAsync(
                         agentRequest,
                         Path.Combine(trialDirectory, "agent"),
+                        $"{task.TaskId}__{task.SourceChecksum[..8]}",
+                        maximumRetries: 1,
+                        async (failedRequest, retryNumber, retryCancellationToken) =>
+                        {
+                            logger.Info(
+                                $"{prefix} status=agent-infrastructure-retry " +
+                                $"retry={retryNumber} reason=copilot-service");
+                            string retryWorkspace = Path.Combine(
+                                trialDirectory,
+                                $"workspace-infrastructure-retry-{retryNumber}");
+                            Directory.CreateDirectory(retryWorkspace);
+                            AgentExecutionRequest retryRequest = failedRequest with
+                            {
+                                WorkspaceDirectory = retryWorkspace,
+                                ContainerName = $"{SanitizePathPart(task.TaskId)}__{runId}-retry-{retryNumber}"
+                            };
+                            await preparationGate.ExecuteAsync(
+                                async prepareCancellationToken =>
+                                {
+                                    await workspacePreparer.PrepareAsync(
+                                        retryRequest,
+                                        prepareCancellationToken);
+                                    return true;
+                                },
+                                retryCancellationToken);
+                            return retryRequest;
+                        },
+                        new FileInfrastructureRetrySink(trialDirectory),
                         trialCancellationToken);
+                    AgentEvidenceSummary agentEvidence = agentOutcome.Summary;
+                    agentRequest = agentOutcome.Request;
                     File.Copy(
                         Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
                         overwrite: true);
                     agentSucceeded = agentEvidence.Status == "completed";
-                    string cost = agentEvidence.Cost?.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)
+                    string cost = agentOutcome.TotalCost?.ToString(
+                        "0.####",
+                        System.Globalization.CultureInfo.InvariantCulture)
                         ?? "unknown";
                     logger.Info(
                         $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
-                        agentEvidence.Status == "failed" ? "agent execution failed" : null,
-                        agentEvidence.Status == "failed" ? "AgentExecution" : null);
+                        agentEvidence.Status == "failed"
+                            ? agentEvidence.Error ?? "agent execution failed"
+                            : null,
+                        agentEvidence.Status == "failed"
+                            ? agentEvidence.ErrorType ?? "AgentExecution"
+                            : null);
                 }
             }
             catch (AgentExecutionException exception)
@@ -270,18 +308,25 @@ public sealed class RunService
                         verifierDirectory,
                         trialCancellationToken);
                     taskStatus = verification.Status;
+                    string? verificationError = taskStatus == "failed"
+                        ? "verifier command failed or reported reward 0"
+                        : null;
                     if (verification.Metrics is { } metrics)
                     {
                         logger.Info(
                             $"{prefix} status=verifier-complete result={taskStatus} " +
                             $"pass@1={metrics.PassAt} f2p={metrics.F2pPercent:0.##}% " +
-                            $"p2p={metrics.P2pPercent:0.##}%");
+                            $"p2p={metrics.P2pPercent:0.##}%",
+                            verificationError,
+                            verificationError is null ? null : "Verifier");
                     }
                     else
                     {
                         logger.Info(
                             $"{prefix} status=verifier-complete result={taskStatus} " +
-                            "metrics=unavailable");
+                            "metrics=unavailable",
+                            verificationError,
+                            verificationError is null ? null : "Verifier");
                     }
                 }
                 catch (VerifierExecutionException exception)
@@ -452,6 +497,9 @@ public sealed class RunService
         return new string(value.Select(character =>
             invalidCharacters.Contains(character) ? '_' : character).ToArray());
     }
+
+    internal static string BuildPromptArgument(string prompt) =>
+        $"--prompt={prompt}";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

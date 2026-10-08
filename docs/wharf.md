@@ -68,6 +68,14 @@ container and reuse the task's configured environment image. After MVP,
   the retained writable home is inside the workspace; pnpm self-install staging
   below that home can otherwise rediscover the parent project and recursively
   invoke itself.
+- Monitor Docker OOM events for each agent. On the first cgroup OOM kill, stop
+  that container, retain its evidence, and fail the trial with the explicit
+  `OutOfMemory` error type instead of allowing repeated child-process kills.
+- Pass task instructions as an attached `--prompt=<text>` argument so a prompt
+  beginning with a dash cannot be parsed as another CLI option.
+- Retry a Copilot HTTP 400 reported as an internal server error once in a fresh
+  workspace. Retain the failed execution and a separate infrastructure-retry
+  record, and include both executions in the task's reported cost.
 - Cache and reuse derived images across K=4 attempts and later runs so those
   attempts do not reinstall or redownload the CLI. The cache key must include
   the source image digest, Copilot CLI version, installation inputs, and
@@ -145,6 +153,9 @@ container and reuse the task's configured environment image. After MVP,
   - agent evidence retains Copilot's raw AI Credit count; progress converts each
     AI Credit to USD at $0.01 and displays average and total cost with two decimal
     places
+  - verifier command success means the grader executed; when retained
+    `reward.json` reports `reward=0`, Wharf records the trial as failed even if
+    the grader process exited successfully
   - console verbosity
   - default output shows concise job progress, failures, final summaries, and one aggregate warning for each image pull that encountered one or more 429 responses
   - `--verbose` and `-v` add detailed lifecycle and retry summaries

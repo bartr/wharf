@@ -1,5 +1,7 @@
 using Wharf.Agent;
 using Wharf.Copilot;
+using Wharf.Execution;
+using Wharf.Run;
 
 namespace Wharf.Tests;
 
@@ -39,6 +41,33 @@ public sealed class AgentExecutionTests
             () => service.ExecuteAsync(Request(source.Path, workspace.Path), evidence.Path));
 
         Assert.Contains("\"status\":\"unfinished\"", File.ReadAllText(Path.Combine(evidence.Path, "result.json")));
+    }
+
+    [Fact]
+    public async Task CgroupOomFailsWithTypedRetainedError()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        using TemporaryDirectory evidence = new();
+        var service = new AgentExecutionService(
+            new FakeAgentRunner(new AgentRunResult(
+                137,
+                "partial output",
+                "",
+                "trace",
+                "",
+                TimeSpan.FromSeconds(3),
+                OutOfMemory: true)));
+
+        AgentEvidenceSummary summary = await service.ExecuteAsync(
+            Request(source.Path, workspace.Path),
+            evidence.Path);
+
+        Assert.Equal("failed", summary.Status);
+        Assert.Equal("OutOfMemory", summary.ErrorType);
+        Assert.Equal("agent container reported a cgroup OOM kill", summary.Error);
+        Assert.Contains("\"schemaVersion\":\"1.1\"", File.ReadAllText(
+            Path.Combine(evidence.Path, "result.json")));
     }
 
     [Fact]
@@ -120,6 +149,105 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
+    public void AttachesLeadingDashPromptToOption()
+    {
+        string argument = RunService.BuildPromptArgument("- Update the display property.");
+
+        Assert.Equal("--prompt=- Update the display property.", argument);
+    }
+
+    [Fact]
+    public async Task RetriesCopilotInternalServerFailureWithSeparateEvidence()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        using TemporaryDirectory retryWorkspace = new();
+        using TemporaryDirectory evidence = new();
+        var runner = new SequenceAgentRunner(
+            new AgentRunResult(
+                1,
+                "first",
+                "Execution failed: 400 internal server error (Request ID: test)",
+                "first trace",
+                "first patch",
+                TimeSpan.FromSeconds(1),
+                Cost: 2m),
+            new AgentRunResult(
+                0,
+                "second",
+                "",
+                "second trace",
+                "second patch",
+                TimeSpan.FromSeconds(1),
+                Cost: 3m));
+        var service = new AgentExecutionService(runner);
+        var sink = new RecordingRetrySink();
+
+        AgentExecutionOutcome outcome = await service.ExecuteWithInfrastructureRetryAsync(
+            Request(source.Path, workspace.Path),
+            evidence.Path,
+            "task-1__attempt",
+            1,
+            (request, retryNumber, cancellationToken) => Task.FromResult(
+                request with { WorkspaceDirectory = retryWorkspace.Path }),
+            sink);
+
+        Assert.Equal("completed", outcome.Summary.Status);
+        Assert.Equal(retryWorkspace.Path, outcome.Request.WorkspaceDirectory);
+        Assert.Equal(5m, outcome.TotalCost);
+        Assert.Equal(1, outcome.InfrastructureRetries);
+        Assert.Single(sink.Records);
+        Assert.Equal("copilot-service", sink.Records[0].Classification);
+        string retryDirectory = Assert.Single(
+            Directory.GetDirectories(Path.Combine(evidence.Path, "infrastructure-retries")));
+        Assert.Equal("first patch", File.ReadAllText(Path.Combine(retryDirectory, "patch.diff")));
+        Assert.Equal("second patch", File.ReadAllText(Path.Combine(evidence.Path, "patch.diff")));
+    }
+
+    [Fact]
+    public void DoesNotRetryInvalidPromptFailure()
+    {
+        Assert.False(AgentExecutionService.IsRetryableCopilotServiceFailure(
+            "error: Invalid command format."));
+    }
+
+    [Fact]
+    public async Task RetriesCopilotInternalServerFailureWithoutPatch()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        using TemporaryDirectory retryWorkspace = new();
+        using TemporaryDirectory evidence = new();
+        var service = new AgentExecutionService(new SequenceAgentRunner(
+            new AgentRunResult(
+                1,
+                "",
+                "Execution failed: 400 internal server error",
+                "",
+                "",
+                TimeSpan.Zero),
+            new AgentRunResult(
+                0,
+                "",
+                "",
+                "",
+                "successful retry patch",
+                TimeSpan.Zero)));
+
+        AgentExecutionOutcome outcome = await service.ExecuteWithInfrastructureRetryAsync(
+            Request(source.Path, workspace.Path),
+            evidence.Path,
+            "task-1__attempt",
+            1,
+            (request, retryNumber, cancellationToken) => Task.FromResult(
+                request with { WorkspaceDirectory = retryWorkspace.Path }),
+            new RecordingRetrySink());
+
+        Assert.Equal("completed", outcome.Summary.Status);
+        Assert.Equal(1, outcome.InfrastructureRetries);
+    }
+
+    [Fact]
     public void ReportsWorkspaceInitializationFailureWithDockerDiagnostic()
     {
         var result = new DockerProcessResult(
@@ -177,6 +305,29 @@ public sealed class AgentExecutionTests
             AgentExecutionRequest request,
             CancellationToken cancellationToken) =>
             Task.FromResult(result);
+    }
+
+    private sealed class SequenceAgentRunner(params AgentRunResult[] results) : IAgentRunner
+    {
+        private readonly Queue<AgentRunResult> remaining = new(results);
+
+        public Task<AgentRunResult> RunAsync(
+            AgentExecutionRequest request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(remaining.Dequeue());
+    }
+
+    private sealed class RecordingRetrySink : IInfrastructureRetrySink
+    {
+        public List<InfrastructureRetryEvidence> Records { get; } = [];
+
+        public Task RecordAsync(
+            InfrastructureRetryEvidence evidence,
+            CancellationToken cancellationToken)
+        {
+            Records.Add(evidence);
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable
