@@ -66,6 +66,7 @@ public static class CommandTree
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateBuildCommand(() => configuration));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat));
+        root.Subcommands.Add(CreateProgressCommand());
         root.Subcommands.Add(CreateCheckCommand());
         foreach (string? name in new[] { "resume", "status", "stop" })
         {
@@ -176,6 +177,11 @@ public static class CommandTree
         var b = new Option<int?>("--b") { Description = "Preparation/build concurrency." };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
+        var logFile = new Option<string?>("--log-file")
+        {
+            Description = "JSONL progress log path.",
+            DefaultValueFactory = _ => "wharf-run.jsonl"
+        };
         var model = new Option<string?>("--model") { Description = "Model name." };
         var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
         var include = new Option<string?>("--include")
@@ -197,6 +203,7 @@ public static class CommandTree
         command.Options.Add(b);
         command.Options.Add(outputFormat);
         command.Options.Add(outputDirectory);
+        command.Options.Add(logFile);
         command.Options.Add(model);
         command.Options.Add(effort);
         command.Options.Add(include);
@@ -259,7 +266,9 @@ public static class CommandTree
                     {
                         Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
                     };
-                    using WharfLogger logger = WharfLogger.Create(loggerConfiguration);
+                    using WharfLogger logger = WharfLogger.Create(
+                        loggerConfiguration,
+                        parseResult.GetValue(logFile));
                     RunResult result = new RunService(
                         imagePreparer: new DockerAgentImagePreparer(progress: logger.Info)).Execute(
                         taskRoot,
@@ -317,6 +326,74 @@ public static class CommandTree
         });
         return command;
     }
+
+    private static CliCommand CreateProgressCommand()
+    {
+        var command = new CliCommand(
+            "progress",
+            "Summarize an executing or completed run from its JSONL log.");
+        var logFile = new Option<string>("--log-file")
+        {
+            Description = "JSONL progress log path.",
+            DefaultValueFactory = _ => "wharf-run.jsonl"
+        };
+        var json = new Option<bool>("--json") { Description = "Render the summary as JSON." };
+        command.Options.Add(logFile);
+        command.Options.Add(json);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string? path = parseResult.GetValue(logFile);
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    Console.Error.WriteLine("progress log file is required");
+                    return ExitCode.InvalidInput.Value;
+                }
+
+                RunProgress progress = ProgressService.Read(path);
+                if (parseResult.GetValue(json))
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(progress, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    }));
+                }
+                else
+                {
+                    Console.WriteLine(
+                        $"records={progress.TotalRecords} running={progress.TestsRunning} " +
+                        $"completed={progress.TestsCompleted} errors={progress.Errors} " +
+                        $"pass@={progress.PassAtTotal} " +
+                        $"avg-cost={FormatCost(progress.AverageCost)} " +
+                        $"total-cost={FormatCost(progress.TotalCost)}");
+                    foreach ((int k, ProgressGroup group) in progress.ByK.OrderBy(item => item.Key))
+                    {
+                        Console.WriteLine(
+                            $"k={k} completed={group.TestsCompleted} pass@={group.PassAtTotal} " +
+                            $"avg-cost={FormatCost(group.AverageCost)} " +
+                            $"total-cost={FormatCost(group.TotalCost)}");
+                    }
+
+                    foreach ((string type, int count) in progress.ErrorTypes.OrderBy(item => item.Key))
+                    {
+                        Console.WriteLine($"error-type={type} count={count}");
+                    }
+                }
+
+                return ExitCode.Success.Value;
+            }
+            catch (FileNotFoundException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+        });
+        return command;
+    }
+
+    private static string FormatCost(decimal? cost) =>
+        cost?.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) ?? "unknown";
 
     private static CliCommand CreateVersionCommand(WharfConfiguration configuration)
     {

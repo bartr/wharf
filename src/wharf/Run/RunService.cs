@@ -96,8 +96,11 @@ public sealed class RunService
         }
         logger.Info(
             $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
-            $"task-concurrency={configuration.N} image-concurrency={imageConcurrency}");
-        logger.Info($"run created {attemptDirectory} under {jobDirectory}");
+            $"task-concurrency={configuration.N} image-concurrency={imageConcurrency}" +
+            (configuration.K > 1 ? $" K={configuration.K}" : ""));
+        logger.Info(
+            $"run created {attemptDirectory} under {jobDirectory}" +
+            (configuration.K > 1 ? $" K={configuration.K}" : ""));
 
         Parallel.ForEach(
             tasks.Select((task, index) => (task, index)),
@@ -106,7 +109,13 @@ public sealed class RunService
         {
             HarborTask task = item.task;
             int runNumber = (item.index * configuration.K) + 1;
-            string prefix = FormatRunPrefix(runNumber, plannedRuns, task, 1, configuration.K);
+            string prefix = FormatRunPrefix(
+                runNumber,
+                plannedRuns,
+                task,
+                1,
+                configuration.K,
+                configuration.K);
             string trialDirectory = Path.Combine(
                 jobDirectory,
                 attemptDirectory,
@@ -160,7 +169,10 @@ public sealed class RunService
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
                         overwrite: true);
                     agentSucceeded = agentEvidence.Status == "completed";
-                    logger.Info($"{prefix} status=agent-complete result={agentEvidence.Status}");
+                    string cost = agentEvidence.Cost?.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture)
+                        ?? "unknown";
+                    logger.Info(
+                        $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}");
                 }
                 catch (AgentExecutionException exception)
                 {
@@ -335,7 +347,8 @@ public sealed class RunService
         int totalRuns,
         HarborTask task,
         int attempt,
-        int attempts)
+        int attempts,
+        int k)
     {
         var parts = new List<string>();
         if (totalRuns > 1)
@@ -347,6 +360,10 @@ public sealed class RunService
         if (attempts > 1)
         {
             parts.Add($"attempt={attempt}/{attempts}");
+        }
+        if (k > 1)
+        {
+            parts.Add($"K={k}");
         }
 
         return string.Join(' ', parts);
