@@ -71,6 +71,31 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
+    public async Task AgentTimeoutFailsWithTypedRetainedError()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        using TemporaryDirectory evidence = new();
+        var service = new AgentExecutionService(
+            new FakeAgentRunner(new AgentRunResult(
+                143,
+                "partial output",
+                "",
+                "trace",
+                "partial patch",
+                TimeSpan.FromSeconds(5400),
+                TimedOut: true)));
+
+        AgentEvidenceSummary summary = await service.ExecuteAsync(
+            Request(source.Path, workspace.Path),
+            evidence.Path);
+
+        Assert.Equal("failed", summary.Status);
+        Assert.Equal("AgentTimeout", summary.ErrorType);
+        Assert.Equal("agent execution exceeded its timeout", summary.Error);
+    }
+
+    [Fact]
     public void RejectsSharedAgentAndVerifierWorkspace()
     {
         using TemporaryDirectory source = new();

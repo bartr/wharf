@@ -52,7 +52,12 @@ public sealed class HarborTaskLoader
         TomlTable task = RequiredTable(model, "task", manifestPath);
         TomlTable metadata = RequiredTable(model, "metadata", manifestPath);
         TomlTable environment = RequiredTable(model, "environment", manifestPath);
+        TomlTable agent = RequiredTable(model, "agent", manifestPath);
         TomlTable verifier = RequiredTable(model, "verifier", manifestPath);
+        TomlTable verifierEnvironment = RequiredTable(
+            verifier,
+            "environment",
+            manifestPath);
         string taskId = RequiredString(metadata, "task_id", manifestPath);
         string instructionPath = Path.Combine(directory, "instruction.md");
         if (!File.Exists(instructionPath))
@@ -77,7 +82,8 @@ public sealed class HarborTaskLoader
             OptionalInt(environment, "storage_mb"),
             OptionalInt(environment, "gpus"),
             OptionalDouble(environment, "build_timeout_sec"),
-            OptionalDouble(verifier, "agent_timeout_sec"),
+            OptionalDouble(agent, "timeout_sec"),
+            OptionalDouble(verifierEnvironment, "build_timeout_sec"),
             OptionalDouble(verifier, "timeout_sec"),
             OptionalString(environment, "docker_image"));
     }

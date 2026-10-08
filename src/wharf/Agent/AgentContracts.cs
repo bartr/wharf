@@ -10,7 +10,8 @@ public sealed record AgentExecutionRequest(
     string Network,
     CopilotInvocation Invocation,
     IReadOnlyList<string> HiddenPaths,
-    string? ContainerName = null)
+    string? ContainerName = null,
+    TimeSpan? Timeout = null)
 {
     public void Validate()
     {
@@ -19,6 +20,11 @@ public sealed record AgentExecutionRequest(
             string.IsNullOrWhiteSpace(Network))
         {
             throw new AgentExecutionException("task, agent image, and network are required");
+        }
+
+        if (Timeout is not null && Timeout <= TimeSpan.Zero)
+        {
+            throw new AgentExecutionException("agent timeout must be positive");
         }
 
         ValidateDirectory(SourceDirectory, nameof(SourceDirectory));
@@ -74,7 +80,8 @@ public sealed record AgentRunResult(
     decimal? Cost = null,
     string? DebugLogDirectory = null,
     AgentUsage? Usage = null,
-    bool OutOfMemory = false);
+    bool OutOfMemory = false,
+    bool TimedOut = false);
 
 public sealed record AgentModelUsage(
     long InputTokens,
@@ -137,7 +144,12 @@ public interface IAgentWorkspacePreparer
         CancellationToken cancellationToken);
 }
 
-public sealed class AgentExecutionException(string message) : Exception(message);
+public sealed class AgentExecutionException(
+    string message,
+    string errorType = "AgentExecution") : Exception(message)
+{
+    public string ErrorType { get; } = errorType;
+}
 
 public static class AgentEvidenceSchema
 {

@@ -26,7 +26,7 @@ public sealed class AgentExecutionService
 
         Directory.CreateDirectory(evidenceDirectory);
         AgentRunResult result = await runner.RunAsync(request, cancellationToken);
-        string status = result.OutOfMemory
+        string status = result.OutOfMemory || result.TimedOut
             ? "failed"
             : string.IsNullOrWhiteSpace(result.Patch)
             ? "unfinished"
@@ -204,8 +204,12 @@ public sealed class AgentExecutionService
             Path.GetFileName(stderrPath),
             Path.GetFileName(trajectoryPath),
             result.Usage,
-            result.OutOfMemory ? "OutOfMemory" : null,
-            result.OutOfMemory ? "agent container reported a cgroup OOM kill" : null);
+            result.OutOfMemory
+                ? "OutOfMemory"
+                : result.TimedOut ? "AgentTimeout" : null,
+            result.OutOfMemory
+                ? "agent container reported a cgroup OOM kill"
+                : result.TimedOut ? "agent execution exceeded its timeout" : null);
         AtomicFile.Replace(
             summaryPath,
             JsonSerializer.Serialize(summary, StateJson.Options));
@@ -244,9 +248,36 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             arguments,
             credentialVariable,
             request.Invocation.CredentialValue,
-            cancellationToken);
-        bool outOfMemory = await oomWatch.WaitAsync(agentTask, cancellationToken);
+            CancellationToken.None);
+        TimeSpan agentTimeout = request.Timeout ?? TimeSpan.FromSeconds(5400);
+        Task timeoutTask = Task.Delay(agentTimeout, cancellationToken);
+        Task<bool> oomTask = oomWatch.WaitAsync(agentTask, CancellationToken.None);
+        bool timedOut = false;
+        try
+        {
+            Task completed = await Task.WhenAny(agentTask, oomTask, timeoutTask);
+            if (completed == timeoutTask)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                timedOut = true;
+                await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+            try
+            {
+                await agentTask;
+            }
+            catch
+            {
+            }
+            throw;
+        }
+
         DockerProcessResult agent = await agentTask;
+        bool outOfMemory = await oomTask;
         stopwatch.Stop();
         string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
         AgentUsage? usage = CopilotUsageParser.Parse(agent.StandardError, debugLogDirectory);
@@ -263,7 +294,8 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             Cost: usage?.AiCredits,
             DebugLogDirectory: debugLogDirectory,
             Usage: usage,
-            OutOfMemory: outOfMemory);
+            OutOfMemory: outOfMemory,
+            TimedOut: timedOut);
     }
 
     internal static IReadOnlyList<string> BuildAgentArguments(
@@ -624,7 +656,7 @@ internal sealed class DockerEventOomWatch : IDockerOomWatch
 
             if (action.Equals("oom", StringComparison.OrdinalIgnoreCase))
             {
-                await StopContainerAsync(cancellationToken);
+                await DockerContainerControl.StopAsync(containerName, cancellationToken);
                 return true;
             }
         }
@@ -632,7 +664,23 @@ internal sealed class DockerEventOomWatch : IDockerOomWatch
         return false;
     }
 
-    private async Task StopContainerAsync(CancellationToken cancellationToken)
+    public async ValueTask DisposeAsync()
+    {
+        if (!process.HasExited)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+        }
+
+        process.Dispose();
+    }
+}
+
+internal static class DockerContainerControl
+{
+    public static async Task StopAsync(
+        string containerName,
+        CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo("docker")
         {
@@ -656,18 +704,7 @@ internal sealed class DockerEventOomWatch : IDockerOomWatch
             !error.Contains("No such container", StringComparison.OrdinalIgnoreCase))
         {
             throw new AgentExecutionException(
-                $"failed to stop OOM agent container {containerName}: {error.Trim()}");
+                $"failed to stop agent container {containerName}: {error.Trim()}");
         }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!process.HasExited)
-        {
-            process.Kill(entireProcessTree: true);
-            await process.WaitForExitAsync(CancellationToken.None);
-        }
-
-        process.Dispose();
     }
 }

@@ -51,7 +51,16 @@ public sealed class DockerImageClient : IImageClient
             ?? throw new InvalidOperationException("Docker process could not be started");
         Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
+        try
+        {
+            await process.WaitForExitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+            throw;
+        }
         return new ProcessResult(
             process.ExitCode,
             await outputTask,

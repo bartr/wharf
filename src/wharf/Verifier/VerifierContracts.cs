@@ -105,7 +105,12 @@ public interface IVerifierRunner
         CancellationToken cancellationToken);
 }
 
-public sealed class VerifierExecutionException(string message) : Exception(message);
+public sealed class VerifierExecutionException(
+    string message,
+    string errorType = "Verifier") : Exception(message)
+{
+    public string ErrorType { get; } = errorType;
+}
 
 public static class TrialResultSchema
 {

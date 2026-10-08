@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Wharf.Agent;
 using Wharf.State;
 
 namespace Wharf.Verifier;
@@ -253,7 +254,9 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             throw new VerifierExecutionException("Docker verifier image is required");
         }
 
-        IReadOnlyList<string> arguments = BuildArguments(request, command);
+        string containerName =
+            $"verifier-{SanitizeContainerName(request.TaskId)}-{Guid.NewGuid():N}";
+        IReadOnlyList<string> arguments = BuildArguments(request, command, containerName);
         var startInfo = new ProcessStartInfo("docker")
         {
             RedirectStandardOutput = true,
@@ -281,8 +284,14 @@ public sealed class DockerVerifierRunner : IVerifierRunner
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             timedOut = true;
-            process.Kill(entireProcessTree: true);
+            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
             await process.WaitForExitAsync(CancellationToken.None);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+            await process.WaitForExitAsync(CancellationToken.None);
+            throw;
         }
 
         stopwatch.Stop();
@@ -297,7 +306,8 @@ public sealed class DockerVerifierRunner : IVerifierRunner
 
     internal static IReadOnlyList<string> BuildArguments(
         VerifierRequest request,
-        VerifierCommand command)
+        VerifierCommand command,
+        string? containerName = null)
     {
         if (string.IsNullOrWhiteSpace(request.Image))
         {
@@ -312,9 +322,18 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             request.ArtifactsDirectory
             ?? throw new VerifierExecutionException(
                 "verifier artifacts directory is required for Docker verification"));
-        return
-        [
+        var arguments = new List<string>
+        {
             "run", "--rm", "--label", "com.bartr.wharf.managed=true",
+        };
+        if (!string.IsNullOrWhiteSpace(containerName))
+        {
+            arguments.Add("--name");
+            arguments.Add(containerName);
+        }
+
+        arguments.AddRange(
+        [
             "--network", request.Network,
             "--memory", "8g",
             "--memory-swap", "8g",
@@ -322,6 +341,13 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
             request.Image,
             command.Command
-        ];
+        ]);
+        return arguments;
     }
+
+    private static string SanitizeContainerName(string value) =>
+        string.Concat(value.Select(character =>
+            char.IsLetterOrDigit(character) || character is '-' or '_'
+                ? character
+                : '-'));
 }

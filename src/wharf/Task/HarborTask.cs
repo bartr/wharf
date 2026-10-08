@@ -15,8 +15,9 @@ public sealed record HarborTask(
     int? MemoryMb,
     int? StorageMb,
     int? Gpus,
-    double? BuildTimeoutSeconds,
+    double? AgentBuildTimeoutSeconds,
     double? AgentTimeoutSeconds,
+    double? VerifierBuildTimeoutSeconds,
     double? VerifierTimeoutSeconds,
     string? EnvironmentImage = null);
 

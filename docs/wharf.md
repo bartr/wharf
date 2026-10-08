@@ -71,6 +71,11 @@ container and reuse the task's configured environment image. After MVP,
 - Monitor Docker OOM events for each agent. On the first cgroup OOM kill, stop
   that container, retain its evidence, and fail the trial with the explicit
   `OutOfMemory` error type instead of allowing repeated child-process kills.
+- Enforce each task manifest's independent agent-image build, agent execution,
+  verifier-image build, and verifier execution timeouts. Timed-out processes
+  and containers are terminated, and agent and build timeouts are retained as
+  explicit `AgentTimeout`, `AgentBuildTimeout`, or `VerifierBuildTimeout`
+  failures.
 - Pass task instructions as an attached `--prompt=<text>` argument so a prompt
   beginning with a dash cannot be parsed as another CLI option.
 - Retry a Copilot HTTP 400 reported as an internal server error once in a fresh

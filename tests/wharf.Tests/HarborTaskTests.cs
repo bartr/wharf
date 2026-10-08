@@ -19,10 +19,17 @@ public sealed class HarborTaskTests
             Assert.Equal("1.3", task.SchemaVersion);
             Assert.False(string.IsNullOrWhiteSpace(task.SourceChecksum));
             Assert.True(File.Exists(task.InstructionPath));
+            Assert.Equal(1800, task.AgentBuildTimeoutSeconds);
+            Assert.True(task.AgentTimeoutSeconds > 0);
+            Assert.Equal(1800, task.VerifierBuildTimeoutSeconds);
+            Assert.Equal(1800, task.VerifierTimeoutSeconds);
             Assert.DoesNotContain("solution", Directory.EnumerateFiles(task.RootPath, "*", SearchOption.AllDirectories)
                 .Select(path => Path.GetRelativePath(task.RootPath, path)),
                 StringComparer.OrdinalIgnoreCase);
         });
+        Assert.Equal(
+            1800,
+            tasks.Single(task => task.TaskId == "smoke-go").AgentTimeoutSeconds);
     }
 
     [Fact]

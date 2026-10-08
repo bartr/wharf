@@ -153,7 +153,16 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
             ?? throw new AgentImageException("Docker process could not be started");
         Task<string> output = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> error = process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
+        try
+        {
+            await process.WaitForExitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+            throw;
+        }
         var result = new ProcessResult(process.ExitCode, await output, await error);
         if (result.ExitCode != 0)
             throw new AgentImageException($"Docker command failed: {SelectError(result)}");

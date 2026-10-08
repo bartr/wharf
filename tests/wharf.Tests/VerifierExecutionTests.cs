@@ -117,8 +117,10 @@ public sealed class VerifierExecutionTests
 
         IReadOnlyList<string> arguments = DockerVerifierRunner.BuildArguments(
             request,
-            request.Commands.Single());
+            request.Commands.Single(),
+            "task-verifier");
 
+        AssertArgumentsContain(arguments, "--name", "task-verifier");
         AssertArgumentsContain(arguments, "--memory", "8g");
         AssertArgumentsContain(arguments, "--memory-swap", "8g");
     }

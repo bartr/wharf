@@ -144,12 +144,29 @@ public sealed class RunService
                     async preparationCancellationToken =>
                     {
                         logger.Info($"{prefix} status=preparing-image");
-                        image = await imagePreparer.PrepareAsync(
-                            task,
-                            Path.Combine(trialDirectory, "agent"),
-                            $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
-                            message => logger.Info($"{prefix} status={message}"),
-                            preparationCancellationToken);
+                        using (var buildTimeout = CancellationTokenSource.CreateLinkedTokenSource(
+                                   preparationCancellationToken))
+                        {
+                            buildTimeout.CancelAfter(TimeSpan.FromSeconds(
+                                task.AgentBuildTimeoutSeconds ?? 1800));
+                            try
+                            {
+                                image = await imagePreparer.PrepareAsync(
+                                    task,
+                                    Path.Combine(trialDirectory, "agent"),
+                                    $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
+                                    message => logger.Info($"{prefix} status={message}"),
+                                    buildTimeout.Token);
+                            }
+                            catch (OperationCanceledException) when (
+                                !preparationCancellationToken.IsCancellationRequested &&
+                                buildTimeout.IsCancellationRequested)
+                            {
+                                throw new AgentExecutionException(
+                                    "agent image build exceeded its timeout",
+                                    "AgentBuildTimeout");
+                            }
+                        }
                         logger.Info($"{prefix} status=image-ready image={image}");
                         if (invocation is null)
                         {
@@ -169,7 +186,8 @@ public sealed class RunService
                                     .ToArray()
                             },
                             [],
-                            $"{SanitizePathPart(task.TaskId)}__{runId}");
+                            $"{SanitizePathPart(task.TaskId)}__{runId}",
+                            TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400));
                         logger.Info($"{prefix} status=preparing-workspace");
                         await workspacePreparer.PrepareAsync(
                             request,
@@ -254,7 +272,7 @@ public sealed class RunService
                 logger.Info(
                     $"{prefix} status=agent-failed error={exception.Message}",
                     exception.Message,
-                    "AgentExecution");
+                    exception.ErrorType);
             }
             string taskStatus = "agent-failed";
             string? patch = null;
@@ -277,12 +295,13 @@ public sealed class RunService
                         agentPatchPath!,
                         Path.Combine(artifactsDirectory, "model.patch"),
                         overwrite: true);
-                    string? verifierImage = PrepareVerifierImage(
+                    string? verifierImage = await PrepareVerifierImageAsync(
                         task,
                         trialDirectory,
                         runId,
                         logger,
-                        prefix);
+                        prefix,
+                        trialCancellationToken);
                     PristineVerifierService verifierService = verifierImage is null
                         ? verifier
                         : new PristineVerifierService(
@@ -335,7 +354,7 @@ public sealed class RunService
                     logger.Info(
                         $"{prefix} status=verifier-failed error={verifierError}",
                         verifierError,
-                        "Verifier");
+                        exception.ErrorType);
                 }
             }
             else
@@ -386,12 +405,13 @@ public sealed class RunService
             _ => "true"
         };
 
-    private static string? PrepareVerifierImage(
+    private static async Task<string?> PrepareVerifierImageAsync(
         HarborTask task,
         string trialDirectory,
         string runId,
         WharfLogger logger,
-        string prefix)
+        string prefix,
+        CancellationToken cancellationToken)
     {
         string context = Path.Combine(task.RootPath, "tests");
         string dockerfile = Path.Combine(context, "Dockerfile");
@@ -414,15 +434,48 @@ public sealed class RunService
             startInfo.ArgumentList.Add(argument);
         }
         using Process process = Process.Start(startInfo)
-            ?? throw new RunException("Docker verifier image process could not be started");
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
-        process.WaitForExit();
+            ?? throw new VerifierExecutionException(
+                "Docker verifier image process could not be started",
+                "VerifierBuild");
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(task.VerifierBuildTimeoutSeconds ?? 1800));
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException) when (
+            !cancellationToken.IsCancellationRequested &&
+            timeout.IsCancellationRequested)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+            string timedOutOutput = await outputTask;
+            string timedOutError = await errorTask;
+            File.WriteAllText(
+                Path.Combine(trialDirectory, "verifier", "image-build.log"),
+                timedOutOutput + timedOutError);
+            throw new VerifierExecutionException(
+                "verifier image build exceeded its timeout",
+                "VerifierBuildTimeout");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+            throw;
+        }
+
+        string output = await outputTask;
+        string error = await errorTask;
         File.WriteAllText(Path.Combine(trialDirectory, "verifier", "image-build.log"), output + error);
         if (process.ExitCode != 0)
         {
-            throw new RunException(
-                $"Docker verifier image build failed: {(string.IsNullOrWhiteSpace(error) ? output : error).Trim()}");
+            throw new VerifierExecutionException(
+                $"Docker verifier image build failed: " +
+                $"{(string.IsNullOrWhiteSpace(error) ? output : error).Trim()}",
+                "VerifierBuild");
         }
 
         logger.Info($"{prefix} status=verifier-image-ready image={image}");
