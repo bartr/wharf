@@ -254,6 +254,7 @@ public sealed partial class CopilotAdapter
             "medium" => "medium",
             "high" => "high",
             "xhigh" => "high",
+            "max" => "max",
             _ => throw new CopilotAdapterException($"unsupported frontier effort: {effort}")
         };
 
@@ -268,7 +269,7 @@ public sealed partial class CopilotAdapter
 
     private static void ValidateEffort(string effort, string name)
     {
-        if (effort.Trim().ToLowerInvariant() is not ("low" or "medium" or "high"))
+        if (effort.Trim().ToLowerInvariant() is not ("low" or "medium" or "high" or "max"))
         {
             throw new CopilotAdapterException($"unsupported {name}: {effort}");
         }

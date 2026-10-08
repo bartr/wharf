@@ -183,7 +183,7 @@ public static class CommandTree
             DefaultValueFactory = _ => "wharf-run.jsonl"
         };
         var model = new Option<string?>("--model") { Description = "Model name." };
-        var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, or high." };
+        var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, high, or max." };
         var include = new Option<string?>("--include")
         {
             Description = "Run only tasks matching the task ID, category, or language."

@@ -25,11 +25,11 @@ public sealed class RunConfigurationTests
         Assert.Equal(4, result.N);
         Assert.Equal(1, result.B);
         Assert.Equal("environment-model", result.Model);
-        Assert.Equal("medium", result.Effort);
+        Assert.Equal("max", result.Effort);
     }
 
     [Fact]
-    public void UsesGptSixLunaWhenModelIsNotConfigured()
+    public void UsesGptFiveSixLunaWhenModelIsNotConfigured()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
             new RunManifest(),
@@ -37,7 +37,8 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>());
 
         Assert.Equal(1, result.K);
-        Assert.Equal("gpt-6-luna", result.Model);
+        Assert.Equal("gpt-5.6-luna", result.Model);
+        Assert.Equal("max", result.Effort);
         Assert.Equal("latest", result.CliVersion);
     }
 

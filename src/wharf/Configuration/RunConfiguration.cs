@@ -123,7 +123,7 @@ public static class RunManifestLoader
 public static class RunConfigurationResolver
 {
     public const string DefaultCopilotCli = "copilot";
-    public const string DefaultCopilotModel = "gpt-6-luna";
+    public const string DefaultCopilotModel = "gpt-5.6-luna";
     public const string DefaultCopilotVersion = "latest";
 
     public static RunConfiguration Resolve(
@@ -156,8 +156,8 @@ public static class RunConfigurationResolver
             EnvironmentValue("WHARF_OUTPUT_DIRECTORY"),
             manifest.Output?.Directory,
             "jobs");
-        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, "gpt-6-luna");
-        string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "medium");
+        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, DefaultCopilotModel);
+        string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "max");
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
             EnvironmentValue("WHARF_TOKEN") ?? manifest.Credentials?.Token,
@@ -199,7 +199,7 @@ public static class RunConfigurationResolver
 public static class RunConfigurationValidator
 {
     private static readonly HashSet<string> Formats = ["text", "json"];
-    private static readonly HashSet<string> Efforts = ["low", "medium", "high"];
+    private static readonly HashSet<string> Efforts = ["low", "medium", "high", "max"];
     private static readonly HashSet<string> Policies = ["default", "restricted", "unrestricted"];
 
     public static void Validate(RunManifest? manifest, RunConfiguration configuration)
