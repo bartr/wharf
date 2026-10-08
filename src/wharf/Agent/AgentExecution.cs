@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Wharf.State;
 
 namespace Wharf.Agent;
@@ -92,7 +93,8 @@ public sealed class AgentExecutionService
             Path.GetFileName(patchPath),
             Path.GetFileName(stdoutPath),
             Path.GetFileName(stderrPath),
-            Path.GetFileName(trajectoryPath));
+            Path.GetFileName(trajectoryPath),
+            result.Usage);
         AtomicFile.Replace(
             summaryPath,
             JsonSerializer.Serialize(summary, StateJson.Options));
@@ -100,7 +102,7 @@ public sealed class AgentExecutionService
     }
 }
 
-public sealed class DockerAgentRunner : IAgentRunner
+public sealed partial class DockerAgentRunner : IAgentRunner
 {
     public async Task<AgentRunResult> RunAsync(
         AgentExecutionRequest request,
@@ -162,6 +164,8 @@ public sealed class DockerAgentRunner : IAgentRunner
         string output = await outputTask;
         string error = await errorTask;
         stopwatch.Stop();
+        string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
+        AgentUsage? usage = CopilotUsageParser.Parse(error, debugLogDirectory);
         string patch = await ReadPatchAsync(request.WorkspaceDirectory, cancellationToken);
         return new AgentRunResult(
             process.ExitCode,
@@ -170,7 +174,77 @@ public sealed class DockerAgentRunner : IAgentRunner
             output,
             patch,
             stopwatch.Elapsed,
-            DebugLogDirectory: Path.Combine(request.WorkspaceDirectory, ".copilot-logs"));
+            Tokens: usage is null ? null : checked((int)usage.TotalTokens),
+            Requests: usage?.Requests,
+            Cost: usage?.AiCredits,
+            DebugLogDirectory: debugLogDirectory,
+            Usage: usage);
+    }
+
+    internal static partial class CopilotUsageParser
+    {
+        public static AgentUsage? Parse(string standardError, string logDirectory)
+        {
+            string logs = standardError;
+            if (Directory.Exists(logDirectory))
+            {
+                foreach (string file in Directory.EnumerateFiles(logDirectory, "*.log", SearchOption.AllDirectories))
+                {
+                    logs += Environment.NewLine + File.ReadAllText(file);
+                }
+            }
+
+            var models = new Dictionary<string, AgentModelUsage>(StringComparer.Ordinal);
+            foreach (Match match in ModelMetricRegex().Matches(logs))
+            {
+                string model = match.Groups["model"].Value;
+                string metric = match.Groups["metric"].Value;
+                long value = long.Parse(match.Groups["value"].Value);
+                AgentModelUsage current = models.TryGetValue(model, out AgentModelUsage? existing)
+                    ? existing
+                    : new AgentModelUsage(0, 0, 0, 0, 0, 0, 0);
+                models[model] = metric switch
+                {
+                    "input_tokens" => current with { InputTokens = value },
+                    "output_tokens" => current with { OutputTokens = value },
+                    "cache_read_tokens" => current with { CacheReadTokens = value },
+                    "cache_write_tokens" => current with { CacheWriteTokens = value },
+                    "reasoning_tokens" => current with { ReasoningTokens = value },
+                    "request_count" => current with { Requests = checked((int)value) },
+                    "request_cost" => current with { RequestCost = decimal.Parse(
+                        match.Groups["value"].Value, System.Globalization.CultureInfo.InvariantCulture) },
+                    _ => current
+                };
+            }
+
+            decimal? aiCredits = AiCreditsRegex().Match(standardError) is Match creditMatch &&
+                creditMatch.Success
+                ? decimal.Parse(creditMatch.Groups["value"].Value, System.Globalization.CultureInfo.InvariantCulture)
+                : null;
+            if (models.Count == 0 && aiCredits is null)
+            {
+                return null;
+            }
+
+            return new AgentUsage(
+                models.Values.Sum(model => model.InputTokens),
+                models.Values.Sum(model => model.OutputTokens),
+                models.Values.Sum(model => model.CacheReadTokens),
+                models.Values.Sum(model => model.CacheWriteTokens),
+                models.Values.Sum(model => model.ReasoningTokens),
+                models.Values.Sum(model => model.Requests),
+                models.Values.Sum(model => model.RequestCost),
+                aiCredits,
+                models);
+        }
+
+        [GeneratedRegex(
+            "\"model_(?<model>[^\"]+)_(?<metric>input_tokens|output_tokens|cache_read_tokens|cache_write_tokens|reasoning_tokens|request_count|request_cost)\":\\s+\"?(?<value>[0-9.]+)\"?",
+            RegexOptions.CultureInvariant)]
+        private static partial Regex ModelMetricRegex();
+
+        [GeneratedRegex(@"AI Credits (?<value>[0-9]+(?:\.[0-9]+)?)", RegexOptions.CultureInvariant)]
+        private static partial Regex AiCreditsRegex();
     }
 
     private static async Task<string> ReadPatchAsync(

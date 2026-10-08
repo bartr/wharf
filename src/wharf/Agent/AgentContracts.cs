@@ -72,7 +72,31 @@ public sealed record AgentRunResult(
     int? Steps = null,
     int? Requests = null,
     decimal? Cost = null,
-    string? DebugLogDirectory = null);
+    string? DebugLogDirectory = null,
+    AgentUsage? Usage = null);
+
+public sealed record AgentModelUsage(
+    long InputTokens,
+    long OutputTokens,
+    long CacheReadTokens,
+    long CacheWriteTokens,
+    long ReasoningTokens,
+    int Requests,
+    decimal RequestCost);
+
+public sealed record AgentUsage(
+    long InputTokens,
+    long OutputTokens,
+    long CacheReadTokens,
+    long CacheWriteTokens,
+    long ReasoningTokens,
+    int Requests,
+    decimal RequestCost,
+    decimal? AiCredits,
+    IReadOnlyDictionary<string, AgentModelUsage> Models)
+{
+    public long TotalTokens => InputTokens + OutputTokens;
+}
 
 public sealed record AgentEvidenceSummary(
     string SchemaVersion,
@@ -87,7 +111,8 @@ public sealed record AgentEvidenceSummary(
     string PatchPath,
     string StandardOutputPath,
     string StandardErrorPath,
-    string TrajectoryPath);
+    string TrajectoryPath,
+    AgentUsage? Usage = null);
 
 public interface IAgentRunner
 {
