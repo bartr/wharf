@@ -12,10 +12,10 @@ public sealed class HostProfileTests
             profile,
             new HostCapacity(128, 512L * 1024 * 1024 * 1024),
             operatorLimit: 12,
-            operatorBuildLimit: 4);
+            operatorPreparationLimit: 4);
 
         Assert.Equal(12, recommendation.RecommendedConcurrency);
-        Assert.Equal(4, recommendation.RecommendedBuildConcurrency);
+        Assert.Equal(4, recommendation.RecommendedPreparationConcurrency);
         Assert.False(recommendation.RaisedOperatorLimit);
     }
 
@@ -26,7 +26,7 @@ public sealed class HostProfileTests
             HostProfiles.Get("on-prem-32"),
             new HostCapacity(8, 16L * 1024 * 1024 * 1024),
             operatorLimit: 32,
-            operatorBuildLimit: 16);
+            operatorPreparationLimit: 16);
 
         Assert.Equal(8, recommendation.RecommendedConcurrency);
         Assert.Contains("host capacity is below the published target", recommendation.Reasons);

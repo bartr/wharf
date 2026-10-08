@@ -86,7 +86,7 @@ V1 does not include:
 | Check and smoke | Validate the host and full execution path | Must fail before paid work on invalid hosts or configuration |
 | Dataset/task loader | Read Harbor task and dataset definitions | DeepSWE is the initial provider |
 | Scheduler | Order, admit, retry, resume, and drain logical attempts | Work-conserving; deterministic order; no distributed coordination in v1 |
-| Docker worker | Prepare images and run isolated agent and verifier environments | `B` gates the complete image-preparation/build pipeline |
+| Docker worker | Prepare images and run isolated agent and verifier environments | `P` gates shared agent and verifier preparation, not execution |
 | Copilot adapter | Install and run a pinned Copilot CLI headlessly | Records requested and effective CLI, model, effort, and subagent models |
 | State store | Persist append-only events and materialized summaries | Atomic writes; idempotent recovery; versioned schemas |
 | Artifact store | Retain patches, logs, trajectories, verifier evidence, and cost | Retain everything in v1 |
@@ -194,8 +194,9 @@ Global CLI behavior:
 
 - `K` is the number of attempts per task; full DeepSWE defaults to `K=4`.
 - `N` limits concurrent trials.
-- `B` limits the complete image-preparation/build pipeline, including required
-  base-image pulls.
+- `P` limits shared agent and verifier preparation, including required
+  base-image pulls, workspace creation, and patch application. Verifier
+  commands do not hold a preparation permit.
 - V1 exposes no separate pull semaphore or pull-concurrency flag.
 - CLI versions, models, effort values, and adapter options must be recognized.
 - Unsupported hosts fail check unless the explicit unsupported-host override
@@ -299,7 +300,7 @@ JSONL. [Source: Development process, Acceptance criteria]
 ### 10.2 Integration tests
 
 Integration tests cover Docker host preflight, image deduplication, derived
-image reuse, the `B` build-pipeline gate, 429 backoff and telemetry, Copilot
+image reuse, the `P` preparation gate, 429 backoff and telemetry, Copilot
 version pinning, patch capture, separate verification, cleanup, interruption,
 resume, and report regeneration. Interruptions are injected during pull, build,
 agent setup, agent execution, verification, and reporting. [Source: Image pulls
@@ -343,7 +344,7 @@ built-in default.
 |---------|------------------|---------|---------|
 | Attempts | `K` / manifest equivalent | `4` for full DeepSWE | Attempts per task |
 | Trial concurrency | `N` / manifest equivalent | Host/run profile | Concurrent logical trials |
-| Build pipeline concurrency | `B` / manifest equivalent | Available CPU, operator-overridable | Image preparation and builds |
+| Preparation concurrency | `P` / manifest equivalent | Available CPU, operator-overridable | Agent and verifier preparation |
 | CLI version | Adapter version setting | Explicit run value | Pin Copilot CLI |
 | Model | Adapter model setting | Adapter-defined | Select main model |
 | Effort | Adapter effort setting | Model/adapter-defined | Preserve native value and normalized class |
@@ -408,7 +409,7 @@ The README must document these steps and the exact validation command.
   infrastructure retries.
 - [ ] Status reports every lifecycle state without attaching to tmux or
   mutating the run.
-- [ ] The `B` gate limits the complete image-preparation/build pipeline.
+- [ ] The `P` gate limits agent and verifier preparation and is released before execution.
 - [ ] Duplicate pulls and identical derived-agent builds are coalesced.
 - [ ] Registry rate limits use bounded backoff with decay and jitter;
   deterministic failures are not retried as rate limits.

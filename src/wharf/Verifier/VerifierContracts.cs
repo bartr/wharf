@@ -72,6 +72,12 @@ public sealed record VerifierCommandResult(
     long DurationMilliseconds,
     bool TimedOut);
 
+public sealed record PreparedVerifierRun(
+    VerifierRequest Request,
+    string Patch,
+    string EvidenceDirectory,
+    string WorkspaceDirectory);
+
 public sealed record TrialResult(
     string SchemaVersion,
     string TaskId,

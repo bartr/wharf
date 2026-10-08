@@ -16,7 +16,7 @@ public sealed record ProfileRecommendation(
     string ProfileId,
     int OperatorLimit,
     int RecommendedConcurrency,
-    int RecommendedBuildConcurrency,
+    int RecommendedPreparationConcurrency,
     bool RaisedOperatorLimit,
     IReadOnlyList<string> Reasons);
 
@@ -68,20 +68,22 @@ public sealed class HostProfileService
         HostProfile profile,
         HostCapacity capacity,
         int operatorLimit,
-        int operatorBuildLimit)
+        int operatorPreparationLimit)
     {
-        if (operatorLimit < 1 || operatorBuildLimit < 1)
+        if (operatorLimit < 1 || operatorPreparationLimit < 1)
             throw new QualificationException("operator limits must be positive");
 
         int resourceLimit = (int)Math.Min(
             Math.Min(profile.TargetConcurrency, Math.Max(1, capacity.CpuCount * 2)),
             Math.Max(1, capacity.MemoryBytes / (2L * 1024 * 1024 * 1024)));
         int recommendation = Math.Min(operatorLimit, resourceLimit);
-        int buildRecommendation = Math.Min(operatorBuildLimit, Math.Max(1, (int)capacity.CpuCount));
+        int preparationRecommendation = Math.Min(
+            operatorPreparationLimit,
+            Math.Max(1, (int)capacity.CpuCount));
         List<string> reasons =
         [
             $"operator trial limit={operatorLimit}",
-            $"operator build limit={operatorBuildLimit}",
+            $"operator preparation limit={operatorPreparationLimit}",
             $"resource cap={resourceLimit}"
         ];
         if (operatorLimit < profile.TargetConcurrency)
@@ -93,7 +95,7 @@ public sealed class HostProfileService
             profile.Id,
             operatorLimit,
             recommendation,
-            buildRecommendation,
+            preparationRecommendation,
             RaisedOperatorLimit: false,
             reasons);
     }

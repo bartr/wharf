@@ -118,3 +118,12 @@ version management cannot recursively rediscover its own staging tree. The
 next release replaces public `B` build concurrency with `P` preparation
 concurrency and applies the shared gate to both agent and verifier preparation,
 but not verifier execution.
+
+Session 23 starts `0.23.0` with the breaking `P` preparation-concurrency
+contract. Only `p`, `--p`, `P`, and `WHARF_P` are accepted; no B compatibility
+aliases remain. One observable gate covers agent image/workspace/Copilot
+preparation, agent retry preparation, verifier image preparation, pristine
+workspace creation, and patch application. Release the permit before agent or
+verifier commands execute. Durable `preparation-gate` events record ordered
+waiting, acquired, released, and cancelled transitions with capacity,
+occupancy, queue depth, operation type, and acquisition wait time.

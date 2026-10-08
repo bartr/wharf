@@ -103,7 +103,7 @@ public sealed class RunService
         }
         logger.Info(
             $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
-            $"task-concurrency={configuration.N} preparation-concurrency={configuration.B}" +
+            $"task-concurrency={configuration.N} preparation-concurrency={configuration.P}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
         logger.Info(
             $"run created {attemptDirectory} under {jobDirectory}" +
@@ -111,7 +111,9 @@ public sealed class RunService
 
         IReadOnlyList<TaskAttempt> scheduledAttempts = TaskSelector.OrderAttemptsForAdmission(
             TaskSelector.ExpandAttempts(tasks, configuration.K));
-        using var preparationGate = new PreparationGate(configuration.B);
+        using var preparationGate = new PreparationGate(
+            configuration.P,
+            logger.PreparationGateChanged);
         Parallel.ForEachAsync(
             scheduledAttempts.Select((attempt, index) => (attempt, index)),
             new ParallelOptions
@@ -207,6 +209,7 @@ public sealed class RunService
                 {
                     logger.Info($"{prefix} status=waiting-preparation");
                     agentRequest = await preparationGate.ExecuteAsync(
+                        PreparationOperation.Agent,
                         async preparationCancellationToken =>
                         {
                             logger.Info($"{prefix} status=preparing-image");
@@ -309,6 +312,7 @@ public sealed class RunService
                                     ContainerName = $"{executionName}-retry-{retryNumber}"
                                 };
                                 await preparationGate.ExecuteAsync(
+                                    PreparationOperation.AgentRetry,
                                     async prepareCancellationToken =>
                                     {
                                         await workspacePreparer.PrepareAsync(
@@ -447,37 +451,55 @@ public sealed class RunService
                             agentPatchPath!,
                             Path.Combine(artifactsDirectory, "model.patch"),
                             overwrite: true);
-                        verifierImage = await PrepareVerifierImageAsync(
-                            task,
-                            trialDirectory,
-                            $"{runId}{attemptSuffix}{trialRetrySuffix}",
-                            logger,
-                            prefix,
-                            trialCancellationToken);
-                        PristineVerifierService verifierService = verifierImage is null
-                            ? verifier
-                            : new PristineVerifierService(
-                                new FilePristineWorkspaceFactory(),
-                                new RetainingPatchApplier(),
-                                new DockerVerifierRunner());
-                        TrialResult verification = await verifierService.VerifyAsync(
-                            new VerifierRequest(
-                                task.TaskId,
-                                sourceDirectory,
-                                workspaceDirectory,
-                                verifierImage is null ? "bridge" : "none",
-                                [new VerifierCommand(
-                                verifierImage is null ? "tests" : "grader",
-                                verifierImage is null ? VerifierCommandFor(task.Language) : "/tests/test.sh",
-                                TimeSpan.FromSeconds(task.VerifierTimeoutSeconds ?? 1800))],
-                                [],
-                                [],
-                                verifierImage,
-                                verifierDirectory,
-                                artifactsDirectory),
-                            patch!,
-                            verifierDirectory,
-                            trialCancellationToken);
+                        (PristineVerifierService Service, PreparedVerifierRun Prepared)
+                            preparedVerifier = await preparationGate.ExecuteAsync(
+                                PreparationOperation.Verifier,
+                                async preparationCancellationToken =>
+                                {
+                                    verifierImage = await PrepareVerifierImageAsync(
+                                        task,
+                                        trialDirectory,
+                                        $"{runId}{attemptSuffix}{trialRetrySuffix}",
+                                        logger,
+                                        prefix,
+                                        preparationCancellationToken);
+                                    PristineVerifierService verifierService =
+                                        verifierImage is null
+                                            ? verifier
+                                            : new PristineVerifierService(
+                                                new FilePristineWorkspaceFactory(),
+                                                new RetainingPatchApplier(),
+                                                new DockerVerifierRunner());
+                                    var verifierRequest = new VerifierRequest(
+                                        task.TaskId,
+                                        sourceDirectory,
+                                        workspaceDirectory,
+                                        verifierImage is null ? "bridge" : "none",
+                                        [new VerifierCommand(
+                                            verifierImage is null ? "tests" : "grader",
+                                            verifierImage is null
+                                                ? VerifierCommandFor(task.Language)
+                                                : "/tests/test.sh",
+                                            TimeSpan.FromSeconds(
+                                                task.VerifierTimeoutSeconds ?? 1800))],
+                                        [],
+                                        [],
+                                        verifierImage,
+                                        verifierDirectory,
+                                        artifactsDirectory);
+                                    PreparedVerifierRun prepared =
+                                        await verifierService.PrepareAsync(
+                                            verifierRequest,
+                                            patch!,
+                                            verifierDirectory,
+                                            preparationCancellationToken);
+                                    return (verifierService, prepared);
+                                },
+                                trialCancellationToken);
+                        TrialResult verification =
+                            await preparedVerifier.Service.VerifyPreparedAsync(
+                                preparedVerifier.Prepared,
+                                trialCancellationToken);
                         taskStatus = verification.Status;
                         verifierStageResult = taskStatus;
                         verifierError = null;

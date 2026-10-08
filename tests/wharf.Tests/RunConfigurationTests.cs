@@ -8,7 +8,7 @@ public sealed class RunConfigurationTests
     [Fact]
     public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
     {
-        var manifest = new RunManifest(K: 3, N: 2, B: 1, Model: "manifest-model");
+        var manifest = new RunManifest(K: 3, N: 2, P: 1, Model: "manifest-model");
         var environment = new Dictionary<string, string?>
         {
             ["WHARF_K"] = "5",
@@ -23,7 +23,7 @@ public sealed class RunConfigurationTests
 
         Assert.Equal(7, result.K);
         Assert.Equal(4, result.N);
-        Assert.Equal(1, result.B);
+        Assert.Equal(1, result.P);
         Assert.Equal("environment-model", result.Model);
         Assert.Equal("max", result.Effort);
     }
@@ -64,7 +64,7 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>());
 
         Assert.Equal(4, result.N);
-        Assert.Equal(4, result.B);
+        Assert.Equal(4, result.P);
     }
 
     [Fact]
@@ -114,15 +114,15 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
-    public void CapsBuildConcurrencyAtTaskConcurrency()
+    public void CapsPreparationConcurrencyAtTaskConcurrency()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
             new RunManifest(),
-            new RunConfigurationOverrides(N: 2, B: 8),
+            new RunConfigurationOverrides(N: 2, P: 8),
             new Dictionary<string, string?>());
 
         Assert.Equal(2, result.N);
-        Assert.Equal(2, result.B);
+        Assert.Equal(2, result.P);
     }
 
     [Fact]
@@ -134,11 +134,11 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>
             {
                 ["N"] = "1",
-                ["B"] = "4"
+                ["P"] = "4"
             });
 
         Assert.Equal(1, result.N);
-        Assert.Equal(1, result.B);
+        Assert.Equal(1, result.P);
     }
 
     [Fact]
@@ -150,13 +150,13 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>
             {
                 ["N"] = "1",
-                ["B"] = "1",
+                ["P"] = "1",
                 ["WHARF_N"] = "4",
-                ["WHARF_B"] = "4"
+                ["WHARF_P"] = "4"
             });
 
         Assert.Equal(1, result.N);
-        Assert.Equal(1, result.B);
+        Assert.Equal(1, result.P);
     }
 
     [Fact]
@@ -199,6 +199,24 @@ public sealed class RunConfigurationTests
     {
         string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
         File.WriteAllText(path, """{"schemaVersion":"1.0","unknown":true}""");
+
+        try
+        {
+            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+                () => RunManifestLoader.Load(path));
+            Assert.Contains("invalid manifest", exception.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void LegacyBuildConcurrencyManifestKeyIsRejected()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{"schemaVersion":"1.0","b":2}""");
 
         try
         {

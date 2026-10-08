@@ -1,4 +1,5 @@
 using Wharf.Verifier;
+using Wharf.Run;
 
 namespace Wharf.Tests;
 
@@ -25,6 +26,63 @@ public sealed class VerifierExecutionTests
         Assert.Equal("diff --git a/file b/file", applier.Patch);
         Assert.True(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
         Assert.True(File.Exists(Path.Combine(evidence.Path, "check.stdout.log")));
+    }
+
+    [Fact]
+    public async Task PreparationDoesNotRunVerifierCommands()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        var runner = new FakeVerifierRunner();
+        var service = new PristineVerifierService(
+            new FakeWorkspaceFactory(source.Path),
+            new RecordingPatchApplier(),
+            runner);
+
+        PreparedVerifierRun prepared = await service.PrepareAsync(
+            Request(source.Path, agent.Path),
+            "patch",
+            evidence.Path);
+
+        Assert.Equal(0, runner.CallCount);
+        TrialResult result = await service.VerifyPreparedAsync(prepared);
+        Assert.Equal("passed", result.Status);
+        Assert.Equal(1, runner.CallCount);
+    }
+
+    [Fact]
+    public async Task VerifierCommandDoesNotHoldPreparationPermit()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        var runner = new BlockingVerifierRunner();
+        var service = new PristineVerifierService(
+            new FakeWorkspaceFactory(source.Path),
+            new RecordingPatchApplier(),
+            runner);
+        await using var gate = new PreparationGate(1);
+        PreparedVerifierRun prepared = await gate.ExecuteAsync(
+            PreparationOperation.Verifier,
+            cancellationToken => service.PrepareAsync(
+                Request(source.Path, agent.Path),
+                "patch",
+                evidence.Path,
+                cancellationToken),
+            CancellationToken.None);
+
+        Task<TrialResult> verification = service.VerifyPreparedAsync(prepared);
+        await runner.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        int agentPreparation = await gate.ExecuteAsync(
+            PreparationOperation.Agent,
+            _ => Task.FromResult(42),
+            CancellationToken.None);
+
+        Assert.Equal(42, agentPreparation);
+        Assert.False(verification.IsCompleted);
+        runner.Release.SetResult();
+        Assert.Equal("passed", (await verification).Status);
     }
 
     [Fact]
@@ -211,18 +269,23 @@ public sealed class VerifierExecutionTests
 
     private sealed class FakeVerifierRunner(bool fail = false) : IVerifierRunner
     {
+        public int CallCount { get; private set; }
+
         public Task<VerifierCommandResult> RunAsync(
             VerifierRequest request,
             string workspaceDirectory,
             VerifierCommand command,
-            CancellationToken cancellationToken) =>
-            Task.FromResult(new VerifierCommandResult(
+            CancellationToken cancellationToken)
+        {
+            CallCount++;
+            return Task.FromResult(new VerifierCommandResult(
                 command.Name,
                 fail ? 1 : 0,
                 "stdout",
                 fail ? "failed" : "",
                 1,
                 false));
+        }
     }
 
     private sealed class RewardWritingVerifierRunner(
@@ -245,6 +308,31 @@ public sealed class VerifierExecutionTests
                 "",
                 1,
                 false));
+        }
+    }
+
+    private sealed class BlockingVerifierRunner : IVerifierRunner
+    {
+        public TaskCompletionSource Started { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async Task<VerifierCommandResult> RunAsync(
+            VerifierRequest request,
+            string workspaceDirectory,
+            VerifierCommand command,
+            CancellationToken cancellationToken)
+        {
+            Started.SetResult();
+            await Release.Task.WaitAsync(cancellationToken);
+            return new VerifierCommandResult(
+                command.Name,
+                0,
+                "stdout",
+                "",
+                1,
+                false);
         }
     }
 

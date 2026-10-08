@@ -43,9 +43,9 @@ rate limits with bounded exponential backoff and jitter. Image preparation can
 write versioned evidence to `image-pulls.jsonl` and
 `image-pull-summary.json`. Derived image builds and the complete preparation
 concurrency gate are coordinated by `DerivedImageCoordinator`, which applies
-the configured `B` limit across base preparation, context preparation, and
-derived builds. Deterministic cache keys allow normal builds to be reused and
-coalesced; force builds bypass the cache.
+the configured `P` limit across agent and verifier preparation. Verifier
+commands run after the permit is released. Deterministic cache keys allow
+normal builds to be reused and coalesced; force builds bypass the cache.
 
 ## Copilot adapter
 
@@ -79,10 +79,10 @@ duplicates, exposes lifecycle counts, and records cancellation transitions.
 
 ## Phase execution
 
-The `Wharf.Execution` boundary gates build, agent, and verifier phases
-independently, applies timeout multipliers and overrides, and retries only
-classified infrastructure failures within a bound. Infrastructure retry
-evidence is persisted separately from logical attempts.
+The `Wharf.Execution` boundary shares preparation capacity while keeping agent and
+verifier execution independent, applies timeout multipliers and overrides, and
+retries only classified infrastructure failures within a bound.
+Infrastructure retry evidence is persisted separately from logical attempts.
 
 ## Recovery
 
@@ -108,8 +108,8 @@ blocked notifications. Optional webhook delivery is HTTPS-only.
 
 `wharf profile` emits a conservative concurrency recommendation for the
 published `on-prem-32` and `on-prem-88` targets. Recommendations never exceed
-the operator-provided `--operator-limit` or `--build-limit`, and profiles are
-not considered qualified without retained benchmark evidence.
+the operator-provided `--operator-limit` or `--preparation-limit`, and profiles
+are not considered qualified without retained benchmark evidence.
 
 ## Release qualification
 

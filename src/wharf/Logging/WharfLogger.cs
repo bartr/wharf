@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Globalization;
 using Wharf.Configuration;
+using Wharf.Run;
 
 namespace Wharf.Logging;
 
@@ -139,6 +140,38 @@ public sealed class WharfLogger : IDisposable
             TextWriter.Null,
             error,
             errorType,
+            fields: fields);
+    }
+
+    internal void PreparationGateChanged(PreparationGateEvent gateEvent)
+    {
+        var fields = new Dictionary<string, object?>
+        {
+            ["eventType"] = "preparation-gate",
+            ["sequence"] = gateEvent.Sequence,
+            ["operation"] = gateEvent.Operation switch
+            {
+                PreparationOperation.Agent => "agent",
+                PreparationOperation.AgentRetry => "agent-retry",
+                PreparationOperation.Verifier => "verifier",
+                _ => throw new ArgumentOutOfRangeException(
+                    nameof(gateEvent),
+                    gateEvent.Operation,
+                    "unknown preparation operation")
+            },
+            ["transition"] = gateEvent.Transition,
+            ["capacity"] = gateEvent.Capacity,
+            ["active"] = gateEvent.Active,
+            ["waiting"] = gateEvent.Waiting
+        };
+        if (gateEvent.WaitMilliseconds is not null)
+            fields["waitMilliseconds"] = gateEvent.WaitMilliseconds;
+        Write(
+            "info",
+            $"preparation-gate operation={fields["operation"]} " +
+            $"transition={gateEvent.Transition} active={gateEvent.Active} " +
+            $"waiting={gateEvent.Waiting} capacity={gateEvent.Capacity}",
+            TextWriter.Null,
             fields: fields);
     }
 

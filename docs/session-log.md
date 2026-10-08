@@ -855,3 +855,27 @@ concurrency. Apply one shared preparation gate to agent image/workspace/Copilot
 setup and verifier image/workspace/patch setup, while releasing the permit
 before verifier commands execute. Add occupancy and wait-time telemetry before
 using the cold Docker run to tune P.
+
+---
+
+## Session 23: shared preparation capacity, 2026-10-08
+
+### Frame
+
+* Goal: release the first `0.23.0` change with a breaking B-to-P configuration
+  rename, one observable preparation gate shared by agents and verifiers, and
+  no permit held during verifier execution.
+* Out of scope: compatibility aliases, changing the default concurrency,
+  gating verifier commands, tuning z01 before cold-run evidence, or changing
+  the interactive progress layout.
+* Failure condition: an old B surface remains active, verifier execution holds
+  a preparation permit, or telemetry cannot reconstruct occupancy and wait
+  time.
+* Start: 2026-10-08 13:31 CDT.
+
+### Fit check
+
+Proceed. The plan fits if the releaseable cut remains configuration rename,
+shared gate boundary, durable telemetry, tests, and normative documentation;
+interactive progress visualization, default tuning, and the cold benchmark
+remain out of scope.

@@ -177,7 +177,7 @@ public static class CommandTree
         dryRun.Aliases.Add("-d");
         var k = new Option<int?>("--k") { Description = "Attempts per task." };
         var n = new Option<int?>("--n") { Description = "Task concurrency." };
-        var b = new Option<int?>("--b") { Description = "Preparation/build concurrency." };
+        var p = new Option<int?>("--p") { Description = "Agent and verifier preparation concurrency." };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
@@ -206,7 +206,7 @@ public static class CommandTree
         command.Options.Add(dryRun);
         command.Options.Add(k);
         command.Options.Add(n);
-        command.Options.Add(b);
+        command.Options.Add(p);
         command.Options.Add(outputFormat);
         command.Options.Add(outputDirectory);
         command.Options.Add(logFile);
@@ -230,7 +230,7 @@ public static class CommandTree
                         new RunConfigurationOverrides(
                             parseResult.GetValue(k),
                             parseResult.GetValue(n),
-                            parseResult.GetValue(b),
+                            parseResult.GetValue(p),
                             parseResult.GetValue(outputFormat),
                             parseResult.GetValue(outputDirectory),
                             parseResult.GetValue(model),
@@ -240,10 +240,10 @@ public static class CommandTree
                         {
                             ["K"] = Environment.GetEnvironmentVariable("K"),
                             ["N"] = Environment.GetEnvironmentVariable("N"),
-                            ["B"] = Environment.GetEnvironmentVariable("B"),
+                            ["P"] = Environment.GetEnvironmentVariable("P"),
                             ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
                             ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
-                            ["WHARF_B"] = Environment.GetEnvironmentVariable("WHARF_B"),
+                            ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
                             ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
                             ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
                             ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
@@ -324,7 +324,7 @@ public static class CommandTree
                     new RunConfigurationOverrides(
                         parseResult.GetValue(k),
                         parseResult.GetValue(n),
-                        parseResult.GetValue(b),
+                        parseResult.GetValue(p),
                         parseResult.GetValue(outputFormat),
                         parseResult.GetValue(outputDirectory),
                         parseResult.GetValue(model),
@@ -635,15 +635,15 @@ public static class CommandTree
             Description = "Maximum trial concurrency the operator permits.",
             DefaultValueFactory = _ => 1
         };
-        var buildLimit = new Option<int>("--build-limit")
+        var preparationLimit = new Option<int>("--preparation-limit")
         {
-            Description = "Maximum build concurrency the operator permits.",
+            Description = "Maximum preparation concurrency the operator permits.",
             DefaultValueFactory = _ => 1
         };
         var json = new Option<bool>("--json");
         command.Options.Add(profile);
         command.Options.Add(operatorLimit);
-        command.Options.Add(buildLimit);
+        command.Options.Add(preparationLimit);
         command.Options.Add(json);
         command.SetAction(parseResult =>
         {
@@ -660,14 +660,16 @@ public static class CommandTree
                     selected,
                     capacity,
                     parseResult.GetValue(operatorLimit),
-                    parseResult.GetValue(buildLimit));
+                    parseResult.GetValue(preparationLimit));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(recommendation, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     }));
                 else
-                    Console.WriteLine($"{recommendation.ProfileId}\tN={recommendation.RecommendedConcurrency}\tB={recommendation.RecommendedBuildConcurrency}");
+                    Console.WriteLine(
+                        $"{recommendation.ProfileId}\tN={recommendation.RecommendedConcurrency}\t" +
+                        $"P={recommendation.RecommendedPreparationConcurrency}");
                 return ExitCode.Success.Value;
             }
             catch (QualificationException exception)

@@ -324,14 +324,16 @@ container and reuse the task's configured environment image. After MVP,
 - Default full DeepSWE runs to `K=4`.
 - Allow lower `K` values without requiring a smaller task subset.
 - Support `N`, the maximum number of concurrent trials.
-- Support separate concurrency controls for builds, agents, and verifiers where needed.
-- Use `B` for concurrent Docker builds and agent preparation, including image
-  preparation, root workspace copying, ownership handoff, and pinned CLI
-  installation. Release the `B` permit before the agent starts so `N` remains
-  an independent logical-trial concurrency limit.
-- apply the `B` gate to the complete image preparation and build pipeline, including any required base-image pull
+- Support separate concurrency controls for preparation and trial execution.
+- Use `P` for shared agent and verifier preparation capacity, including image
+  preparation, root workspace copying, ownership handoff, pinned CLI
+  installation, pristine verifier workspace creation, and patch application.
+  Release the `P` permit before the agent or verifier command starts so `N`
+  remains an independent logical-trial concurrency limit.
+- Apply the `P` gate to the complete agent and verifier preparation pipeline,
+  including any required base-image pull.
 - do not expose a separate pull-concurrency flag in v1
-- Default build concurrency from available CPU, with operator override.
+- Default preparation concurrency from available CPU, with operator override.
 - Support per-phase timeout multipliers and explicit timeout overrides.
 - Support bounded trial retries with configurable included and excluded exception types.
 - Support force-build, environment retention, resource-policy, mount, and artifact options.
@@ -407,19 +409,20 @@ container and reuse the task's configured environment image. After MVP,
 - Inspect the local image store before contacting a registry.
 - Pull each distinct base image at most once concurrently.
 - Serialize duplicate pulls of the same image.
-- Bound image preparation and registry pull pressure through the `B` build-pipeline gate.
+- Bound image preparation and registry pull pressure through the shared `P`
+  preparation gate.
 - Do not add a separate pull semaphore or public pull-concurrency setting in v1.
 - Retry HTTP 429 and registry rate-limit responses with capped exponential backoff, decay, and jitter.
 - Repeated 429 responses must increase the delay and reduce retry pressure.
-- A successful pull or a quiet recovery period may restore retry pressure gradually without exceeding the `B` gate.
+- A successful pull or a quiet recovery period may restore retry pressure gradually without exceeding the `P` gate.
 - Do not retry deterministic pull failures as rate limits.
 - Record every 429 response in the durable structured log with the registry, image, attempt number, selected retry delay, and eventual outcome.
 - Record the total 429 retry count and cumulative retry delay for every affected image.
 - Include total 429 responses, affected images, exhausted retries, and cumulative retry delay in the job summary.
 - Default console output emits one aggregate warning per affected image after the pull succeeds or exhausts retries.
 - `-vv` and `-vvv` emit each 429 retry to the console as it occurs.
-- Bound concurrent Docker builds with a semaphore.
-- Treat build concurrency as independent from trial concurrency.
+- Bound concurrent agent and verifier preparation with a semaphore.
+- Treat preparation concurrency as independent from trial concurrency.
 - Protect disk, CPU, and memory from build storms.
 - Generate stable derived-agent image names from the task base and agent-install fingerprint.
 - Reuse an existing derived-agent image when the fingerprint matches.
@@ -617,7 +620,8 @@ container and reuse the task's configured environment image. After MVP,
 - stopping a run removes only Docker processes and ephemeral Docker resources and retains every file and directory
 - resuming an interrupted run does not rerun completed logical attempts or double-count infrastructure retries
 - status reports every lifecycle state without attaching to tmux or mutating the run
-- the `B` gate limits the complete image preparation and build pipeline
+- the `P` gate limits complete agent and verifier preparation and is released
+  before execution
 - duplicate image pulls and identical derived-image builds are coalesced
 - registry rate limits use bounded jittered backoff and deterministic failures are not retried as rate limits
 - every 429 is present in durable structured logs and affected-image summaries include retry counts and cumulative delay

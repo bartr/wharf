@@ -14,7 +14,7 @@ public static class RunConfigurationRenderer
     public static string Render(RunConfiguration configuration, string? format)
     {
         RunConfigurationView view = new(
-            configuration.B,
+            configuration.P,
             configuration.CliVersion,
             configuration.Effort,
             configuration.K,
@@ -42,7 +42,7 @@ public static class RunConfigurationRenderer
     {
         List<string> lines =
         [
-            $"b\t{view.B}",
+            $"p\t{view.P}",
             $"cliVersion\t{view.CliVersion}",
             $"effort\t{view.Effort}",
             $"k\t{view.K}",
@@ -68,7 +68,7 @@ public static class RunConfigurationRenderer
         string.IsNullOrEmpty(value) ? string.Empty : "[REDACTED]";
 
     private sealed record RunConfigurationView(
-        [property: JsonPropertyName("b")] int B,
+        [property: JsonPropertyName("p")] int P,
         [property: JsonPropertyName("cliVersion")] string CliVersion,
         [property: JsonPropertyName("effort")] string Effort,
         [property: JsonPropertyName("k")] int K,

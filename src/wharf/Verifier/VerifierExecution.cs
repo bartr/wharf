@@ -27,6 +27,20 @@ public sealed class PristineVerifierService
         string evidenceDirectory,
         CancellationToken cancellationToken = default)
     {
+        PreparedVerifierRun prepared = await PrepareAsync(
+            request,
+            patch,
+            evidenceDirectory,
+            cancellationToken);
+        return await VerifyPreparedAsync(prepared, cancellationToken);
+    }
+
+    public async Task<PreparedVerifierRun> PrepareAsync(
+        VerifierRequest request,
+        string patch,
+        string evidenceDirectory,
+        CancellationToken cancellationToken = default)
+    {
         request.Validate();
         if (string.IsNullOrWhiteSpace(patch))
         {
@@ -45,6 +59,21 @@ public sealed class PristineVerifierService
         }
 
         await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
+        return new PreparedVerifierRun(
+            request,
+            patch,
+            evidenceDirectory,
+            workspace);
+    }
+
+    public async Task<TrialResult> VerifyPreparedAsync(
+        PreparedVerifierRun prepared,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(prepared);
+        VerifierRequest request = prepared.Request;
+        string evidenceDirectory = prepared.EvidenceDirectory;
+        string workspace = prepared.WorkspaceDirectory;
         var results = new List<VerifierCommandResult>();
         foreach (VerifierCommand command in request.Commands)
         {
@@ -74,7 +103,7 @@ public sealed class PristineVerifierService
             results,
             Path.Combine(evidenceDirectory, "patch.diff"),
             metrics);
-        File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), patch);
+        File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), prepared.Patch);
         AtomicFile.Replace(
             Path.Combine(evidenceDirectory, "trial-result.json"),
             JsonSerializer.Serialize(trial, StateJson.Options));

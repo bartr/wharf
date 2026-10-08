@@ -7,7 +7,7 @@ public sealed record RunManifest(
     [property: JsonPropertyName("schemaVersion")] string SchemaVersion = "1.0",
     [property: JsonPropertyName("k")] int? K = null,
     [property: JsonPropertyName("n")] int? N = null,
-    [property: JsonPropertyName("b")] int? B = null,
+    [property: JsonPropertyName("p")] int? P = null,
     [property: JsonPropertyName("timeouts")] PhaseTimeouts? Timeouts = null,
     [property: JsonPropertyName("retries")] RetryPolicy? Retries = null,
     [property: JsonPropertyName("output")] OutputSettings? Output = null,
@@ -48,7 +48,7 @@ public sealed record SecretSettings(
 public sealed record RunConfiguration(
     int K,
     int N,
-    int B,
+    int P,
     PhaseTimeouts Timeouts,
     RetryPolicy Retries,
     string OutputFormat,
@@ -66,7 +66,7 @@ public sealed record RunConfiguration(
 public sealed record RunConfigurationOverrides(
     int? K = null,
     int? N = null,
-    int? B = null,
+    int? P = null,
     string? OutputFormat = null,
     string? OutputDirectory = null,
     string? Model = null,
@@ -147,8 +147,8 @@ public static class RunConfigurationResolver
 
         int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
-        int b = PickInt(overrides.B, EnvironmentValue("WHARF_B"), manifest.B, 4, "B");
-        b = Math.Min(b, n);
+        int p = PickInt(overrides.P, EnvironmentValue("WHARF_P"), manifest.P, 4, "P");
+        p = Math.Min(p, n);
         string format = Pick(
             overrides.OutputFormat,
             EnvironmentValue("WHARF_OUTPUT_FORMAT"),
@@ -177,7 +177,7 @@ public static class RunConfigurationResolver
         return new RunConfiguration(
             k,
             n,
-            b,
+            p,
             manifest.Timeouts ?? new PhaseTimeouts(),
             retries,
             format,
@@ -244,7 +244,7 @@ public static class RunConfigurationValidator
 
         RequirePositive(configuration.K, "K");
         RequirePositive(configuration.N, "N");
-        RequirePositive(configuration.B, "B");
+        RequirePositive(configuration.P, "P");
         ValidateTimeout(configuration.Timeouts.SetupSeconds, "setupSeconds");
         ValidateTimeout(configuration.Timeouts.AgentSeconds, "agentSeconds");
         ValidateTimeout(configuration.Timeouts.VerifierSeconds, "verifierSeconds");

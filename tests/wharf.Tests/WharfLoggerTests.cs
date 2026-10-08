@@ -1,5 +1,6 @@
 using Wharf.Logging;
 using Wharf.Configuration;
+using Wharf.Run;
 using System.Text.Json;
 
 namespace Wharf.Tests;
@@ -144,6 +145,46 @@ public sealed class WharfLoggerTests
             Assert.Equal("verifier", records[1].GetProperty("stage").GetString());
             Assert.Equal("passed", records[1].GetProperty("result").GetString());
             Assert.Equal(1234, records[1].GetProperty("durationMilliseconds").GetInt64());
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void WritesStructuredPreparationGateEvents()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-logger-{Guid.NewGuid():N}");
+        string path = Path.Combine(directory, "run.jsonl");
+        try
+        {
+            using WharfLogger logger = WharfLogger.Create(Configuration(), path);
+
+            logger.PreparationGateChanged(new PreparationGateEvent(
+                4,
+                PreparationOperation.Verifier,
+                "acquired",
+                12,
+                7,
+                3,
+                245));
+
+            JsonElement record = File.ReadLines(path)
+                .Select(line => JsonDocument.Parse(line).RootElement.Clone())
+                .Single(element =>
+                    element.TryGetProperty("eventType", out JsonElement eventType) &&
+                    eventType.GetString() == "preparation-gate");
+            Assert.Equal(4, record.GetProperty("sequence").GetInt64());
+            Assert.Equal("verifier", record.GetProperty("operation").GetString());
+            Assert.Equal("acquired", record.GetProperty("transition").GetString());
+            Assert.Equal(12, record.GetProperty("capacity").GetInt32());
+            Assert.Equal(7, record.GetProperty("active").GetInt32());
+            Assert.Equal(3, record.GetProperty("waiting").GetInt32());
+            Assert.Equal(245, record.GetProperty("waitMilliseconds").GetInt64());
         }
         finally
         {

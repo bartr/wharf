@@ -69,7 +69,7 @@ public sealed class SmokeService
             new RunConfigurationOverrides(
                 K: 1,
                 N: 1,
-                B: 1,
+                P: 1,
                 OutputDirectory: resolvedOutput),
             new Dictionary<string, string?>
             {
