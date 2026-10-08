@@ -217,7 +217,10 @@ container and reuse the task's configured environment image. After MVP,
 - Allow lower `K` values without requiring a smaller task subset.
 - Support `N`, the maximum number of concurrent trials.
 - Support separate concurrency controls for builds, agents, and verifiers where needed.
-- Use `B` for concurrent Docker builds.
+- Use `B` for concurrent Docker builds and agent preparation, including image
+  preparation, root workspace copying, ownership handoff, and pinned CLI
+  installation. Release the `B` permit before the agent starts so `N` remains
+  an independent logical-trial concurrency limit.
 - apply the `B` gate to the complete image preparation and build pipeline, including any required base-image pull
 - do not expose a separate pull-concurrency flag in v1
 - Default build concurrency from available CPU, with operator override.

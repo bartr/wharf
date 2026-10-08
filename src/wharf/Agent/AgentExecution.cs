@@ -111,13 +111,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         request.Validate();
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
         Stopwatch stopwatch = Stopwatch.StartNew();
-        DockerProcessResult initialization = await RunDockerAsync(
-            BuildWorkspaceInitializationArguments(request, $"{containerName}-init"),
-            credentialVariable: null,
-            credentialValue: null,
-            cancellationToken);
-        EnsureWorkspaceInitialized(initialization);
-
         IReadOnlyList<string> arguments = BuildAgentArguments(request, containerName);
         string? credentialVariable = request.Invocation.Environment.TryGetValue(
                 "WHARF_COPILOT_CREDENTIAL_VARIABLE",
@@ -125,7 +118,7 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             IsEnvironmentVariable(configuredCredentialVariable)
                 ? configuredCredentialVariable
                 : null;
-        DockerProcessResult agent = await RunDockerAsync(
+        DockerProcessResult agent = await DockerAgentProcess.RunAsync(
             arguments,
             credentialVariable,
             request.Invocation.CredentialValue,
@@ -147,22 +140,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             DebugLogDirectory: debugLogDirectory,
             Usage: usage);
     }
-
-    internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
-        AgentExecutionRequest request,
-        string containerName) =>
-        [
-            "run", "--rm",
-            "--name", containerName,
-            "--label", "com.bartr.wharf.managed=true",
-            "--user", "0:0",
-            "--network", "none",
-            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            request.AgentImage,
-            "/bin/bash",
-            "-lc",
-            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace"
-        ];
 
     internal static IReadOnlyList<string> BuildAgentArguments(
         AgentExecutionRequest request,
@@ -191,12 +168,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
         arguments.Add(
-            "if ! command -v npm >/dev/null 2>&1; then " +
-            "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
-            "mkdir -p /workspace/.home /workspace/.cache /workspace/.wharf-copilot; " +
-            $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
-            $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
-            "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }; " +
             "export PATH=/workspace/.wharf-copilot/node_modules/.bin:$PATH; " +
             "cd /workspace/ && exec \"$@\"");
         arguments.Add("--");
@@ -204,60 +175,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.AddRange(request.Invocation.Arguments);
         return arguments;
     }
-
-    internal static void EnsureWorkspaceInitialized(DockerProcessResult result)
-    {
-        if (result.ExitCode == 0)
-        {
-            return;
-        }
-
-        string diagnostic = string.IsNullOrWhiteSpace(result.StandardError)
-            ? result.StandardOutput.Trim()
-            : result.StandardError.Trim();
-        throw new AgentExecutionException(
-            string.IsNullOrWhiteSpace(diagnostic)
-                ? $"agent workspace initialization failed with exit code {result.ExitCode}"
-                : $"agent workspace initialization failed: {diagnostic}");
-    }
-
-    private static async Task<DockerProcessResult> RunDockerAsync(
-        IReadOnlyList<string> arguments,
-        string? credentialVariable,
-        string? credentialValue,
-        CancellationToken cancellationToken)
-    {
-        var startInfo = new ProcessStartInfo("docker")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        if (credentialVariable is not null && credentialValue is not null)
-        {
-            startInfo.Environment[credentialVariable] = credentialValue;
-        }
-        foreach (string argument in arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
-
-        using Process process = Process.Start(startInfo)
-            ?? throw new AgentExecutionException("Docker agent process could not be started");
-        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-        return new DockerProcessResult(
-            process.ExitCode,
-            await outputTask,
-            await errorTask);
-    }
-
-    internal sealed record DockerProcessResult(
-        int ExitCode,
-        string StandardOutput,
-        string StandardError);
 
     internal static partial class CopilotUsageParser
     {
@@ -386,3 +303,123 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         value.All(character => char.IsLetterOrDigit(character) || character == '_');
 
 }
+
+public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
+{
+    public async Task PrepareAsync(
+        AgentExecutionRequest request,
+        CancellationToken cancellationToken)
+    {
+        request.Validate();
+        string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
+        DockerProcessResult initialization = await DockerAgentProcess.RunAsync(
+            BuildWorkspaceInitializationArguments(request, $"{containerName}-init"),
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureSuccessful(initialization, "agent workspace initialization");
+
+        DockerProcessResult setup = await DockerAgentProcess.RunAsync(
+            BuildWorkspaceSetupArguments(request, $"{containerName}-setup"),
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureSuccessful(setup, "agent workspace setup");
+    }
+
+    internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
+        AgentExecutionRequest request,
+        string containerName) =>
+        [
+            "run", "--rm",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
+            "--user", "0:0",
+            "--network", "none",
+            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            request.AgentImage,
+            "/bin/bash",
+            "-lc",
+            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace"
+        ];
+
+    internal static IReadOnlyList<string> BuildWorkspaceSetupArguments(
+        AgentExecutionRequest request,
+        string containerName) =>
+        [
+            "run", "--rm",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
+            "--user", "1000:1000",
+            "--network", request.Network,
+            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
+            "--env", "HOME=/workspace/.home",
+            "--env", "XDG_CACHE_HOME=/workspace/.cache",
+            request.AgentImage,
+            "/bin/bash",
+            "-lc",
+            "if ! command -v npm >/dev/null 2>&1; then " +
+            "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
+            "mkdir -p /workspace/.home /workspace/.cache /workspace/.wharf-copilot; " +
+            $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
+            $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
+            "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }"
+        ];
+
+    internal static void EnsureSuccessful(DockerProcessResult result, string stage)
+    {
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        string diagnostic = string.IsNullOrWhiteSpace(result.StandardError)
+            ? result.StandardOutput.Trim()
+            : result.StandardError.Trim();
+        throw new AgentExecutionException(
+            string.IsNullOrWhiteSpace(diagnostic)
+                ? $"{stage} failed with exit code {result.ExitCode}"
+                : $"{stage} failed: {diagnostic}");
+    }
+}
+
+internal static class DockerAgentProcess
+{
+    public static async Task<DockerProcessResult> RunAsync(
+        IReadOnlyList<string> arguments,
+        string? credentialVariable,
+        string? credentialValue,
+        CancellationToken cancellationToken)
+    {
+        var startInfo = new ProcessStartInfo("docker")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        if (credentialVariable is not null && credentialValue is not null)
+        {
+            startInfo.Environment[credentialVariable] = credentialValue;
+        }
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+
+        using Process process = Process.Start(startInfo)
+            ?? throw new AgentExecutionException("Docker agent process could not be started");
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
+        return new DockerProcessResult(
+            process.ExitCode,
+            await outputTask,
+            await errorTask);
+    }
+}
+
+internal sealed record DockerProcessResult(
+    int ExitCode,
+    string StandardOutput,
+    string StandardError);

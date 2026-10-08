@@ -3,7 +3,7 @@
 Research source:
 `.github/tracking/2026-10-08-independent-n-b-gates-research.md`
 
-1. [ ] Extract agent workspace preparation.
+1. [x] Extract agent workspace preparation.
    - Targets: `src/wharf/Agent/AgentContracts.cs`,
      `src/wharf/Agent/AgentExecution.cs`.
    - Add an injectable workspace-preparer boundary.
@@ -13,7 +13,7 @@ Research source:
      installation as UID/GID `1000:1000`.
    - Exit: `DockerAgentRunner` only starts the prepared agent as `1000:1000`.
 
-2. [ ] Separate N trial concurrency from B preparation concurrency.
+2. [x] Separate N trial concurrency from B preparation concurrency.
    - Target: `src/wharf/Run/RunService.cs`.
    - Use N as the asynchronous outer trial concurrency.
    - Apply a cancellation-aware B gate around image preparation plus workspace
@@ -23,7 +23,7 @@ Research source:
    - Exit: `N=32 B=12` can reach 32 running agents while no more than 12
      preparations run concurrently.
 
-3. [ ] Add regression coverage.
+3. [x] Add regression coverage.
    - Targets: `tests/wharf.Tests/AgentExecutionTests.cs` and a focused
      preparation-gate test.
    - Verify root copy, ownership, non-root CLI installation, prepared agent
@@ -31,11 +31,11 @@ Research source:
    - Exit: tests fail against the coupled implementation and pass after the
      split.
 
-4. [ ] Update operator documentation and record changes.
+4. [x] Update operator documentation and record changes.
    - Target: `docs/wharf.md` and the changes artifact.
    - Clarify independent N/B behavior and what preparation includes.
 
-5. [ ] Validate and review.
+5. [x] Validate and review.
    - Run focused tests, full tests, and build in named tmux sessions.
    - Compare implementation with the research and record remaining operational
      qualification work.

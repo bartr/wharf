@@ -121,6 +121,13 @@ public interface IAgentRunner
         CancellationToken cancellationToken);
 }
 
+public interface IAgentWorkspacePreparer
+{
+    Task PrepareAsync(
+        AgentExecutionRequest request,
+        CancellationToken cancellationToken);
+}
+
 public sealed class AgentExecutionException(string message) : Exception(message);
 
 public static class AgentEvidenceSchema

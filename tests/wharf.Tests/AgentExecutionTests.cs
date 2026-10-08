@@ -70,13 +70,30 @@ public sealed class AgentExecutionTests
         AgentExecutionRequest request = Request(source.Path, workspace.Path);
 
         IReadOnlyList<string> arguments =
-            DockerAgentRunner.BuildWorkspaceInitializationArguments(request, "task-init");
+            DockerAgentWorkspacePreparer.BuildWorkspaceInitializationArguments(request, "task-init");
 
         AssertArgumentsContain(arguments, "--name", "task-init");
         AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
         AssertArgumentsContain(arguments, "--user", "0:0");
         AssertArgumentsContain(arguments, "--network", "none");
         Assert.Contains("cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace", arguments);
+    }
+
+    [Fact]
+    public void InstallsCopilotAsUid1000DuringWorkspacePreparation()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        AgentExecutionRequest request = Request(source.Path, workspace.Path);
+
+        IReadOnlyList<string> arguments =
+            DockerAgentWorkspacePreparer.BuildWorkspaceSetupArguments(request, "task-setup");
+
+        AssertArgumentsContain(arguments, "--name", "task-setup");
+        AssertArgumentsContain(arguments, "--user", "1000:1000");
+        Assert.Contains(arguments, argument =>
+            argument.Contains("npm install", StringComparison.Ordinal) &&
+            argument.Contains("@github/copilot@1.2.3", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -92,18 +109,21 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--name", "task-agent");
         AssertArgumentsContain(arguments, "--user", "1000:1000");
         Assert.DoesNotContain(arguments, argument => argument.Contains("cp -a /app", StringComparison.Ordinal));
+        Assert.DoesNotContain(arguments, argument => argument.Contains("npm install", StringComparison.Ordinal));
     }
 
     [Fact]
     public void ReportsWorkspaceInitializationFailureWithDockerDiagnostic()
     {
-        var result = new DockerAgentRunner.DockerProcessResult(
+        var result = new DockerProcessResult(
             1,
             "",
             "cp: cannot open '/app/locked': Permission denied");
 
         AgentExecutionException exception = Assert.Throws<AgentExecutionException>(
-            () => DockerAgentRunner.EnsureWorkspaceInitialized(result));
+            () => DockerAgentWorkspacePreparer.EnsureSuccessful(
+                result,
+                "agent workspace initialization"));
 
         Assert.Contains("agent workspace initialization failed", exception.Message);
         Assert.Contains("Permission denied", exception.Message);

@@ -23,17 +23,20 @@ public sealed class RunService
 {
     private readonly HarborTaskLoader taskLoader;
     private readonly IAgentImagePreparer imagePreparer;
+    private readonly IAgentWorkspacePreparer workspacePreparer;
     private readonly AgentExecutionService agentExecution;
     private readonly PristineVerifierService verifier;
 
     public RunService(
         HarborTaskLoader? taskLoader = null,
         IAgentImagePreparer? imagePreparer = null,
+        IAgentWorkspacePreparer? workspacePreparer = null,
         AgentExecutionService? agentExecution = null,
         PristineVerifierService? verifier = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
         this.imagePreparer = imagePreparer ?? new DockerAgentImagePreparer();
+        this.workspacePreparer = workspacePreparer ?? new DockerAgentWorkspacePreparer();
         this.agentExecution = agentExecution ?? new AgentExecutionService(new DockerAgentRunner());
         this.verifier = verifier ?? new PristineVerifierService(
             new FilePristineWorkspaceFactory(),
@@ -82,7 +85,6 @@ public sealed class RunService
         Directory.CreateDirectory(jobDirectory);
         string attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
         int plannedRuns = checked(tasks.Count * configuration.K);
-        int imageConcurrency = Math.Min(configuration.N, configuration.B);
         string runId = Guid.NewGuid().ToString("N")[..8];
         CopilotInvocation? invocation = null;
         string? invocationError = null;
@@ -97,20 +99,21 @@ public sealed class RunService
         }
         logger.Info(
             $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
-            $"task-concurrency={configuration.N} image-concurrency={imageConcurrency}" +
+            $"task-concurrency={configuration.N} preparation-concurrency={configuration.B}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
         logger.Info(
             $"run created {attemptDirectory} under {jobDirectory}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
 
-        Parallel.ForEach(
+        using var preparationGate = new PreparationGate(configuration.B);
+        Parallel.ForEachAsync(
             tasks.Select((task, index) => (task, index)),
             new ParallelOptions
             {
-                MaxDegreeOfParallelism = imageConcurrency,
+                MaxDegreeOfParallelism = configuration.N,
                 CancellationToken = cancellationToken
             },
-            item =>
+            async (item, trialCancellationToken) =>
         {
             HarborTask task = item.task;
             int runNumber = (item.index * configuration.K) + 1;
@@ -128,50 +131,70 @@ public sealed class RunService
             Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
             Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
-            logger.Info($"{prefix} status=preparing-image");
-            string image = imagePreparer.PrepareAsync(
-                task,
-                Path.Combine(trialDirectory, "agent"),
-                $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
-                message => logger.Info($"{prefix} status={message}"),
-                cancellationToken).GetAwaiter().GetResult();
-            logger.Info($"{prefix} status=image-ready image={image}");
             string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
             Directory.CreateDirectory(workspaceDirectory);
-            logger.Info($"{prefix} status=running-agent");
+            string image = string.Empty;
+            AgentExecutionRequest? agentRequest = null;
             bool agentSucceeded = false;
-            if (invocation is null)
+            try
             {
-                File.WriteAllText(
-                    Path.Combine(trialDirectory, "agent", "error.txt"),
-                    invocationError ?? "Copilot invocation could not be prepared");
-                logger.Info(
-                    $"{prefix} status=agent-failed error={invocationError}",
-                    invocationError,
-                    "Invocation");
-            }
-            else
-            {
-                AgentExecutionRequest agentRequest = new(
-                    task.TaskId,
-                    image,
-                    task.RootPath,
-                    workspaceDirectory,
-                    "bridge",
-                    invocation with
+                logger.Info($"{prefix} status=waiting-preparation");
+                agentRequest = await preparationGate.ExecuteAsync(
+                    async preparationCancellationToken =>
                     {
-                        Arguments = invocation.Arguments
-                            .Concat(["-p", File.ReadAllText(task.InstructionPath)])
-                            .ToArray()
+                        logger.Info($"{prefix} status=preparing-image");
+                        image = await imagePreparer.PrepareAsync(
+                            task,
+                            Path.Combine(trialDirectory, "agent"),
+                            $"{SanitizePathPart(task.TaskId)}__{runId}:latest",
+                            message => logger.Info($"{prefix} status={message}"),
+                            preparationCancellationToken);
+                        logger.Info($"{prefix} status=image-ready image={image}");
+                        if (invocation is null)
+                        {
+                            return null;
+                        }
+
+                        var request = new AgentExecutionRequest(
+                            task.TaskId,
+                            image,
+                            task.RootPath,
+                            workspaceDirectory,
+                            "bridge",
+                            invocation with
+                            {
+                                Arguments = invocation.Arguments
+                                    .Concat(["-p", File.ReadAllText(task.InstructionPath)])
+                                    .ToArray()
+                            },
+                            [],
+                            $"{SanitizePathPart(task.TaskId)}__{runId}");
+                        logger.Info($"{prefix} status=preparing-workspace");
+                        await workspacePreparer.PrepareAsync(
+                            request,
+                            preparationCancellationToken);
+                        logger.Info($"{prefix} status=workspace-ready");
+                        return request;
                     },
-                    [],
-                    $"{SanitizePathPart(task.TaskId)}__{runId}");
-                try
+                    trialCancellationToken);
+
+                if (agentRequest is null)
                 {
-                    AgentEvidenceSummary agentEvidence = agentExecution.ExecuteAsync(
+                    File.WriteAllText(
+                        Path.Combine(trialDirectory, "agent", "error.txt"),
+                        invocationError ?? "Copilot invocation could not be prepared");
+                    logger.Info(
+                        $"{prefix} status=agent-failed error={invocationError}",
+                        invocationError,
+                        "Invocation");
+                }
+                else
+                {
+                    logger.Info($"{prefix} status=running-agent");
+                    AgentEvidenceSummary agentEvidence = await agentExecution.ExecuteAsync(
                         agentRequest,
                         Path.Combine(trialDirectory, "agent"),
-                        cancellationToken).GetAwaiter().GetResult();
+                        trialCancellationToken);
                     File.Copy(
                         Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
                         Path.Combine(trialDirectory, "artifacts", "model.patch"),
@@ -184,16 +207,16 @@ public sealed class RunService
                         agentEvidence.Status == "failed" ? "agent execution failed" : null,
                         agentEvidence.Status == "failed" ? "AgentExecution" : null);
                 }
-                catch (AgentExecutionException exception)
-                {
-                    File.WriteAllText(
-                        Path.Combine(trialDirectory, "agent", "error.txt"),
-                        exception.Message);
-                    logger.Info(
-                        $"{prefix} status=agent-failed error={exception.Message}",
-                        exception.Message,
-                        "AgentExecution");
-                }
+            }
+            catch (AgentExecutionException exception)
+            {
+                File.WriteAllText(
+                    Path.Combine(trialDirectory, "agent", "error.txt"),
+                    exception.Message);
+                logger.Info(
+                    $"{prefix} status=agent-failed error={exception.Message}",
+                    exception.Message,
+                    "AgentExecution");
             }
             string taskStatus = "agent-failed";
             string? patch = null;
@@ -228,7 +251,7 @@ public sealed class RunService
                             new FilePristineWorkspaceFactory(),
                             new RetainingPatchApplier(),
                             new DockerVerifierRunner());
-                    TrialResult verification = verifierService.VerifyAsync(
+                    TrialResult verification = await verifierService.VerifyAsync(
                         new VerifierRequest(
                             task.TaskId,
                             sourceDirectory,
@@ -245,7 +268,7 @@ public sealed class RunService
                             artifactsDirectory),
                         patch,
                         verifierDirectory,
-                        cancellationToken).GetAwaiter().GetResult();
+                        trialCancellationToken);
                     taskStatus = verification.Status;
                     if (verification.Metrics is { } metrics)
                     {
@@ -293,7 +316,7 @@ public sealed class RunService
             File.WriteAllText(
                 Path.Combine(trialDirectory, "result.json"),
                 JsonSerializer.Serialize(result, JsonOptions));
-        });
+        }).GetAwaiter().GetResult();
 
         return new RunResult(
             "completed",

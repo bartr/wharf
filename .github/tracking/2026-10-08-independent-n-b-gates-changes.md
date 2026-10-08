@@ -15,4 +15,12 @@
 
 ## Validation
 
-Pending.
+- Focused tests:
+  `dotnet test tests/wharf.Tests/wharf.Tests.csproj --filter "FullyQualifiedName~AgentExecutionTests|FullyQualifiedName~PreparationGateTests"`
+  passed 10/10 tests in the `wharf-gates-focused` tmux session.
+- Full test project:
+  `dotnet test tests/wharf.Tests/wharf.Tests.csproj` passed 95/95 tests in the
+  `wharf-gates-full` tmux session.
+- The full suite's Docker smoke path completed workspace preparation, ran the
+  agent, and passed verification with pass@1=1, f2p=100%, and p2p=100%.
+- `dotnet build src/wharf/wharf.csproj` succeeded in the same tmux session.
