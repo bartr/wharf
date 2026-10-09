@@ -6,6 +6,24 @@ export dir=$(pwd)
 
 export DEBIAN_FRONTEND=noninteractive
 
+swap_file=${SWAP_FILE:-/swap.img}
+swap_size_gib=${SWAP_SIZE_GIB:-16}
+
+if ! swapon --noheadings --show=NAME | grep -Fxq "$swap_file"; then
+  if [[ ! -e "$swap_file" ]]; then
+    fallocate -l "${swap_size_gib}G" "$swap_file"
+    chmod 0600 "$swap_file"
+    mkswap "$swap_file"
+  fi
+
+  swapon "$swap_file"
+fi
+
+if ! awk -v swap_file="$swap_file" \
+  '$1 == swap_file && $3 == "swap" { found=1 } END { exit !found }' /etc/fstab; then
+  printf '%s none swap sw 0 0\n' "$swap_file" >> /etc/fstab
+fi
+
 update-alternatives --set iptables /usr/sbin/iptables-legacy
 
 apt-get update
