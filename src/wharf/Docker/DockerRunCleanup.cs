@@ -1,9 +1,24 @@
 using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace Wharf.Docker;
 
 public static class DockerRunCleanup
 {
+    private static readonly ConcurrentDictionary<string, byte> OwnedImages =
+        new(StringComparer.Ordinal);
+
+    public static void RegisterImage(string image)
+    {
+        if (!string.IsNullOrWhiteSpace(image))
+        {
+            OwnedImages.TryAdd(image, 0);
+        }
+    }
+
+    public static void ForgetImage(string image) =>
+        OwnedImages.TryRemove(image, out _);
+
     public static void CleanupAll()
     {
         try
@@ -25,15 +40,16 @@ public static class DockerRunCleanup
                     .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)]);
             }
 
-            string imageNames = RunDocker(["image", "ls", "--format", "{{.Repository}}:{{.Tag}}"]);
-            string[] transientImages = imageNames
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Where(image => image.Contains("__", StringComparison.Ordinal))
-                .Distinct(StringComparer.Ordinal)
+            string[] ownedImages = OwnedImages.Keys
+                .Order(StringComparer.Ordinal)
                 .ToArray();
-            if (transientImages.Length > 0)
+            if (ownedImages.Length > 0)
             {
-                RunDocker(["image", "rm", "--force", .. transientImages]);
+                RunDocker(["image", "rm", "--force", .. ownedImages]);
+                foreach (string image in ownedImages)
+                {
+                    ForgetImage(image);
+                }
             }
         }
         catch (Exception exception) when (exception is IOException or InvalidOperationException)

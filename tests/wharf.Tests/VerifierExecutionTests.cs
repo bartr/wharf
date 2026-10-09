@@ -190,7 +190,7 @@ public sealed class VerifierExecutionTests
     }
 
     [Fact]
-    public void LimitsDockerVerifierMemoryWithoutAdditionalSwap()
+    public void CreatesMountlessDockerVerifierWithMemoryLimit()
     {
         using TemporaryDirectory source = new();
         using TemporaryDirectory agent = new();
@@ -211,6 +211,17 @@ public sealed class VerifierExecutionTests
         AssertArgumentsContain(arguments, "--name", "task-verifier");
         AssertArgumentsContain(arguments, "--memory", "8g");
         Assert.DoesNotContain("--memory-swap", arguments);
+        Assert.DoesNotContain("--mount", arguments);
+        Assert.DoesNotContain("--volume", arguments);
+        Assert.DoesNotContain("-v", arguments);
+        Assert.Contains("--entrypoint", arguments);
+
+        IReadOnlyList<string> execution =
+            DockerVerifierRunner.BuildExecutionArguments(
+                request.Commands.Single(),
+                "task-verifier");
+        Assert.Equal("exec", execution[0]);
+        Assert.DoesNotContain("--mount", execution);
     }
 
     private static void AssertArgumentsContain(

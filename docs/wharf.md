@@ -51,19 +51,19 @@ container and reuse the task's configured environment image. After MVP,
 - Build a local, version-pinned agent image from each task environment image.
 - Install the requested Copilot CLI and its runtime dependencies in the
   derived image rather than during every agent startup.
-- Retain the derived image in the local Docker image store for reuse. This is
-  required not only for startup performance, but also to avoid repeatedly
-  downloading the Copilot CLI and triggering package-registry rate limits. A
-  small number of earlier test runs failed because the CLI could not be
-  downloaded frequently enough.
-- Use the derived image as the base for agent containers, while retaining a
-  separate writable per-run workspace and sibling agent home. Materialize
-  `/app` into the host-backed workspace with a short-lived root initialization
-  container, then recursively assign the copied tree and home to UID/GID
-  `1000:1000`. Mount the home at `/home/wharf`, outside `/workspace`, so package
-  manager staging cannot rediscover the project through an ancestor path. Run
-  Copilot and all task commands only after that handoff, as `1000:1000`; image
-  files that are root-readable must not force the agent itself to run as root.
+- For the mountless Docker spike, use the derived image only for its logical
+  trial and remove it after trial evidence is complete. Preserve the configured
+  base image and every pulled ECR environment image.
+- Create agent containers without host bind mounts or named volumes. Initialize
+  `/workspace`, `/home/wharf`, and `/logs/agent` inside the container, then
+  assign them to UID/GID `1000:1000`. Run Copilot and all task commands as that
+  user. Capture stdout, stderr, trajectory, Copilot logs, and the complete
+  binary patch inside the container and copy them into the run directory with
+  `docker cp` before removing the container. Copy the full workspace only when
+  `--retain-workspaces` is effective.
+- Create verifier containers without host mounts. Copy retained artifacts into
+  `/logs/artifacts`, run the verifier, and copy `/logs/verifier` back into the
+  run directory before removing the container.
 - Limit each agent and verifier container to 8 GiB of memory while leaving
   Docker's default swap allowance in effect, matching Harbor behavior. Agent
   containers also have a 1024-process limit. Disable pnpm's automatic
@@ -116,19 +116,20 @@ container and reuse the task's configured environment image. After MVP,
   `retainWorkspaces: true`, or `WHARF_RETAIN_WORKSPACES=1` for a diagnostic run
   that must preserve writable workspaces. Cleanup failures remain visible in
   the lifecycle log and `result.json`.
-- Remove each verifier image tag immediately after that verifier finishes or
-  fails, keeping K=4 disk use bounded by active verifier concurrency rather than
-  completed attempts. Preserve derived agent images for reuse and do not prune
-  Docker build cache as part of run cleanup.
+- Remove each task-derived agent image after its logical trial and each
+  verifier image immediately after that verifier finishes or fails. Cleanup is
+  based on explicitly registered image ownership; never delete base images,
+  pulled ECR images, or unrelated tags by name pattern. Do not prune Docker
+  build cache as part of run cleanup.
 - Capture the complete patch from the pre-agent commit through the final
   workspace, including agent commits, later uncommitted edits, and new
   non-runtime files. Run the verifier whenever that patch is nonempty even if
   the agent exits nonzero, times out, or is stopped after an OOM; the verifier's
   reward remains authoritative while the agent failure evidence is retained.
-- Cache and reuse derived images across K=4 attempts and later runs so those
-  attempts do not reinstall or redownload the CLI. The cache key must include
-  the source image digest, Copilot CLI version, installation inputs, and
-  relevant task configuration.
+- During the mountless Docker spike, reinstall the pinned CLI in each logical
+  trial container so derived images can be removed immediately. Revisit
+  cross-attempt derived-image caching only after the spike determines whether
+  mountless execution changes the unexplained error rate.
 - Keep different Copilot versions isolated; never silently reuse an image built
   for another requested version.
 - Provide explicit image inventory, retention, pruning, and cleanup behavior
@@ -382,7 +383,9 @@ container and reuse the task's configured environment image. After MVP,
 - Ctrl-C cleanup stops Wharf-owned containers (including legacy run-name matches)
   and removes transient per-run images while retaining reusable task and registry images.
 - Cleanup must retain every run directory and file.
-- Preserve reusable base and derived images across trials and jobs.
+- Preserve reusable base and pulled registry images across trials and jobs.
+  During the mountless Docker spike, task-derived images are disposable and
+  removed after their logical trial.
 - expose a separate explicit prune command for operators who choose to delete retained data
 
 ## State model
@@ -432,11 +435,11 @@ container and reuse the task's configured environment image. After MVP,
 - Bound concurrent agent and verifier preparation with a semaphore.
 - Treat preparation concurrency as independent from trial concurrency.
 - Protect disk, CPU, and memory from build storms.
-- Generate stable derived-agent image names from the task base and agent-install fingerprint.
-- Reuse an existing derived-agent image when the fingerprint matches.
-- Rebuild when the base image, agent version, install specification, or forced-build setting changes.
-- Set shared derived images to local-only pull behavior.
-- Remove per-trial images without deleting shared derived images.
+- Generate unique task-derived agent image names for each logical trial.
+- Register task-derived agent and verifier images explicitly as owned by Wharf.
+- Remove owned task-derived images after the logical trial without deleting
+  configured base images, pulled registry images, or unrelated local images.
+- Do not discover cleanup targets through broad repository/tag patterns.
 
 ## Agent support
 

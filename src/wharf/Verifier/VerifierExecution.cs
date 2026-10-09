@@ -303,52 +303,140 @@ public sealed class DockerVerifierRunner : IVerifierRunner
 
         string containerName =
             $"verifier-{SanitizeContainerName(request.TaskId)}-{Guid.NewGuid():N}";
-        IReadOnlyList<string> arguments = BuildArguments(request, command, containerName);
-        var startInfo = new ProcessStartInfo("docker")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        foreach (string argument in arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
-
-        using Process process = Process.Start(startInfo)
-            ?? throw new VerifierExecutionException("Docker verifier process could not be started");
-        var stopwatch = Stopwatch.StartNew();
-        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(command.Timeout);
-        bool timedOut = false;
+        bool created = false;
+        string evidenceDirectory = Path.GetFullPath(
+            request.EvidenceDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier evidence directory is required for Docker verification"));
+        string artifactsDirectory = Path.GetFullPath(
+            request.ArtifactsDirectory
+            ?? throw new VerifierExecutionException(
+                "verifier artifacts directory is required for Docker verification"));
+        bool evidenceCopied = false;
         try
         {
-            await process.WaitForExitAsync(timeout.Token);
-        }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-        {
-            timedOut = true;
-            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
-            await process.WaitForExitAsync(CancellationToken.None);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
-            await process.WaitForExitAsync(CancellationToken.None);
-            throw;
-        }
+            DockerProcessResult creation = await DockerAgentProcess.RunAsync(
+                BuildArguments(request, command, containerName),
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(creation, "verifier container creation");
+            created = true;
 
-        stopwatch.Stop();
-        return new VerifierCommandResult(
-            command.Name,
-            process.ExitCode,
-            await outputTask,
-            await errorTask,
-            (long)stopwatch.Elapsed.TotalMilliseconds,
-            timedOut);
+            DockerProcessResult start = await DockerAgentProcess.RunAsync(
+                ["start", containerName],
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(start, "verifier container start");
+            DockerProcessResult initialization = await DockerAgentProcess.RunAsync(
+                [
+                    "exec", "--user", "0:0", containerName,
+                    "/bin/bash", "-lc",
+                    "rm -rf /logs/verifier /logs/artifacts && " +
+                    "mkdir -p /logs/verifier /logs/artifacts"
+                ],
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(initialization, "verifier container initialization");
+            DockerProcessResult artifactCopy = await DockerAgentProcess.RunAsync(
+                ["cp", $"{artifactsDirectory}/.", $"{containerName}:/logs/artifacts/"],
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(artifactCopy, "verifier artifact copy");
+
+            IReadOnlyList<string> executionArguments =
+                BuildExecutionArguments(command, containerName);
+            var startInfo = new ProcessStartInfo("docker")
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            foreach (string argument in executionArguments)
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
+
+            using Process process = Process.Start(startInfo)
+                ?? throw new VerifierExecutionException(
+                    "Docker verifier process could not be started");
+            var stopwatch = Stopwatch.StartNew();
+            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(
+                cancellationToken);
+            Task<string> errorTask = process.StandardError.ReadToEndAsync(
+                cancellationToken);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken);
+            timeout.CancelAfter(command.Timeout);
+            bool timedOut = false;
+            try
+            {
+                await process.WaitForExitAsync(timeout.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                timedOut = true;
+                await DockerContainerControl.StopAsync(
+                    containerName,
+                    CancellationToken.None);
+                await process.WaitForExitAsync(CancellationToken.None);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                await DockerContainerControl.StopAsync(
+                    containerName,
+                    CancellationToken.None);
+                await process.WaitForExitAsync(CancellationToken.None);
+                throw;
+            }
+
+            stopwatch.Stop();
+            _ = await outputTask;
+            _ = await errorTask;
+            await CopyVerifierEvidenceAsync(
+                containerName,
+                evidenceDirectory,
+                CancellationToken.None);
+            evidenceCopied = true;
+            string prefix = Path.Combine(evidenceDirectory, command.Name);
+            return new VerifierCommandResult(
+                command.Name,
+                process.ExitCode,
+                ReadRequiredEvidence($"{prefix}.stdout.log"),
+                ReadRequiredEvidence($"{prefix}.stderr.log"),
+                (long)stopwatch.Elapsed.TotalMilliseconds,
+                timedOut);
+        }
+        finally
+        {
+            if (created)
+            {
+                if (!evidenceCopied)
+                {
+                    await CopyVerifierEvidenceIfPresentAsync(
+                        containerName,
+                        evidenceDirectory);
+                }
+                DockerProcessResult removal = await DockerAgentProcess.RunAsync(
+                    ["rm", "--force", containerName],
+                    credentialVariable: null,
+                    credentialValue: null,
+                    CancellationToken.None);
+                if (removal.ExitCode != 0 &&
+                    !removal.StandardError.Contains(
+                        "No such container",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new VerifierExecutionException(
+                        $"verifier container cleanup failed: " +
+                        removal.StandardError.Trim());
+                }
+            }
+        }
     }
 
     internal static IReadOnlyList<string> BuildArguments(
@@ -361,17 +449,10 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             throw new VerifierExecutionException("Docker verifier image is required");
         }
 
-        string evidenceDirectory = Path.GetFullPath(
-            request.EvidenceDirectory
-            ?? throw new VerifierExecutionException(
-                "verifier evidence directory is required for Docker verification"));
-        string artifactsDirectory = Path.GetFullPath(
-            request.ArtifactsDirectory
-            ?? throw new VerifierExecutionException(
-                "verifier artifacts directory is required for Docker verification"));
         var arguments = new List<string>
         {
-            "run", "--rm", "--label", "com.bartr.wharf.managed=true",
+            "create",
+            "--label", "com.bartr.wharf.managed=true",
         };
         if (!string.IsNullOrWhiteSpace(containerName))
         {
@@ -383,12 +464,92 @@ public sealed class DockerVerifierRunner : IVerifierRunner
         [
             "--network", request.Network,
             "--memory", "8g",
-            "--mount", $"type=bind,src={evidenceDirectory},dst=/logs/verifier",
-            "--mount", $"type=bind,src={artifactsDirectory},dst=/logs/artifacts",
+            "--entrypoint", "/bin/bash",
             request.Image,
-            command.Command
+            "-lc",
+            "exec sleep infinity"
         ]);
         return arguments;
+    }
+
+    internal static IReadOnlyList<string> BuildExecutionArguments(
+        VerifierCommand command,
+        string containerName)
+    {
+        string logName = SanitizeContainerName(command.Name);
+        return
+        [
+            "exec",
+            containerName,
+            "/bin/bash",
+            "-lc",
+            $"eval \"$1\" >'/logs/verifier/{logName}.stdout.log' " +
+            $"2>'/logs/verifier/{logName}.stderr.log'",
+            "--",
+            command.Command
+        ];
+    }
+
+    private static async Task CopyVerifierEvidenceAsync(
+        string containerName,
+        string evidenceDirectory,
+        CancellationToken cancellationToken)
+    {
+        DockerProcessResult copy = await DockerAgentProcess.RunAsync(
+            ["cp", $"{containerName}:/logs/verifier/.", evidenceDirectory],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureSuccessful(copy, "verifier evidence copy");
+    }
+
+    private static async Task CopyVerifierEvidenceIfPresentAsync(
+        string containerName,
+        string evidenceDirectory)
+    {
+        DockerProcessResult copy = await DockerAgentProcess.RunAsync(
+            ["cp", $"{containerName}:/logs/verifier/.", evidenceDirectory],
+            credentialVariable: null,
+            credentialValue: null,
+            CancellationToken.None);
+        if (copy.ExitCode != 0 &&
+            !copy.StandardError.Contains(
+                "Could not find",
+                StringComparison.OrdinalIgnoreCase) &&
+            !copy.StandardError.Contains(
+                "No such container",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            EnsureSuccessful(copy, "verifier evidence copy");
+        }
+    }
+
+    private static void EnsureSuccessful(DockerProcessResult result, string stage)
+    {
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        string diagnostic = string.IsNullOrWhiteSpace(result.StandardError)
+            ? result.StandardOutput.Trim()
+            : result.StandardError.Trim();
+        throw new VerifierExecutionException(
+            string.IsNullOrWhiteSpace(diagnostic)
+                ? $"{stage} failed with exit code {result.ExitCode}"
+                : $"{stage} failed: {diagnostic}");
+    }
+
+    private static string ReadRequiredEvidence(string path)
+    {
+        if (!File.Exists(path))
+        {
+            throw new VerifierExecutionException(
+                $"verifier container did not produce required evidence: " +
+                Path.GetFileName(path));
+        }
+
+        return File.ReadAllText(path);
     }
 
     private static string SanitizeContainerName(string value) =>

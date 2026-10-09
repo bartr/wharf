@@ -117,26 +117,32 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
-    public void InitializesWorkspaceAsRootThenAssignsAgentOwnership()
+    public void CreatesMountlessContainerAndInitializesWorkspaceInsideIt()
     {
         using TemporaryDirectory source = new();
         using TemporaryDirectory workspace = new();
         AgentExecutionRequest request = Request(source.Path, workspace.Path);
 
+        IReadOnlyList<string> create =
+            DockerAgentWorkspacePreparer.BuildContainerCreateArguments(request, "task-agent");
         IReadOnlyList<string> arguments =
-            DockerAgentWorkspacePreparer.BuildWorkspaceInitializationArguments(request, "task-init");
+            DockerAgentWorkspacePreparer.BuildWorkspaceInitializationArguments(request, "task-agent");
 
-        AssertArgumentsContain(arguments, "--name", "task-init");
-        AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
+        Assert.Equal("create", create[0]);
+        AssertArgumentsContain(create, "--name", "task-agent");
+        AssertArgumentsContain(create, "--label", "com.bartr.wharf.managed=true");
+        AssertArgumentsContain(create, "--network", request.Network);
+        AssertArgumentsContain(create, "--memory", "8g");
+        AssertArgumentsContain(create, "--pids-limit", "1024");
+        AssertNoMountArguments(create);
+        Assert.Equal("exec", arguments[0]);
         AssertArgumentsContain(arguments, "--user", "0:0");
-        AssertArgumentsContain(arguments, "--network", "none");
-        AssertArgumentsContain(
-            arguments,
-            "--mount",
-            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        Assert.Contains("task-agent", arguments);
+        AssertNoMountArguments(arguments);
         Assert.Contains(
-            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace /home/wharf",
-            arguments);
+            arguments,
+            argument => argument.Contains("cp -a /app/. /workspace/", StringComparison.Ordinal) &&
+                argument.Contains("chown -R 1000:1000", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -149,12 +155,10 @@ public sealed class AgentExecutionTests
         IReadOnlyList<string> arguments =
             DockerAgentWorkspacePreparer.BuildWorkspaceSetupArguments(request, "task-setup");
 
-        AssertArgumentsContain(arguments, "--name", "task-setup");
+        Assert.Equal("exec", arguments[0]);
         AssertArgumentsContain(arguments, "--user", "1000:1000");
-        AssertArgumentsContain(
-            arguments,
-            "--mount",
-            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        Assert.Contains("task-setup", arguments);
+        AssertNoMountArguments(arguments);
         AssertArgumentsContain(arguments, "--env", "HOME=/home/wharf");
         AssertArgumentsContain(arguments, "--env", "XDG_CACHE_HOME=/home/wharf/.cache");
         Assert.Contains(arguments, argument =>
@@ -166,31 +170,7 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
-    public void RestoresHostOwnershipBeforeWorkspaceCleanup()
-    {
-        using TemporaryDirectory source = new();
-        using TemporaryDirectory workspace = new();
-        AgentExecutionRequest request = Request(source.Path, workspace.Path);
-
-        IReadOnlyList<string> arguments =
-            DockerAgentWorkspacePreparer.BuildWorkspaceCleanupArguments(request, "task-cleanup");
-
-        AssertArgumentsContain(arguments, "--name", "task-cleanup");
-        AssertArgumentsContain(arguments, "--label", "com.bartr.wharf.managed=true");
-        AssertArgumentsContain(arguments, "--user", "0:0");
-        AssertArgumentsContain(arguments, "--network", "none");
-        AssertArgumentsContain(
-            arguments,
-            "--mount",
-            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
-        Assert.Contains(
-            "chown -R 1000:1000 /workspace /home/wharf && " +
-            "chmod -R u+rwX /workspace /home/wharf",
-            arguments);
-    }
-
-    [Fact]
-    public void RunsAgentAsUid1000WithoutCopyingImageContent()
+    public void RunsAgentAsUid1000WithoutHostMounts()
     {
         using TemporaryDirectory source = new();
         using TemporaryDirectory workspace = new();
@@ -199,15 +179,10 @@ public sealed class AgentExecutionTests
         IReadOnlyList<string> arguments =
             DockerAgentRunner.BuildAgentArguments(request, "task-agent");
 
-        AssertArgumentsContain(arguments, "--name", "task-agent");
+        Assert.Equal("exec", arguments[0]);
         AssertArgumentsContain(arguments, "--user", "1000:1000");
-        AssertArgumentsContain(arguments, "--memory", "8g");
-        Assert.DoesNotContain("--memory-swap", arguments);
-        AssertArgumentsContain(arguments, "--pids-limit", "1024");
-        AssertArgumentsContain(
-            arguments,
-            "--mount",
-            $"type=bind,src={workspace.Path}-home,dst=/home/wharf");
+        Assert.Contains("task-agent", arguments);
+        AssertNoMountArguments(arguments);
         AssertArgumentsContain(arguments, "--env", "HOME=/home/wharf");
         AssertArgumentsContain(arguments, "--env", "XDG_CACHE_HOME=/home/wharf/.cache");
         int pnpmEnvironmentIndex = arguments.ToList().IndexOf(
@@ -384,6 +359,13 @@ public sealed class AgentExecutionTests
         bool found = Enumerable.Range(0, arguments.Count - 1)
             .Any(index => arguments[index] == option && arguments[index + 1] == value);
         Assert.True(found, $"Missing Docker option {option} {value}");
+    }
+
+    private static void AssertNoMountArguments(IReadOnlyList<string> arguments)
+    {
+        Assert.DoesNotContain("--mount", arguments);
+        Assert.DoesNotContain("--volume", arguments);
+        Assert.DoesNotContain("-v", arguments);
     }
 
     private static string RunGit(string workspace, params string[] arguments)

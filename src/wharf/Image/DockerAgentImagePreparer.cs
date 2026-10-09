@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Wharf.Docker;
 using Wharf.Tasks;
 
 namespace Wharf.Image;
@@ -87,6 +88,7 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         File.WriteAllText(
             Path.Combine(evidenceDirectory, "image-build.log"),
             build.StandardOutput + build.StandardError);
+        DockerRunCleanup.RegisterImage(image);
         progress?.Invoke($"agent image built {image}");
         return image;
     }
@@ -181,6 +183,7 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         ProcessResult result = await RunDockerAsync(
             ["image", "rm", image],
             cancellationToken);
+        DockerRunCleanup.ForgetImage(image);
     }
 
     private sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);

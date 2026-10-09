@@ -11,7 +11,9 @@ public sealed record AgentExecutionRequest(
     CopilotInvocation Invocation,
     IReadOnlyList<string> HiddenPaths,
     string? ContainerName = null,
-    TimeSpan? Timeout = null)
+    TimeSpan? Timeout = null,
+    bool RetainWorkspace = false,
+    string? EvidenceDirectory = null)
 {
     public void Validate()
     {

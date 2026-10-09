@@ -6,6 +6,7 @@ using Tomlyn.Model;
 using Wharf.Agent;
 using Wharf.Configuration;
 using Wharf.Copilot;
+using Wharf.Docker;
 using Wharf.Execution;
 using Wharf.Image;
 using Wharf.Logging;
@@ -163,6 +164,7 @@ public sealed class RunService
                 string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
                 Directory.CreateDirectory(workspaceDirectory);
                 string image = string.Empty;
+                bool removeAgentImage = false;
                 AgentExecutionRequest? agentRequest = null;
                 string? trialErrorType = null;
                 StageLogContext Stage(string stage) => new(
@@ -224,12 +226,17 @@ public sealed class RunService
                                     task.AgentBuildTimeoutSeconds ?? 1800));
                                 try
                                 {
+                                    string requestedImage = $"{executionName}:latest";
                                     image = await imagePreparer.PrepareAsync(
-                                        task,
-                                        Path.Combine(trialDirectory, "agent"),
-                                        $"{executionName}:latest",
-                                        message => logger.Info($"{prefix} status={message}"),
-                                        buildTimeout.Token);
+                                            task,
+                                            Path.Combine(trialDirectory, "agent"),
+                                            requestedImage,
+                                            message => logger.Info($"{prefix} status={message}"),
+                                            buildTimeout.Token);
+                                    removeAgentImage = string.Equals(
+                                        image,
+                                        requestedImage,
+                                        StringComparison.Ordinal);
                                 }
                                 catch (OperationCanceledException) when (
                                     !preparationCancellationToken.IsCancellationRequested &&
@@ -260,7 +267,8 @@ public sealed class RunService
                                 },
                                 [],
                                 executionName,
-                                TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400));
+                                TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400),
+                                RetainWorkspace: configuration.RetainWorkspaces);
                             logger.Info($"{prefix} status=preparing-workspace");
                             await workspacePreparer.PrepareAsync(
                                 request,
@@ -666,6 +674,25 @@ public sealed class RunService
                 File.WriteAllText(
                     Path.Combine(trialDirectory, "result.json"),
                     JsonSerializer.Serialize(result, JsonOptions));
+                if (removeAgentImage)
+                {
+                    try
+                    {
+                        await imagePreparer.RemoveImageAsync(
+                            image,
+                            CancellationToken.None);
+                        logger.Info(
+                            $"{prefix} status=agent-image-cleaned image={image}");
+                    }
+                    catch (AgentImageException exception)
+                    {
+                        logger.Info(
+                            $"{prefix} status=agent-image-cleanup-failed " +
+                            $"error={exception.Message}",
+                            exception.Message,
+                            "AgentImageCleanup");
+                    }
+                }
                 cleanupDuration.Stop();
                 logger.StageCompleted(
                     cleanupStage,
@@ -965,6 +992,7 @@ public sealed class RunService
                 "VerifierBuild");
         }
 
+        DockerRunCleanup.RegisterImage(image);
         logger.Info($"{prefix} status=verifier-image-ready image={image}");
         return image;
     }
@@ -1088,6 +1116,7 @@ public sealed class RunService
             }
 
             logger.Info($"{prefix} status=verifier-image-cleaned image={image}");
+            DockerRunCleanup.ForgetImage(image);
         }
         catch (IOException exception)
         {

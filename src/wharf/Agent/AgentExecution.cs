@@ -25,7 +25,9 @@ public sealed class AgentExecutionService
         }
 
         Directory.CreateDirectory(evidenceDirectory);
-        AgentRunResult result = await runner.RunAsync(request, cancellationToken);
+        AgentRunResult result = await runner.RunAsync(
+            request with { EvidenceDirectory = evidenceDirectory },
+            cancellationToken);
         string status = result.OutOfMemory || result.TimedOut
             ? "failed"
             : string.IsNullOrWhiteSpace(result.Patch)
@@ -235,9 +237,6 @@ public sealed partial class DockerAgentRunner : IAgentRunner
     {
         request.Validate();
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
-        string baseCommit = await ReadHeadAsync(
-            request.WorkspaceDirectory,
-            cancellationToken);
         Stopwatch stopwatch = Stopwatch.StartNew();
         IReadOnlyList<string> arguments = BuildAgentArguments(request, containerName);
         string? credentialVariable = request.Invocation.Environment.TryGetValue(
@@ -246,62 +245,137 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             IsEnvironmentVariable(configuredCredentialVariable)
                 ? configuredCredentialVariable
                 : null;
-        await using IDockerOomWatch oomWatch = oomMonitor.Start(containerName);
-        Task<DockerProcessResult> agentTask = DockerAgentProcess.RunAsync(
-            arguments,
-            credentialVariable,
-            request.Invocation.CredentialValue,
-            CancellationToken.None);
-        TimeSpan agentTimeout = request.Timeout ?? TimeSpan.FromSeconds(5400);
-        Task timeoutTask = Task.Delay(agentTimeout, cancellationToken);
-        Task<bool> oomTask = oomWatch.WaitAsync(agentTask, CancellationToken.None);
-        bool timedOut = false;
+        string? baseCommit = null;
         try
         {
-            Task completed = await Task.WhenAny(agentTask, oomTask, timeoutTask);
-            if (completed == timeoutTask)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                timedOut = true;
-                await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+            baseCommit = await ReadContainerHeadAsync(
+                containerName,
+                cancellationToken);
+            await using IDockerOomWatch oomWatch = oomMonitor.Start(containerName);
+            Task<DockerProcessResult> agentTask = DockerAgentProcess.RunAsync(
+                arguments,
+                credentialVariable,
+                request.Invocation.CredentialValue,
+                CancellationToken.None);
+            TimeSpan agentTimeout = request.Timeout ?? TimeSpan.FromSeconds(5400);
+            Task timeoutTask = Task.Delay(agentTimeout, cancellationToken);
+            Task<bool> oomTask = oomWatch.WaitAsync(agentTask, CancellationToken.None);
+            bool timedOut = false;
             try
             {
-                await agentTask;
+                Task completed = await Task.WhenAny(agentTask, oomTask, timeoutTask);
+                if (completed == timeoutTask)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    timedOut = true;
+                    await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+                }
             }
-            catch
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
+                await DockerContainerControl.StopAsync(containerName, CancellationToken.None);
+                try
+                {
+                    await agentTask;
+                }
+                catch
+                {
+                }
+                await CaptureContainerEvidenceAsync(
+                    request,
+                    containerName,
+                    baseCommit,
+                    CancellationToken.None);
+                throw;
             }
-            throw;
-        }
 
-        DockerProcessResult agent = await agentTask;
-        bool outOfMemory = await oomTask;
-        stopwatch.Stop();
-        string debugLogDirectory = Path.Combine(request.WorkspaceDirectory, ".copilot-logs");
-        AgentUsage? usage = CopilotUsageParser.Parse(agent.StandardError, debugLogDirectory);
-        string patch = await ReadPatchAsync(
-            request.WorkspaceDirectory,
-            baseCommit,
+            DockerProcessResult agent = await agentTask;
+            bool outOfMemory = await oomTask;
+            await CaptureContainerEvidenceAsync(
+                request,
+                containerName,
+                baseCommit,
+                cancellationToken);
+            string evidenceDirectory = request.EvidenceDirectory
+                ?? throw new AgentExecutionException(
+                    "agent evidence directory is required for Docker execution");
+
+            stopwatch.Stop();
+            string standardOutput = ReadRequiredEvidence(
+                evidenceDirectory,
+                "stdout.log");
+            string standardError = ReadRequiredEvidence(
+                evidenceDirectory,
+                "stderr.log");
+            string trajectory = ReadRequiredEvidence(
+                evidenceDirectory,
+                "trajectory.jsonl");
+            string patch = ReadRequiredEvidence(
+                evidenceDirectory,
+                "patch.diff");
+            string debugLogDirectory = Path.Combine(
+                evidenceDirectory,
+                "copilot-logs");
+            AgentUsage? usage = CopilotUsageParser.Parse(
+                standardError,
+                debugLogDirectory);
+            return new AgentRunResult(
+                agent.ExitCode,
+                standardOutput,
+                standardError,
+                trajectory,
+                patch,
+                stopwatch.Elapsed,
+                Tokens: usage is null ? null : checked((int)usage.TotalTokens),
+                Requests: usage?.Requests,
+                Cost: usage?.AiCredits,
+                Usage: usage,
+                OutOfMemory: outOfMemory,
+                TimedOut: timedOut);
+        }
+        finally
+        {
+            await RemoveContainerAsync(containerName);
+        }
+    }
+
+    private static async Task CaptureContainerEvidenceAsync(
+        AgentExecutionRequest request,
+        string containerName,
+        string baseCommit,
+        CancellationToken cancellationToken)
+    {
+        await EnsureContainerRunningAsync(containerName, cancellationToken);
+        DockerProcessResult capture = await DockerAgentProcess.RunAsync(
+            BuildPatchCaptureArguments(containerName, baseCommit),
+            credentialVariable: null,
+            credentialValue: null,
             cancellationToken);
-        return new AgentRunResult(
-            agent.ExitCode,
-            agent.StandardOutput,
-            agent.StandardError,
-            agent.StandardOutput,
-            patch,
-            stopwatch.Elapsed,
-            Tokens: usage is null ? null : checked((int)usage.TotalTokens),
-            Requests: usage?.Requests,
-            Cost: usage?.AiCredits,
-            DebugLogDirectory: debugLogDirectory,
-            Usage: usage,
-            OutOfMemory: outOfMemory,
-            TimedOut: timedOut);
+        DockerAgentWorkspacePreparer.EnsureSuccessful(
+            capture,
+            "agent patch capture");
+        string evidenceDirectory = request.EvidenceDirectory
+            ?? throw new AgentExecutionException(
+                "agent evidence directory is required for Docker execution");
+        DockerProcessResult evidenceCopy = await DockerAgentProcess.RunAsync(
+            ["cp", $"{containerName}:/logs/agent/.", evidenceDirectory],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        DockerAgentWorkspacePreparer.EnsureSuccessful(
+            evidenceCopy,
+            "agent evidence copy");
+        if (request.RetainWorkspace)
+        {
+            DockerProcessResult workspaceCopy = await DockerAgentProcess.RunAsync(
+                ["cp", $"{containerName}:/workspace/.", request.WorkspaceDirectory],
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            DockerAgentWorkspacePreparer.EnsureSuccessful(
+                workspaceCopy,
+                "agent workspace copy");
+        }
     }
 
     internal static IReadOnlyList<string> BuildAgentArguments(
@@ -310,16 +384,8 @@ public sealed partial class DockerAgentRunner : IAgentRunner
     {
         var arguments = new List<string>
         {
-            "run", "--rm",
-            "--name", containerName,
-            "--label", "com.bartr.wharf.managed=true",
-            "--user", "1000:1000", "--network", request.Network,
-            "--memory", "8g",
-            "--pids-limit", "1024",
-            "--mount", $"type=bind,src={request.SourceDirectory},dst=/task,readonly",
-            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--mount",
-            $"type=bind,src={DockerAgentWorkspacePreparer.AgentHomeDirectory(request)},dst=/home/wharf",
+            "exec",
+            "--user", "1000:1000",
             "--env", "HOME=/home/wharf",
             "--env", "XDG_CACHE_HOME=/home/wharf/.cache",
             "--env", "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false"
@@ -332,16 +398,137 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             arguments.Add("-e");
             arguments.Add(credentialVariable);
         }
-        arguments.Add(request.AgentImage);
+        arguments.Add(containerName);
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
         arguments.Add(
             "export PATH=/workspace/.wharf-copilot/node_modules/.bin:$PATH; " +
-            "cd /workspace/ && exec \"$@\"");
+            "cd /workspace/; " +
+            "\"$@\" >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
+            "status=$?; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
+            "exit $status");
         arguments.Add("--");
         arguments.Add(request.Invocation.Executable);
         arguments.AddRange(request.Invocation.Arguments);
         return arguments;
+    }
+
+    internal static IReadOnlyList<string> BuildPatchCaptureArguments(
+        string containerName,
+        string baseCommit) =>
+        [
+            "exec",
+            "--user", "1000:1000",
+            containerName,
+            "/bin/bash",
+            "-lc",
+            """
+            set -euo pipefail
+            cd /workspace
+            touch /logs/agent/stdout.log /logs/agent/stderr.log
+            cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl
+            patch=/logs/agent/patch.diff
+            git diff --binary --no-ext-diff "$1" >"$patch"
+            while IFS= read -r -d '' path; do
+                case "$path" in
+                    .cache|.cache/*|.home|.home/*|.wharf-copilot|.wharf-copilot/*|.copilot-logs|.copilot-logs/*|.wharf-copilot-install.log)
+                        continue
+                        ;;
+                esac
+                status=0
+                git diff --binary --no-index -- /dev/null "$path" >>"$patch" || status=$?
+                if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
+                    exit "$status"
+                fi
+            done < <(git ls-files --others --exclude-standard -z)
+            if [ -d /workspace/.copilot-logs ]; then
+                cp -a /workspace/.copilot-logs /logs/agent/copilot-logs
+            fi
+            """,
+            "--",
+            baseCommit
+        ];
+
+    private static async Task<string> ReadContainerHeadAsync(
+        string containerName,
+        CancellationToken cancellationToken)
+    {
+        DockerProcessResult result = await DockerAgentProcess.RunAsync(
+            [
+                "exec",
+                "--user", "1000:1000",
+                containerName,
+                "git", "-C", "/workspace", "rev-parse", "HEAD"
+            ],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        if (result.ExitCode != 0 || string.IsNullOrWhiteSpace(result.StandardOutput))
+        {
+            throw new AgentExecutionException(
+                $"agent workspace HEAD could not be read: {result.StandardError.Trim()}");
+        }
+
+        return result.StandardOutput.Trim();
+    }
+
+    private static async Task EnsureContainerRunningAsync(
+        string containerName,
+        CancellationToken cancellationToken)
+    {
+        DockerProcessResult inspection = await DockerAgentProcess.RunAsync(
+            ["inspect", "--format", "{{.State.Running}}", containerName],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        DockerAgentWorkspacePreparer.EnsureSuccessful(
+            inspection,
+            "agent container inspection");
+        if (string.Equals(
+                inspection.StandardOutput.Trim(),
+                "true",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        DockerProcessResult start = await DockerAgentProcess.RunAsync(
+            ["start", containerName],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        DockerAgentWorkspacePreparer.EnsureSuccessful(
+            start,
+            "agent evidence restart");
+    }
+
+    private static async Task RemoveContainerAsync(string containerName)
+    {
+        DockerProcessResult removal = await DockerAgentProcess.RunAsync(
+            ["rm", "--force", containerName],
+            credentialVariable: null,
+            credentialValue: null,
+            CancellationToken.None);
+        if (removal.ExitCode != 0 &&
+            !removal.StandardError.Contains(
+                "No such container",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new AgentExecutionException(
+                $"agent container cleanup failed: {removal.StandardError.Trim()}");
+        }
+    }
+
+    private static string ReadRequiredEvidence(string directory, string name)
+    {
+        string path = Path.Combine(directory, name);
+        if (!File.Exists(path))
+        {
+            throw new AgentExecutionException(
+                $"agent container did not produce required evidence: {name}");
+        }
+
+        return File.ReadAllText(path);
     }
 
     internal static partial class CopilotUsageParser
@@ -532,21 +719,51 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
         CancellationToken cancellationToken)
     {
         request.Validate();
-        Directory.CreateDirectory(AgentHomeDirectory(request));
         string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
-        DockerProcessResult initialization = await DockerAgentProcess.RunAsync(
-            BuildWorkspaceInitializationArguments(request, $"{containerName}-init"),
-            credentialVariable: null,
-            credentialValue: null,
-            cancellationToken);
-        EnsureSuccessful(initialization, "agent workspace initialization");
+        bool created = false;
+        try
+        {
+            DockerProcessResult creation = await DockerAgentProcess.RunAsync(
+                BuildContainerCreateArguments(request, containerName),
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(creation, "agent container creation");
+            created = true;
 
-        DockerProcessResult setup = await DockerAgentProcess.RunAsync(
-            BuildWorkspaceSetupArguments(request, $"{containerName}-setup"),
-            credentialVariable: null,
-            credentialValue: null,
-            cancellationToken);
-        EnsureSuccessful(setup, "agent workspace setup");
+            DockerProcessResult start = await DockerAgentProcess.RunAsync(
+                ["start", containerName],
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(start, "agent container start");
+
+            DockerProcessResult initialization = await DockerAgentProcess.RunAsync(
+                BuildWorkspaceInitializationArguments(request, containerName),
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(initialization, "agent workspace initialization");
+
+            DockerProcessResult setup = await DockerAgentProcess.RunAsync(
+                BuildWorkspaceSetupArguments(request, containerName),
+                credentialVariable: null,
+                credentialValue: null,
+                cancellationToken);
+            EnsureSuccessful(setup, "agent workspace setup");
+        }
+        catch
+        {
+            if (created)
+            {
+                await DockerAgentProcess.RunAsync(
+                    ["rm", "--force", containerName],
+                    credentialVariable: null,
+                    credentialValue: null,
+                    CancellationToken.None);
+            }
+            throw;
+        }
     }
 
     public async Task PrepareForHostCleanupAsync(
@@ -554,52 +771,52 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
         CancellationToken cancellationToken)
     {
         request.Validate();
-        Directory.CreateDirectory(AgentHomeDirectory(request));
-        string containerName = request.ContainerName ?? $"agent-{Guid.NewGuid():N}";
-        DockerProcessResult ownership = await DockerAgentProcess.RunAsync(
-            BuildWorkspaceCleanupArguments(request, $"{containerName}-cleanup"),
-            credentialVariable: null,
-            credentialValue: null,
-            cancellationToken);
-        EnsureSuccessful(ownership, "agent workspace cleanup ownership");
+        await Task.CompletedTask;
     }
 
-    internal static string AgentHomeDirectory(AgentExecutionRequest request) =>
-        request.WorkspaceDirectory + "-home";
+    internal static IReadOnlyList<string> BuildContainerCreateArguments(
+        AgentExecutionRequest request,
+        string containerName) =>
+        [
+            "create",
+            "--name", containerName,
+            "--label", "com.bartr.wharf.managed=true",
+            "--network", request.Network,
+            "--memory", "8g",
+            "--pids-limit", "1024",
+            "--env", "HOME=/home/wharf",
+            "--env", "XDG_CACHE_HOME=/home/wharf/.cache",
+            "--env", "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false",
+            request.AgentImage,
+            "/bin/bash",
+            "-lc",
+            "exec sleep infinity"
+        ];
 
     internal static IReadOnlyList<string> BuildWorkspaceInitializationArguments(
         AgentExecutionRequest request,
         string containerName) =>
         [
-            "run", "--rm",
-            "--name", containerName,
-            "--label", "com.bartr.wharf.managed=true",
+            "exec",
             "--user", "0:0",
-            "--network", "none",
-            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--mount",
-            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
-            request.AgentImage,
+            containerName,
             "/bin/bash",
             "-lc",
-            "cp -a /app/. /workspace/ && chown -R 1000:1000 /workspace /home/wharf"
+            "rm -rf /workspace /home/wharf /logs/agent && " +
+            "mkdir -p /workspace /home/wharf/.cache /logs/agent && " +
+            "cp -a /app/. /workspace/ && " +
+            "chown -R 1000:1000 /workspace /home/wharf /logs/agent"
         ];
 
     internal static IReadOnlyList<string> BuildWorkspaceSetupArguments(
         AgentExecutionRequest request,
         string containerName) =>
         [
-            "run", "--rm",
-            "--name", containerName,
-            "--label", "com.bartr.wharf.managed=true",
+            "exec",
             "--user", "1000:1000",
-            "--network", request.Network,
-            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--mount",
-            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
             "--env", "HOME=/home/wharf",
             "--env", "XDG_CACHE_HOME=/home/wharf/.cache",
-            request.AgentImage,
+            containerName,
             "/bin/bash",
             "-lc",
             "if ! command -v npm >/dev/null 2>&1; then " +
@@ -608,25 +825,6 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
             $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
             "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }"
-        ];
-
-    internal static IReadOnlyList<string> BuildWorkspaceCleanupArguments(
-        AgentExecutionRequest request,
-        string containerName) =>
-        [
-            "run", "--rm",
-            "--name", containerName,
-            "--label", "com.bartr.wharf.managed=true",
-            "--user", "0:0",
-            "--network", "none",
-            "--mount", $"type=bind,src={request.WorkspaceDirectory},dst=/workspace",
-            "--mount",
-            $"type=bind,src={AgentHomeDirectory(request)},dst=/home/wharf",
-            request.AgentImage,
-            "/bin/bash",
-            "-lc",
-            "chown -R 1000:1000 /workspace /home/wharf && " +
-            "chmod -R u+rwX /workspace /home/wharf"
         ];
 
     internal static void EnsureSuccessful(DockerProcessResult result, string stage)

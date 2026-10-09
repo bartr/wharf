@@ -147,3 +147,13 @@ or $0.3556 per costed task attempt with 97.35% coverage. Include all four
 whole-trial retries, four OOM events, two agent timeouts, and every verifier
 result; do not add post-result exclusions. This run predates verifier-only
 retry commit `fcc8235` and therefore reran the agent for verifier failures.
+
+The `docker` spike branch replaces host bind mounts for both agent and verifier
+containers with explicit create/start/exec/`docker cp`/remove lifecycles.
+Agent logs and the complete binary patch are created inside the container and
+copied into trial evidence before removal; `--retain-workspaces` copies the
+full workspace out. Verifiers receive retained artifacts through `docker cp`
+and copy `/logs/verifier` back before cleanup. Remove explicitly registered
+task-derived agent and verifier images after their logical trial, but never
+remove base images, pulled ECR images, or unrelated tags through broad name
+matching.

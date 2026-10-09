@@ -58,10 +58,25 @@ public sealed class WharfAppTests
                 File.ReadAllText(Path.Combine(trialDirectory, "result.json")));
             Assert.False(result.RootElement.GetProperty("workspaceRetained").GetBoolean());
             Assert.Equal(JsonValueKind.Null, result.RootElement.GetProperty("agentWorkspace").ValueKind);
+            string agentDirectory = Path.Combine(trialDirectory, "agent");
+            Assert.NotEmpty(File.ReadAllText(Path.Combine(agentDirectory, "stdout.log")));
+            Assert.True(File.Exists(Path.Combine(agentDirectory, "stderr.log")));
+            Assert.NotEmpty(File.ReadAllText(Path.Combine(agentDirectory, "patch.diff")));
+            Assert.True(File.Exists(Path.Combine(
+                trialDirectory,
+                "artifacts",
+                "model.patch")));
+            Assert.True(File.Exists(Path.Combine(
+                trialDirectory,
+                "verifier",
+                "reward.json")));
             Assert.Contains("started=", File.ReadLines(runLog).First());
             Assert.Contains(
                 File.ReadLines(runLog),
                 line => line.Contains("status=verifier-image-cleaned", StringComparison.Ordinal));
+            Assert.Contains(
+                File.ReadLines(runLog),
+                line => line.Contains("status=agent-image-cleaned", StringComparison.Ordinal));
             JsonElement[] stageEvents = File.ReadLines(runLog)
                 .Select(line => JsonDocument.Parse(line).RootElement.Clone())
                 .Where(record =>
