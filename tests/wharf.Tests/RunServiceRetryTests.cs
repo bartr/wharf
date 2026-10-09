@@ -197,17 +197,28 @@ public sealed class RunServiceRetryTests
     }
 
     [Fact]
+    public void ManagedImageNamesUseRolePrefixes()
+    {
+        Assert.Equal(
+            "agent-task__run:latest",
+            RunService.BuildAgentImageName("task__run"));
+        Assert.Equal(
+            "verifier-task_name__run:latest",
+            RunService.BuildVerifierImageName("task/name", "run"));
+    }
+
+    [Fact]
     public void VerifierImageCleanupArgumentsAreDistinctAndDeterministic()
     {
         IReadOnlyList<string> arguments = RunService.BuildVerifierImageCleanupArguments(
-            ["task-b__verifier__:latest", "task-a__verifier__:latest", "task-b__verifier__:latest"]);
+            ["verifier-task-b:latest", "verifier-task-a:latest", "verifier-task-b:latest"]);
 
         Assert.Equal(
             [
                 "image",
                 "rm",
-                "task-a__verifier__:latest",
-                "task-b__verifier__:latest"
+                "verifier-task-a:latest",
+                "verifier-task-b:latest"
             ],
             arguments);
     }

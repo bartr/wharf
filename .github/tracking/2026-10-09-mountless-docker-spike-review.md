@@ -51,6 +51,10 @@ No implementation defects were found in read-only review.
 | Isolated ECR-child focused tests | Completed | 41/41 passed |
 | Updated full Docker-backed suite | Completed in `wharf-isolated-image-full-test` | 167/167 passed |
 | Live ECR-child probe | Completed | Unique child built and removed; parent remained |
+| Real aiomonitor environment-image test | Completed | 1/1 passed with no build warnings |
+| Updated full Docker-backed suite with both image paths | Completed in `wharf-aiomonitor-full-test` | 168/168 passed |
+| Role-prefixed managed image tests | Completed | 21/21 passed |
+| Final full Docker-backed suite | Completed in `wharf-role-prefix-full` | 169/169 passed |
 | Formatting verification | Completed | Passed |
 | `git diff --check` | Completed | Passed |
 | Agent/verifier mount search | Completed | No mount arguments found |

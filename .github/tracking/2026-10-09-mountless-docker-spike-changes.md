@@ -40,6 +40,19 @@
   `wharf-isolated-image-full-test`.
 - A live Docker probe built a uniquely labeled child from a pulled ECR parent,
   removed the child, and confirmed that the parent remained.
+- Added a Docker integration test that loads the real
+  `aiomonitor-task-snapshots-diff` Harbor manifest and exercises its
+  `environment.docker_image` preparation path directly.
+- The aiomonitor environment-image test passed 1/1 with no build warnings.
+- The updated full Docker-backed suite passed 168/168 in named tmux session
+  `wharf-aiomonitor-full-test`.
+- Changed managed image naming from `<task>__<run>` and
+  `<task>__verifier__<run>` to role-prefixed `agent-<task>__<run>` and
+  `verifier-<task>__<run>` tags.
+- Role-prefix and real environment-image focused tests passed 21/21.
+- The full Docker-backed suite passed 169/169 in named tmux session
+  `wharf-role-prefix-full`; its live smoke created and removed both prefixed
+  image roles.
 - Formatting verification and `git diff --check`: passed.
 - Smoke produced a nonempty copied agent patch, agent logs, model artifact, and
   verifier reward.

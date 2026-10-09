@@ -228,7 +228,8 @@ public sealed class RunService
                                     task.AgentBuildTimeoutSeconds ?? 1800));
                                 try
                                 {
-                                    string requestedImage = $"{executionName}:latest";
+                                    string requestedImage =
+                                        BuildAgentImageName(executionName);
                                     image = await imagePreparer.PrepareAsync(
                                             task,
                                             Path.Combine(trialDirectory, "agent"),
@@ -936,7 +937,7 @@ public sealed class RunService
             return null;
         }
 
-        string image = $"{SanitizePathPart(task.TaskId)}__verifier__{runId}:latest";
+        string image = BuildVerifierImageName(task.TaskId, runId);
         logger.Info($"{prefix} status=preparing-verifier-image image={image}");
         var startInfo = new ProcessStartInfo("docker")
         {
@@ -1073,6 +1074,12 @@ public sealed class RunService
 
     internal static bool ShouldRunVerifier(string? patch) =>
         !string.IsNullOrWhiteSpace(patch);
+
+    internal static string BuildAgentImageName(string executionName) =>
+        $"agent-{executionName}:latest";
+
+    internal static string BuildVerifierImageName(string taskId, string runId) =>
+        $"verifier-{SanitizePathPart(taskId)}__{runId}:latest";
 
     internal static IReadOnlyList<string> BuildVerifierImageCleanupArguments(
         IEnumerable<string> images) =>

@@ -160,6 +160,9 @@ matching.
 Every ECR-backed logical trial must build its own uniquely tagged child image
 from the pulled parent. Never run multiple logical trials directly from the
 shared ECR tag, and register only the child image for deletion.
+Prefix Wharf-owned agent image tags with `agent-` and verifier image tags with
+`verifier-` so operators can list managed images without matching pulled ECR
+images.
 
 Run admission remains longest-estimated-duration first by default within each K
 wave. The opt-in `--shortest-first` flag reverses duration ordering within each
