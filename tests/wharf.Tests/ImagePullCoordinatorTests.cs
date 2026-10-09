@@ -84,6 +84,46 @@ public sealed class ImagePullCoordinatorTests
     }
 
     [Fact]
+    public async Task DefaultPolicyRetriesUntilPullSucceeds()
+    {
+        var client = new FakeImageClient(
+            false,
+            RateLimited("429"),
+            RateLimited("429"),
+            RateLimited("429"),
+            RateLimited("429"),
+            RateLimited("429"),
+            RateLimited("429"),
+            Success());
+        ImagePullCoordinator coordinator = CreateCoordinator(client);
+
+        ImagePullResult result = await coordinator.PrepareAsync("ghcr.io/acme/base:1");
+
+        Assert.Equal("pulled", result.Outcome);
+        Assert.Equal(7, result.PullAttempts);
+        Assert.Equal(6, result.RateLimitResponses);
+        Assert.Equal(7, client.PullCount);
+    }
+
+    [Fact]
+    public async Task DefaultPolicyStopsWhenBuildTokenIsCancelled()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var client = new FakeImageClient(
+            false,
+            RateLimited("429"),
+            RateLimited("429"));
+        var delay = new CancellingDelay(cancellation);
+        ImagePullCoordinator coordinator = CreateCoordinator(client, delay);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => coordinator.PrepareAsync("ghcr.io/acme/base:1", cancellation.Token));
+
+        Assert.Equal(1, client.PullCount);
+        Assert.Single(delay.Delays);
+    }
+
+    [Fact]
     public async Task SuccessDecaysRegistryPressureForLaterPulls()
     {
         var client = new FakeImageClient(
@@ -185,6 +225,23 @@ public sealed class ImagePullCoordinatorTests
         Assert.Equal("exhausted", summary.Images["registry.example.test/base:1"].Outcome);
     }
 
+    [Fact]
+    public async Task EvictsFailedPullSoLaterPreparationRetries()
+    {
+        var client = new FakeImageClient(false, RateLimited("429"), Success());
+        ImagePullCoordinator coordinator = CreateCoordinator(
+            client,
+            options: new ImagePullOptions(MaximumAttempts: 1));
+
+        ImagePullException exception = await Assert.ThrowsAsync<ImagePullException>(
+            () => coordinator.PrepareAsync("registry.example.test/base:1"));
+        ImagePullResult result = await coordinator.PrepareAsync("registry.example.test/base:1");
+
+        Assert.Equal("exhausted", exception.Result.Outcome);
+        Assert.Equal("pulled", result.Outcome);
+        Assert.Equal(2, client.PullCount);
+    }
+
     [Theory]
     [InlineData("ubuntu:24.04", "docker.io")]
     [InlineData("library/ubuntu:24.04", "docker.io")]
@@ -264,6 +321,18 @@ public sealed class ImagePullCoordinatorTests
         {
             Delays.Add(delay);
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class CancellingDelay(CancellationTokenSource cancellation) : IAsyncDelay
+    {
+        public List<TimeSpan> Delays { get; } = [];
+
+        public Task DelayAsync(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            Delays.Add(delay);
+            cancellation.Cancel();
+            return Task.FromCanceled(cancellationToken);
         }
     }
 

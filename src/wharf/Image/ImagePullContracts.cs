@@ -8,7 +8,7 @@ public static class ImagePullSchema
 }
 
 public sealed record ImagePullOptions(
-    int MaximumAttempts = 5,
+    int? MaximumAttempts = null,
     TimeSpan? InitialRetryDelay = null,
     TimeSpan? MaximumRetryDelay = null,
     double JitterRatio = 0.2)
@@ -18,7 +18,7 @@ public sealed record ImagePullOptions(
 
     public void Validate()
     {
-        if (MaximumAttempts < 1)
+        if (MaximumAttempts is < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(MaximumAttempts), "maximum attempts must be positive");
         }

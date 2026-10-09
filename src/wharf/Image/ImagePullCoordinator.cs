@@ -33,7 +33,7 @@ public sealed partial class ImagePullCoordinator
         this.options.Validate();
     }
 
-    public Task<ImagePullResult> PrepareAsync(
+    public async Task<ImagePullResult> PrepareAsync(
         string image,
         CancellationToken cancellationToken = default)
     {
@@ -43,7 +43,20 @@ public sealed partial class ImagePullCoordinator
             key => new Lazy<Task<ImagePullResult>>(
                 () => PrepareCoreAsync(key, cancellationToken),
                 LazyThreadSafetyMode.ExecutionAndPublication));
-        return pending.Value;
+        try
+        {
+            return await pending.Value;
+        }
+        catch
+        {
+            if (pulls.TryGetValue(normalized, out Lazy<Task<ImagePullResult>>? current) &&
+                ReferenceEquals(current, pending))
+            {
+                pulls.TryRemove(normalized, out _);
+            }
+
+            throw;
+        }
     }
 
     public static bool IsRateLimitFailure(ImagePullAttempt attempt)
@@ -82,7 +95,7 @@ public sealed partial class ImagePullCoordinator
 
         int rateLimits = 0;
         long cumulativeDelay = 0;
-        for (int attempt = 1; attempt <= options.MaximumAttempts; attempt++)
+        for (int attempt = 1; ; attempt++)
         {
             ImagePullAttempt pull = await client.PullAsync(image, cancellationToken);
             if (pull.Succeeded)
@@ -118,7 +131,8 @@ public sealed partial class ImagePullCoordinator
                 registry,
                 1,
                 static (_, current) => Math.Min(current + 1, 30));
-            bool exhausted = attempt == options.MaximumAttempts;
+            bool exhausted = options.MaximumAttempts.HasValue &&
+                attempt >= options.MaximumAttempts.Value;
             TimeSpan selectedDelay = exhausted
                 ? TimeSpan.Zero
                 : SelectDelay(Math.Max(rateLimits, pressure));
@@ -149,8 +163,6 @@ public sealed partial class ImagePullCoordinator
 
             await delay.DelayAsync(selectedDelay, cancellationToken);
         }
-
-        throw new InvalidOperationException("image pull retry loop ended unexpectedly");
     }
 
     private async Task CompleteAsync(ImagePullResult result, CancellationToken cancellationToken)
