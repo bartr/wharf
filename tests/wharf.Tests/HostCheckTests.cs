@@ -39,10 +39,12 @@ public sealed class HostCheckTests
     }
 
     [Fact]
-    public void DefaultInotifyThresholdsMatchLinuxKernelSettings()
+    public void DefaultCapacityThresholdsMatchSupportedMinimums()
     {
         HostCheckOptions options = new();
 
+        Assert.Equal(4L * 1024 * 1024 * 1024, options.MinimumMemoryBytes);
+        Assert.Equal(2, options.MinimumCpuCount);
         Assert.Equal(1_024, options.MinimumInotifyInstances);
         Assert.Equal(65_536, options.MinimumInotifyWatches);
     }

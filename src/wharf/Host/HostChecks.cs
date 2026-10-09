@@ -24,9 +24,9 @@ public sealed record HostCheckReport(IReadOnlyList<HostCheck> Checks)
 
 public sealed record HostCheckOptions(
     bool AllowUnsupportedHost = false,
-    long MinimumMemoryBytes = 8L * 1024 * 1024 * 1024,
+    long MinimumMemoryBytes = 4L * 1024 * 1024 * 1024,
     long MinimumDiskBytes = 50L * 1024 * 1024 * 1024,
-    long MinimumCpuCount = 4,
+    long MinimumCpuCount = 2,
     long MinimumNofileSoft = 65_536,
     long MinimumNofileHard = 65_536,
     long MinimumInotifyInstances = 1_024,
