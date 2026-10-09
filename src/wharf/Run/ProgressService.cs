@@ -131,7 +131,10 @@ public static class ProgressService
                     StageStartedAt = stage is not null && stage != record.Stage
                         ? observedAt
                         : record.StageStartedAt,
-                    Failed = currentStatus.Contains("failed", StringComparison.Ordinal),
+                    Failed = isRetry
+                        ? false
+                        : record.Failed ||
+                            currentStatus.Contains("failed", StringComparison.Ordinal),
                     Completed = isRetry ? false : record.Completed,
                     Result = isRetry ? null : record.Result,
                     ErrorType = isRetry ? null : record.ErrorType

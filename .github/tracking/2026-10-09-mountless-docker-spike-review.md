@@ -55,6 +55,9 @@ No implementation defects were found in read-only review.
 | Updated full Docker-backed suite with both image paths | Completed in `wharf-aiomonitor-full-test` | 168/168 passed |
 | Role-prefixed managed image tests | Completed | 21/21 passed |
 | Final full Docker-backed suite | Completed in `wharf-role-prefix-full` | 169/169 passed |
+| Real retained Tengo verifier rerun | Completed | Reward 1; F2P 23/23; P2P 122/122 |
+| Verifier capture focused tests | Completed | 27/27 passed |
+| Verifier capture full Docker suite | Completed in `wharf-verifier-capture-full` | 170/170 passed |
 | Formatting verification | Completed | Passed |
 | `git diff --check` | Completed | Passed |
 | Agent/verifier mount search | Completed | No mount arguments found |

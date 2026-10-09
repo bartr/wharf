@@ -222,6 +222,16 @@ public sealed class VerifierExecutionTests
                 "task-verifier");
         Assert.Equal("exec", execution[0]);
         Assert.DoesNotContain("--mount", execution);
+        Assert.Contains(
+            execution,
+            argument => argument.Contains(
+                "/logs/wharf-command/check.stdout.log",
+                StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            execution,
+            argument => argument.Contains(
+                "/logs/verifier/check.stdout.log",
+                StringComparison.Ordinal));
     }
 
     private static void AssertArgumentsContain(

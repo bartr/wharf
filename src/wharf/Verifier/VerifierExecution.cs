@@ -333,8 +333,8 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                 [
                     "exec", "--user", "0:0", containerName,
                     "/bin/bash", "-lc",
-                    "rm -rf /logs/verifier /logs/artifacts && " +
-                    "mkdir -p /logs/verifier /logs/artifacts"
+                    "rm -rf /logs/verifier /logs/artifacts /logs/wharf-command && " +
+                    "mkdir -p /logs/verifier /logs/artifacts /logs/wharf-command"
                 ],
                 credentialVariable: null,
                 credentialValue: null,
@@ -401,6 +401,10 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                 containerName,
                 evidenceDirectory,
                 CancellationToken.None);
+            await CopyCommandEvidenceAsync(
+                containerName,
+                evidenceDirectory,
+                CancellationToken.None);
             evidenceCopied = true;
             string prefix = Path.Combine(evidenceDirectory, command.Name);
             return new VerifierCommandResult(
@@ -418,6 +422,9 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                 if (!evidenceCopied)
                 {
                     await CopyVerifierEvidenceIfPresentAsync(
+                        containerName,
+                        evidenceDirectory);
+                    await CopyCommandEvidenceIfPresentAsync(
                         containerName,
                         evidenceDirectory);
                 }
@@ -483,8 +490,8 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             containerName,
             "/bin/bash",
             "-lc",
-            $"eval \"$1\" >'/logs/verifier/{logName}.stdout.log' " +
-            $"2>'/logs/verifier/{logName}.stderr.log'",
+            $"eval \"$1\" >'/logs/wharf-command/{logName}.stdout.log' " +
+            $"2>'/logs/wharf-command/{logName}.stderr.log'",
             "--",
             command.Command
         ];
@@ -501,6 +508,19 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             credentialValue: null,
             cancellationToken);
         EnsureSuccessful(copy, "verifier evidence copy");
+    }
+
+    private static async Task CopyCommandEvidenceAsync(
+        string containerName,
+        string evidenceDirectory,
+        CancellationToken cancellationToken)
+    {
+        DockerProcessResult copy = await DockerAgentProcess.RunAsync(
+            ["cp", $"{containerName}:/logs/wharf-command/.", evidenceDirectory],
+            credentialVariable: null,
+            credentialValue: null,
+            cancellationToken);
+        EnsureSuccessful(copy, "verifier command evidence copy");
     }
 
     private static async Task CopyVerifierEvidenceIfPresentAsync(
@@ -521,6 +541,27 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                 StringComparison.OrdinalIgnoreCase))
         {
             EnsureSuccessful(copy, "verifier evidence copy");
+        }
+    }
+
+    private static async Task CopyCommandEvidenceIfPresentAsync(
+        string containerName,
+        string evidenceDirectory)
+    {
+        DockerProcessResult copy = await DockerAgentProcess.RunAsync(
+            ["cp", $"{containerName}:/logs/wharf-command/.", evidenceDirectory],
+            credentialVariable: null,
+            credentialValue: null,
+            CancellationToken.None);
+        if (copy.ExitCode != 0 &&
+            !copy.StandardError.Contains(
+                "Could not find",
+                StringComparison.OrdinalIgnoreCase) &&
+            !copy.StandardError.Contains(
+                "No such container",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            EnsureSuccessful(copy, "verifier command evidence copy");
         }
     }
 

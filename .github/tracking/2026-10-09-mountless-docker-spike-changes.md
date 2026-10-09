@@ -53,6 +53,22 @@
 - The full Docker-backed suite passed 169/169 in named tmux session
   `wharf-role-prefix-full`; its live smoke created and removed both prefixed
   image roles.
+- Fixed progress accounting so a failed terminal trial is not resurrected as
+  running when its later `agent-image-cleaned` status is observed.
+- Focused progress tests passed 16/16, and the corrected reader reported 32
+  running trials against 32 live managed containers in the active N=32 run.
+- Moved Wharf-owned verifier stdout/stderr capture out of
+  `/logs/verifier` into `/logs/wharf-command`, then copy it separately after
+  execution. This prevents Harbor verifier scripts from reading their own
+  active output file while scanning task-owned logs.
+- Regraded retained reports from the invalid N=32 run: the first five recorded
+  failures were actually two passes and three failures. Every in-container
+  script had aborted on its own active `grader.stdout.log` and emitted the
+  `reward.txt=-1` infrastructure sentinel.
+- A real retained Tengo verifier rerun completed with reward 1, F2P 23/23, and
+  P2P 122/122 under the corrected capture layout.
+- Focused verifier/progress tests passed 27/27, and the full Docker-backed suite
+  passed 170/170 in named tmux session `wharf-verifier-capture-full`.
 - Formatting verification and `git diff --check`: passed.
 - Smoke produced a nonempty copied agent patch, agent logs, model artifact, and
   verifier reward.

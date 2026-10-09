@@ -105,6 +105,38 @@ public sealed class ProgressServiceTests
     }
 
     [Fact]
+    public void CleanupAfterFailedCompletionDoesNotResurrectTrial()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record("run=001/001 task=failed-task status=running-verifier"),
+                Record("run=001/001 task=failed-task status=verifier-complete result=failed"),
+                Record("run=001/001 task=failed-task status=cleaning-up"),
+                Record("run=001/001 task=failed-task status=complete result=failed"),
+                Record(
+                    "run=001/001 task=failed-task status=agent-image-cleaned " +
+                    "image=agent-failed-task:latest")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(0, progress.TestsRunning);
+            Assert.Equal(1, progress.TestsCompleted);
+            Assert.Equal(1, progress.FailedTests);
+            Assert.Empty(progress.ActiveTrials);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void CountsTrialRetryBackoffAsBuildingOccupancy()
     {
         string path = Path.Combine(
