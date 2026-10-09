@@ -1,12 +1,40 @@
 using Wharf.Agent;
 using Wharf.Copilot;
 using Wharf.Execution;
+using Wharf.Image;
 using Wharf.Run;
 
 namespace Wharf.Tests;
 
 public sealed class AgentExecutionTests
 {
+    [Fact]
+    public void IsolatedTrialImageUsesPulledImageAsParent()
+    {
+        string dockerfile = DockerAgentImagePreparer.BuildIsolatedImageDockerfile(
+            "public.ecr.aws/example/task:v1",
+            "task__run:latest");
+
+        Assert.Equal(
+            "FROM public.ecr.aws/example/task:v1" + Environment.NewLine +
+            "LABEL com.bartr.wharf.trial-image=\"task__run:latest\"" +
+            Environment.NewLine,
+            dockerfile);
+
+        Assert.Equal(
+            [
+                "image", "build",
+                "--pull=false",
+                "--file", "/evidence/Dockerfile.wharf",
+                "--tag", "task__run:latest",
+                "/evidence"
+            ],
+            DockerAgentImagePreparer.BuildIsolatedImageArguments(
+                "/evidence/Dockerfile.wharf",
+                "task__run:latest",
+                "/evidence"));
+    }
+
     [Fact]
     public async Task CapturesPatchTrajectoryLogsTimingAndUsage()
     {

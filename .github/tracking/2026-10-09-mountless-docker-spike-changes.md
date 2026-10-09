@@ -24,6 +24,9 @@
   pulled ECR images, and unrelated local tags are not cleanup candidates.
 - Added an opt-in `--shortest-first` run flag for spike runs that prioritize
   early results. Longest-first remains the default.
+- Fixed ECR-backed tasks to build a uniquely tagged and labeled child image for
+  every logical trial instead of running the pulled parent image directly.
+  Only the child image is registered for trial cleanup.
 
 ## Validation so far
 
@@ -32,6 +35,11 @@
 - Docker smoke tests: 5/5 passed.
 - Full Docker-backed suite: 164/164 passed in named tmux session
   `wharf-mountless-full-tests`.
+- Isolated ECR-child focused tests: 41/41 passed.
+- Updated full Docker-backed suite: 167/167 passed in named tmux session
+  `wharf-isolated-image-full-test`.
+- A live Docker probe built a uniquely labeled child from a pulled ECR parent,
+  removed the child, and confirmed that the parent remained.
 - Formatting verification and `git diff --check`: passed.
 - Smoke produced a nonempty copied agent patch, agent logs, model artifact, and
   verifier reward.
@@ -39,3 +47,5 @@
 - No managed containers remained after smoke.
 - `mars-base:latest`, pulled ECR images, and an unrelated pre-existing derived
   image remained present.
+- No isolated probe image, smoke image, or managed container remained after
+  updated validation.

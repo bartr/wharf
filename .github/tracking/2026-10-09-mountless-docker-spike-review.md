@@ -12,6 +12,7 @@
 | Copy verifier artifacts/evidence through Docker | Satisfied |
 | Preserve `--retain-workspaces` | Satisfied by conditional workspace copy |
 | Remove task-derived images after each logical trial | Satisfied |
+| Give every ECR-backed logical trial a unique child image | Satisfied |
 | Preserve base images | Satisfied |
 | Preserve pulled ECR images | Satisfied |
 | Avoid broad image pruning | Satisfied |
@@ -28,6 +29,9 @@
   removal. Stopped timeout containers remain copyable.
 - Local image ownership is registered only after a successful task/verifier
   build. Pulled `environment.image` references are never registered.
+- ECR-backed tasks build a uniquely tagged and labeled child image from the
+  pulled parent. This creates an image/config identity specific to the logical
+  trial rather than adding another tag to the parent.
 - Normal image cleanup happens after retained result evidence is written.
   Process-exit cleanup operates only on the explicit ownership set.
 - The previous broad cleanup scan for every image tag containing `__` is gone.
@@ -44,6 +48,9 @@ No implementation defects were found in read-only review.
 | Focused agent/verifier/retry tests | Completed | 46/46 passed |
 | Docker smoke tests | Completed | 5/5 passed |
 | Full Docker-backed suite | Completed in `wharf-mountless-full-tests` | 164/164 passed |
+| Isolated ECR-child focused tests | Completed | 41/41 passed |
+| Updated full Docker-backed suite | Completed in `wharf-isolated-image-full-test` | 167/167 passed |
+| Live ECR-child probe | Completed | Unique child built and removed; parent remained |
 | Formatting verification | Completed | Passed |
 | `git diff --check` | Completed | Passed |
 | Agent/verifier mount search | Completed | No mount arguments found |
@@ -63,6 +70,9 @@ No implementation defects were found in read-only review.
   isolation and diagnostic value over throughput.
 - Cross-trial derived-image reuse is intentionally disabled on this branch, so
   package installation and image-build time may increase.
+- The unique ECR child adds a lightweight BuildKit metadata/config layer per
+  logical trial. It reuses the pulled parent layers and is removed after the
+  trial.
 
 ## Review outcome
 

@@ -157,6 +157,9 @@ and copy `/logs/verifier` back before cleanup. Remove explicitly registered
 task-derived agent and verifier images after their logical trial, but never
 remove base images, pulled ECR images, or unrelated tags through broad name
 matching.
+Every ECR-backed logical trial must build its own uniquely tagged child image
+from the pulled parent. Never run multiple logical trials directly from the
+shared ECR tag, and register only the child image for deletion.
 
 Run admission remains longest-estimated-duration first by default within each K
 wave. The opt-in `--shortest-first` flag reverses duration ordering within each

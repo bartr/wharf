@@ -46,6 +46,8 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
     {
         progress ??= this.progress;
         Directory.CreateDirectory(evidenceDirectory);
+        if (string.IsNullOrWhiteSpace(imageName))
+            throw new AgentImageException("agent image name is required");
         if (!string.IsNullOrWhiteSpace(task.EnvironmentImage))
         {
             progress?.Invoke($"agent image checking {task.EnvironmentImage}");
@@ -57,7 +59,25 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
             File.WriteAllText(
                 Path.Combine(evidenceDirectory, "image-pull.json"),
                 System.Text.Json.JsonSerializer.Serialize(environmentImage));
-            return task.EnvironmentImage;
+            progress?.Invoke($"agent image building isolated trial image {imageName}");
+            string isolatedDockerfile = Path.Combine(
+                evidenceDirectory,
+                "Dockerfile.wharf");
+            File.WriteAllText(
+                isolatedDockerfile,
+                BuildIsolatedImageDockerfile(task.EnvironmentImage, imageName));
+            ProcessResult isolatedBuild = await RunDockerAsync(
+                BuildIsolatedImageArguments(
+                    isolatedDockerfile,
+                    imageName,
+                    evidenceDirectory),
+                cancellationToken);
+            File.WriteAllText(
+                Path.Combine(evidenceDirectory, "image-build.log"),
+                isolatedBuild.StandardOutput + isolatedBuild.StandardError);
+            DockerRunCleanup.RegisterImage(imageName);
+            progress?.Invoke($"agent image built {imageName}");
+            return imageName;
         }
 
         string context = Path.Combine(task.RootPath, "environment");
@@ -67,8 +87,6 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 
         string configuredBaseImage = ReadBaseImage(dockerfile);
         string baseImage = ResolveLocalBaseImage(configuredBaseImage);
-        if (string.IsNullOrWhiteSpace(imageName))
-            throw new AgentImageException("agent image name is required");
         string image = imageName;
         progress?.Invoke($"agent image preparing task {task.TaskId}");
         if (!string.Equals(configuredBaseImage, baseImage, StringComparison.Ordinal))
@@ -92,6 +110,30 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         progress?.Invoke($"agent image built {image}");
         return image;
     }
+
+    internal static string BuildIsolatedImageDockerfile(
+        string baseImage,
+        string trialImage)
+    {
+        if (string.IsNullOrWhiteSpace(baseImage))
+            throw new AgentImageException("base image name is required");
+        if (string.IsNullOrWhiteSpace(trialImage))
+            throw new AgentImageException("trial image name is required");
+        return $"FROM {baseImage}{Environment.NewLine}" +
+            $"LABEL com.bartr.wharf.trial-image=\"{trialImage}\"{Environment.NewLine}";
+    }
+
+    internal static IReadOnlyList<string> BuildIsolatedImageArguments(
+        string dockerfile,
+        string trialImage,
+        string context) =>
+        [
+            "image", "build",
+            "--pull=false",
+            "--file", dockerfile,
+            "--tag", trialImage,
+            context
+        ];
 
     private static string ReadBaseImage(string dockerfile)
     {
