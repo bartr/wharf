@@ -16,8 +16,8 @@
 
 ## Validation
 
-- Focused retry, verifier, and progress suite: 41 passed.
+- Focused retry, verifier, and progress suite: 45 passed.
 - Broad non-Docker suite: 157 passed.
 - Formatting verification and `git diff --check`: passed.
-- Docker-backed full suite: deferred until the active K=2 benchmark completes
-  so validation does not perturb qualification resource use.
+- Docker-backed full suite after the K=2 benchmark completed: 162 passed in a
+  named tmux session.

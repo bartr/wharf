@@ -140,7 +140,10 @@ from comparative scoring because it predates the finalized memory, OOM, retry,
 patch-capture, failed-agent verification, and cost contracts. Retain its
 evidence unchanged as pre-contract qualification history; do not delete it.
 All-2 remains transitional and All-3 remains supporting `0.22.0` evidence.
-The next primary benchmark is a fresh z01 K=2/N=32/P=12 run on the pushed
-`0.23.0` code. Its primary metrics are passes divided by 226 and USD cost per
-task attempt, with cost coverage reported separately. Include every OOM,
-timeout, retry, and verifier result; do not add post-result exclusions.
+The primary controlled z01 K=2/N=32/P=12 benchmark on commit `af3574f` passed
+156/226 attempts (69.03%). Attempt 1 passed 80/113 and attempt 2 passed 76/113;
+95/113 tasks passed at least once. Known cost was $78.2231 across 220 attempts,
+or $0.3556 per costed task attempt with 97.35% coverage. Include all four
+whole-trial retries, four OOM events, two agent timeouts, and every verifier
+result; do not add post-result exclusions. This run predates verifier-only
+retry commit `fcc8235` and therefore reran the agent for verifier failures.

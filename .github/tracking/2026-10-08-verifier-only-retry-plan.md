@@ -69,7 +69,7 @@ migration remain out of scope.
    - Exit criterion: current normative text no longer says verifier failures
      rerun the whole trial.
 
-6. [ ] Validate and review.
+6. [x] Validate and review.
    - Run focused retry, verifier, and progress tests.
    - Run formatting verification and `git diff --check`.
    - Run the full suite in a named tmux session.

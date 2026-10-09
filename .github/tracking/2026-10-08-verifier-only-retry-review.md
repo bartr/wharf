@@ -45,11 +45,9 @@ No implementation defects were found in read-only review.
 | Formatting verification | Completed | Passed |
 | `git diff --check` | Completed | Passed |
 | Active-run isolation | Completed | Loaded K=2 process remains untouched |
-| Full Docker-backed suite | Deferred | Active K=2 benchmark owns Docker capacity |
+| Full Docker-backed suite | Completed | 162/162 passed |
 
 ## Review outcome
 
-Implementation is approved pending the Docker-backed full suite. Run that suite
-in a named tmux session after the active K=2 benchmark completes, then check
-plan task 6 and commit/push. Do not run the new code against or mutate the
-already active benchmark.
+Implementation is approved. The Docker-backed full suite passed after the K=2
+benchmark completed, without modifying that benchmark's retained evidence.
