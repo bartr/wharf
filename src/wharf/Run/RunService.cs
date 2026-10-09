@@ -108,14 +108,16 @@ public sealed class RunService
         }
         logger.Info(
             $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
-            $"task-concurrency={configuration.N} preparation-concurrency={configuration.P}" +
+            $"task-concurrency={configuration.N} preparation-concurrency={configuration.P} " +
+            $"admission-order={(configuration.ShortestFirst ? "shortest-first" : "longest-first")}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
         logger.Info(
             $"run created {attemptDirectory} under {jobDirectory}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
 
         IReadOnlyList<TaskAttempt> scheduledAttempts = TaskSelector.OrderAttemptsForAdmission(
-            TaskSelector.ExpandAttempts(tasks, configuration.K));
+            TaskSelector.ExpandAttempts(tasks, configuration.K),
+            configuration.ShortestFirst);
         using var preparationGate = new PreparationGate(
             configuration.P,
             logger.PreparationGateChanged);

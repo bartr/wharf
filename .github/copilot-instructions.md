@@ -157,3 +157,8 @@ and copy `/logs/verifier` back before cleanup. Remove explicitly registered
 task-derived agent and verifier images after their logical trial, but never
 remove base images, pulled ECR images, or unrelated tags through broad name
 matching.
+
+Run admission remains longest-estimated-duration first by default within each K
+wave. The opt-in `--shortest-first` flag reverses duration ordering within each
+wave to produce early results sooner while preserving deterministic task and
+attempt tie-breakers.

@@ -190,6 +190,10 @@ public static class CommandTree
         {
             Description = "Retain terminal trial workspaces instead of deleting them after evidence capture."
         };
+        var shortestFirst = new Option<bool>("--shortest-first")
+        {
+            Description = "Admit the shortest estimated tasks first within each K wave."
+        };
         var include = new Option<string?>("--include")
         {
             Description = "Run only tasks matching the task ID, category, or language."
@@ -213,6 +217,7 @@ public static class CommandTree
         command.Options.Add(model);
         command.Options.Add(effort);
         command.Options.Add(retainWorkspaces);
+        command.Options.Add(shortestFirst);
         command.Options.Add(include);
         command.Options.Add(tasks);
         command.Options.Add(verbose);
@@ -235,7 +240,8 @@ public static class CommandTree
                             parseResult.GetValue(outputDirectory),
                             parseResult.GetValue(model),
                             parseResult.GetValue(effort),
-                            parseResult.GetValue(retainWorkspaces) ? true : null),
+                            parseResult.GetValue(retainWorkspaces) ? true : null,
+                            parseResult.GetValue(shortestFirst) ? true : null),
                         new Dictionary<string, string?>
                         {
                             ["K"] = Environment.GetEnvironmentVariable("K"),
@@ -329,7 +335,8 @@ public static class CommandTree
                         parseResult.GetValue(outputDirectory),
                         parseResult.GetValue(model),
                         parseResult.GetValue(effort),
-                        parseResult.GetValue(retainWorkspaces) ? true : null),
+                        parseResult.GetValue(retainWorkspaces) ? true : null,
+                        parseResult.GetValue(shortestFirst) ? true : null),
                     parseResult.GetValue(outputFormat));
                 Console.WriteLine(rendered);
                 return ExitCode.Success.Value;

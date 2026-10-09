@@ -312,6 +312,9 @@ container and reuse the task's configured environment image. After MVP,
 - Admit all attempt-1 work before attempt-2 work, continuing through K. Within
   each attempt wave, admit tasks by descending combined agent-plus-verifier
   scheduling duration with stable task and attempt IDs as tie-breakers. The
+  `--shortest-first` run flag temporarily reverses only the duration ordering
+  within each wave so early task results arrive sooner; longest-first remains
+  the default for minimizing the final drain tail. The
   DeepSWE estimate profile spaces
   duration-ordered Rust tasks at positions 1, 17, 33, 49, and 65 so their
   resource-heavy builds are not front-loaded. Tasks without estimates follow

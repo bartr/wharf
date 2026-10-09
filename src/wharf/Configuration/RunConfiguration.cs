@@ -61,7 +61,8 @@ public sealed record RunConfiguration(
     int RetentionDays,
     bool RetainWorkspaces,
     string ResourcePolicy,
-    SecretSettings Credentials);
+    SecretSettings Credentials,
+    bool ShortestFirst = false);
 
 public sealed record RunConfigurationOverrides(
     int? K = null,
@@ -71,7 +72,8 @@ public sealed record RunConfigurationOverrides(
     string? OutputDirectory = null,
     string? Model = null,
     string? Effort = null,
-    bool? RetainWorkspaces = null);
+    bool? RetainWorkspaces = null,
+    bool? ShortestFirst = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -190,7 +192,8 @@ public static class RunConfigurationResolver
             manifest.RetentionDays ?? 30,
             retainWorkspaces,
             manifest.ResourcePolicy ?? "default",
-            credentials);
+            credentials,
+            overrides.ShortestFirst ?? false);
     }
 
     private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name)

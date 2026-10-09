@@ -67,16 +67,23 @@ public static class TaskSelector
     }
 
     public static IReadOnlyList<TaskAttempt> OrderAttemptsForAdmission(
-        IReadOnlyList<TaskAttempt> attempts) =>
-        attempts
-            .OrderBy(attempt => attempt.AttemptNumber)
-            .ThenByDescending(attempt =>
-                attempt.Task.SchedulingDurationSeconds ??
-                (attempt.Task.EstimatedAgentDurationSeconds ?? 0) +
-                (attempt.Task.EstimatedVerifierDurationSeconds ?? 0))
+        IReadOnlyList<TaskAttempt> attempts,
+        bool shortestFirst = false)
+    {
+        IOrderedEnumerable<TaskAttempt> ordered = attempts
+            .OrderBy(attempt => attempt.AttemptNumber);
+        Func<TaskAttempt, double> duration = attempt =>
+            attempt.Task.SchedulingDurationSeconds ??
+            (attempt.Task.EstimatedAgentDurationSeconds ?? 0) +
+            (attempt.Task.EstimatedVerifierDurationSeconds ?? 0);
+        ordered = shortestFirst
+            ? ordered.ThenBy(duration)
+            : ordered.ThenByDescending(duration);
+        return ordered
             .ThenBy(attempt => attempt.Task.TaskId, StringComparer.Ordinal)
             .ThenBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
             .ToArray();
+    }
 
     private static bool Matches(HarborTask task, string expression) =>
         task.TaskId.Equals(expression, StringComparison.OrdinalIgnoreCase) ||

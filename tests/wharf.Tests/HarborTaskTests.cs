@@ -111,6 +111,30 @@ public sealed class HarborTaskTests
     }
 
     [Fact]
+    public void AdmissionOrderCanStartShortestTasksFirstWithinEachKWave()
+    {
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);
+        HarborTask longest = tasks.Single(task => task.TaskId == "smoke-go");
+        HarborTask shortest = tasks.First(task => task.TaskId != "smoke-go") with
+        {
+            SchedulingDurationSeconds = 1
+        };
+
+        IReadOnlyList<TaskAttempt> ordered = TaskSelector.OrderAttemptsForAdmission(
+            TaskSelector.ExpandAttempts([longest, shortest], 2),
+            shortestFirst: true);
+
+        Assert.Equal(
+            [
+                $"{shortest.TaskId}#attempt-1",
+                $"{longest.TaskId}#attempt-1",
+                $"{shortest.TaskId}#attempt-2",
+                $"{longest.TaskId}#attempt-2"
+            ],
+            ordered.Select(attempt => attempt.AttemptId));
+    }
+
+    [Fact]
     public void IncludeExcludeAndShardAreAppliedAfterStableOrdering()
     {
         IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);

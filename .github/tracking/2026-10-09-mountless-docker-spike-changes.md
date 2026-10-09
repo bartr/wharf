@@ -22,6 +22,8 @@
   cleanup.
 - Removed broad image cleanup based on `__` in a repository/tag. Base images,
   pulled ECR images, and unrelated local tags are not cleanup candidates.
+- Added an opt-in `--shortest-first` run flag for spike runs that prioritize
+  early results. Longest-first remains the default.
 
 ## Validation so far
 

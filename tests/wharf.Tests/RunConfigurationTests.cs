@@ -42,6 +42,18 @@ public sealed class RunConfigurationTests
         Assert.Equal("latest", result.CliVersion);
         Assert.Equal(1, result.Retries.MaxAttempts);
         Assert.False(result.RetainWorkspaces);
+        Assert.False(result.ShortestFirst);
+    }
+
+    [Fact]
+    public void ShortestFirstIsOptIn()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(ShortestFirst: true),
+            new Dictionary<string, string?>());
+
+        Assert.True(result.ShortestFirst);
     }
 
     [Fact]
