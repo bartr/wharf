@@ -26,7 +26,8 @@ public sealed class AuditScorer
         TimeSpan? trialTime = null;
         bool costIncomplete = false;
         int missingMeasurements = 0, invalidMeasurements = 0, partialMeasurements = 0, zeroMeasurements = 0;
-        int observedAttempts = 0, expectedAttempts = expected.Length;
+        int observedAttempts = 0;
+        int expectedAttempts = expected.Length * run.AttemptsPerTask;
 
         foreach (string taskId in expected)
         {
@@ -79,10 +80,10 @@ public sealed class AuditScorer
             : enterprisePassTotal / expected.Length;
         return new AuditReport(
             run.RunId,
-            observedAttempts == 0 ? 0 : (double)passingAttempts / observedAttempts,
+            expectedAttempts == 0 ? 0 : (double)passingAttempts / expectedAttempts,
             passingAttempts,
             observedAttempts,
-            observed.Count == 0 ? 0 : (double)passingTasks / observed.Count,
+            expected.Length == 0 ? 0 : (double)passingTasks / expected.Length,
             passingTasks,
             observed.Count,
             enterpriseCoverageComponent + enterprisePassComponent,
@@ -153,6 +154,8 @@ public sealed class AuditScorer
     {
         if (string.IsNullOrWhiteSpace(run.RunId) || run.ExpectedTaskIds.Any(string.IsNullOrWhiteSpace))
             throw new AuditContractException("run and expected task IDs are required");
+        if (run.AttemptsPerTask <= 0)
+            throw new AuditContractException("attempts per task must be positive");
         if (run.ExpectedTaskIds.Count != run.ExpectedTaskIds.Distinct(StringComparer.Ordinal).Count())
             throw new AuditContractException("expected task IDs must be unique");
         if (run.ObservedTasks.Select(task => task.TaskId).Distinct(StringComparer.Ordinal).Count() !=
@@ -165,7 +168,8 @@ public sealed class AuditScorer
                 !expected.Contains(task.TaskId) ||
                 task.Attempts.Any(attempt =>
                     string.IsNullOrWhiteSpace(attempt.AttemptId) ||
-                    attempt.AttemptNumber <= 0) ||
+                    attempt.AttemptNumber <= 0 ||
+                    attempt.AttemptNumber > run.AttemptsPerTask) ||
                 task.Attempts.Select(attempt => attempt.AttemptId)
                     .Distinct(StringComparer.Ordinal).Count() != task.Attempts.Count ||
                 task.Attempts.Select(attempt => attempt.AttemptNumber)

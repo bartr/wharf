@@ -39,7 +39,8 @@ public sealed record AuditTask(string TaskId, IReadOnlyList<AuditAttempt> Attemp
 public sealed record AuditRun(
     string RunId,
     IReadOnlyList<string> ExpectedTaskIds,
-    IReadOnlyList<AuditTask> ObservedTasks);
+    IReadOnlyList<AuditTask> ObservedTasks,
+    int AttemptsPerTask = 1);
 
 public sealed record AuditCompleteness(
     int ExpectedTasks,
@@ -52,7 +53,11 @@ public sealed record AuditCompleteness(
     int PartialMeasurements,
     int ZeroMeasurements)
 {
-    public bool IsComplete => MissingTasks == 0 && MissingMeasurements == 0 && InvalidMeasurements == 0;
+    public bool IsComplete =>
+        MissingTasks == 0 &&
+        ExpectedAttempts == ObservedAttempts &&
+        MissingMeasurements == 0 &&
+        InvalidMeasurements == 0;
 }
 
 public sealed record AuditReport(

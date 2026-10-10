@@ -525,6 +525,8 @@ container and reuse the task's configured environment image. After MVP,
 - Report incomplete score and cost coverage explicitly.
 - Preserve raw evidence so scoring policies can be recomputed later.
 - Support trial-level PASS@1.
+- Compute PASS@1 against the planned `K * task-count` attempt universe; missing
+  scheduled attempts score zero rather than reducing the denominator.
 - Support language and task breakdowns.
 - Support cost per trial, task, and passing trial.
 - Support agent-only and validator-inclusive runtime reporting.

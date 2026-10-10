@@ -1,7 +1,8 @@
 # Scoring core plan
 
 1. [x] Update `AuditContracts.cs` and `AuditScorer.cs`.
-   - Compute PASS@1 from passing/observed logical attempts.
+   - Compute PASS@1 from passing attempts over the planned
+     `K * expected-task-count` universe.
    - Add task pass-at-least-once and explicit Enterprise coverage/pass components.
    - Preserve expected-task-equal Enterprise weighting.
    - Exit: focused scorer tests cover unequal K, missing tasks, and component sum.

@@ -1,7 +1,7 @@
 # Scoring core changes
 
-- Corrected PASS@1 to count passing observed logical attempts over all observed
-  logical attempts.
+- Corrected PASS@1 to count passing logical attempts over the planned
+  `K * expected-task-count` universe.
 - Added separate task pass-at-least-once counts/rate and explicit task-equal
   Enterprise coverage and pass components.
 - Updated report schema to 1.1 and rendered the new metrics unambiguously.
@@ -27,4 +27,4 @@ Validation:
 - `git diff --check`: passed.
 - Native All-1 smoke export: 452 trials, 113 tasks, 447 costed trials, and
   $539.70 total cost, matching the canonical retained export.
-- `./scripts/validate-wharf.sh`: 195 passed, 0 failed, 0 skipped.
+- `./scripts/validate-wharf.sh`: 196 passed, 0 failed, 0 skipped.

@@ -13,12 +13,13 @@ public sealed class AuditScorerTests
         AuditReport report = new AuditScorer().Score(new AuditRun(
             "run-1",
             ["task-a", "task-b", "task-c"],
-            [new("task-a", [passing]), new("task-b", [partial, full])]));
+            [new("task-a", [passing]), new("task-b", [partial, full])],
+            AttemptsPerTask: 2));
 
-        Assert.Equal(2d / 3, report.PassAt1, 10);
+        Assert.Equal(2d / 6, report.PassAt1, 10);
         Assert.Equal(2, report.PassingAttempts);
         Assert.Equal(3, report.ObservedAttempts);
-        Assert.Equal(1, report.TaskPassAtLeastOnce);
+        Assert.Equal(2d / 3, report.TaskPassAtLeastOnce, 10);
         Assert.Equal(2, report.PassingTasks);
         Assert.Equal(2, report.ObservedTasks);
         Assert.Equal(40, report.EnterpriseScore, 10);
@@ -29,6 +30,7 @@ public sealed class AuditScorerTests
             report.EnterpriseCoverageComponent + report.EnterprisePassComponent,
             10);
         Assert.Equal(1, report.Completeness.MissingTasks);
+        Assert.Equal(6, report.Completeness.ExpectedAttempts);
         Assert.False(report.Completeness.IsComplete);
     }
 
@@ -72,7 +74,7 @@ public sealed class AuditScorerTests
     }
 
     [Fact]
-    public void PassAtOneUsesObservedLogicalAttemptsRatherThanExpectedTasks()
+    public void PassAtOneUsesPlannedTaskAttemptUniverse()
     {
         AuditReport report = new AuditScorer().Score(new AuditRun(
             "run-4",
@@ -80,12 +82,15 @@ public sealed class AuditScorerTests
             [
                 new("task-a", [Attempt(1, true, 1), Attempt(2, false, 0)]),
                 new("task-b", [Attempt(1, false, 0)])
-            ]));
+            ],
+            AttemptsPerTask: 2));
 
-        Assert.Equal(1d / 3, report.PassAt1, 10);
-        Assert.Equal(1d / 2, report.TaskPassAtLeastOnce, 10);
+        Assert.Equal(1d / 6, report.PassAt1, 10);
+        Assert.Equal(1d / 3, report.TaskPassAtLeastOnce, 10);
         Assert.Equal(1, report.PassingAttempts);
         Assert.Equal(3, report.ObservedAttempts);
+        Assert.Equal(6, report.Completeness.ExpectedAttempts);
+        Assert.False(report.Completeness.IsComplete);
     }
 
     [Fact]

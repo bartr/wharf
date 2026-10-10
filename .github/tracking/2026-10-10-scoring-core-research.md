@@ -29,11 +29,13 @@
 ## Recommended approach
 
 Keep task-equal Enterprise aggregation intact while independently accumulating
-trial-level PASS@1 and task pass-at-least-once. Return explicit Enterprise coverage
-and pass components whose sum is the Enterprise Score. Add a reporting-layer
-analytics model, a strict native evidence reader that coalesces trial retries into
-one logical row, a deterministic JSONL exporter, and a manifest builder that reads
-only exported JSONL.
+trial-level passes. Use the planned `K * expected-task-count` universe as the
+PASS@1 denominator so missing scheduled attempts score zero. Compute task
+pass-at-least-once against the expected task universe. Return explicit
+Enterprise coverage and pass components whose sum is the Enterprise Score. Add
+a reporting-layer analytics model, a strict native evidence reader that
+coalesces trial retries into one logical row, a deterministic JSONL exporter,
+and a manifest builder that reads only exported JSONL.
 
 ## Not taken
 

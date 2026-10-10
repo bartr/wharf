@@ -29,7 +29,7 @@ public sealed record AnalyticsTrial(
     [property: JsonPropertyName("p2p_total")] int? RegressionTestsTotal,
     [property: JsonPropertyName("cost_usd")] decimal? CostUsd,
     [property: JsonPropertyName("credits")] decimal? Credits,
-    [property: JsonPropertyName("premium_requests")] int? PremiumRequests,
+    [property: JsonPropertyName("premium_requests")] decimal? PremiumRequests,
     [property: JsonPropertyName("n_input_tokens")] long? InputTokens,
     [property: JsonPropertyName("n_cache_tokens")] long? CacheTokens,
     [property: JsonPropertyName("n_output_tokens")] long? OutputTokens,

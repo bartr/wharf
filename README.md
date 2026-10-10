@@ -2,18 +2,34 @@
 
 This file documents how to reproduce the benchmark comparisons from `data/*.jsonl` with the same metric definitions used in this repo.
 
-Scope here:
-- compare `cc-claude-opus-5-max`
-- vs `copilot-claude-opus-5-max`
-- vs `copilot-claude-opus-5-max-nosub`
+## Current benchmark results
 
-All three use the same base model family (`claude-opus-5-max`) and differ by harness/agent behavior and depth.
+PASS@1 uses the fixed planned attempt universe. Cost/test divides known cost by
+costed trials rather than treating missing cost as zero.
+
+| Rank | Test | PASS@1 | Cost/test |
+| ---: | --- | ---: | ---: |
+| 1 | Copilot Gemini 3.8 Flash High 1.0.91 | 74.12% | $2.7897 |
+| 2 | Copilot GPT-5.6 Luna Max 1.0.77 | 74.12% | $0.3711 |
+| 3 | Copilot Claude Opus 5 Max 1.0.77 | 71.24% | $5.6623 |
+| 4 | Copilot GPT-6 Astra Max 1.0.91 | 71.02% | $8.4274 |
+| 5 | **HydraFusion Max 1.0.95** | **70.13%** | **$1.1726** |
+| 6 | Copilot GPT-5.6 Luna Max 1.0.91 | 69.91% | $0.3670 |
+| 7 | Copilot GPT-5.6 Sol XHigh 1.0.77 | 69.69% | $8.4366 |
+| 8 | **HydraFusion Max 1.0.95 All-1** | **68.81%** | **$1.2074** |
+| 9 | Copilot GPT-5.6 Terra Max 1.0.77 | 66.55% | $4.2576 |
+| 10 | **Claude Code Opus 5 Max 2.1.220** | **64.38%** | **$13.4885** |
+| 11 | Copilot GPT-6 Luna Max 1.0.91 | 61.06% | $0.1759 |
+| 12 | Muse Spark 1.2 Contributor XHigh 0.1.0 | 59.82% | $0.0613 |
+| 13 | Copilot Auto Max 1.0.77 | 36.99% | $1.6234 |
 
 ## 1) Canonical analytics rules
 
 Use these definitions consistently:
 
 - Row unit: one trial (`data/<arm>.jsonl` is one JSON object per trial).
+- PASS@1: passing attempts / (`K` × 113). Missing scheduled attempts count as
+  non-passes and never reduce the denominator.
 - Task solved (for accuracy): task counts as solved if **any** trial for that task has `reward > 0`.
 - Language accuracy: solved tasks / tasks seen in that language.
 - Cost per task: total `cost_usd` across that language / number of unique tasks in that language.
@@ -64,11 +80,10 @@ wharf analytics manifest --data-directory data
 Export separate jobs to separate files when they must remain independently
 auditable. Merge only when the comparison contract defines them as one arm.
 
-The Muse export keeps per-trial `cost_usd` null. Its disposable-key dashboard
-reported `$34.62` for the complete 226-trial batch, but did not provide an
-authoritative per-trial allocation. Do not divide or prorate that total into
-row-level cost; use the batch accounting recorded in
-[ANALYTICS.md](./ANALYTICS.md).
+The Muse export keeps per-trial `cost_usd` null. Its dashboard bill is the
+authoritative `$34.62` batch cost. The ranking allocates that billed total
+across the 565 retained arm trials for a comparable cost/test value. See
+[ANALYTICS.md](./ANALYTICS.md) for the batch accounting.
 
 Important:
 - `--run-directory`, `--output`, `--arm`, and `--model` are required.
@@ -98,7 +113,6 @@ from pathlib import Path
 arms=[
   'cc-claude-opus-5-max',
   'copilot-claude-opus-5-max',
-  'copilot-claude-opus-5-max-nosub',
 ]
 langs=['go','python','typescript','javascript','rust']
 
@@ -179,23 +193,7 @@ for arm in arms:
 PY
 ```
 
-## 6) Expected headline numbers (2026-08-06 snapshot)
-
-Overall (same metric definitions as above):
-
-- `cc-claude-opus-5-max`: accuracy `77.9%`, avg_k `1.93`, cost/task `$25.85`, agent_h/task `0.51`
-- `copilot-claude-opus-5-max`: accuracy `89.4%`, avg_k `4.00`, cost/task `$22.35`, agent_h/task `0.60`
-- `copilot-claude-opus-5-max-nosub`: accuracy `91.2%`, avg_k `4.00`, cost/task `$18.99`, agent_h/task `0.52`
-
-Language-level expected agent_h/task (k-normalized):
-
-- go: cc `0.50`, copilot `0.60`, copilot-nosub `0.52`
-- python: cc `0.48`, copilot `0.60`, copilot-nosub `0.51`
-- typescript: cc `0.51`, copilot `0.58`, copilot-nosub `0.52`
-- javascript: cc `0.44`, copilot `0.48`, copilot-nosub `0.45`
-- rust: cc `0.76`, copilot `0.74`, copilot-nosub `0.68`
-
-## 7) Repro gotchas
+## 6) Repro gotchas
 
 - Do not compare wall/task without k-normalization; it mostly measures depth (`k`) rather than per-attempt efficiency.
 - `subagents` in these exports is boolean (`True`/`False`), not per-trial call counts.

@@ -45,6 +45,37 @@ public sealed class DataManifestBuilderTests
         }
     }
 
+    [Fact]
+    public void AcceptsFractionalAllocatedPremiumRequests()
+    {
+        string root = Path.Combine(
+            Environment.CurrentDirectory,
+            "test-artifacts",
+            $"manifest-{Guid.NewGuid():N}");
+        try
+        {
+            Directory.CreateDirectory(root);
+            string row = Row("arm-a", "trial-1", "task-a", 1, 0.25m)
+                .Replace(
+                    "\"premium_requests\":null",
+                    "\"premium_requests\":0.33",
+                    StringComparison.Ordinal);
+            File.WriteAllText(Path.Combine(root, "arm-a.jsonl"), row + Environment.NewLine);
+
+            IReadOnlyList<DataManifestEntry> entries =
+                new DataManifestBuilder().Build(root);
+
+            Assert.Single(entries);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
     private static string Row(
         string arm,
         string trial,

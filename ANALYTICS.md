@@ -10,6 +10,11 @@ Wharf exports one canonical JSONL row per logical trial directly from retained
 run evidence. Infrastructure retries remain nested evidence and never create
 additional rows.
 
+Wharf PASS@1 always uses the planned benchmark universe as its denominator:
+`K * 113` for the canonical suite. Missing, cancelled, errored, or otherwise
+unmeasured scheduled attempts contribute zero passes and never reduce the
+denominator. JSONL row count and score coverage remain separate diagnostics.
+
 ```bash
 wharf analytics export \
   --run-directory jobs/<arm>/<job> \
