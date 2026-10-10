@@ -9,6 +9,37 @@ do not wrap it in shell redirection, `nohup`, backgrounding, or an outer logging
 pipeline. Follow [RUN_MONITORING.md](../RUN_MONITORING.md) for tmux lifecycle,
 read-only monitoring, and provider-specific checks.
 
+## Scoring completed runs
+
+Use the canonical DeepSWE analytics contract in `../deep-swe/ANALYTICS.md` and
+`../deep-swe/data/README.md`. Export completed Wharf runs to
+`../deep-swe/data/<arm>.jsonl`, with one JSON object per logical trial. Do not
+emit infrastructure or verifier retries as additional trials.
+
+Report DeepSWE `PASS@1` as the trial-level pass rate: passing trials divided by
+all retained logical trials. Count failed, errored, timed-out, infrastructure-
+failed, and cancelled trials in the denominator. Do not label task-level
+`passed at least once`, `passed every attempt`, or majority-pass counts as
+`PASS@1`. Task accuracy is a separate metric and considers a task solved when
+any retained trial has `reward > 0`.
+
+Preserve each trial's reward, functional and regression test counts, task
+checksum, language, patch size, exception category, cost, and timing evidence.
+Use actual agent-command duration for `agent_seconds`, summed across whole-trial
+retries, and exclude preparation and evidence-copy time. Use the elapsed span
+from the first preparation start through final cleanup for `trial_seconds`.
+
+Convert Copilot AI Credits to `cost_usd` at one cent per credit. Keep missing
+costs null, report cost-evidence coverage, and do not impute missing values.
+Compute cost per costed trial from trials with retained cost evidence. Keep
+aggregate task cost and cost per pass separate from that primary metric.
+
+After exporting an arm, rebuild `../deep-swe/data/manifest.json` with
+`python3 ../deep-swe/scripts/build_data_manifest.py`. Validate row count,
+unique logical-trial identity, task coverage, configured K depth, reward totals,
+cost conversion, duration coverage, and the generated manifest entry before
+reporting a score.
+
 Wharf documentation lives under `docs/`. Session RPI artifacts belong under
 `.github/tracking/`; keep those artifacts with the repository so decisions and
 validation evidence survive context resets.
