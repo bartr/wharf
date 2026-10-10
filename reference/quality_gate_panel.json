@@ -1,0 +1,390 @@
+{
+  "_meta": {
+    "description": "Pinned difficulty-stratified quality-gate panel for HVE A/B (baseline vs HVE), 4 trials/arm.",
+    "selection": "10 each from go/python/typescript (proportional-stratified by opus-5[max] pass-rate difficulty bucket), all 5 from rust & javascript.",
+    "seed": 42,
+    "n_tasks": 40,
+    "cost_ref": "opus-5[max] mini-swe-agent; Claude Code runs cheaper",
+    "est_cost_1arm_usd": 2027.17,
+    "est_cost_2arm_usd": 4054.33,
+    "difficulty_buckets": {
+      "unsolved": "pr=0",
+      "hard": "0<pr<0.5",
+      "mixed": "pr=0.5",
+      "reliable": "0.5<pr<1",
+      "solved": "pr=1"
+    }
+  },
+  "panel": {
+    "go": [
+      {
+        "task_id": "abs-module-cache-flags",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 30.03
+      },
+      {
+        "task_id": "anko-typed-variable-bindings",
+        "language": "go",
+        "pass_rate": 0.5,
+        "n_pass": 2,
+        "n_trials": 4,
+        "difficulty": "mixed",
+        "opus5max_4run_usd": 28.41
+      },
+      {
+        "task_id": "dasel-html-document-format",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 27.65
+      },
+      {
+        "task_id": "expr-try-catch-errors",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 65.34
+      },
+      {
+        "task_id": "go-git-worktree-merge-conflicts",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 67.09
+      },
+      {
+        "task_id": "kcp-go-multiplexed-kcp-streams",
+        "language": "go",
+        "pass_rate": 0.0,
+        "n_pass": 0,
+        "n_trials": 4,
+        "difficulty": "unsolved",
+        "opus5max_4run_usd": 28.88
+      },
+      {
+        "task_id": "onedump-dump-encryption-pipeline",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 23.81
+      },
+      {
+        "task_id": "prometheus-typed-label-sorting",
+        "language": "go",
+        "pass_rate": 0.25,
+        "n_pass": 1,
+        "n_trials": 4,
+        "difficulty": "hard",
+        "opus5max_4run_usd": 42.77
+      },
+      {
+        "task_id": "scriggo-method-declarations",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 3,
+        "n_trials": 3,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 178.17
+      },
+      {
+        "task_id": "task-task-graph-export",
+        "language": "go",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 35.24
+      }
+    ],
+    "python": [
+      {
+        "task_id": "adaptix-name-mapping-aliases",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 62.61
+      },
+      {
+        "task_id": "cattrs-partial-structuring-recovery",
+        "language": "python",
+        "pass_rate": 0.25,
+        "n_pass": 1,
+        "n_trials": 4,
+        "difficulty": "hard",
+        "opus5max_4run_usd": 36.28
+      },
+      {
+        "task_id": "dateutil-rfc5545-timezone-interop",
+        "language": "python",
+        "pass_rate": 0.75,
+        "n_pass": 3,
+        "n_trials": 4,
+        "difficulty": "reliable",
+        "opus5max_4run_usd": 36.9
+      },
+      {
+        "task_id": "fastapi-deprecation-response-headers",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 32.29
+      },
+      {
+        "task_id": "igel-persist-feature-schema",
+        "language": "python",
+        "pass_rate": 0.5,
+        "n_pass": 2,
+        "n_trials": 4,
+        "difficulty": "mixed",
+        "opus5max_4run_usd": 28.29
+      },
+      {
+        "task_id": "kombu-single-active-consumer-priority",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 44.67
+      },
+      {
+        "task_id": "langchain-request-coalescing",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 41.99
+      },
+      {
+        "task_id": "narwhals-rolling-window-suite",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 75.1
+      },
+      {
+        "task_id": "numba-stencil-boundary-modes",
+        "language": "python",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 57.26
+      },
+      {
+        "task_id": "vulture-persistent-analysis-cache",
+        "language": "python",
+        "pass_rate": 0.0,
+        "n_pass": 0,
+        "n_trials": 4,
+        "difficulty": "unsolved",
+        "opus5max_4run_usd": 36.17
+      }
+    ],
+    "typescript": [
+      {
+        "task_id": "drizzle-orm-window-function-builders",
+        "language": "typescript",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 34.35
+      },
+      {
+        "task_id": "dynamodb-toolbox-lazy-recursive-schemas",
+        "language": "typescript",
+        "pass_rate": 1.0,
+        "n_pass": 3,
+        "n_trials": 3,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 123.89
+      },
+      {
+        "task_id": "ink-grid-box-layout",
+        "language": "typescript",
+        "pass_rate": 0.0,
+        "n_pass": 0,
+        "n_trials": 4,
+        "difficulty": "unsolved",
+        "opus5max_4run_usd": 59.14
+      },
+      {
+        "task_id": "koota-pair-relation-tracking",
+        "language": "typescript",
+        "pass_rate": 0.75,
+        "n_pass": 3,
+        "n_trials": 4,
+        "difficulty": "reliable",
+        "opus5max_4run_usd": 86.72
+      },
+      {
+        "task_id": "koota-query-predicates",
+        "language": "typescript",
+        "pass_rate": 0.5,
+        "n_pass": 2,
+        "n_trials": 4,
+        "difficulty": "mixed",
+        "opus5max_4run_usd": 74.53
+      },
+      {
+        "task_id": "kysely-window-grouping-helpers",
+        "language": "typescript",
+        "pass_rate": 0.25,
+        "n_pass": 1,
+        "n_trials": 4,
+        "difficulty": "hard",
+        "opus5max_4run_usd": 49.16
+      },
+      {
+        "task_id": "obsidian-linter-scoped-ignore-markers",
+        "language": "typescript",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 36.86
+      },
+      {
+        "task_id": "prometheus-transactional-reload-status",
+        "language": "typescript",
+        "pass_rate": 0.5,
+        "n_pass": 2,
+        "n_trials": 4,
+        "difficulty": "mixed",
+        "opus5max_4run_usd": 54.75
+      },
+      {
+        "task_id": "sql-formatter-bigquery-pipe-formatting",
+        "language": "typescript",
+        "pass_rate": 0.75,
+        "n_pass": 3,
+        "n_trials": 4,
+        "difficulty": "reliable",
+        "opus5max_4run_usd": 23.68
+      },
+      {
+        "task_id": "ts-pattern-match-each",
+        "language": "typescript",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 14.95
+      }
+    ],
+    "rust": [
+      {
+        "task_id": "boa-hierarchical-evaluation-cancellation",
+        "language": "rust",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 74.93
+      },
+      {
+        "task_id": "fd-deterministic-multi-key-sorting",
+        "language": "rust",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 33.62
+      },
+      {
+        "task_id": "oxvg-structural-selector-preservation",
+        "language": "rust",
+        "pass_rate": 0.25,
+        "n_pass": 1,
+        "n_trials": 4,
+        "difficulty": "hard",
+        "opus5max_4run_usd": 70.06
+      },
+      {
+        "task_id": "pest-character-class-coalescing",
+        "language": "rust",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 39.06
+      },
+      {
+        "task_id": "wasmi-trap-coredumps",
+        "language": "rust",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 79.67
+      }
+    ],
+    "javascript": [
+      {
+        "task_id": "csstree-shorthand-expansion-compression",
+        "language": "javascript",
+        "pass_rate": 0.0,
+        "n_pass": 0,
+        "n_trials": 4,
+        "difficulty": "unsolved",
+        "opus5max_4run_usd": 26.97
+      },
+      {
+        "task_id": "katex-multicolumn-array-spans",
+        "language": "javascript",
+        "pass_rate": 0.75,
+        "n_pass": 3,
+        "n_trials": 4,
+        "difficulty": "reliable",
+        "opus5max_4run_usd": 37.87
+      },
+      {
+        "task_id": "testem-bail-on-test-failure",
+        "language": "javascript",
+        "pass_rate": 0.5,
+        "n_pass": 2,
+        "n_trials": 4,
+        "difficulty": "mixed",
+        "opus5max_4run_usd": 48.15
+      },
+      {
+        "task_id": "testem-per-launcher-reports",
+        "language": "javascript",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 29.44
+      },
+      {
+        "task_id": "yjs-map-conflict-detection",
+        "language": "javascript",
+        "pass_rate": 1.0,
+        "n_pass": 4,
+        "n_trials": 4,
+        "difficulty": "solved",
+        "opus5max_4run_usd": 50.41
+      }
+    ]
+  }
+}

@@ -1,0 +1,1375 @@
+{
+  "_meta": {
+    "description": "Published DeepSWE v1.1 per-trial cost (USD) for model claude-opus-5 [effort=max]. Includes per-trial cost and per-trial outcome (PASS/FAIL/ERROR). Steps not captured here. Agent scaffold on the leaderboard is mini-swe-agent, NOT Claude Code \u2014 treat as a quality/cost reference, not apples-to-apples with our pier + Claude Code runs.",
+    "source_url": "https://deepswe.datacurve.ai/data/v1.1/trials?model=claude-opus-5::effort=max",
+    "model": "claude-opus-5 [max]",
+    "dataset": "deep-swe-1-1",
+    "fetched_date": "2026-07-28",
+    "task_count": 113,
+    "trial_count": 449,
+    "notes": [
+      "3 tasks published only 3 trials (rest have 4): dynamodb-toolbox-lazy-recursive-schemas, opa-template-string-reconstruction, scriggo-method-declarations.",
+      "449 = 113*4 - 3, matching the leaderboard 'matching' count.",
+      "Values are USD cost per trial as shown on the public dashboard."
+    ],
+    "outcomes_legend": {
+      "P": "PASS",
+      "F": "FAIL",
+      "E": "ERROR"
+    }
+  },
+  "costs_usd": {
+    "abs-module-cache-flags": [
+      7.93,
+      8.01,
+      6.74,
+      7.35
+    ],
+    "abs-stepped-slices": [
+      5.62,
+      5.94,
+      6.32,
+      4.96
+    ],
+    "actionlint-action-pinning-lint": [
+      9.54,
+      8.86,
+      9.6,
+      10.1
+    ],
+    "adaptix-name-mapping-aliases": [
+      17.69,
+      15.69,
+      15.47,
+      13.76
+    ],
+    "aiomonitor-task-snapshots-diff": [
+      9.51,
+      9.35,
+      7.8,
+      9.68
+    ],
+    "anko-default-function-arguments": [
+      9.03,
+      10.53,
+      10.67,
+      11.81
+    ],
+    "anko-typed-variable-bindings": [
+      7.28,
+      7.04,
+      8.1,
+      5.99
+    ],
+    "arcane-drift-detection-baselines": [
+      12.05,
+      14.61,
+      13.88,
+      15.84
+    ],
+    "arktype-json-schema-refs-dependencies": [
+      11.77,
+      14.73,
+      17.41,
+      17.36
+    ],
+    "awilix-async-container-initialization": [
+      8.42,
+      7.44,
+      9.0,
+      8.09
+    ],
+    "bandit-incremental-cache-control": [
+      12.11,
+      9.27,
+      10.62,
+      13.84
+    ],
+    "bandit-interprocedural-taint-checks": [
+      7.97,
+      9.22,
+      9.49,
+      7.07
+    ],
+    "bandit-structured-nosec-directives": [
+      8.37,
+      6.92,
+      8.26,
+      8.42
+    ],
+    "boa-hierarchical-evaluation-cancellation": [
+      18.03,
+      18.72,
+      16.89,
+      21.29
+    ],
+    "cattrs-partial-structuring-recovery": [
+      7.66,
+      10.5,
+      6.8,
+      11.32
+    ],
+    "clack-async-autocomplete-options": [
+      6.44,
+      7.31,
+      7.26,
+      8.02
+    ],
+    "claude-code-by-agents-recursive-delegation": [
+      6.85,
+      6.44,
+      7.01,
+      5.5
+    ],
+    "cliffy-config-file-parsing": [
+      13.1,
+      9.23,
+      9.6,
+      10.51
+    ],
+    "csstree-shorthand-expansion-compression": [
+      8.04,
+      5.89,
+      6.24,
+      6.8
+    ],
+    "dasel-html-document-format": [
+      7.96,
+      5.69,
+      6.42,
+      7.58
+    ],
+    "dateutil-rfc5545-timezone-interop": [
+      8.34,
+      10.1,
+      7.5,
+      10.96
+    ],
+    "drizzle-orm-window-function-builders": [
+      10.21,
+      8.2,
+      7.18,
+      8.76
+    ],
+    "dynamodb-toolbox-conditional-attribute-requirements": [
+      22.72,
+      20.08,
+      18.66,
+      22.03
+    ],
+    "dynamodb-toolbox-lazy-recursive-schemas": [
+      29.24,
+      32.06,
+      31.62
+    ],
+    "effect-sse-httpapi-streaming": [
+      17.93,
+      20.17,
+      15.26,
+      14.56
+    ],
+    "eicrud-keyset-pagination-cursor": [
+      11.3,
+      10.65,
+      12.83,
+      11.09
+    ],
+    "etree-xml-diff-patch": [
+      10.13,
+      9.12,
+      8.44,
+      9.62
+    ],
+    "expr-try-catch-errors": [
+      15.97,
+      15.44,
+      18.34,
+      15.59
+    ],
+    "fastapi-deprecation-response-headers": [
+      8.62,
+      7.99,
+      6.08,
+      9.6
+    ],
+    "fastapi-implicit-head-options": [
+      13.34,
+      11.91,
+      10.75,
+      11.68
+    ],
+    "fd-deterministic-multi-key-sorting": [
+      9.46,
+      8.69,
+      8.11,
+      7.36
+    ],
+    "geo-shapeindex-serialization": [
+      9.33,
+      14.28,
+      10.66,
+      12.0
+    ],
+    "go-critic-doc-link-checker": [
+      7.94,
+      7.74,
+      7.31,
+      8.45
+    ],
+    "go-genai-streamed-function-args": [
+      6.61,
+      7.59,
+      8.34,
+      6.75
+    ],
+    "go-git-worktree-merge-conflicts": [
+      22.09,
+      15.21,
+      13.82,
+      15.97
+    ],
+    "goreleaser-retry-publish-auditing": [
+      12.83,
+      11.46,
+      13.77,
+      13.91
+    ],
+    "gql-incremental-graphql-delivery": [
+      18.25,
+      18.86,
+      15.05,
+      17.4
+    ],
+    "happy-dom-abort-pending-body-reads": [
+      23.14,
+      15.09,
+      28.35,
+      20.18
+    ],
+    "happy-dom-deterministic-intersectionobserver": [
+      19.56,
+      11.63,
+      8.96,
+      11.55
+    ],
+    "helm-array-merge-strategies": [
+      12.15,
+      11.85,
+      15.92,
+      11.93
+    ],
+    "helm-unified-manifest-stream": [
+      12.33,
+      18.4,
+      10.99,
+      15.02
+    ],
+    "httpx-deterministic-cookie-store": [
+      7.22,
+      5.79,
+      6.95,
+      7.54
+    ],
+    "httpx-multipart-response-parsing": [
+      6.15,
+      6.66,
+      6.1,
+      6.24
+    ],
+    "httpx-streaming-json-iteration": [
+      7.14,
+      7.23,
+      6.45,
+      6.7
+    ],
+    "igel-persist-feature-schema": [
+      7.91,
+      6.55,
+      7.34,
+      6.49
+    ],
+    "ink-grid-box-layout": [
+      17.43,
+      14.01,
+      13.64,
+      14.06
+    ],
+    "ipython-session-bundle-replay": [
+      9.59,
+      9.31,
+      9.48,
+      8.07
+    ],
+    "katex-multicolumn-array-spans": [
+      9.66,
+      9.08,
+      9.55,
+      9.58
+    ],
+    "kcp-go-multiplexed-kcp-streams": [
+      8.93,
+      8.01,
+      4.49,
+      7.45
+    ],
+    "kea-atomic-signal-selectors": [
+      12.88,
+      13.15,
+      11.7,
+      10.87
+    ],
+    "kgateway-consistent-hash-policy": [
+      16.0,
+      19.29,
+      14.38,
+      15.67
+    ],
+    "kombu-single-active-consumer-priority": [
+      10.07,
+      14.67,
+      8.83,
+      11.1
+    ],
+    "kombu-virtual-queue-dead-lettering": [
+      16.55,
+      12.73,
+      9.82,
+      10.16
+    ],
+    "koota-composite-trait-aspects": [
+      22.08,
+      23.13,
+      19.81,
+      25.38
+    ],
+    "koota-deferred-mutation-buffer": [
+      14.07,
+      10.54,
+      14.75,
+      12.48
+    ],
+    "koota-entity-snapshot-rollback": [
+      10.32,
+      9.92,
+      10.86,
+      10.07
+    ],
+    "koota-pair-relation-tracking": [
+      24.37,
+      22.69,
+      19.89,
+      19.77
+    ],
+    "koota-query-predicates": [
+      13.55,
+      16.62,
+      27.02,
+      17.34
+    ],
+    "kysely-window-grouping-helpers": [
+      12.32,
+      12.59,
+      11.87,
+      12.38
+    ],
+    "langchain-request-coalescing": [
+      12.97,
+      9.13,
+      9.92,
+      9.97
+    ],
+    "mashumaro-flattened-dataclass-fields": [
+      13.36,
+      15.02,
+      13.86,
+      15.17
+    ],
+    "meriyah-explicit-resource-declarations": [
+      15.52,
+      12.67,
+      12.01,
+      14.35
+    ],
+    "mnamer-daemon-watch-lifecycle": [
+      7.08,
+      8.17,
+      6.19,
+      7.69
+    ],
+    "mobly-grouped-test-barriers": [
+      7.26,
+      8.08,
+      8.25,
+      7.39
+    ],
+    "narwhals-rolling-window-suite": [
+      15.96,
+      18.84,
+      18.13,
+      22.17
+    ],
+    "numba-stencil-boundary-modes": [
+      12.21,
+      16.1,
+      16.55,
+      12.4
+    ],
+    "obsidian-linter-auto-table-of-contents": [
+      6.39,
+      6.31,
+      7.16,
+      6.35
+    ],
+    "obsidian-linter-link-format-conversion": [
+      6.02,
+      6.42,
+      7.63,
+      7.94
+    ],
+    "obsidian-linter-scoped-ignore-markers": [
+      10.31,
+      7.72,
+      9.9,
+      8.93
+    ],
+    "ofetch-per-origin-circuit-breaker": [
+      4.77,
+      5.52,
+      4.33,
+      4.61
+    ],
+    "onedump-dump-encryption-pipeline": [
+      5.44,
+      5.8,
+      5.76,
+      6.81
+    ],
+    "opa-rego-rule-profiling": [
+      6.93,
+      8.09,
+      7.5,
+      7.72
+    ],
+    "opa-template-string-reconstruction": [
+      24.1,
+      18.87,
+      19.53
+    ],
+    "optique-conditional-option-dependencies": [
+      16.4,
+      14.78,
+      15.96,
+      13.74
+    ],
+    "oxvg-structural-selector-preservation": [
+      19.3,
+      16.2,
+      18.87,
+      15.69
+    ],
+    "participle-grammar-conflict-analysis": [
+      10.12,
+      7.06,
+      7.89,
+      8.72
+    ],
+    "pebble-durability-wait-apis": [
+      14.71,
+      10.57,
+      10.15,
+      12.29
+    ],
+    "pest-character-class-coalescing": [
+      8.91,
+      11.76,
+      9.84,
+      8.55
+    ],
+    "prometheus-transactional-reload-status": [
+      13.06,
+      14.37,
+      11.83,
+      15.49
+    ],
+    "prometheus-typed-label-sorting": [
+      13.82,
+      10.96,
+      11.11,
+      6.88
+    ],
+    "psd-tools-blend-range-api": [
+      6.82,
+      6.36,
+      9.11,
+      5.77
+    ],
+    "pwntools-tube-multiplexing": [
+      13.41,
+      10.85,
+      9.19,
+      8.43
+    ],
+    "python-statemachine-state-data-scoping": [
+      20.54,
+      20.4,
+      20.86,
+      20.17
+    ],
+    "query-persist-restored-query-state": [
+      12.07,
+      13.14,
+      14.01,
+      14.11
+    ],
+    "quill-shared-toolbar-focus": [
+      16.26,
+      15.26,
+      17.33,
+      15.89
+    ],
+    "returns-validated-error-accumulation": [
+      9.84,
+      8.37,
+      10.11,
+      11.21
+    ],
+    "scc-bounded-memory-spilling": [
+      10.87,
+      12.67,
+      12.18,
+      10.36
+    ],
+    "scriggo-method-declarations": [
+      42.47,
+      53.07,
+      38.09
+    ],
+    "skrub-duration-encoding": [
+      19.36,
+      17.02,
+      14.31,
+      14.58
+    ],
+    "sql-formatter-bigquery-pipe-formatting": [
+      4.93,
+      6.24,
+      6.16,
+      6.35
+    ],
+    "sqlfmt-create-table-ddl-formatting": [
+      15.96,
+      15.52,
+      14.02,
+      16.8
+    ],
+    "sqlite-utils-safe-import-checkpoints": [
+      10.32,
+      11.53,
+      11.82,
+      13.01
+    ],
+    "superjson-error-stack-serialization": [
+      5.96,
+      5.31,
+      4.79,
+      6.23
+    ],
+    "task-task-graph-export": [
+      7.81,
+      10.06,
+      9.01,
+      8.36
+    ],
+    "tengo-callable-instance-isolation": [
+      9.53,
+      9.22,
+      11.39,
+      9.89
+    ],
+    "tengo-destructuring-bindings": [
+      11.68,
+      9.14,
+      9.8,
+      9.07
+    ],
+    "termenv-preserve-ansi-resets": [
+      6.31,
+      4.83,
+      6.25,
+      4.51
+    ],
+    "testem-bail-on-test-failure": [
+      15.18,
+      7.75,
+      10.71,
+      14.51
+    ],
+    "testem-per-launcher-reports": [
+      8.33,
+      6.56,
+      7.88,
+      6.67
+    ],
+    "textual-kitty-key-phases": [
+      10.93,
+      10.84,
+      11.55,
+      13.0
+    ],
+    "textual-richlog-follow-state": [
+      14.59,
+      11.25,
+      14.32,
+      16.18
+    ],
+    "tomlkit-toml-table-converters": [
+      12.47,
+      13.36,
+      14.72,
+      22.03
+    ],
+    "true-myth-iterable-collection-combinators": [
+      9.9,
+      7.94,
+      8.64,
+      12.16
+    ],
+    "ts-pattern-match-each": [
+      4.2,
+      3.88,
+      3.28,
+      3.59
+    ],
+    "updo-policy-alerting": [
+      12.31,
+      9.95,
+      9.51,
+      7.66
+    ],
+    "valibot-recursive-schema-composition": [
+      24.86,
+      27.06,
+      30.44,
+      25.62
+    ],
+    "vitest-duration-sharding": [
+      11.71,
+      11.82,
+      13.22,
+      14.11
+    ],
+    "vulture-persistent-analysis-cache": [
+      8.84,
+      8.92,
+      8.83,
+      9.58
+    ],
+    "wasmi-trap-coredumps": [
+      18.99,
+      20.14,
+      22.4,
+      18.14
+    ],
+    "wazero-multi-module-snapshots": [
+      6.1,
+      6.09,
+      7.05,
+      7.79
+    ],
+    "yaegi-go-embed-directives": [
+      13.56,
+      12.96,
+      18.6,
+      14.65
+    ],
+    "yjs-map-conflict-detection": [
+      14.53,
+      14.47,
+      9.06,
+      12.35
+    ],
+    "ytt-jsonpath-query-api": [
+      5.48,
+      5.91,
+      6.1,
+      5.64
+    ]
+  },
+  "outcomes": {
+    "abs-module-cache-flags": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "abs-stepped-slices": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "actionlint-action-pinning-lint": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "adaptix-name-mapping-aliases": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "aiomonitor-task-snapshots-diff": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "anko-default-function-arguments": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "anko-typed-variable-bindings": [
+      "F",
+      "P",
+      "P",
+      "F"
+    ],
+    "arcane-drift-detection-baselines": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "arktype-json-schema-refs-dependencies": [
+      "P",
+      "F",
+      "P",
+      "P"
+    ],
+    "awilix-async-container-initialization": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "bandit-incremental-cache-control": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "bandit-interprocedural-taint-checks": [
+      "P",
+      "F",
+      "F",
+      "F"
+    ],
+    "bandit-structured-nosec-directives": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "boa-hierarchical-evaluation-cancellation": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "cattrs-partial-structuring-recovery": [
+      "F",
+      "F",
+      "P",
+      "F"
+    ],
+    "clack-async-autocomplete-options": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "claude-code-by-agents-recursive-delegation": [
+      "F",
+      "F",
+      "F",
+      "P"
+    ],
+    "cliffy-config-file-parsing": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "csstree-shorthand-expansion-compression": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "dasel-html-document-format": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "dateutil-rfc5545-timezone-interop": [
+      "P",
+      "F",
+      "P",
+      "P"
+    ],
+    "drizzle-orm-window-function-builders": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "dynamodb-toolbox-conditional-attribute-requirements": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "dynamodb-toolbox-lazy-recursive-schemas": [
+      "P",
+      "P",
+      "P"
+    ],
+    "effect-sse-httpapi-streaming": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "eicrud-keyset-pagination-cursor": [
+      "P",
+      "F",
+      "P",
+      "P"
+    ],
+    "etree-xml-diff-patch": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "expr-try-catch-errors": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "fastapi-deprecation-response-headers": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "fastapi-implicit-head-options": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "fd-deterministic-multi-key-sorting": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "geo-shapeindex-serialization": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "go-critic-doc-link-checker": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "go-genai-streamed-function-args": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "go-git-worktree-merge-conflicts": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "goreleaser-retry-publish-auditing": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "gql-incremental-graphql-delivery": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "happy-dom-abort-pending-body-reads": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "happy-dom-deterministic-intersectionobserver": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "helm-array-merge-strategies": [
+      "F",
+      "P",
+      "F",
+      "P"
+    ],
+    "helm-unified-manifest-stream": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "httpx-deterministic-cookie-store": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "httpx-multipart-response-parsing": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "httpx-streaming-json-iteration": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "igel-persist-feature-schema": [
+      "P",
+      "F",
+      "P",
+      "F"
+    ],
+    "ink-grid-box-layout": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "ipython-session-bundle-replay": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "katex-multicolumn-array-spans": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "kcp-go-multiplexed-kcp-streams": [
+      "F",
+      "F",
+      "E",
+      "F"
+    ],
+    "kea-atomic-signal-selectors": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "kgateway-consistent-hash-policy": [
+      "F",
+      "F",
+      "F",
+      "P"
+    ],
+    "kombu-single-active-consumer-priority": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "kombu-virtual-queue-dead-lettering": [
+      "F",
+      "P",
+      "P",
+      "P"
+    ],
+    "koota-composite-trait-aspects": [
+      "P",
+      "P",
+      "E",
+      "P"
+    ],
+    "koota-deferred-mutation-buffer": [
+      "F",
+      "F",
+      "P",
+      "F"
+    ],
+    "koota-entity-snapshot-rollback": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "koota-pair-relation-tracking": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "koota-query-predicates": [
+      "E",
+      "P",
+      "F",
+      "P"
+    ],
+    "kysely-window-grouping-helpers": [
+      "F",
+      "F",
+      "P",
+      "F"
+    ],
+    "langchain-request-coalescing": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "mashumaro-flattened-dataclass-fields": [
+      "P",
+      "P",
+      "F",
+      "P"
+    ],
+    "meriyah-explicit-resource-declarations": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "mnamer-daemon-watch-lifecycle": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "mobly-grouped-test-barriers": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "narwhals-rolling-window-suite": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "numba-stencil-boundary-modes": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "obsidian-linter-auto-table-of-contents": [
+      "F",
+      "P",
+      "F",
+      "P"
+    ],
+    "obsidian-linter-link-format-conversion": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "obsidian-linter-scoped-ignore-markers": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "ofetch-per-origin-circuit-breaker": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "onedump-dump-encryption-pipeline": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "opa-rego-rule-profiling": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "opa-template-string-reconstruction": [
+      "P",
+      "P",
+      "P"
+    ],
+    "optique-conditional-option-dependencies": [
+      "F",
+      "F",
+      "P",
+      "P"
+    ],
+    "oxvg-structural-selector-preservation": [
+      "F",
+      "F",
+      "P",
+      "F"
+    ],
+    "participle-grammar-conflict-analysis": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "pebble-durability-wait-apis": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "pest-character-class-coalescing": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "prometheus-transactional-reload-status": [
+      "F",
+      "F",
+      "P",
+      "P"
+    ],
+    "prometheus-typed-label-sorting": [
+      "F",
+      "F",
+      "P",
+      "F"
+    ],
+    "psd-tools-blend-range-api": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "pwntools-tube-multiplexing": [
+      "E",
+      "E",
+      "P",
+      "P"
+    ],
+    "python-statemachine-state-data-scoping": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "query-persist-restored-query-state": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "quill-shared-toolbar-focus": [
+      "P",
+      "F",
+      "F",
+      "F"
+    ],
+    "returns-validated-error-accumulation": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "scc-bounded-memory-spilling": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "scriggo-method-declarations": [
+      "P",
+      "P",
+      "P"
+    ],
+    "skrub-duration-encoding": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "sql-formatter-bigquery-pipe-formatting": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "sqlfmt-create-table-ddl-formatting": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "sqlite-utils-safe-import-checkpoints": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "superjson-error-stack-serialization": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "task-task-graph-export": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "tengo-callable-instance-isolation": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "tengo-destructuring-bindings": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "termenv-preserve-ansi-resets": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "testem-bail-on-test-failure": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "testem-per-launcher-reports": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "textual-kitty-key-phases": [
+      "F",
+      "P",
+      "P",
+      "P"
+    ],
+    "textual-richlog-follow-state": [
+      "P",
+      "P",
+      "P",
+      "F"
+    ],
+    "tomlkit-toml-table-converters": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "true-myth-iterable-collection-combinators": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "ts-pattern-match-each": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "updo-policy-alerting": [
+      "P",
+      "F",
+      "P",
+      "P"
+    ],
+    "valibot-recursive-schema-composition": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "vitest-duration-sharding": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "vulture-persistent-analysis-cache": [
+      "F",
+      "F",
+      "F",
+      "F"
+    ],
+    "wasmi-trap-coredumps": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "wazero-multi-module-snapshots": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "yaegi-go-embed-directives": [
+      "P",
+      "F",
+      "F",
+      "P"
+    ],
+    "yjs-map-conflict-detection": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ],
+    "ytt-jsonpath-query-api": [
+      "P",
+      "P",
+      "P",
+      "P"
+    ]
+  }
+}
