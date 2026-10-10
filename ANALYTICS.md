@@ -4,6 +4,37 @@ How the copilot arm is scored against the DeepSWE reference leaderboard, and how
 reproduce every number without re-deriving it from the website. Nothing here depends on
 `/tmp`, which does not survive `wsl --shutdown`.
 
+## Exporting retained Wharf runs
+
+Wharf exports one canonical JSONL row per logical trial directly from retained
+run evidence. Infrastructure retries remain nested evidence and never create
+additional rows.
+
+```bash
+wharf analytics export \
+  --run-directory jobs/<arm>/<job> \
+  --output data/<arm>.jsonl \
+  --arm <arm> \
+  --agent copilot-cli \
+  --agent-version <version> \
+  --model <model> \
+  --effort <effort> \
+  --job <job>
+```
+
+The exporter preserves terminal failures and missing measurements. An explicit
+unknown terminal cost remains null even if partial agent telemetry exists.
+This keeps cost coverage separate from score coverage.
+
+Rebuild the portable index without reading `jobs/`:
+
+```bash
+wharf analytics manifest --data-directory data
+```
+
+`--output` can place the manifest elsewhere. Without it, Wharf writes
+`data/manifest.json`.
+
 ## The metric: PASS@1
 
 DeepSWE's published score is a **trial-level pass rate** — the leaderboard column is

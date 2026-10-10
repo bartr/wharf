@@ -26,7 +26,14 @@ public sealed class ReportRendererTests
         Assert.Contains("\"provenance\"", json);
         Assert.Contains("\"rateLimits\"", json);
         Assert.Contains("\"completeness\"", json);
-        Assert.Contains("HTTP 429 responses", new ReportRenderer().RenderMarkdown(input));
+        Assert.Contains("\"passingAttempts\": 1", json);
+        Assert.Contains("\"taskPassAtLeastOnce\": 1", json);
+        string markdown = new ReportRenderer().RenderMarkdown(input);
+        Assert.Contains("Passing logical attempts: `1/1`", markdown);
+        Assert.Contains("Task pass-at-least-once: `100%`", markdown);
+        Assert.Contains("Enterprise coverage component: `80`", markdown);
+        Assert.Contains("Enterprise pass component: `20`", markdown);
+        Assert.Contains("HTTP 429 responses", markdown);
     }
 
     private static ReportInput CreateInput()

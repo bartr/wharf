@@ -172,7 +172,8 @@ public sealed class RunService
                 string image = string.Empty;
                 bool removeAgentImage = false;
                 AgentExecutionRequest? agentRequest = null;
-                string? trialErrorType = null;
+                string? agentErrorType = null;
+                bool agentCompletedSuccessfully = false;
                 StageLogContext Stage(string stage) => new(
                     runNumber,
                     plannedRuns,
@@ -222,6 +223,12 @@ public sealed class RunService
                     logger.Info($"{prefix} status=waiting-preparation");
                     agentRequest = await preparationGate.ExecuteAsync(
                         PreparationOperation.Agent,
+                        new PreparationGateContext(
+                            runNumber,
+                            task.TaskId,
+                            attempt.AttemptNumber,
+                            trialRetry,
+                            attempt.AttemptNumber),
                         async preparationCancellationToken =>
                         {
                             logger.Info($"{prefix} status=preparing-image");
@@ -298,7 +305,7 @@ public sealed class RunService
 
                     if (agentRequest is null)
                     {
-                        trialErrorType = "Invocation";
+                        agentErrorType = "Invocation";
                         File.WriteAllText(
                             Path.Combine(trialDirectory, "agent", "error.txt"),
                             invocationError ?? "Copilot invocation could not be prepared");
@@ -332,6 +339,13 @@ public sealed class RunService
                                 };
                                 await preparationGate.ExecuteAsync(
                                     PreparationOperation.AgentRetry,
+                                    new PreparationGateContext(
+                                        runNumber,
+                                        task.TaskId,
+                                        attempt.AttemptNumber,
+                                        trialRetry,
+                                        attempt.AttemptNumber,
+                                        retryNumber),
                                     async prepareCancellationToken =>
                                     {
                                         await workspacePreparer.PrepareAsync(
@@ -368,19 +382,23 @@ public sealed class RunService
                                 : null);
                         if (agentEvidence.Status == "failed")
                         {
-                            trialErrorType = agentEvidence.ErrorType ?? "AgentExecution";
+                            agentErrorType = agentEvidence.ErrorType ?? "AgentExecution";
+                        }
+                        else
+                        {
+                            agentCompletedSuccessfully = true;
                         }
                     }
                     agentDuration.Stop();
-                    string agentResult = trialErrorType is null ? "completed" : "failed";
+                    string agentResult = agentErrorType is null ? "completed" : "failed";
                     logger.StageCompleted(
                         agentStage,
                         agentDuration.Elapsed,
                         agentResult,
-                        trialErrorType is null
+                        agentErrorType is null
                             ? null
                             : "agent execution did not complete successfully",
-                        trialErrorType);
+                        agentErrorType);
                     agentCompleted = true;
                 }
                 catch (OperationCanceledException exception)
@@ -393,7 +411,7 @@ public sealed class RunService
                 }
                 catch (AgentExecutionException exception)
                 {
-                    trialErrorType = exception.ErrorType;
+                    agentErrorType = exception.ErrorType;
                     CompleteExecutionStage(
                         "failed",
                         exception.Message,
@@ -408,39 +426,39 @@ public sealed class RunService
                 }
                 catch (AgentImageException exception)
                 {
-                    trialErrorType = "AgentImage";
-                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
+                    agentErrorType = "AgentImage";
+                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
                     logger.Info(
                         $"{prefix} status=agent-failed error={exception.Message}",
                         exception.Message,
-                        trialErrorType);
+                        agentErrorType);
                 }
                 catch (ImagePullException exception)
                 {
-                    trialErrorType = "ImagePull";
-                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
+                    agentErrorType = "ImagePull";
+                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
                     logger.Info(
                         $"{prefix} status=agent-failed error={exception.Message}",
                         exception.Message,
-                        trialErrorType);
+                        agentErrorType);
                 }
                 catch (DockerImageException exception)
                 {
-                    trialErrorType = "DockerImage";
-                    CompleteExecutionStage("failed", exception.Message, trialErrorType);
+                    agentErrorType = "DockerImage";
+                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
                     File.WriteAllText(
                         Path.Combine(trialDirectory, "agent", "error.txt"),
                         exception.Message);
                     logger.Info(
                         $"{prefix} status=agent-failed error={exception.Message}",
                         exception.Message,
-                        trialErrorType);
+                        agentErrorType);
                 }
                 string taskStatus = "agent-failed";
                 string? patch = null;
@@ -484,6 +502,13 @@ public sealed class RunService
                                         (PristineVerifierService Service, PreparedVerifierRun Prepared)
                                             preparedVerifier = await preparationGate.ExecuteAsync(
                                                 PreparationOperation.Verifier,
+                                                new PreparationGateContext(
+                                                    runNumber,
+                                                    task.TaskId,
+                                                    attempt.AttemptNumber,
+                                                    trialRetry,
+                                                    attempt.AttemptNumber,
+                                                    currentVerifierRetry),
                                                 async preparationCancellationToken =>
                                                 {
                                                     verifierImage = await PrepareVerifierImageAsync(
@@ -577,7 +602,6 @@ public sealed class RunService
                     }
                     catch (VerifierExecutionException exception)
                     {
-                        trialErrorType = exception.ErrorType;
                         verifierError = exception.Message;
                         verifierStageError = exception.Message;
                         verifierStageErrorType = exception.ErrorType;
@@ -709,7 +733,8 @@ public sealed class RunService
                     workspaceCleanupError is null ? null : "WorkspaceCleanup");
                 if (!ShouldRetryTrial(
                         taskStatus,
-                        trialErrorType,
+                        agentErrorType,
+                        agentCompletedSuccessfully,
                         trialRetry,
                         maximumTrialRetries,
                         trialCancellationToken))
@@ -720,7 +745,7 @@ public sealed class RunService
                 int nextRetry = trialRetry + 1;
                 logger.Info(
                     $"{prefix} status=trial-retry retry={nextRetry} " +
-                    $"reason={trialErrorType}");
+                    $"reason={agentErrorType}");
                 if (configuration.Retries.BackoffSeconds is > 0)
                 {
                     await Task.Delay(
@@ -742,15 +767,17 @@ public sealed class RunService
 
     internal static bool ShouldRetryTrial(
         string taskStatus,
-        string? errorType,
+        string? agentErrorType,
+        bool agentCompletedSuccessfully,
         int completedRetries,
         int maximumRetries,
         CancellationToken cancellationToken = default) =>
         !cancellationToken.IsCancellationRequested &&
+        !agentCompletedSuccessfully &&
         !string.Equals(taskStatus, "passed", StringComparison.OrdinalIgnoreCase) &&
-        !string.IsNullOrWhiteSpace(errorType) &&
-        !string.Equals(errorType, "Invocation", StringComparison.Ordinal) &&
-        !IsVerifierRetryableError(errorType) &&
+        !string.IsNullOrWhiteSpace(agentErrorType) &&
+        !string.Equals(agentErrorType, "Invocation", StringComparison.Ordinal) &&
+        !IsVerifierError(agentErrorType) &&
         completedRetries < maximumRetries;
 
     internal static bool ShouldRetryVerifier(
@@ -759,7 +786,7 @@ public sealed class RunService
         int maximumRetries,
         CancellationToken cancellationToken = default) =>
         !cancellationToken.IsCancellationRequested &&
-        IsVerifierRetryableError(errorType) &&
+        IsVerifierError(errorType) &&
         completedRetries < maximumRetries;
 
     internal static async Task<VerifierRetryOutcome> ExecuteVerifierWithRetryAsync(
@@ -803,8 +830,8 @@ public sealed class RunService
         }
     }
 
-    private static bool IsVerifierRetryableError(string? errorType) =>
-        errorType is "VerifierTimeout" or "VerifierInfrastructure";
+    private static bool IsVerifierError(string? errorType) =>
+        errorType?.StartsWith("Verifier", StringComparison.Ordinal) == true;
 
     internal static void ArchiveVerifierExecution(string trialDirectory, int retryNumber)
     {

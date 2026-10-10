@@ -9,49 +9,81 @@ public sealed class RunServiceRetryTests
     [Theory]
     [InlineData("failed", "OutOfMemory")]
     [InlineData("failed", "AgentTimeout")]
-    public void RetriesExceptionalNonPassingTrials(string status, string errorType)
+    [InlineData("failed", "AgentExecution")]
+    [InlineData("failed", "AgentImage")]
+    public void GivenAgentFailureBeforeCompletion_ShouldRetryTrial_ReturnsTrue(
+        string status,
+        string errorType)
     {
-        Assert.True(RunService.ShouldRetryTrial(status, errorType, 0, 1));
+        Assert.True(RunService.ShouldRetryTrial(
+            status,
+            errorType,
+            agentCompletedSuccessfully: false,
+            completedRetries: 0,
+            maximumRetries: 1));
     }
 
     [Theory]
-    [InlineData("passed", "OutOfMemory", 0)]
-    [InlineData("failed", null, 0)]
-    [InlineData("failed", "Verifier", 1)]
-    [InlineData("failed", "Invocation", 0)]
-    [InlineData("failed", "VerifierTimeout", 0)]
-    [InlineData("failed", "VerifierInfrastructure", 0)]
-    public void DoesNotRetryPassingOrdinaryOrExhaustedTrials(
+    [InlineData("passed", "OutOfMemory", false, 0)]
+    [InlineData("failed", "OutOfMemory", true, 0)]
+    [InlineData("failed", null, false, 0)]
+    [InlineData("failed", "AgentTimeout", false, 1)]
+    [InlineData("failed", "Invocation", false, 0)]
+    [InlineData("failed", "Verifier", false, 0)]
+    [InlineData("failed", "VerifierTimeout", false, 0)]
+    [InlineData("failed", "VerifierInfrastructure", false, 0)]
+    [InlineData("failed", "VerifierBuild", false, 0)]
+    [InlineData("failed", "VerifierBuildTimeout", false, 0)]
+    public void GivenIneligibleAgentRetry_ShouldRetryTrial_ReturnsFalse(
         string status,
         string? errorType,
+        bool agentCompletedSuccessfully,
         int completedRetries)
     {
-        Assert.False(RunService.ShouldRetryTrial(status, errorType, completedRetries, 1));
+        Assert.False(RunService.ShouldRetryTrial(
+            status,
+            errorType,
+            agentCompletedSuccessfully,
+            completedRetries,
+            maximumRetries: 1));
     }
 
     [Theory]
+    [InlineData("Verifier")]
     [InlineData("VerifierTimeout")]
     [InlineData("VerifierInfrastructure")]
-    public void RetriesVerifierInfrastructureWithoutRetryingWholeTrial(string errorType)
+    [InlineData("VerifierBuild")]
+    [InlineData("VerifierBuildTimeout")]
+    public void GivenVerifierError_ShouldRetryVerifier_ReturnsTrue(string errorType)
     {
         Assert.True(RunService.ShouldRetryVerifier(errorType, 0, 1));
-        Assert.False(RunService.ShouldRetryTrial("failed", errorType, 0, 1));
+        Assert.False(RunService.ShouldRetryTrial(
+            "failed",
+            errorType,
+            agentCompletedSuccessfully: false,
+            completedRetries: 0,
+            maximumRetries: 1));
     }
 
     [Theory]
     [InlineData(null, 0)]
-    [InlineData("Verifier", 0)]
     [InlineData("AgentTimeout", 0)]
     [InlineData("VerifierTimeout", 1)]
-    public void DoesNotRetryDeterministicOrExhaustedVerifierFailures(
+    public void GivenIneligibleVerifierRetry_ShouldRetryVerifier_ReturnsFalse(
         string? errorType,
         int completedRetries)
     {
         Assert.False(RunService.ShouldRetryVerifier(errorType, completedRetries, 1));
     }
 
-    [Fact]
-    public async Task RetriesVerifierCallbackAndReturnsSuccessfulReplacement()
+    [Theory]
+    [InlineData("Verifier")]
+    [InlineData("VerifierTimeout")]
+    [InlineData("VerifierInfrastructure")]
+    [InlineData("VerifierBuild")]
+    [InlineData("VerifierBuildTimeout")]
+    public async Task GivenVerifierError_ExecuteVerifierWithRetryAsync_RetriesOnlyVerifier(
+        string errorType)
     {
         int executions = 0;
         int archives = 0;
@@ -63,14 +95,14 @@ public sealed class RunServiceRetryTests
                 executions++;
                 return executions == 1
                     ? Task.FromException<TrialResult>(
-                        new VerifierExecutionException("timed out", "VerifierTimeout"))
+                        new VerifierExecutionException("verifier failed", errorType))
                     : Task.FromResult(expected);
             },
             (retry, exception, _) =>
             {
                 archives++;
                 Assert.Equal(1, retry);
-                Assert.Equal("VerifierTimeout", exception.ErrorType);
+                Assert.Equal(errorType, exception.ErrorType);
                 return Task.CompletedTask;
             },
             maximumRetries: 1,

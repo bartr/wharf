@@ -9,9 +9,18 @@ internal enum PreparationOperation
     Verifier
 }
 
+internal sealed record PreparationGateContext(
+    int RunNumber,
+    string TaskId,
+    int LogicalAttempt,
+    int TrialRetry,
+    int K,
+    int OperationRetry = 0);
+
 internal sealed record PreparationGateEvent(
     long Sequence,
     PreparationOperation Operation,
+    PreparationGateContext Context,
     string Transition,
     int Capacity,
     int Active,
@@ -46,6 +55,7 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
 
     public async Task<T> ExecuteAsync<T>(
         PreparationOperation operation,
+        PreparationGateContext context,
         Func<CancellationToken, Task<T>> action,
         CancellationToken cancellationToken)
     {
@@ -53,7 +63,7 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
         lock (sync)
         {
             waiting++;
-            waitingEvent = Snapshot(operation, "waiting");
+            waitingEvent = Snapshot(operation, context, "waiting", 0);
         }
         try
         {
@@ -77,7 +87,11 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
             lock (sync)
             {
                 waiting--;
-                cancelledEvent = Snapshot(operation, "cancelled");
+                cancelledEvent = Snapshot(
+                    operation,
+                    context,
+                    "cancelled",
+                    Math.Max(0, stopwatch.ElapsedMilliseconds));
             }
             telemetry?.Invoke(cancelledEvent);
             throw;
@@ -90,6 +104,7 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
             active++;
             acquiredEvent = Snapshot(
                 operation,
+                context,
                 "acquired",
                 Math.Max(0, stopwatch.ElapsedMilliseconds));
         }
@@ -104,7 +119,7 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
             lock (sync)
             {
                 active--;
-                releasedEvent = Snapshot(operation, "released");
+                releasedEvent = Snapshot(operation, context, "released");
                 gate.Release();
             }
             telemetry?.Invoke(releasedEvent);
@@ -113,11 +128,13 @@ internal sealed class PreparationGate : IDisposable, IAsyncDisposable
 
     private PreparationGateEvent Snapshot(
         PreparationOperation operation,
+        PreparationGateContext context,
         string transition,
         long? waitMilliseconds = null) =>
         new(
             ++sequence,
             operation,
+            context,
             transition,
             capacity,
             active,

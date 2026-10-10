@@ -38,56 +38,53 @@ Current export format:
 - index file is `data/manifest.json`
 - manifest size key is `bytes_jsonl`
 
-If you have full `jobs/` locally and want to regenerate these 3 arms only:
+Export each retained Wharf run directly:
 
 ```bash
-python3 scripts/export_analytics.py \
-  cc-claude-opus-5-max \
-  copilot-claude-opus-5-max \
-  copilot-claude-opus-5-max-nosub
+wharf analytics export \
+  --run-directory jobs/<arm>/<job> \
+  --output data/<arm>.jsonl \
+  --arm <arm> \
+  --agent copilot-cli \
+  --agent-version <version> \
+  --model <model> \
+  --effort <effort> \
+  --job <job>
 ```
 
-To export one exact batch without merging other jobs from the same arm:
+The exporter emits one row per logical trial. Agent and verifier
+infrastructure retries remain nested evidence and do not add rows.
+
+To rebuild the manifest after exporting:
 
 ```bash
-python3 scripts/export_analytics.py \
-    --job k2-1 \
-    muse-spark-1.2-contributor-ultra
-python3 scripts/build_data_manifest.py
+wharf analytics manifest --data-directory data
 ```
 
-Repeat `--job` to export several batches from the same arm:
-
-```bash
-python3 scripts/export_analytics.py \
-    --job all-1 \
-    --job all-2 \
-    --job all-3 \
-    --job all-4 \
-    --job all-5 \
-    muse-spark-1.2-contributor-xhigh
-python3 scripts/build_data_manifest.py
-```
+Export separate jobs to separate files when they must remain independently
+auditable. Merge only when the comparison contract defines them as one arm.
 
 The Muse export keeps per-trial `cost_usd` null. Its disposable-key dashboard
 reported `$34.62` for the complete 226-trial batch, but did not provide an
 authoritative per-trial allocation. Do not divide or prorate that total into
 row-level cost; use the batch accounting recorded in
-[ANALYTICS.md](../ANALYTICS.md).
+[ANALYTICS.md](./ANALYTICS.md).
 
 Important:
-- `--job` is repeatable, requires at least one arm name, and matches each job name exactly.
-- Running without arm args exports whatever is present under local `jobs/` and rewrites `data/manifest.json` to that subset.
+- `--run-directory`, `--output`, `--arm`, and `--model` are required.
+- `--agent`, `--effort`, and `--subagents` have explicit defaults.
+- `analytics export` never rewrites `data/manifest.json`; run `analytics manifest`
+  after all intended exports complete.
 
 ## 4) Reporting-only manifest rebuild (no jobs required)
 
 Use this command to rebuild `data/manifest.json` strictly from `data/*.jsonl`:
 
 ```bash
-python3 scripts/build_data_manifest.py
+wharf analytics manifest --data-directory data
 ```
 
-The script intentionally does not read `jobs/`.
+The command intentionally does not read `jobs/`.
 
 ## 5) Reproduce the comparison (copy/paste)
 

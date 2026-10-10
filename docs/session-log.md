@@ -920,3 +920,16 @@ interpreting the run.
 * Add a `queued=<count>` field to interactive Wharf progress. Keep it distinct
   from active occupancy and completed counts, and derive it from structured
   queue transitions rather than inferred process state.
+
+Completed on 2026-10-10:
+
+* Terminal completion now advances independently from grader coverage, with
+  missing grader evidence classified by terminal outcome.
+* Preparation-gate lifecycle events retain operation, K wave, occupancy,
+  queue depth, and measured acquisition wait.
+* Progress exposes `queued=<count>` separately from active stages and reports
+  queue-wait aggregates by operation and K wave.
+* A generic Skrub verifier cleanup failure in All-2 demonstrated the old
+  whole-trial fallback: it reran the completed agent and then aborted with
+  missing agent evidence. All `Verifier*` failures now remain inside the
+  verifier-only retry boundary against the retained patch.

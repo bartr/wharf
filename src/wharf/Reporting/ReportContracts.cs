@@ -4,7 +4,7 @@ namespace Wharf.Reporting;
 
 public static class ReportSchema
 {
-    public const string Version = "1.0";
+    public const string Version = "1.1";
 }
 
 public sealed record RetryReport(

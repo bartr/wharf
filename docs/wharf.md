@@ -203,12 +203,16 @@ container and reuse the task's configured environment image. After MVP,
     whole-trial retry backoff remains building work, and post-verifier evidence
     cleanup is reported separately so the lifecycle counts sum to `running`.
     Terminal fields are printed first as `completed`, `pass-rate`, `pass@`,
-    `failed`, `errors`, and `timeouts`. `completed` includes every terminal
-    trial, `failed` counts successfully graded reward-zero outcomes, `timeouts`
-    counts bounded phase expirations, `errors` counts other infrastructure
-    failures, and `pass-rate` is `pass@ / completed`; raw record counts remain
-    available only in JSON output. Human output places terminal results, active
-    occupancy, and costs on separate lines. Per-K lines are omitted for K=1 and
+    `failed`, `errors`, `timeouts`, `retries`, and `missing-grader`.
+    `completed` includes every terminal trial independently from grader-result
+    coverage. Missing grader results are classified by terminal outcome in
+    verbose and JSON output. `failed` counts successfully graded reward-zero
+    outcomes, `timeouts` counts bounded phase expirations, `errors` counts other
+    infrastructure failures, and `pass-rate` is `pass@ / completed`; raw record
+    counts remain available only in JSON output. Human output places terminal
+    results, `queued`, active occupancy, and costs on separate lines. Queue
+    wait summaries group measured preparation-gate waits by operation and K
+    wave. Per-K lines are omitted for K=1 and
     remain hidden for a multi-K run until attempt 2 has actually started; once
     shown, they group results by the `attempt=K/total` identity rather than the
     configured total K. `wharf progress -v` appends every active trial as
@@ -527,6 +531,8 @@ container and reuse the task's configured environment image. After MVP,
 - Export one portable JSONL record per trial.
 - Keep reporting usable after raw job directories are deleted.
 - Build a data-only manifest without requiring access to raw jobs.
+- Use `wharf analytics export` for canonical run export and
+  `wharf analytics manifest` for the data-only index.
 - retain everything by default
 - preserve source file hashes and schema versions in exports
 - static Markdown reports and machine-readable JSON or JSONL exports are the v1 reporting surfaces

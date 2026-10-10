@@ -159,6 +159,12 @@ public sealed class WharfLogger : IDisposable
                     gateEvent.Operation,
                     "unknown preparation operation")
             },
+            ["runNumber"] = gateEvent.Context.RunNumber,
+            ["taskId"] = gateEvent.Context.TaskId,
+            ["logicalAttempt"] = gateEvent.Context.LogicalAttempt,
+            ["trialRetry"] = gateEvent.Context.TrialRetry,
+            ["operationRetry"] = gateEvent.Context.OperationRetry,
+            ["k"] = gateEvent.Context.K,
             ["transition"] = gateEvent.Transition,
             ["capacity"] = gateEvent.Capacity,
             ["active"] = gateEvent.Active,
@@ -169,6 +175,8 @@ public sealed class WharfLogger : IDisposable
         Write(
             "info",
             $"preparation-gate operation={fields["operation"]} " +
+            $"task={gateEvent.Context.TaskId} attempt={gateEvent.Context.LogicalAttempt} " +
+            $"retry={gateEvent.Context.OperationRetry} K={gateEvent.Context.K} " +
             $"transition={gateEvent.Transition} active={gateEvent.Active} " +
             $"waiting={gateEvent.Waiting} capacity={gateEvent.Capacity}",
             TextWriter.Null,

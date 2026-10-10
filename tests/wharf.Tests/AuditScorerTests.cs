@@ -15,8 +15,19 @@ public sealed class AuditScorerTests
             ["task-a", "task-b", "task-c"],
             [new("task-a", [passing]), new("task-b", [partial, full])]));
 
-        Assert.Equal(1d / 3, report.PassAt1, 10);
+        Assert.Equal(2d / 3, report.PassAt1, 10);
+        Assert.Equal(2, report.PassingAttempts);
+        Assert.Equal(3, report.ObservedAttempts);
+        Assert.Equal(1, report.TaskPassAtLeastOnce);
+        Assert.Equal(2, report.PassingTasks);
+        Assert.Equal(2, report.ObservedTasks);
         Assert.Equal(40, report.EnterpriseScore, 10);
+        Assert.Equal(30, report.EnterpriseCoverageComponent, 10);
+        Assert.Equal(10, report.EnterprisePassComponent, 10);
+        Assert.Equal(
+            report.EnterpriseScore,
+            report.EnterpriseCoverageComponent + report.EnterprisePassComponent,
+            10);
         Assert.Equal(1, report.Completeness.MissingTasks);
         Assert.False(report.Completeness.IsComplete);
     }
@@ -55,8 +66,37 @@ public sealed class AuditScorerTests
         AuditReport report = new AuditScorer().Score(new AuditRun("run-3", ["task"], [new("task", [attempt])]));
 
         Assert.Equal(1, report.PassAt1);
+        Assert.Equal(1, report.TaskPassAtLeastOnce);
         Assert.Equal(0, report.EnterpriseScore);
         Assert.True(report.ExistingTestRegression);
+    }
+
+    [Fact]
+    public void PassAtOneUsesObservedLogicalAttemptsRatherThanExpectedTasks()
+    {
+        AuditReport report = new AuditScorer().Score(new AuditRun(
+            "run-4",
+            ["task-a", "task-b", "missing"],
+            [
+                new("task-a", [Attempt(1, true, 1), Attempt(2, false, 0)]),
+                new("task-b", [Attempt(1, false, 0)])
+            ]));
+
+        Assert.Equal(1d / 3, report.PassAt1, 10);
+        Assert.Equal(1d / 2, report.TaskPassAtLeastOnce, 10);
+        Assert.Equal(1, report.PassingAttempts);
+        Assert.Equal(3, report.ObservedAttempts);
+    }
+
+    [Fact]
+    public void RejectsDuplicateObservedTasks()
+    {
+        AuditRun run = new(
+            "run-5",
+            ["task"],
+            [new("task", [Attempt(1, true, 1)]), new("task", [Attempt(2, true, 1)])]);
+
+        Assert.Throws<AuditContractException>(() => new AuditScorer().Score(run));
     }
 
     private static AuditAttempt Attempt(int number, bool passed, double coverage) =>

@@ -76,6 +76,7 @@ public static class CommandTree
         }
         root.Subcommands.Add(CreateSmokeCommand(() => configuration));
         root.Subcommands.Add(CreateReportCommand());
+        root.Subcommands.Add(CreateAnalyticsCommand());
         root.Subcommands.Add(CreateProfileCommand());
 
         return root;
@@ -417,9 +418,9 @@ public static class CommandTree
                         $"completed={progress.TestsCompleted} pass-rate={FormatPercent(progress.PassPercent)} " +
                         $"pass@={progress.PassAtTotal} failed={progress.FailedTests} " +
                         $"errors={progress.Errors} timeouts={progress.Timeouts} " +
-                        $"retries={progress.Retries}"),
+                        $"retries={progress.Retries} missing-grader={progress.MissingGraderResults}"),
             (
-                        $"running={progress.TestsRunning} building={progress.Building} " +
+                        $"queued={progress.Queued} running={progress.TestsRunning} building={progress.Building} " +
                         $"agent={progress.Agents} verifier={progress.Verifiers} cleanup={progress.Cleanup}"),
             (
                         $"avg-cost={FormatCost(progress.AverageCost)} " +
@@ -442,6 +443,22 @@ public static class CommandTree
 
         foreach ((string type, int count) in progress.ErrorTypes.OrderBy(item => item.Key))
             lines.Add($"error-type={type} count={count}");
+        foreach ((string type, int count) in
+                 (progress.MissingGraderTypes ?? new Dictionary<string, int>())
+                 .OrderBy(item => item.Key))
+        {
+            lines.Add($"missing-grader-type={type} count={count}");
+        }
+        foreach (PreparationWaitAggregate wait in
+                 (progress.PreparationWaits ?? [])
+                 .OrderBy(item => item.K)
+                 .ThenBy(item => item.Operation, StringComparer.Ordinal))
+        {
+            lines.Add(
+                $"queue-wait operation={wait.Operation} k={wait.K} count={wait.Count} " +
+                $"avg={wait.AverageWaitMilliseconds:0.##}ms " +
+                $"max={wait.MaximumWaitMilliseconds}ms total={wait.TotalWaitMilliseconds}ms");
+        }
         if (verbose && progress.ActiveTrials.Count > 0)
         {
             lines.Add(string.Empty);
@@ -535,6 +552,144 @@ public static class CommandTree
         });
         return command;
     }
+
+    private static CliCommand CreateAnalyticsCommand()
+    {
+        var command = new CliCommand(
+            "analytics",
+            "Export portable trial analytics or rebuild a data-only manifest.");
+        command.Subcommands.Add(CreateAnalyticsExportCommand());
+        command.Subcommands.Add(CreateAnalyticsManifestCommand());
+        return command;
+    }
+
+    private static CliCommand CreateAnalyticsExportCommand()
+    {
+        var command = new CliCommand(
+            "export",
+            "Export one canonical JSONL row per retained logical trial.");
+        var runDirectory = new Option<string>("--run-directory")
+        {
+            Description = "Completed Wharf run directory."
+        };
+        var output = new Option<string>("--output")
+        {
+            Description = "Analytics JSONL output path."
+        };
+        var arm = new Option<string>("--arm") { Description = "Canonical benchmark arm name." };
+        var agent = new Option<string>("--agent")
+        {
+            Description = "Agent product name.",
+            DefaultValueFactory = _ => "copilot-cli"
+        };
+        var agentVersion = new Option<string?>("--agent-version")
+        {
+            Description = "Effective agent version."
+        };
+        var model = new Option<string>("--model") { Description = "Effective model name." };
+        var effort = new Option<string>("--effort")
+        {
+            Description = "Effective reasoning effort.",
+            DefaultValueFactory = _ => "max"
+        };
+        var subagents = new Option<bool>("--subagents")
+        {
+            Description = "Whether subagent tools were available.",
+            DefaultValueFactory = _ => true
+        };
+        var job = new Option<string?>("--job") { Description = "Optional batch or job name." };
+        command.Options.Add(runDirectory);
+        command.Options.Add(output);
+        command.Options.Add(arm);
+        command.Options.Add(agent);
+        command.Options.Add(agentVersion);
+        command.Options.Add(model);
+        command.Options.Add(effort);
+        command.Options.Add(subagents);
+        command.Options.Add(job);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string runPath = RequiredOption(parseResult.GetValue(runDirectory), "run directory");
+                string outputPath = RequiredOption(parseResult.GetValue(output), "analytics output");
+                var options = new AnalyticsExportOptions(
+                    RequiredOption(parseResult.GetValue(arm), "analytics arm"),
+                    RequiredOption(parseResult.GetValue(agent), "agent"),
+                    parseResult.GetValue(agentVersion),
+                    RequiredOption(parseResult.GetValue(model), "model"),
+                    RequiredOption(parseResult.GetValue(effort), "effort"),
+                    parseResult.GetValue(subagents),
+                    parseResult.GetValue(job));
+                IReadOnlyList<AnalyticsTrial> rows =
+                    new AnalyticsExporter().Export(runPath, outputPath, options);
+                Console.WriteLine(
+                    $"exported trials={rows.Count} tasks={rows.Select(row => row.TaskId).Distinct().Count()} " +
+                    $"output={Path.GetFullPath(outputPath)}");
+                return ExitCode.Success.Value;
+            }
+            catch (AnalyticsEvidenceException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (IOException exception)
+            {
+                Console.Error.WriteLine($"unable to export analytics: {exception.Message}");
+                return ExitCode.InternalFailure.Value;
+            }
+        });
+        return command;
+    }
+
+    private static CliCommand CreateAnalyticsManifestCommand()
+    {
+        var command = new CliCommand(
+            "manifest",
+            "Rebuild manifest.json strictly from analytics JSONL files.");
+        var dataDirectory = new Option<string>("--data-directory")
+        {
+            Description = "Directory containing canonical analytics JSONL files.",
+            DefaultValueFactory = _ => Path.Combine(Directory.GetCurrentDirectory(), "data")
+        };
+        var output = new Option<string?>("--output")
+        {
+            Description = "Manifest output path. Defaults to <data-directory>/manifest.json."
+        };
+        command.Options.Add(dataDirectory);
+        command.Options.Add(output);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string directory = RequiredOption(
+                    parseResult.GetValue(dataDirectory),
+                    "analytics data directory");
+                IReadOnlyList<DataManifestEntry> entries =
+                    new DataManifestBuilder().Build(directory, parseResult.GetValue(output));
+                Console.WriteLine(
+                    $"manifest arms={entries.Count} trials={entries.Sum(entry => entry.Trials)} " +
+                    $"data={Path.GetFullPath(directory)}");
+                return ExitCode.Success.Value;
+            }
+            catch (AnalyticsEvidenceException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (IOException exception)
+            {
+                Console.Error.WriteLine($"unable to build analytics manifest: {exception.Message}");
+                return ExitCode.InternalFailure.Value;
+            }
+        });
+        return command;
+    }
+
+    private static string RequiredOption(string? value, string name) =>
+        !string.IsNullOrWhiteSpace(value)
+            ? value
+            : throw new AnalyticsEvidenceException($"{name} is required");
 
     private static CliCommand CreateSmokeCommand(Func<WharfConfiguration> getConfiguration)
     {

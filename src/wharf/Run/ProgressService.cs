@@ -22,7 +22,11 @@ public sealed record RunProgress(
     decimal? AverageCost,
     decimal? TotalCost,
     IReadOnlyList<ActiveTrialProgress> ActiveTrials,
-    int Retries = 0);
+    int Retries = 0,
+    int Queued = 0,
+    int MissingGraderResults = 0,
+    IReadOnlyDictionary<string, int>? MissingGraderTypes = null,
+    IReadOnlyList<PreparationWaitAggregate>? PreparationWaits = null);
 
 public sealed record ActiveTrialProgress(
     string Name,
@@ -38,6 +42,14 @@ public sealed record ProgressGroup(
     decimal? PassPercent,
     decimal? AverageCost,
     decimal? TotalCost);
+
+public sealed record PreparationWaitAggregate(
+    string Operation,
+    int K,
+    int Count,
+    long TotalWaitMilliseconds,
+    decimal AverageWaitMilliseconds,
+    long MaximumWaitMilliseconds);
 
 public static class ProgressService
 {
@@ -67,6 +79,9 @@ public static class ProgressService
         var records = new Dictionary<string, ProgressRecord>(StringComparer.Ordinal);
         var errorTypes = new Dictionary<string, int>(StringComparer.Ordinal);
         var fullTaskNames = new Dictionary<int, string>();
+        var queuedOperations = new Dictionary<string, PreparationQueueRecord>(
+            StringComparer.Ordinal);
+        var preparationWaits = new List<PreparationQueueRecord>();
         int totalRecords = 0;
         int retries = 0;
 
@@ -88,6 +103,25 @@ public static class ProgressService
             if (log is null)
                 continue;
             totalRecords++;
+            if (log.EventType == "preparation-gate" &&
+                TryPreparationQueueRecord(log, out PreparationQueueRecord queueRecord))
+            {
+                if (log.Transition == "waiting")
+                {
+                    queuedOperations[queueRecord.Key] = queueRecord;
+                }
+                else if (log.Transition is "acquired" or "cancelled")
+                {
+                    queuedOperations.Remove(queueRecord.Key);
+                    if (log.WaitMilliseconds is not null)
+                        preparationWaits.Add(queueRecord);
+                }
+                else if (log.Transition == "released")
+                {
+                    queuedOperations.Remove(queueRecord.Key);
+                }
+                continue;
+            }
             if (log.EventType == "stage" &&
                 log.RunNumber is int stageRunNumber &&
                 !string.IsNullOrWhiteSpace(log.TaskId))
@@ -135,7 +169,12 @@ public static class ProgressService
                         ? false
                         : record.Failed ||
                             currentStatus.Contains("failed", StringComparison.Ordinal),
-                    Completed = isRetry ? false : record.Completed,
+                    Terminal = isRetry
+                        ? false
+                        : record.Terminal || currentStatus == "complete",
+                    HasGraderResult = isRetry
+                        ? false
+                        : record.HasGraderResult || currentStatus == "verifier-complete",
                     Result = isRetry ? null : record.Result,
                     ErrorType = isRetry ? null : record.ErrorType
                 };
@@ -149,7 +188,6 @@ public static class ProgressService
                 record = record with
                 {
                     Result = result.Groups["result"].Value,
-                    Completed = isTerminal && succeeded,
                     Failed = !succeeded,
                     ErrorType = isTerminal && succeeded
                         ? null
@@ -185,12 +223,16 @@ public static class ProgressService
             records[key] = record;
         }
 
+        HashSet<int> queuedRuns = queuedOperations.Values
+            .Select(record => record.RunNumber)
+            .ToHashSet();
         IEnumerable<ProgressRecord> active = records.Values.Where(record =>
-            !record.Completed &&
-            !record.Failed &&
-            record.Status is not null);
-        IEnumerable<ProgressRecord> completed = records.Values.Where(record => record.Completed && !record.Failed);
-        IEnumerable<ProgressRecord> failed = records.Values.Where(record => record.Failed);
+            !record.Terminal &&
+            record.Status is not null &&
+            !queuedRuns.Contains(record.RunNumber));
+        IEnumerable<ProgressRecord> terminal = records.Values.Where(record => record.Terminal);
+        IEnumerable<ProgressRecord> completed = terminal.Where(record => !record.Failed);
+        IEnumerable<ProgressRecord> failed = terminal.Where(record => record.Failed);
         List<ProgressRecord> failedTests = failed
             .Where(record =>
                 record.ErrorType is null or "Verifier" &&
@@ -204,7 +246,6 @@ public static class ProgressService
                 record.ErrorType is not (null or "Verifier") &&
                 !IsTimeout(record))
             .ToList();
-        List<ProgressRecord> terminal = completed.Concat(failed).ToList();
         foreach (ProgressRecord record in errors)
         {
             string type = record.ErrorType ?? "Run";
@@ -214,8 +255,31 @@ public static class ProgressService
             .GroupBy(record => record.K)
             .ToDictionary(
                 group => group.Key,
-                group => ToGroup(group.Where(record => record.Completed || record.Failed)),
+                group => ToGroup(group.Where(record => record.Terminal)),
                 EqualityComparer<int>.Default);
+        List<ProgressRecord> missingGraders = terminal
+            .Where(record => !record.HasGraderResult)
+            .ToList();
+        IReadOnlyDictionary<string, int> missingGraderTypes = missingGraders
+            .GroupBy(
+                record => record.ErrorType ?? record.Result ?? "Unknown",
+                StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Count(),
+                StringComparer.Ordinal);
+        IReadOnlyList<PreparationWaitAggregate> waitAggregates = preparationWaits
+            .GroupBy(record => (record.Operation, record.K))
+            .OrderBy(group => group.Key.Operation, StringComparer.Ordinal)
+            .ThenBy(group => group.Key.K)
+            .Select(group => new PreparationWaitAggregate(
+                group.Key.Operation,
+                group.Key.K,
+                group.Count(),
+                group.Sum(record => record.WaitMilliseconds),
+                group.Average(record => (decimal)record.WaitMilliseconds),
+                group.Max(record => record.WaitMilliseconds)))
+            .ToList();
         List<decimal> costs = completed
             .Where(record => record.Cost.HasValue)
             .Select(record => record.Cost!.Value)
@@ -243,19 +307,26 @@ public static class ProgressService
             active.Count(record => IsAgent(record.Status)),
             active.Count(record => IsVerifier(record.Status)),
             active.Count(record => IsCleanup(record.Status)),
-            terminal.Count,
+            terminal.Count(),
             failedTests.Count,
             timeouts.Count,
             errors.Count,
             errorTypes,
-            completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+            completed.Count(record =>
+                record.HasGraderResult &&
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
-                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
+                record.HasGraderResult &&
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count()),
             groups,
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum(),
             activeTrials,
-            retries);
+            retries,
+            queuedOperations.Count,
+            missingGraders.Count,
+            missingGraderTypes,
+            waitAggregates);
     }
 
     private static bool IsBuilding(string? status) =>
@@ -306,7 +377,7 @@ public static class ProgressService
     {
         List<ProgressRecord> terminal = records.ToList();
         List<ProgressRecord> completed = terminal
-            .Where(record => record.Completed && !record.Failed)
+            .Where(record => !record.Failed)
             .ToList();
         int failedTests = terminal.Count(record =>
             record.Failed &&
@@ -326,8 +397,11 @@ public static class ProgressService
             failedTests,
             timeouts,
             errors,
-            completed.Count(record => string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+            completed.Count(record =>
+                record.HasGraderResult &&
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
+                record.HasGraderResult &&
                 string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
@@ -358,7 +432,14 @@ public static class ProgressService
         string? ErrorType = null,
         string? EventType = null,
         int? RunNumber = null,
-        string? TaskId = null);
+        string? TaskId = null,
+        string? Operation = null,
+        string? Transition = null,
+        int? LogicalAttempt = null,
+        int? TrialRetry = null,
+        int? OperationRetry = null,
+        int? K = null,
+        long? WaitMilliseconds = null);
     private sealed record ProgressRecord(
         int K,
         int RunNumber,
@@ -366,11 +447,47 @@ public static class ProgressService
         string? Status = null,
         string? Result = null,
         decimal? Cost = null,
-        bool Completed = false,
+        bool Terminal = false,
+        bool HasGraderResult = false,
         bool Failed = false,
         string? ErrorType = null,
         string? Stage = null,
         DateTimeOffset? StageStartedAt = null);
+
+    private sealed record PreparationQueueRecord(
+        string Key,
+        int RunNumber,
+        string Operation,
+        int K,
+        long WaitMilliseconds);
+
+    private static bool TryPreparationQueueRecord(
+        LogRecord log,
+        out PreparationQueueRecord record)
+    {
+        if (log.RunNumber is not int runNumber ||
+            string.IsNullOrWhiteSpace(log.TaskId) ||
+            string.IsNullOrWhiteSpace(log.Operation) ||
+            log.LogicalAttempt is not int logicalAttempt ||
+            log.TrialRetry is not int trialRetry ||
+            log.K is not int k)
+        {
+            record = null!;
+            return false;
+        }
+
+        int operationRetry = log.OperationRetry ?? 0;
+        string key =
+            $"{runNumber}:{log.TaskId}:{logicalAttempt}:{trialRetry}:" +
+            $"{log.Operation}:{operationRetry}";
+        record = new PreparationQueueRecord(
+            key,
+            runNumber,
+            log.Operation,
+            k,
+            Math.Max(0, log.WaitMilliseconds ?? 0));
+        return true;
+    }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

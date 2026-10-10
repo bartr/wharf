@@ -433,14 +433,21 @@ public sealed class DockerVerifierRunner : IVerifierRunner
                     credentialVariable: null,
                     credentialValue: null,
                     CancellationToken.None);
-                if (removal.ExitCode != 0 &&
-                    !removal.StandardError.Contains(
-                        "No such container",
-                        StringComparison.OrdinalIgnoreCase))
+                if (removal.ExitCode != 0)
                 {
-                    throw new VerifierExecutionException(
-                        $"verifier container cleanup failed: " +
-                        removal.StandardError.Trim());
+                    bool alreadyRemoved = removal.StandardError.Contains(
+                            "No such container",
+                            StringComparison.OrdinalIgnoreCase);
+                    if (!alreadyRemoved && IsRemovalInProgress(removal.StandardError))
+                    {
+                        await WaitForContainerRemovalAsync(containerName);
+                    }
+                    else if (!alreadyRemoved)
+                    {
+                        throw new VerifierExecutionException(
+                            $"verifier container cleanup failed: " +
+                            removal.StandardError.Trim());
+                    }
                 }
             }
         }
@@ -495,6 +502,45 @@ public sealed class DockerVerifierRunner : IVerifierRunner
             "--",
             command.Command
         ];
+    }
+
+    internal static bool IsRemovalInProgress(string error) =>
+        error.Contains(
+            "removal of container",
+            StringComparison.OrdinalIgnoreCase) &&
+        error.Contains(
+            "already in progress",
+            StringComparison.OrdinalIgnoreCase);
+
+    private static async Task WaitForContainerRemovalAsync(string containerName)
+    {
+        const int maximumAttempts = 50;
+        for (int attempt = 0; attempt < maximumAttempts; attempt++)
+        {
+            DockerProcessResult inspection = await DockerAgentProcess.RunAsync(
+                ["container", "inspect", containerName],
+                credentialVariable: null,
+                credentialValue: null,
+                CancellationToken.None);
+            if (inspection.ExitCode != 0)
+            {
+                if (inspection.StandardError.Contains(
+                        "No such object",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    inspection.StandardError.Contains(
+                        "No such container",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+                throw new VerifierExecutionException(
+                    $"unable to confirm verifier container cleanup: " +
+                    inspection.StandardError.Trim());
+            }
+            await Task.Delay(TimeSpan.FromMilliseconds(200));
+        }
+        throw new VerifierExecutionException(
+            $"verifier container cleanup did not complete for {containerName}");
     }
 
     private static async Task CopyVerifierEvidenceAsync(

@@ -65,6 +65,7 @@ public sealed class VerifierExecutionTests
         await using var gate = new PreparationGate(1);
         PreparedVerifierRun prepared = await gate.ExecuteAsync(
             PreparationOperation.Verifier,
+            new PreparationGateContext(1, "task", 1, 0, 1),
             cancellationToken => service.PrepareAsync(
                 Request(source.Path, agent.Path),
                 "patch",
@@ -76,6 +77,7 @@ public sealed class VerifierExecutionTests
         await runner.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
         int agentPreparation = await gate.ExecuteAsync(
             PreparationOperation.Agent,
+            new PreparationGateContext(1, "task", 1, 0, 1),
             _ => Task.FromResult(42),
             CancellationToken.None);
 
@@ -232,6 +234,19 @@ public sealed class VerifierExecutionTests
             argument => argument.Contains(
                 "/logs/verifier/check.stdout.log",
                 StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData(
+        "Error response from daemon: removal of container abc is already in progress",
+        true)]
+    [InlineData("Error response from daemon: No such container: abc", false)]
+    [InlineData("Error response from daemon: conflict", false)]
+    public void VerifierContainerRemovalInProgressIsClassified(
+        string error,
+        bool expected)
+    {
+        Assert.Equal(expected, DockerVerifierRunner.IsRemovalInProgress(error));
     }
 
     private static void AssertArgumentsContain(

@@ -15,6 +15,7 @@ public sealed class PreparationGateTests
         Task<int>[] work = Enumerable.Range(0, 6)
             .Select(index => gate.ExecuteAsync(
                 PreparationOperation.Agent,
+                Context(),
                 async cancellationToken =>
                 {
                     int current = Interlocked.Increment(ref active);
@@ -43,11 +44,13 @@ public sealed class PreparationGateTests
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => gate.ExecuteAsync<int>(
                 PreparationOperation.Agent,
+                Context(),
                 _ => throw new InvalidOperationException("failed"),
                 CancellationToken.None));
 
         int result = await gate.ExecuteAsync(
             PreparationOperation.Verifier,
+            Context(),
             _ => Task.FromResult(42),
             CancellationToken.None);
         Assert.Equal(42, result);
@@ -66,6 +69,7 @@ public sealed class PreparationGateTests
 
         Task<int> first = gate.ExecuteAsync(
             PreparationOperation.Agent,
+            Context(),
             async cancellationToken =>
             {
                 await release.Task.WaitAsync(cancellationToken);
@@ -79,6 +83,7 @@ public sealed class PreparationGateTests
         });
         Task<int> second = gate.ExecuteAsync(
             PreparationOperation.Verifier,
+            new PreparationGateContext(2, "second-task", 2, 1, 2, 3),
             _ => Task.FromResult(2),
             CancellationToken.None);
         await WaitUntilAsync(() =>
@@ -107,6 +112,11 @@ public sealed class PreparationGateTests
         Assert.Contains(snapshots, gateEvent =>
             gateEvent.Operation == PreparationOperation.Verifier &&
             gateEvent.Transition == "acquired" &&
+            gateEvent.Context.TaskId == "second-task" &&
+            gateEvent.Context.LogicalAttempt == 2 &&
+            gateEvent.Context.TrialRetry == 1 &&
+            gateEvent.Context.K == 2 &&
+            gateEvent.Context.OperationRetry == 3 &&
             gateEvent.WaitMilliseconds >= 0);
         Assert.Equal(0, snapshots[^1].Active);
         Assert.Equal(0, snapshots[^1].Waiting);
@@ -124,6 +134,7 @@ public sealed class PreparationGateTests
         });
         Task<int> active = gate.ExecuteAsync(
             PreparationOperation.Agent,
+            Context(),
             async cancellationToken =>
             {
                 await release.Task.WaitAsync(cancellationToken);
@@ -138,6 +149,7 @@ public sealed class PreparationGateTests
         using var cancellation = new CancellationTokenSource();
         Task<int> waiting = gate.ExecuteAsync(
             PreparationOperation.AgentRetry,
+            Context(operationRetry: 1),
             _ => Task.FromResult(2),
             cancellation.Token);
         await WaitUntilAsync(() =>
@@ -157,11 +169,16 @@ public sealed class PreparationGateTests
         {
             Assert.Contains(events, gateEvent =>
                 gateEvent.Operation == PreparationOperation.AgentRetry &&
-                gateEvent.Transition == "cancelled");
+                gateEvent.Transition == "cancelled" &&
+                gateEvent.Context.OperationRetry == 1 &&
+                gateEvent.WaitMilliseconds >= 0);
             Assert.Equal(0, events[^1].Active);
             Assert.Equal(0, events[^1].Waiting);
         }
     }
+
+    private static PreparationGateContext Context(int operationRetry = 0) =>
+        new(1, "task", 1, 0, 2, operationRetry);
 
     private static async Task WaitUntilAsync(Func<bool> condition)
     {

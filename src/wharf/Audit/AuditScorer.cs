@@ -10,10 +10,12 @@ public sealed class AuditScorer
             .GroupBy(task => task.TaskId, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.Single(), StringComparer.Ordinal);
 
+        int passingAttempts = 0;
         int passingTasks = 0;
         double coverageTotal = 0;
         bool regression = false;
-        double enterpriseTotal = 0;
+        double enterpriseCoverageTotal = 0;
+        double enterprisePassTotal = 0;
         double? cost = null;
         long? inputTokens = null;
         long? outputTokens = null;
@@ -33,17 +35,23 @@ public sealed class AuditScorer
                 continue;
             }
 
-            AuditAttempt? first = task.Attempts.OrderBy(attempt => attempt.AttemptNumber).FirstOrDefault();
-            if (first is not null && first.Passed.State is MeasurementState.Valid && first.Passed.Value == true)
+            if (task.Attempts.Any(IsPassing))
             {
                 passingTasks++;
             }
 
-            double taskScore = 0;
+            double taskCoverageScore = 0;
+            double taskPassScore = 0;
             foreach (AuditAttempt attempt in task.Attempts)
             {
                 observedAttempts++;
-                taskScore += AttemptScore(attempt);
+                if (IsPassing(attempt))
+                {
+                    passingAttempts++;
+                }
+                (double coverageScore, double passScore) = AttemptScore(attempt);
+                taskCoverageScore += coverageScore;
+                taskPassScore += passScore;
                 coverageTotal += Numeric(attempt.NewTestCoverage, ref missingMeasurements, ref invalidMeasurements, ref partialMeasurements, ref zeroMeasurements);
                 regression |= attempt.ExistingTestRegression.State is MeasurementState.Valid or MeasurementState.Zero &&
                     attempt.ExistingTestRegression.Value == true;
@@ -58,15 +66,28 @@ public sealed class AuditScorer
                 trialTime = Add(trialTime, attempt.TrialTime, ref missingMeasurements, ref invalidMeasurements, ref partialMeasurements, ref zeroMeasurements);
             }
 
-            enterpriseTotal += taskScore / task.Attempts.Count;
+            enterpriseCoverageTotal += taskCoverageScore / task.Attempts.Count;
+            enterprisePassTotal += taskPassScore / task.Attempts.Count;
         }
 
         int missingTasks = expected.Count(taskId => !observed.ContainsKey(taskId));
+        double enterpriseCoverageComponent = expected.Length == 0
+            ? 0
+            : enterpriseCoverageTotal / expected.Length;
+        double enterprisePassComponent = expected.Length == 0
+            ? 0
+            : enterprisePassTotal / expected.Length;
         return new AuditReport(
             run.RunId,
-            expected.Length == 0 ? 0 : (double)passingTasks / expected.Length,
-            expected.Length == 0 ? 0 : enterpriseTotal / expected.Length,
+            observedAttempts == 0 ? 0 : (double)passingAttempts / observedAttempts,
+            passingAttempts,
+            observedAttempts,
+            observed.Count == 0 ? 0 : (double)passingTasks / observed.Count,
             passingTasks,
+            observed.Count,
+            enterpriseCoverageComponent + enterprisePassComponent,
+            enterpriseCoverageComponent,
+            enterprisePassComponent,
             expected.Length,
             observedAttempts == 0 ? 0 : coverageTotal / observedAttempts,
             regression,
@@ -75,21 +96,23 @@ public sealed class AuditScorer
                 missingMeasurements, invalidMeasurements, partialMeasurements, zeroMeasurements));
     }
 
-    private static double AttemptScore(AuditAttempt attempt)
+    private static (double Coverage, double Pass) AttemptScore(AuditAttempt attempt)
     {
         if (attempt.ExistingTestRegression.State is MeasurementState.Valid or MeasurementState.Zero &&
             attempt.ExistingTestRegression.Value == true)
         {
-            return 0;
+            return (0, 0);
         }
 
         double coverage = attempt.NewTestCoverage.State is MeasurementState.Valid or MeasurementState.Partial or MeasurementState.Zero
             ? Math.Clamp(attempt.NewTestCoverage.Value.GetValueOrDefault(), 0, 1)
             : 0;
-        double pass = attempt.Passed.State is MeasurementState.Valid or MeasurementState.Zero &&
-            attempt.Passed.Value == true ? 1 : 0;
-        return coverage * 80 + pass * 20;
+        return (coverage * 80, IsPassing(attempt) ? 20 : 0);
     }
+
+    private static bool IsPassing(AuditAttempt attempt) =>
+        attempt.Passed.State is MeasurementState.Valid or MeasurementState.Zero &&
+        attempt.Passed.Value == true;
 
     private static double Numeric(Measurement<double> measurement, ref int missing, ref int invalid, ref int partial, ref int zero)
     {
@@ -132,10 +155,21 @@ public sealed class AuditScorer
             throw new AuditContractException("run and expected task IDs are required");
         if (run.ExpectedTaskIds.Count != run.ExpectedTaskIds.Distinct(StringComparer.Ordinal).Count())
             throw new AuditContractException("expected task IDs must be unique");
+        if (run.ObservedTasks.Select(task => task.TaskId).Distinct(StringComparer.Ordinal).Count() !=
+            run.ObservedTasks.Count)
+            throw new AuditContractException("observed task IDs must be unique");
+        var expected = run.ExpectedTaskIds.ToHashSet(StringComparer.Ordinal);
         foreach (AuditTask task in run.ObservedTasks)
         {
             if (string.IsNullOrWhiteSpace(task.TaskId) || task.Attempts.Count == 0 ||
-                task.Attempts.Select(attempt => attempt.AttemptNumber).Distinct().Count() != task.Attempts.Count)
+                !expected.Contains(task.TaskId) ||
+                task.Attempts.Any(attempt =>
+                    string.IsNullOrWhiteSpace(attempt.AttemptId) ||
+                    attempt.AttemptNumber <= 0) ||
+                task.Attempts.Select(attempt => attempt.AttemptId)
+                    .Distinct(StringComparer.Ordinal).Count() != task.Attempts.Count ||
+                task.Attempts.Select(attempt => attempt.AttemptNumber)
+                    .Distinct().Count() != task.Attempts.Count)
                 throw new AuditContractException("observed tasks require unique attempts");
         }
     }

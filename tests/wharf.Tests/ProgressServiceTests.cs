@@ -7,6 +7,90 @@ namespace Wharf.Tests;
 public sealed class ProgressServiceTests
 {
     [Fact]
+    public void SeparatesTerminalCompletionFromMissingGraderCoverage()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/002 task=no-grader status=complete result=agent-failed",
+                    "agent execution exceeded its timeout",
+                    "AgentTimeout"),
+                Record("run=002/002 task=graded status=verifier-complete result=passed pass@1=1"),
+                Record("run=002/002 task=graded status=complete result=passed")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(2, progress.TestsCompleted);
+            Assert.Equal(1, progress.PassAtTotal);
+            Assert.Equal(50m, progress.PassPercent);
+            Assert.Equal(1, progress.MissingGraderResults);
+            Assert.Equal(1, progress.MissingGraderTypes!["AgentTimeout"]);
+            Assert.Equal(1, progress.Timeouts);
+            Assert.Equal(0, progress.TestsRunning);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void DerivesQueuedCountAndWaitAggregatesFromStructuredTransitions()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record("run=001/002 task=queued status=waiting-preparation attempt=2/2"),
+                PreparationRecord(1, "queued", "agent", "waiting", 2, 2, 1, 0),
+                Record("run=002/002 task=active status=waiting-preparation attempt=2/2"),
+                PreparationRecord(2, "active", "verifier", "waiting", 2, 2, 0, 1),
+                PreparationRecord(2, "active", "verifier", "acquired", 2, 2, 0, 1, 120),
+                PreparationRecord(3, "cancelled", "agent-retry", "waiting", 1, 1, 1, 2),
+                PreparationRecord(3, "cancelled", "agent-retry", "cancelled", 1, 1, 1, 2, 60)
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            Assert.Equal(1, progress.Queued);
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(1, progress.Building);
+            Assert.Equal(0, progress.TestsCompleted);
+            Assert.Collection(
+                progress.PreparationWaits!,
+                aggregate =>
+                {
+                    Assert.Equal("agent-retry", aggregate.Operation);
+                    Assert.Equal(1, aggregate.K);
+                    Assert.Equal(1, aggregate.Count);
+                    Assert.Equal(60, aggregate.TotalWaitMilliseconds);
+                    Assert.Equal(60m, aggregate.AverageWaitMilliseconds);
+                    Assert.Equal(60, aggregate.MaximumWaitMilliseconds);
+                },
+                aggregate =>
+                {
+                    Assert.Equal("verifier", aggregate.Operation);
+                    Assert.Equal(2, aggregate.K);
+                    Assert.Equal(1, aggregate.Count);
+                    Assert.Equal(120, aggregate.TotalWaitMilliseconds);
+                });
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void ReportsActiveTrialsByLifecycleStage()
     {
         string path = Path.Combine(
@@ -19,8 +103,12 @@ public sealed class ProgressServiceTests
                 Record("run=001/004 task=build-task status=agent image checking base"),
                 Record("run=002/004 task=agent-task status=running-agent"),
                 Record("run=003/004 task=verifier-task status=preparing-verifier-image"),
+                Record("run=004/005 task=done-task status=verifier-complete result=passed pass@1=1"),
                 Record("run=004/005 task=done-task status=complete result=passed cost=19"),
-                Record("run=005/005 task=failed-task status=agent-failed result=failed")
+                Record(
+                    "run=005/005 task=failed-task status=complete result=failed",
+                    "agent execution failed",
+                    "AgentExecution")
             ]);
 
             RunProgress progress = ProgressService.Read(path);
@@ -263,10 +351,10 @@ public sealed class ProgressServiceTests
         IReadOnlyList<string> lines = CommandTree.FormatProgress(progress);
 
         Assert.Equal(
-            "completed=2 pass-rate=50.00% pass@=1 failed=1 errors=0 timeouts=0 retries=0",
+            "completed=2 pass-rate=50.00% pass@=1 failed=1 errors=0 timeouts=0 retries=0 missing-grader=0",
             lines[0]);
         Assert.Equal(
-            "running=1 building=0 agent=1 verifier=0 cleanup=0",
+            "queued=0 running=1 building=0 agent=1 verifier=0 cleanup=0",
             lines[1]);
         Assert.Equal("avg-cost=0.25 total-cost=0.50", lines[2]);
     }
@@ -567,5 +655,32 @@ public sealed class ProgressServiceTests
             message,
             error,
             errorType
+        });
+
+    private static string PreparationRecord(
+        int runNumber,
+        string taskId,
+        string operation,
+        string transition,
+        int logicalAttempt,
+        int k,
+        int trialRetry,
+        int operationRetry,
+        long? waitMilliseconds = null) =>
+        JsonSerializer.Serialize(new
+        {
+            timestamp = "2026-10-08T00:00:00Z",
+            level = "info",
+            message = $"preparation-gate operation={operation} transition={transition}",
+            eventType = "preparation-gate",
+            runNumber,
+            taskId,
+            operation,
+            transition,
+            logicalAttempt,
+            trialRetry,
+            operationRetry,
+            k,
+            waitMilliseconds
         });
 }

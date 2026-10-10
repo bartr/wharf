@@ -167,6 +167,13 @@ public sealed class WharfLoggerTests
             logger.PreparationGateChanged(new PreparationGateEvent(
                 4,
                 PreparationOperation.Verifier,
+                new PreparationGateContext(
+                    9,
+                    "full-task-id",
+                    2,
+                    1,
+                    3,
+                    2),
                 "acquired",
                 12,
                 7,
@@ -180,6 +187,12 @@ public sealed class WharfLoggerTests
                     eventType.GetString() == "preparation-gate");
             Assert.Equal(4, record.GetProperty("sequence").GetInt64());
             Assert.Equal("verifier", record.GetProperty("operation").GetString());
+            Assert.Equal(9, record.GetProperty("runNumber").GetInt32());
+            Assert.Equal("full-task-id", record.GetProperty("taskId").GetString());
+            Assert.Equal(2, record.GetProperty("logicalAttempt").GetInt32());
+            Assert.Equal(1, record.GetProperty("trialRetry").GetInt32());
+            Assert.Equal(2, record.GetProperty("operationRetry").GetInt32());
+            Assert.Equal(3, record.GetProperty("k").GetInt32());
             Assert.Equal("acquired", record.GetProperty("transition").GetString());
             Assert.Equal(12, record.GetProperty("capacity").GetInt32());
             Assert.Equal(7, record.GetProperty("active").GetInt32());
