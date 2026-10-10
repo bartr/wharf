@@ -20,7 +20,9 @@ public sealed record RunResult(
     string DatasetRoot,
     string? DatasetManifest,
     int TaskCount,
-    string OutputDirectory);
+    string OutputDirectory,
+    string JobDirectory,
+    string AttemptDirectory);
 
 internal sealed record VerifierRetryOutcome(
     TrialResult Result,
@@ -84,15 +86,6 @@ public sealed class RunService
         if (tasks.Count == 0)
             throw new RunException($"run task directory contains no task.toml files: {resolvedRoot}");
 
-        string resolvedOutput = Path.GetFullPath(outputDirectory);
-        string jobDirectory = Path.Combine(
-            resolvedOutput,
-            $"{RunConfigurationResolver.DefaultCopilotCli}-" +
-            $"{configuration.Model}-max-{configuration.CliVersion}");
-        Directory.CreateDirectory(jobDirectory);
-        string attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
-        logger.AttachJsonlPathIfUnset(
-            Path.Combine(jobDirectory, attemptDirectory, "run.jsonl"));
         int plannedRuns = checked(tasks.Count * configuration.K);
         string runId = Guid.NewGuid().ToString("N")[..8];
         CopilotInvocation? invocation = null;
@@ -106,6 +99,17 @@ public sealed class RunService
             invocationError = exception.Message;
             logger.Info($"agent setup failed error={exception.Message}");
         }
+        string resolvedOutput = Path.GetFullPath(outputDirectory);
+        string jobDirectory = Path.Combine(
+            resolvedOutput,
+            BuildJobDirectoryName(
+                configuration.Model,
+                configuration.CliVersion,
+                invocation?.EffectiveVersion));
+        Directory.CreateDirectory(jobDirectory);
+        string attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
+        logger.AttachJsonlPathIfUnset(
+            Path.Combine(jobDirectory, attemptDirectory, "run.jsonl"));
         logger.Info(
             $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
             $"task-concurrency={configuration.N} preparation-concurrency={configuration.P} " +
@@ -731,7 +735,9 @@ public sealed class RunService
             resolvedRoot,
             datasetManifest,
             tasks.Count,
-            resolvedOutput);
+            resolvedOutput,
+            jobDirectory,
+            attemptDirectory);
     }
 
     internal static bool ShouldRetryTrial(
@@ -1029,6 +1035,13 @@ public sealed class RunService
 
     private static string ShortTaskName(string taskId) =>
         taskId.Length <= 32 ? taskId : taskId[..32];
+
+    internal static string BuildJobDirectoryName(
+        string model,
+        string requestedVersion,
+        string? effectiveVersion) =>
+        $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-max-" +
+        $"{effectiveVersion ?? requestedVersion}";
 
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
     {

@@ -88,7 +88,7 @@ public sealed class SmokeService
             [task],
             "smoke");
 
-        WriteSmokeSelection(resolvedOutput, task, result.Status, resolvedTaskRoot);
+        WriteSmokeSelection(result, task, resolvedTaskRoot);
         return new SmokeResult(
             host,
             result.Status,
@@ -100,18 +100,18 @@ public sealed class SmokeService
     }
 
     private static void WriteSmokeSelection(
-        string outputDirectory,
+        RunResult result,
         HarborTask task,
-        string status,
         string taskRoot)
     {
-        string jobDirectory = Path.Combine(
-            outputDirectory,
-            $"{RunConfigurationResolver.DefaultCopilotCli}-" +
-            $"{RunConfigurationResolver.DefaultCopilotModel}-max-" +
-            $"{RunConfigurationResolver.DefaultCopilotVersion}");
+        string attemptDirectory = Path.Combine(
+            result.JobDirectory,
+            result.AttemptDirectory);
         string? trialDirectory = Directory
-            .EnumerateDirectories(jobDirectory, $"{SanitizePathPart(task.TaskId)}__*", SearchOption.AllDirectories)
+            .EnumerateDirectories(
+                attemptDirectory,
+                $"{SanitizePathPart(task.TaskId)}__*",
+                SearchOption.TopDirectoryOnly)
             .OrderByDescending(path => path, StringComparer.Ordinal)
             .FirstOrDefault();
         if (trialDirectory is null)
@@ -122,7 +122,7 @@ public sealed class SmokeService
             taskRoot,
             taskId = task.TaskId,
             taskManifest = Path.Combine(task.RootPath, "task.toml"),
-            status
+            status = result.Status
         };
         JsonSerializerOptions options = new()
         {
