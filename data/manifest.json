@@ -1,0 +1,137 @@
+[
+  {
+    "arm": "cc-claude-opus-5-max-2.1.220",
+    "bytes_jsonl": 343750,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 6056.35,
+    "trials": 452,
+    "with_cost": 449
+  },
+  {
+    "arm": "copilot-auto-max-1.0.77",
+    "bytes_jsonl": 416600,
+    "scored": 565,
+    "tasks": 113,
+    "total_cost_usd": 873.4,
+    "trials": 565,
+    "with_cost": 538
+  },
+  {
+    "arm": "copilot-claude-opus-5-max-1.0.77",
+    "bytes_jsonl": 342759,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 2525.37,
+    "trials": 452,
+    "with_cost": 446
+  },
+  {
+    "arm": "copilot-claude-opus-5-max-hve-1.0.77",
+    "bytes_jsonl": 347222,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 2412.41,
+    "trials": 452,
+    "with_cost": 450
+  },
+  {
+    "arm": "copilot-gemini-3.8-flash-high-1.0.91",
+    "bytes_jsonl": 346811,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 1260.95,
+    "trials": 452,
+    "with_cost": 452
+  },
+  {
+    "arm": "copilot-gpt-5.6-luna-max-1.0.77",
+    "bytes_jsonl": 340252,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 162.9,
+    "trials": 452,
+    "with_cost": 439
+  },
+  {
+    "arm": "copilot-gpt-5.6-luna-max-1.0.91",
+    "bytes_jsonl": 340761,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 164.04,
+    "trials": 452,
+    "with_cost": 447
+  },
+  {
+    "arm": "copilot-gpt-5.6-luna-max-hve-1.0.77",
+    "bytes_jsonl": 346366,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 171.57,
+    "trials": 452,
+    "with_cost": 414
+  },
+  {
+    "arm": "copilot-gpt-5.6-sol-xhigh-1.0.77",
+    "bytes_jsonl": 342723,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 3779.61,
+    "trials": 452,
+    "with_cost": 448
+  },
+  {
+    "arm": "copilot-gpt-5.6-terra-max-1.0.77",
+    "bytes_jsonl": 426509,
+    "scored": 565,
+    "tasks": 113,
+    "total_cost_usd": 2345.93,
+    "trials": 565,
+    "with_cost": 551
+  },
+  {
+    "arm": "copilot-gpt-5.6-terra-max-hve-1.0.77",
+    "bytes_jsonl": 347031,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 1522.59,
+    "trials": 452,
+    "with_cost": 445
+  },
+  {
+    "arm": "copilot-gpt-6-astra-max-1.0.91",
+    "bytes_jsonl": 339024,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 3767.03,
+    "trials": 452,
+    "with_cost": 447
+  },
+  {
+    "arm": "copilot-gpt-6-luna-max-1.0.91",
+    "bytes_jsonl": 339371,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 79.53,
+    "trials": 452,
+    "with_cost": 452
+  },
+  {
+    "arm": "copilot-hydrafusion-max-1.0.95",
+    "bytes_jsonl": 341731,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 539.7,
+    "trials": 452,
+    "with_cost": 447
+  },
+  {
+    "arm": "muse-spark-1.2-contributor-xhigh-0.1.0",
+    "bytes_jsonl": 432488,
+    "scored": 565,
+    "tasks": 113,
+    "total_cost_usd": null,
+    "trials": 565,
+    "with_cost": 0
+  }
+]

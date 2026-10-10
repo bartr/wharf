@@ -1,0 +1,905 @@
+arm	shard	task	trial	n_subagent_starts	models	solved
+copilot-claude-opus-5-max	set-all-1	abs-module-cache-flags	abs-module-cache-flags__HSCBVGa	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	abs-module-cache-flags	abs-module-cache-flags__UuMsNG7	0		1
+copilot-claude-opus-5-max	set-all-1	abs-module-cache-flags	abs-module-cache-flags__bEWSahw	0		1
+copilot-claude-opus-5-max	set-all-1	abs-module-cache-flags	abs-module-cache-flags__f5AfL2c	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	abs-stepped-slices	abs-stepped-slices__7MQBNuw	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	abs-stepped-slices	abs-stepped-slices__Pk3Qaci	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	abs-stepped-slices	abs-stepped-slices__Rkxbmzi	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	abs-stepped-slices	abs-stepped-slices__oqeR6zU	0		1
+copilot-claude-opus-5-max	set-all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__65rqfER	0		1
+copilot-claude-opus-5-max	set-all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__GULyc6e	0		1
+copilot-claude-opus-5-max	set-all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__ZMogC4t	0		1
+copilot-claude-opus-5-max	set-all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__kdiMhkB	0		1
+copilot-claude-opus-5-max	set-all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__G9DShUC	0		1
+copilot-claude-opus-5-max	set-all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__ZSDRK3x	0		1
+copilot-claude-opus-5-max	set-all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__bZ23rMJ	0		1
+copilot-claude-opus-5-max	set-all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__odyeahV	0		1
+copilot-claude-opus-5-max	set-all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__6bfpPUS	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__DR9ggGT	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__QoC7EtD	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__g36U7eQ	0		1
+copilot-claude-opus-5-max	set-all-1	anko-default-function-arguments	anko-default-function-arguments__3c8JagW	0		1
+copilot-claude-opus-5-max	set-all-1	anko-default-function-arguments	anko-default-function-arguments__W4oXFmD	0		1
+copilot-claude-opus-5-max	set-all-1	anko-default-function-arguments	anko-default-function-arguments__gVbQ5sc	0		1
+copilot-claude-opus-5-max	set-all-1	anko-default-function-arguments	anko-default-function-arguments__iyqaLAe	0		1
+copilot-claude-opus-5-max	set-all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__2RK2ALs	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__2z2yfn3	0		1
+copilot-claude-opus-5-max	set-all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__LoMPdbc	1	claude-opus-4.8:1	1
+copilot-claude-opus-5-max	set-all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__iG6qtCy	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__B7qvDgg	0		1
+copilot-claude-opus-5-max	set-all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__V3mCHSt	0		1
+copilot-claude-opus-5-max	set-all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__jt5eeJv	0		1
+copilot-claude-opus-5-max	set-all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__kt7YMFB	0		1
+copilot-claude-opus-5-max	set-all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__JiueFiv	0		1
+copilot-claude-opus-5-max	set-all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__PFqjoCU	0		0
+copilot-claude-opus-5-max	set-all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__j6RcKjr	0		1
+copilot-claude-opus-5-max	set-all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__vExrJHA	0		0
+copilot-claude-opus-5-max	set-all-1	awilix-async-container-initializ	awilix-async-container-initializ__3Wvuqdm	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	awilix-async-container-initializ	awilix-async-container-initializ__iWPFnHU	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	awilix-async-container-initializ	awilix-async-container-initializ__iacFahk	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	awilix-async-container-initializ	awilix-async-container-initializ__in9iB6Q	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__2jEetEJ	0		1
+copilot-claude-opus-5-max	set-all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__4heVheX	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__DdYpitD	0		1
+copilot-claude-opus-5-max	set-all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__dJPHoWu	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__myeyM9G	0		1
+copilot-claude-opus-5-max	set-all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__sJqcMAX	0		1
+copilot-claude-opus-5-max	set-all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__wQ4RFVR	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__wzeZx3A	0		1
+copilot-claude-opus-5-max	set-all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__JuxnLru	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__NXxj2Mm	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__YcoghJ2	0		0
+copilot-claude-opus-5-max	set-all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__vj6ygkK	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__G9Qa7Wm	0		1
+copilot-claude-opus-5-max	set-all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__g9QMnXv	0		1
+copilot-claude-opus-5-max	set-all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__smb3nMm	0		1
+copilot-claude-opus-5-max	set-all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__tMhCTYv	0		1
+copilot-claude-opus-5-max	set-all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__qMJRW8r	0		1
+copilot-claude-opus-5-max	set-all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__tZgmBaN	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__vAu2pYZ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__wY77k3N	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__5f86BSN	2	gpt-5.4-mini:1,gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__RPzBaT8	0		1
+copilot-claude-opus-5-max	set-all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__Tm9riPQ	0		1
+copilot-claude-opus-5-max	set-all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__VtD5t5r	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__6Mn9wqa	0		1
+copilot-claude-opus-5-max	set-all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__TVrrYDE	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__VbugtKB	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__x2CHJjV	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__MUh7QeT	0		1
+copilot-claude-opus-5-max	set-all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__ffMSFay	0		1
+copilot-claude-opus-5-max	set-all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__gHWXzT5	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__jgRVZ2S	0		1
+copilot-claude-opus-5-max	set-all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__MQSwS2y	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__WdQYZnL	0		0
+copilot-claude-opus-5-max	set-all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__gQofuYJ	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__vEUb4gN	0		0
+copilot-claude-opus-5-max	set-all-1	dasel-html-document-format	dasel-html-document-format__6swK9wf	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	dasel-html-document-format	dasel-html-document-format__QY32Caa	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	dasel-html-document-format	dasel-html-document-format__YRqf9Bb	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	dasel-html-document-format	dasel-html-document-format__nYfNqwK	0		1
+copilot-claude-opus-5-max	set-all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__CrSyruy	2	claude-opus-5:1,claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__W9qxmzL	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__ePoCsAh	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__rihvcsU	0		1
+copilot-claude-opus-5-max	set-all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__mLXwKLs	0		1
+copilot-claude-opus-5-max	set-all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__nTcAdNQ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__vzU2USG	0		1
+copilot-claude-opus-5-max	set-all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__wHsT7BX	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__DgQcqYP	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__ZGTXHN2	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__jWkgPug	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__jusmWNi	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__2q7dMkG	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__5qgFbAh	2	claude-opus-5:1,claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__8qosAA9	0		1
+copilot-claude-opus-5-max	set-all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__VqeDbRK	0		1
+copilot-claude-opus-5-max	set-all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__HvNWLXB	0		1
+copilot-claude-opus-5-max	set-all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__KuMNzoR	0		1
+copilot-claude-opus-5-max	set-all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__NTiihkh	0		1
+copilot-claude-opus-5-max	set-all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__iu4ptuK	0		1
+copilot-claude-opus-5-max	set-all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__ELJbwjz	0		0
+copilot-claude-opus-5-max	set-all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__QLcRFQ3	0		0
+copilot-claude-opus-5-max	set-all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__SFnJo9p	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__mt72XMe	0		0
+copilot-claude-opus-5-max	set-all-1	etree-xml-diff-patch	etree-xml-diff-patch__EQVfqqZ	0		1
+copilot-claude-opus-5-max	set-all-1	etree-xml-diff-patch	etree-xml-diff-patch__JWxzZUB	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	etree-xml-diff-patch	etree-xml-diff-patch__cyYC4YT	0		1
+copilot-claude-opus-5-max	set-all-1	etree-xml-diff-patch	etree-xml-diff-patch__tg3rTTP	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	expr-try-catch-errors	expr-try-catch-errors__CDJBGPK	0		1
+copilot-claude-opus-5-max	set-all-1	expr-try-catch-errors	expr-try-catch-errors__KBs5KmB	0		1
+copilot-claude-opus-5-max	set-all-1	expr-try-catch-errors	expr-try-catch-errors__RKvo2Lr	0		1
+copilot-claude-opus-5-max	set-all-1	expr-try-catch-errors	expr-try-catch-errors__zNFQS7A	0		1
+copilot-claude-opus-5-max	set-all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__8t7Hqxf	0		1
+copilot-claude-opus-5-max	set-all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__CGKKHQT	0		0
+copilot-claude-opus-5-max	set-all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__FXL3ZCU	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__Ta9KWUX	0		1
+copilot-claude-opus-5-max	set-all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__Q7s8kBz	0		0
+copilot-claude-opus-5-max	set-all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__T3xt9Lc	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__YPb63QV	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__YiUboo7	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__NoBP8pg	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__SExPntY	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__ab2h5rA	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__xRTzPwK	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__2ucLGZ2	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__4niHJUj	0		1
+copilot-claude-opus-5-max	set-all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__94iFc9E	0		1
+copilot-claude-opus-5-max	set-all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__rkwbNzP	0		1
+copilot-claude-opus-5-max	set-all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__DL54yHJ	0		1
+copilot-claude-opus-5-max	set-all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__FqrX2jw	0		1
+copilot-claude-opus-5-max	set-all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__KYCi3p8	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__MUDYGgJ	0		0
+copilot-claude-opus-5-max	set-all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__5E53ZhU	2	claude-sonnet-4.6:1,gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__EZDUKWm	3	claude-opus-5:1,claude-sonnet-4.6:1,gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__SuNxSTV	2	claude-opus-5:1,claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__a3qZgiJ	2	claude-opus-5:1,claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__Rebq74u	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__YCGJNpJ	0		1
+copilot-claude-opus-5-max	set-all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__eFKYLQZ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__ev2rM7J	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__AjJGYQe	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__U2GMQBo	0		1
+copilot-claude-opus-5-max	set-all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__fEqzv4s	0		1
+copilot-claude-opus-5-max	set-all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__pxqrpA8	0		1
+copilot-claude-opus-5-max	set-all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__8DmmvmU	0		0
+copilot-claude-opus-5-max	set-all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__NLfMbor	0		0
+copilot-claude-opus-5-max	set-all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__b3xieqF	0		1
+copilot-claude-opus-5-max	set-all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__zP54cLe	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__6rUusks	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__bCLaSht	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__oNSPiPE	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__tHMoa4q	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__BfF7KzP	2	claude-haiku-4.5:1,claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__J3pyBrb	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__XvoMFFz	0		1
+copilot-claude-opus-5-max	set-all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__oyim7d5	0		0
+copilot-claude-opus-5-max	set-all-1	helm-array-merge-strategies	helm-array-merge-strategies__7vmtdPE	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	helm-array-merge-strategies	helm-array-merge-strategies__9Nig9tY	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	helm-array-merge-strategies	helm-array-merge-strategies__Zm3zcu3	0		0
+copilot-claude-opus-5-max	set-all-1	helm-array-merge-strategies	helm-array-merge-strategies__uupzPgj	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__DKJLa9L	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__DX66Pis	0		1
+copilot-claude-opus-5-max	set-all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__U4Hh4Hs	0		1
+copilot-claude-opus-5-max	set-all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__xhPjtiy	0		1
+copilot-claude-opus-5-max	set-all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__GRyydCH	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__N7ijXdk	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__iNGbTzM	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__kD7ujgT	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__LQFv48i	0		1
+copilot-claude-opus-5-max	set-all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__NP5wyYK	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__gG5kwX8	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__zFYfV5G	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__CLgxmVE	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__LnxAZMs	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__sxjJMoV	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__t97bknU	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	igel-persist-feature-schema	igel-persist-feature-schema__4ftYtnx	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	igel-persist-feature-schema	igel-persist-feature-schema__4p2Ba8L	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	igel-persist-feature-schema	igel-persist-feature-schema__D7L6Hxm	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	igel-persist-feature-schema	igel-persist-feature-schema__ZNQQ67n	0		1
+copilot-claude-opus-5-max	set-all-1	ink-grid-box-layout	ink-grid-box-layout__2VjpiSQ	0		0
+copilot-claude-opus-5-max	set-all-1	ink-grid-box-layout	ink-grid-box-layout__ByT63so	0		1
+copilot-claude-opus-5-max	set-all-1	ink-grid-box-layout	ink-grid-box-layout__TDFAyMZ	0		1
+copilot-claude-opus-5-max	set-all-1	ink-grid-box-layout	ink-grid-box-layout__ebfJ2Sb	0		0
+copilot-claude-opus-5-max	set-all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__53kcggq	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__Dk7AJCU	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__LpXNjba	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__dj63wi2	0		1
+copilot-claude-opus-5-max	set-all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__8Y5oWpW	0		1
+copilot-claude-opus-5-max	set-all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__KE7ix5k	0		0
+copilot-claude-opus-5-max	set-all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__rNdFGba	0		1
+copilot-claude-opus-5-max	set-all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__sq5s57U	0		1
+copilot-claude-opus-5-max	set-all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__JbmTpPB	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__KdNpXxb	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__apEEeah	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__occvXh7	2	gpt-5.6-sol:2	1
+copilot-claude-opus-5-max	set-all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__9dTLCQB	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__9eoQnNi	0		1
+copilot-claude-opus-5-max	set-all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__PHHv6fm	0		0
+copilot-claude-opus-5-max	set-all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__YpoAWja	0		0
+copilot-claude-opus-5-max	set-all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__646axxY	0		0
+copilot-claude-opus-5-max	set-all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__F4E7aUc	0		1
+copilot-claude-opus-5-max	set-all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__UrYYYBF	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__hRHBXRk	0		1
+copilot-claude-opus-5-max	set-all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__RR4BXiv	0		1
+copilot-claude-opus-5-max	set-all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__Rs8budz	0		1
+copilot-claude-opus-5-max	set-all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__gjk4Nje	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__yH7ZGzF	5	gpt-5.4-mini:4,gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__8N28Bhe	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__XLrN6VV	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__g3uvX55	0		1
+copilot-claude-opus-5-max	set-all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__jsfV47i	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__BKLpCXr	0		0
+copilot-claude-opus-5-max	set-all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__G3bJKTg	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__XGNop2g	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__gcCXf4A	0		1
+copilot-claude-opus-5-max	set-all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__2Wm5ENf	0		0
+copilot-claude-opus-5-max	set-all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__2cJ8Lf3	1	claude-sonnet-4.6:1	0
+copilot-claude-opus-5-max	set-all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__X2HdyU6	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__mFjTZyW	1	claude-opus-4.8:1	0
+copilot-claude-opus-5-max	set-all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__9Adkmmd	0		1
+copilot-claude-opus-5-max	set-all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__GNiCwQU	0		1
+copilot-claude-opus-5-max	set-all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__fRwfSop	0		1
+copilot-claude-opus-5-max	set-all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__njM2iE7	0		1
+copilot-claude-opus-5-max	set-all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__4pRuLHU	0		0
+copilot-claude-opus-5-max	set-all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__Ned9uQN	0		0
+copilot-claude-opus-5-max	set-all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__fiKs2NA	0		1
+copilot-claude-opus-5-max	set-all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__pnTSknB	0		0
+copilot-claude-opus-5-max	set-all-1	koota-query-predicates	koota-query-predicates__iSLnm48	1	claude-opus-4.8:1	1
+copilot-claude-opus-5-max	set-all-1	koota-query-predicates	koota-query-predicates__nf3bk9y	0		0
+copilot-claude-opus-5-max	set-all-1	koota-query-predicates	koota-query-predicates__u9YgxkX	0		1
+copilot-claude-opus-5-max	set-all-1	koota-query-predicates	koota-query-predicates__uBACdHE	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__9MPZdMt	0		1
+copilot-claude-opus-5-max	set-all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__dVpTzRw	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__s2Qv5vq	0		1
+copilot-claude-opus-5-max	set-all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__uvbAxyD	0		1
+copilot-claude-opus-5-max	set-all-1	langchain-request-coalescing	langchain-request-coalescing__Yu3QVrJ	0		0
+copilot-claude-opus-5-max	set-all-1	langchain-request-coalescing	langchain-request-coalescing__hxyuC8i	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	langchain-request-coalescing	langchain-request-coalescing__jbNmdkz	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	langchain-request-coalescing	langchain-request-coalescing__vaGUVRz	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__QmWMuQs	2	claude-opus-5:1,claude-sonnet-4.6:1	0
+copilot-claude-opus-5-max	set-all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__SGT9ecW	0		1
+copilot-claude-opus-5-max	set-all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__ZM3KACP	0		1
+copilot-claude-opus-5-max	set-all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__zscq252	0		1
+copilot-claude-opus-5-max	set-all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__4s6yM3r	0		0
+copilot-claude-opus-5-max	set-all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__YZcmfAr	0		0
+copilot-claude-opus-5-max	set-all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__aqkKukU	0		0
+copilot-claude-opus-5-max	set-all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__fpkp9y6	0		0
+copilot-claude-opus-5-max	set-all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__TbMBSoC	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__cw8qsSJ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__d9pTB9E	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__hrG7HR2	0		0
+copilot-claude-opus-5-max	set-all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__DWXp8kc	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__HXVb9H9	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__j57XLVj	2	claude-opus-5:2	0
+copilot-claude-opus-5-max	set-all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__sxqHaHK	0		1
+copilot-claude-opus-5-max	set-all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__5Jkawfw	0		1
+copilot-claude-opus-5-max	set-all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__Lg4jdm9	0		1
+copilot-claude-opus-5-max	set-all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__dByQyQ2	0		1
+copilot-claude-opus-5-max	set-all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__rA52RjB	0		1
+copilot-claude-opus-5-max	set-all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__FTTBAva	0		1
+copilot-claude-opus-5-max	set-all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__QWG63J2	0		1
+copilot-claude-opus-5-max	set-all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__dBoB9Xs	0		1
+copilot-claude-opus-5-max	set-all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__dVgtb9q	0		1
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__DuQDUdA	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__SgkGRdw	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__URYrHig	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__u9vVDbM	0		0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__5AmMmx2	0		1
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__FFEACti	0		0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__Ub9B66a	0		0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__uDjrQDu	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__6MQZgWV	0		1
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__VNzjZSF	0		1
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__Wmoz6nJ	0		1
+copilot-claude-opus-5-max	set-all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__f2CT78X	0		1
+copilot-claude-opus-5-max	set-all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__CjqbvdK	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__P5JaqvM	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__SuJpABy	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__zRUYhuG	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__Gbks2Pn	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__hkU5msF	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__napXah8	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__r7wZEwx	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__4oNJU9m	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__SJUv22b	0		1
+copilot-claude-opus-5-max	set-all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__iZ4HCm4	0		1
+copilot-claude-opus-5-max	set-all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__pX7qrbs	0		1
+copilot-claude-opus-5-max	set-all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__LJ3eBXS	0		1
+copilot-claude-opus-5-max	set-all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__UEyKaZg	0		0
+copilot-claude-opus-5-max	set-all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__Xq458hv	0		0
+copilot-claude-opus-5-max	set-all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__pY9szvo	0		1
+copilot-claude-opus-5-max	set-all-1	optique-conditional-option-depen	optique-conditional-option-depen__2KVQsdG	0		0
+copilot-claude-opus-5-max	set-all-1	optique-conditional-option-depen	optique-conditional-option-depen__SqxzxYf	0		1
+copilot-claude-opus-5-max	set-all-1	optique-conditional-option-depen	optique-conditional-option-depen__aD3TR5V	0		0
+copilot-claude-opus-5-max	set-all-1	optique-conditional-option-depen	optique-conditional-option-depen__vSuJWXY	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__GbXRTfH	0		1
+copilot-claude-opus-5-max	set-all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__ibVz4RR	0		0
+copilot-claude-opus-5-max	set-all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__smMaSKv	0		1
+copilot-claude-opus-5-max	set-all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__trojN9W	0		1
+copilot-claude-opus-5-max	set-all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__VJWUTg3	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__VkZEN5w	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__nraf68k	0		0
+copilot-claude-opus-5-max	set-all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__xHZo9UZ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__BAGGRYa	0		1
+copilot-claude-opus-5-max	set-all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__c7v9gf4	0		1
+copilot-claude-opus-5-max	set-all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__nGRYX3j	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__ucAXHMw	0		1
+copilot-claude-opus-5-max	set-all-1	pest-character-class-coalescing	pest-character-class-coalescing__MSMLtcD	0		0
+copilot-claude-opus-5-max	set-all-1	pest-character-class-coalescing	pest-character-class-coalescing__WfjhsjX	0		1
+copilot-claude-opus-5-max	set-all-1	pest-character-class-coalescing	pest-character-class-coalescing__eT95t47	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	pest-character-class-coalescing	pest-character-class-coalescing__ojpe9Bt	0		0
+copilot-claude-opus-5-max	set-all-1	prometheus-transactional-reload	prometheus-transactional-reload__LnMhhFB	0		0
+copilot-claude-opus-5-max	set-all-1	prometheus-transactional-reload	prometheus-transactional-reload__TYamg5u	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	prometheus-transactional-reload	prometheus-transactional-reload__j9Ft6Ws	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	prometheus-transactional-reload	prometheus-transactional-reload__toHZU4g	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__YNC5cWA	0		1
+copilot-claude-opus-5-max	set-all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__abuvwN9	0		1
+copilot-claude-opus-5-max	set-all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__dGNQwqQ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__s9zYGJQ	0		1
+copilot-claude-opus-5-max	set-all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__HtEJmyL	2	claude-opus-5:1,claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__NogdnCK	1	claude-opus-4.8:1	1
+copilot-claude-opus-5-max	set-all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__S3spCdp	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__u23vZNa	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__Kvinhwf	1	claude-opus-5:1	
+copilot-claude-opus-5-max	set-all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__QdEVnSn	0		
+copilot-claude-opus-5-max	set-all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__kRQrhcK	1	gpt-5.6-sol:1	
+copilot-claude-opus-5-max	set-all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__r5zcUB6	0		1
+copilot-claude-opus-5-max	set-all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__4xqDvDW	0		0
+copilot-claude-opus-5-max	set-all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__GDzc6eM	0		1
+copilot-claude-opus-5-max	set-all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__YKm7FxV	0		1
+copilot-claude-opus-5-max	set-all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__xEdKr42	0		1
+copilot-claude-opus-5-max	set-all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__4yyPoex	1	claude-haiku-4.5:1	1
+copilot-claude-opus-5-max	set-all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__D3yCSjd	0		1
+copilot-claude-opus-5-max	set-all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__VLYN4EK	0		1
+copilot-claude-opus-5-max	set-all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__sPZtynN	2	claude-haiku-4.5:2	1
+copilot-claude-opus-5-max	set-all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__3MCpPG9	2	gpt-5.4:1,gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__TAHKGFr	1	claude-sonnet-4.6:1	0
+copilot-claude-opus-5-max	set-all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__dD6NJdt	0		0
+copilot-claude-opus-5-max	set-all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__z63nG5S	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	returns-validated-error-accumula	returns-validated-error-accumula__HC85aTi	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	returns-validated-error-accumula	returns-validated-error-accumula__PUxQjyS	0		1
+copilot-claude-opus-5-max	set-all-1	returns-validated-error-accumula	returns-validated-error-accumula__Y2AuYTE	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	returns-validated-error-accumula	returns-validated-error-accumula__fAMrAvG	0		1
+copilot-claude-opus-5-max	set-all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__PkE2YJz	0		1
+copilot-claude-opus-5-max	set-all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__UDEDubZ	0		1
+copilot-claude-opus-5-max	set-all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__aZ7aTZD	0		0
+copilot-claude-opus-5-max	set-all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__mSBJT83	0		0
+copilot-claude-opus-5-max	set-all-1	scriggo-method-declarations	scriggo-method-declarations__YyZcdpZ	0		1
+copilot-claude-opus-5-max	set-all-1	scriggo-method-declarations	scriggo-method-declarations__f6nnbxg	0		1
+copilot-claude-opus-5-max	set-all-1	scriggo-method-declarations	scriggo-method-declarations__i2LDjAY	0		1
+copilot-claude-opus-5-max	set-all-1	scriggo-method-declarations	scriggo-method-declarations__vQhokG8	1	claude-sonnet-4.6:1	1
+copilot-claude-opus-5-max	set-all-1	skrub-duration-encoding	skrub-duration-encoding__Z4LAxQB	0		1
+copilot-claude-opus-5-max	set-all-1	skrub-duration-encoding	skrub-duration-encoding__cYzryUX	0		1
+copilot-claude-opus-5-max	set-all-1	skrub-duration-encoding	skrub-duration-encoding__u9jyB4Y	0		1
+copilot-claude-opus-5-max	set-all-1	skrub-duration-encoding	skrub-duration-encoding__yCH5KTB	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__2WNsNjH	0		1
+copilot-claude-opus-5-max	set-all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__3u4dZB6	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__tqn626A	0		1
+copilot-claude-opus-5-max	set-all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__zJwfUdK	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__8ZEFMEK	0		0
+copilot-claude-opus-5-max	set-all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__JEPbbRw	1	claude-opus-4.8:1	0
+copilot-claude-opus-5-max	set-all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__gYf9ztX	0		1
+copilot-claude-opus-5-max	set-all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__nVXNbnv	0		0
+copilot-claude-opus-5-max	set-all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__33TVYyv	0		1
+copilot-claude-opus-5-max	set-all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__5fS5AMU	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__9sEKzpm	0		1
+copilot-claude-opus-5-max	set-all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__BXkw49W	0		1
+copilot-claude-opus-5-max	set-all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__VbVshXd	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__cSqHbBM	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__vFmrq99	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__vhzkYD5	1	claude-opus-4.8:1	0
+copilot-claude-opus-5-max	set-all-1	task-task-graph-export	task-task-graph-export__2pykSEy	0		1
+copilot-claude-opus-5-max	set-all-1	task-task-graph-export	task-task-graph-export__fin3Hg7	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	task-task-graph-export	task-task-graph-export__pc4woFa	0		1
+copilot-claude-opus-5-max	set-all-1	task-task-graph-export	task-task-graph-export__vhQMSsG	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__Mn8tmkf	0		1
+copilot-claude-opus-5-max	set-all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__echbozG	0		1
+copilot-claude-opus-5-max	set-all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__nN5vQkr	2	claude-opus-5:1,gpt-5.5:1	1
+copilot-claude-opus-5-max	set-all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__qCq5QpE	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__5CkpYL9	0		1
+copilot-claude-opus-5-max	set-all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__BUhSzNB	0		1
+copilot-claude-opus-5-max	set-all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__H4y8UUM	0		1
+copilot-claude-opus-5-max	set-all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__qxFgJM9	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__8ekYMAB	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__BZyN7QE	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__CEt8Jfd	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__m2sGN3s	0		0
+copilot-claude-opus-5-max	set-all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__QB527zy	0		0
+copilot-claude-opus-5-max	set-all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__bGaNKk8	0		0
+copilot-claude-opus-5-max	set-all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__kesfuJ2	0		0
+copilot-claude-opus-5-max	set-all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__mM7JaWz	0		0
+copilot-claude-opus-5-max	set-all-1	testem-per-launcher-reports	testem-per-launcher-reports__Jg6gU6i	0		1
+copilot-claude-opus-5-max	set-all-1	testem-per-launcher-reports	testem-per-launcher-reports__MKypxnx	0		1
+copilot-claude-opus-5-max	set-all-1	testem-per-launcher-reports	testem-per-launcher-reports__s4T29Lm	0		1
+copilot-claude-opus-5-max	set-all-1	testem-per-launcher-reports	testem-per-launcher-reports__zxvBNGu	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	textual-kitty-key-phases	textual-kitty-key-phases__Rh8o7fk	0		1
+copilot-claude-opus-5-max	set-all-1	textual-kitty-key-phases	textual-kitty-key-phases__eYfHgFk	0		1
+copilot-claude-opus-5-max	set-all-1	textual-kitty-key-phases	textual-kitty-key-phases__ppvVmNS	0		0
+copilot-claude-opus-5-max	set-all-1	textual-kitty-key-phases	textual-kitty-key-phases__tQ2NXvt	0		1
+copilot-claude-opus-5-max	set-all-1	textual-richlog-follow-state	textual-richlog-follow-state__Qc6QfBH	0		1
+copilot-claude-opus-5-max	set-all-1	textual-richlog-follow-state	textual-richlog-follow-state__WEMe3GT	2	claude-opus-5:2	1
+copilot-claude-opus-5-max	set-all-1	textual-richlog-follow-state	textual-richlog-follow-state__hMSSuj2	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	textual-richlog-follow-state	textual-richlog-follow-state__kNxMeGN	0		1
+copilot-claude-opus-5-max	set-all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__92c4Gwd	0		1
+copilot-claude-opus-5-max	set-all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__K5Yt2sQ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__NnKDAGM	0		1
+copilot-claude-opus-5-max	set-all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__oahrmBg	0		1
+copilot-claude-opus-5-max	set-all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__BiJQS4s	0		1
+copilot-claude-opus-5-max	set-all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__J3bsy22	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__KhGemwQ	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__WFPmhys	0		1
+copilot-claude-opus-5-max	set-all-1	ts-pattern-match-each	ts-pattern-match-each__DnUFsWk	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ts-pattern-match-each	ts-pattern-match-each__cPkw7Da	0		1
+copilot-claude-opus-5-max	set-all-1	ts-pattern-match-each	ts-pattern-match-each__tGcjyGU	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	ts-pattern-match-each	ts-pattern-match-each__uQkVD9m	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	updo-policy-alerting	updo-policy-alerting__8V35tR4	0		1
+copilot-claude-opus-5-max	set-all-1	updo-policy-alerting	updo-policy-alerting__AtPEoVH	0		1
+copilot-claude-opus-5-max	set-all-1	updo-policy-alerting	updo-policy-alerting__NYGzRAb	0		0
+copilot-claude-opus-5-max	set-all-1	updo-policy-alerting	updo-policy-alerting__krNy4N8	0		1
+copilot-claude-opus-5-max	set-all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__XPayqro	0		1
+copilot-claude-opus-5-max	set-all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__e5KSci7	0		1
+copilot-claude-opus-5-max	set-all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__onxVoqG	0		1
+copilot-claude-opus-5-max	set-all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__ssqiHv7	1	gpt-5.5:1	1
+copilot-claude-opus-5-max	set-all-1	vitest-duration-sharding	vitest-duration-sharding__Pnz9i2K	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	vitest-duration-sharding	vitest-duration-sharding__UMkR9Uw	1	claude-haiku-4.5:1	0
+copilot-claude-opus-5-max	set-all-1	vitest-duration-sharding	vitest-duration-sharding__haJTr5V	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	vitest-duration-sharding	vitest-duration-sharding__nYHrTs3	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__D7MKwBS	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__YKqZXEb	0		0
+copilot-claude-opus-5-max	set-all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__f5TKEdb	0		0
+copilot-claude-opus-5-max	set-all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__sG7EZ3i	1	claude-opus-5:1	0
+copilot-claude-opus-5-max	set-all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__22VmT7G	0		1
+copilot-claude-opus-5-max	set-all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__6rUXshd	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__NwGehwd	0		1
+copilot-claude-opus-5-max	set-all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__gYAbhLG	0		1
+copilot-claude-opus-5-max	set-all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__aHAXeFq	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__eDm2oEE	0		0
+copilot-claude-opus-5-max	set-all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__iawHk4Q	0		1
+copilot-claude-opus-5-max	set-all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__uha7PTy	1	gpt-5.6-sol:1	0
+copilot-claude-opus-5-max	set-all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__6PkPq63	0		1
+copilot-claude-opus-5-max	set-all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__76E3KBm	0		1
+copilot-claude-opus-5-max	set-all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__WwHvv2A	0		1
+copilot-claude-opus-5-max	set-all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__of36Bm8	0		0
+copilot-claude-opus-5-max	set-all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__5Xxg8tr	0		1
+copilot-claude-opus-5-max	set-all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__7my5muS	0		1
+copilot-claude-opus-5-max	set-all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__LfRQyDP	0		1
+copilot-claude-opus-5-max	set-all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__X7iL4gW	0		1
+copilot-claude-opus-5-max	set-all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__5Me3RHf	1	gpt-5.6-sol:1	1
+copilot-claude-opus-5-max	set-all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__Gx34JtF	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__V58HSri	1	claude-opus-5:1	1
+copilot-claude-opus-5-max	set-all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__acqs6xy	1	claude-opus-5:1	1
+copilot-claude-opus-5-max-nosub	all-1	abs-module-cache-flags	abs-module-cache-flags__AH945pW	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-module-cache-flags	abs-module-cache-flags__AmzCs78	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-module-cache-flags	abs-module-cache-flags__Har5pe9	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-module-cache-flags	abs-module-cache-flags__h33uDZB	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-stepped-slices	abs-stepped-slices__4KpWgt2	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-stepped-slices	abs-stepped-slices__GUPfyXh	0		1
+copilot-claude-opus-5-max-nosub	all-1	abs-stepped-slices	abs-stepped-slices__gXMMWL6	0		0
+copilot-claude-opus-5-max-nosub	all-1	abs-stepped-slices	abs-stepped-slices__tCZZs3n	0		1
+copilot-claude-opus-5-max-nosub	all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__4zBNqms	0		0
+copilot-claude-opus-5-max-nosub	all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__AozP6gy	0		1
+copilot-claude-opus-5-max-nosub	all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__edZZV6s	0		1
+copilot-claude-opus-5-max-nosub	all-1	actionlint-action-pinning-lint	actionlint-action-pinning-lint__kKnbF4h	0		1
+copilot-claude-opus-5-max-nosub	all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__BSvXoWV	0		1
+copilot-claude-opus-5-max-nosub	all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__CrNQRXy	0		1
+copilot-claude-opus-5-max-nosub	all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__MjMotAv	0		1
+copilot-claude-opus-5-max-nosub	all-1	adaptix-name-mapping-aliases	adaptix-name-mapping-aliases__xMbEXPL	0		1
+copilot-claude-opus-5-max-nosub	all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__4AqTgvk	0		1
+copilot-claude-opus-5-max-nosub	all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__6vXTZbw	0		1
+copilot-claude-opus-5-max-nosub	all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__KVdmZ77	0		1
+copilot-claude-opus-5-max-nosub	all-1	aiomonitor-task-snapshots-diff	aiomonitor-task-snapshots-diff__vyrQpPm	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-default-function-arguments	anko-default-function-arguments__5VeFgH8	0		0
+copilot-claude-opus-5-max-nosub	all-1	anko-default-function-arguments	anko-default-function-arguments__KyHzz6R	0		0
+copilot-claude-opus-5-max-nosub	all-1	anko-default-function-arguments	anko-default-function-arguments__knR395s	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-default-function-arguments	anko-default-function-arguments__tBVYBoY	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__D8NLRGP	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__de4oPJt	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__ko9G5TF	0		1
+copilot-claude-opus-5-max-nosub	all-1	anko-typed-variable-bindings	anko-typed-variable-bindings__nx2sHAR	0		0
+copilot-claude-opus-5-max-nosub	all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__93LQMe5	0		1
+copilot-claude-opus-5-max-nosub	all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__BCuronN	0		1
+copilot-claude-opus-5-max-nosub	all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__Xvu2QGy	0		1
+copilot-claude-opus-5-max-nosub	all-1	arcane-drift-detection-baselines	arcane-drift-detection-baselines__gqrmmTE	0		0
+copilot-claude-opus-5-max-nosub	all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__9JHhKZF	0		0
+copilot-claude-opus-5-max-nosub	all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__NrMby9C	0		1
+copilot-claude-opus-5-max-nosub	all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__XzhcZCW	0		1
+copilot-claude-opus-5-max-nosub	all-1	arktype-json-schema-refs-depende	arktype-json-schema-refs-depende__ZzRKEAt	0		0
+copilot-claude-opus-5-max-nosub	all-1	awilix-async-container-initializ	awilix-async-container-initializ__8qm5hdi	0		0
+copilot-claude-opus-5-max-nosub	all-1	awilix-async-container-initializ	awilix-async-container-initializ__JvRM7sc	0		0
+copilot-claude-opus-5-max-nosub	all-1	awilix-async-container-initializ	awilix-async-container-initializ__ZYYvYyg	0		0
+copilot-claude-opus-5-max-nosub	all-1	awilix-async-container-initializ	awilix-async-container-initializ__ooeQocT	0		0
+copilot-claude-opus-5-max-nosub	all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__Homqipj	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__LHvTivo	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__NpRqhDD	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-incremental-cache-control	bandit-incremental-cache-control__VpjQcYz	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__FEmr3uz	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__SWQjeGX	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__bbS89YF	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-interprocedural-taint-che	bandit-interprocedural-taint-che__n42eR8C	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__57xFnvx	0		1
+copilot-claude-opus-5-max-nosub	all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__8qPide5	0		0
+copilot-claude-opus-5-max-nosub	all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__MLXjRhc	0		0
+copilot-claude-opus-5-max-nosub	all-1	bandit-structured-nosec-directiv	bandit-structured-nosec-directiv__mR98HP9	0		1
+copilot-claude-opus-5-max-nosub	all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__5v3Eh9c	0		1
+copilot-claude-opus-5-max-nosub	all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__NwVBzpT	0		1
+copilot-claude-opus-5-max-nosub	all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__jGUFBav	0		1
+copilot-claude-opus-5-max-nosub	all-1	boa-hierarchical-evaluation-canc	boa-hierarchical-evaluation-canc__zLSWdLt	0		1
+copilot-claude-opus-5-max-nosub	all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__Apa5pxT	0		1
+copilot-claude-opus-5-max-nosub	all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__M8xmWcS	0		1
+copilot-claude-opus-5-max-nosub	all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__fc4nB7z	0		1
+copilot-claude-opus-5-max-nosub	all-1	cattrs-partial-structuring-recov	cattrs-partial-structuring-recov__kf48eY2	0		1
+copilot-claude-opus-5-max-nosub	all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__UvEe4jU	0		1
+copilot-claude-opus-5-max-nosub	all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__VTqZkfh	0		1
+copilot-claude-opus-5-max-nosub	all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__mDjanLw	0		0
+copilot-claude-opus-5-max-nosub	all-1	clack-async-autocomplete-options	clack-async-autocomplete-options__p4ognyp	0		1
+copilot-claude-opus-5-max-nosub	all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__6iHUK7F	0		0
+copilot-claude-opus-5-max-nosub	all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__REMyvib	0		1
+copilot-claude-opus-5-max-nosub	all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__TYsjzN6	0		0
+copilot-claude-opus-5-max-nosub	all-1	claude-code-by-agents-recursive	claude-code-by-agents-recursive__mYqnNas	0		0
+copilot-claude-opus-5-max-nosub	all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__pEgM4uU	0		1
+copilot-claude-opus-5-max-nosub	all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__pUZWT4Q	0		1
+copilot-claude-opus-5-max-nosub	all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__rsxS3eV	0		1
+copilot-claude-opus-5-max-nosub	all-1	cliffy-config-file-parsing	cliffy-config-file-parsing__s58wfpP	0		1
+copilot-claude-opus-5-max-nosub	all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__A6mex8R	0		0
+copilot-claude-opus-5-max-nosub	all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__RjQp4rA	0		0
+copilot-claude-opus-5-max-nosub	all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__SykVUus	0		1
+copilot-claude-opus-5-max-nosub	all-1	csstree-shorthand-expansion-comp	csstree-shorthand-expansion-comp__Ws37C2k	0		0
+copilot-claude-opus-5-max-nosub	all-1	dasel-html-document-format	dasel-html-document-format__77aJTES	0		1
+copilot-claude-opus-5-max-nosub	all-1	dasel-html-document-format	dasel-html-document-format__Bf2sDC5	0		1
+copilot-claude-opus-5-max-nosub	all-1	dasel-html-document-format	dasel-html-document-format__qoDFiVE	0		1
+copilot-claude-opus-5-max-nosub	all-1	dasel-html-document-format	dasel-html-document-format__tdeKwFA	0		1
+copilot-claude-opus-5-max-nosub	all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__2DXnm9M	0		0
+copilot-claude-opus-5-max-nosub	all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__SFrZ964	0		0
+copilot-claude-opus-5-max-nosub	all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__b2GxBE2	0		0
+copilot-claude-opus-5-max-nosub	all-1	dateutil-rfc5545-timezone-intero	dateutil-rfc5545-timezone-intero__vTDJTkD	0		1
+copilot-claude-opus-5-max-nosub	all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__3BfRoZb	0		1
+copilot-claude-opus-5-max-nosub	all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__Menz6BS	0		1
+copilot-claude-opus-5-max-nosub	all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__ZnvZwQ7	0		1
+copilot-claude-opus-5-max-nosub	all-1	drizzle-orm-window-function-buil	drizzle-orm-window-function-buil__pDtAvg6	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__cFBwk4T	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__fzPLTMF	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__jR3rAvp	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-conditional-att	dynamodb-toolbox-conditional-att__zXTcqn3	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__C8gKyne	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__XcHjgnA	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__uEHk8sW	0		1
+copilot-claude-opus-5-max-nosub	all-1	dynamodb-toolbox-lazy-recursive	dynamodb-toolbox-lazy-recursive__ucfzxAK	0		1
+copilot-claude-opus-5-max-nosub	all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__69oq4Lp	0		0
+copilot-claude-opus-5-max-nosub	all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__6ZnEBXF	0		1
+copilot-claude-opus-5-max-nosub	all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__MFFovbT	0		0
+copilot-claude-opus-5-max-nosub	all-1	effect-sse-httpapi-streaming	effect-sse-httpapi-streaming__V9Yho3w	0		0
+copilot-claude-opus-5-max-nosub	all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__3GXqhWn	0		0
+copilot-claude-opus-5-max-nosub	all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__4XBKPvX	0		0
+copilot-claude-opus-5-max-nosub	all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__PdpjU4Q	0		1
+copilot-claude-opus-5-max-nosub	all-1	eicrud-keyset-pagination-cursor	eicrud-keyset-pagination-cursor__xV79mM4	0		0
+copilot-claude-opus-5-max-nosub	all-1	etree-xml-diff-patch	etree-xml-diff-patch__GMJd9Dc	0		1
+copilot-claude-opus-5-max-nosub	all-1	etree-xml-diff-patch	etree-xml-diff-patch__KFKjuBQ	0		1
+copilot-claude-opus-5-max-nosub	all-1	etree-xml-diff-patch	etree-xml-diff-patch__RbM4Grz	0		1
+copilot-claude-opus-5-max-nosub	all-1	etree-xml-diff-patch	etree-xml-diff-patch__nmT4WDX	0		1
+copilot-claude-opus-5-max-nosub	all-1	expr-try-catch-errors	expr-try-catch-errors__42TebBE	0		1
+copilot-claude-opus-5-max-nosub	all-1	expr-try-catch-errors	expr-try-catch-errors__4v79LaA	0		1
+copilot-claude-opus-5-max-nosub	all-1	expr-try-catch-errors	expr-try-catch-errors__qP2vZDQ	0		1
+copilot-claude-opus-5-max-nosub	all-1	expr-try-catch-errors	expr-try-catch-errors__xjQJAki	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__BEhn2bZ	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__Swi7zhB	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__WQu3Tiw	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-deprecation-response-hea	fastapi-deprecation-response-hea__eeCHXHu	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__7TGBxZi	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__FkvChLv	0		1
+copilot-claude-opus-5-max-nosub	all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__bAfj37b	0		0
+copilot-claude-opus-5-max-nosub	all-1	fastapi-implicit-head-options	fastapi-implicit-head-options__qheoeUS	0		0
+copilot-claude-opus-5-max-nosub	all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__BWnkkUv	0		0
+copilot-claude-opus-5-max-nosub	all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__KpAFS2E	0		0
+copilot-claude-opus-5-max-nosub	all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__aoVC3y3	0		0
+copilot-claude-opus-5-max-nosub	all-1	fd-deterministic-multi-key-sorti	fd-deterministic-multi-key-sorti__ka2cmkj	0		1
+copilot-claude-opus-5-max-nosub	all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__5nvwJb2	0		1
+copilot-claude-opus-5-max-nosub	all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__dmEHHAv	0		1
+copilot-claude-opus-5-max-nosub	all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__hDNgQUb	0		1
+copilot-claude-opus-5-max-nosub	all-1	geo-shapeindex-serialization	geo-shapeindex-serialization__oNjfKB2	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__W8QqwNg	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__khhceXA	0		0
+copilot-claude-opus-5-max-nosub	all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__nvgzRaw	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-critic-doc-link-checker	go-critic-doc-link-checker__sp3F5bn	0		0
+copilot-claude-opus-5-max-nosub	all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__2R73JNP	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__3mSHW47	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__iLpmPfH	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-genai-streamed-function-args	go-genai-streamed-function-args__qRj832q	0		0
+copilot-claude-opus-5-max-nosub	all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__6DaHRRR	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__8HmkEZh	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__TKkRyYK	0		1
+copilot-claude-opus-5-max-nosub	all-1	go-git-worktree-merge-conflicts	go-git-worktree-merge-conflicts__xCbSCY5	0		1
+copilot-claude-opus-5-max-nosub	all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__JzRg9PD	0		1
+copilot-claude-opus-5-max-nosub	all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__Q2wkGmJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__UR2SuZP	0		1
+copilot-claude-opus-5-max-nosub	all-1	goreleaser-retry-publish-auditin	goreleaser-retry-publish-auditin__tXdsooe	0		1
+copilot-claude-opus-5-max-nosub	all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__6EUHAQj	0		1
+copilot-claude-opus-5-max-nosub	all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__Fs5FbYv	0		0
+copilot-claude-opus-5-max-nosub	all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__SAknYeo	0		0
+copilot-claude-opus-5-max-nosub	all-1	gql-incremental-graphql-delivery	gql-incremental-graphql-delivery__fWEHgNz	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__3GEb69w	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__97DVYiw	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__GCHdeca	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-abort-pending-body-rea	happy-dom-abort-pending-body-rea__utvUZZz	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__EzLunkE	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__G7qzXJC	0		1
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__kkUPoD3	0		0
+copilot-claude-opus-5-max-nosub	all-1	happy-dom-deterministic-intersec	happy-dom-deterministic-intersec__oQbfJ4a	0		0
+copilot-claude-opus-5-max-nosub	all-1	helm-array-merge-strategies	helm-array-merge-strategies__JQPUkMx	0		0
+copilot-claude-opus-5-max-nosub	all-1	helm-array-merge-strategies	helm-array-merge-strategies__L3gfjiF	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-array-merge-strategies	helm-array-merge-strategies__MpkBAfw	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-array-merge-strategies	helm-array-merge-strategies__dYSbJf2	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__S593Ddt	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__Wdig8yY	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__g4dLkVV	0		1
+copilot-claude-opus-5-max-nosub	all-1	helm-unified-manifest-stream	helm-unified-manifest-stream__wRSFWtF	0		1
+copilot-claude-opus-5-max-nosub	all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__L4ubMCV	0		1
+copilot-claude-opus-5-max-nosub	all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__LQTaLyQ	0		1
+copilot-claude-opus-5-max-nosub	all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__oXhQTez	0		1
+copilot-claude-opus-5-max-nosub	all-1	httpx-deterministic-cookie-store	httpx-deterministic-cookie-store__sfvQMFG	0		1
+copilot-claude-opus-5-max-nosub	all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__H67T6vA	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__KwUsgk7	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__jRxqp77	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-multipart-response-parsing	httpx-multipart-response-parsing__tbqW3kZ	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__3jMLH6a	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__Gvg7J6x	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__wKdrN78	0		0
+copilot-claude-opus-5-max-nosub	all-1	httpx-streaming-json-iteration	httpx-streaming-json-iteration__zTuZiRE	0		0
+copilot-claude-opus-5-max-nosub	all-1	igel-persist-feature-schema	igel-persist-feature-schema__88xawFM	0		0
+copilot-claude-opus-5-max-nosub	all-1	igel-persist-feature-schema	igel-persist-feature-schema__RFsNK3X	0		0
+copilot-claude-opus-5-max-nosub	all-1	igel-persist-feature-schema	igel-persist-feature-schema__gM2EoBa	0		0
+copilot-claude-opus-5-max-nosub	all-1	igel-persist-feature-schema	igel-persist-feature-schema__x63PxBd	0		0
+copilot-claude-opus-5-max-nosub	all-1	ink-grid-box-layout	ink-grid-box-layout__PTYeQME	0		0
+copilot-claude-opus-5-max-nosub	all-1	ink-grid-box-layout	ink-grid-box-layout__Q2KXHqi	0		1
+copilot-claude-opus-5-max-nosub	all-1	ink-grid-box-layout	ink-grid-box-layout__SbCemE9	0		0
+copilot-claude-opus-5-max-nosub	all-1	ink-grid-box-layout	ink-grid-box-layout__nET3Y4V	0		1
+copilot-claude-opus-5-max-nosub	all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__Jqrd9WB	0		0
+copilot-claude-opus-5-max-nosub	all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__XpdyQwn	0		1
+copilot-claude-opus-5-max-nosub	all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__dy4wnGD	0		0
+copilot-claude-opus-5-max-nosub	all-1	ipython-session-bundle-replay	ipython-session-bundle-replay__iFmvy4E	0		0
+copilot-claude-opus-5-max-nosub	all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__4bdJykh	0		0
+copilot-claude-opus-5-max-nosub	all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__ZK3Wm4e	0		1
+copilot-claude-opus-5-max-nosub	all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__c5e7ob6	0		1
+copilot-claude-opus-5-max-nosub	all-1	katex-multicolumn-array-spans	katex-multicolumn-array-spans__zGfHyi2	0		1
+copilot-claude-opus-5-max-nosub	all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__EMGjoeR	0		1
+copilot-claude-opus-5-max-nosub	all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__RuXmAED	0		1
+copilot-claude-opus-5-max-nosub	all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__VmGHiSZ	0		1
+copilot-claude-opus-5-max-nosub	all-1	kcp-go-multiplexed-kcp-streams	kcp-go-multiplexed-kcp-streams__Yumkn3h	0		0
+copilot-claude-opus-5-max-nosub	all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__Wde6jvE	0		0
+copilot-claude-opus-5-max-nosub	all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__bt278So	0		1
+copilot-claude-opus-5-max-nosub	all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__c2YJj7n	0		1
+copilot-claude-opus-5-max-nosub	all-1	kea-atomic-signal-selectors	kea-atomic-signal-selectors__wpEhcGG	0		0
+copilot-claude-opus-5-max-nosub	all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__QiqqGcV	0		0
+copilot-claude-opus-5-max-nosub	all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__WEx3W5g	0		1
+copilot-claude-opus-5-max-nosub	all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__w2xm5RD	0		1
+copilot-claude-opus-5-max-nosub	all-1	kgateway-consistent-hash-policy	kgateway-consistent-hash-policy__wa5SWiR	0		0
+copilot-claude-opus-5-max-nosub	all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__3QtAdsY	0		1
+copilot-claude-opus-5-max-nosub	all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__faa9YQ7	0		1
+copilot-claude-opus-5-max-nosub	all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__xrDPgk9	0		1
+copilot-claude-opus-5-max-nosub	all-1	kombu-single-active-consumer-pri	kombu-single-active-consumer-pri__z6L5yhp	0		1
+copilot-claude-opus-5-max-nosub	all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__AhENQAR	0		0
+copilot-claude-opus-5-max-nosub	all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__CQ7c7VZ	0		0
+copilot-claude-opus-5-max-nosub	all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__DaXT5qk	0		1
+copilot-claude-opus-5-max-nosub	all-1	kombu-virtual-queue-dead-letteri	kombu-virtual-queue-dead-letteri__EfnPtGR	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__5fzPMFX	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__APqRivj	0		
+copilot-claude-opus-5-max-nosub	all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__EWQFiLx	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-composite-trait-aspects	koota-composite-trait-aspects__kYt5gVX	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__734Jq7x	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__NxqWcjz	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__ZEoXpP5	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-deferred-mutation-buffer	koota-deferred-mutation-buffer__pxJh6Ge	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__CZBhyt6	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__Nnn3Dsa	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__YyPkY92	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-entity-snapshot-rollback	koota-entity-snapshot-rollback__fdBmxKk	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__JpmoZj2	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__S5EEWfN	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__jnMdcz3	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-pair-relation-tracking	koota-pair-relation-tracking__mKhq795	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-query-predicates	koota-query-predicates__b7mUM8Q	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-query-predicates	koota-query-predicates__i2SUgJ5	0		0
+copilot-claude-opus-5-max-nosub	all-1	koota-query-predicates	koota-query-predicates__n6mqbni	0		1
+copilot-claude-opus-5-max-nosub	all-1	koota-query-predicates	koota-query-predicates__yQxFTxg	0		1
+copilot-claude-opus-5-max-nosub	all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__AJy2HTh	0		1
+copilot-claude-opus-5-max-nosub	all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__FxRK9Je	0		1
+copilot-claude-opus-5-max-nosub	all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__YnGKkqW	0		1
+copilot-claude-opus-5-max-nosub	all-1	kysely-window-grouping-helpers	kysely-window-grouping-helpers__jDxAHKk	0		0
+copilot-claude-opus-5-max-nosub	all-1	langchain-request-coalescing	langchain-request-coalescing__6HicJrs	0		1
+copilot-claude-opus-5-max-nosub	all-1	langchain-request-coalescing	langchain-request-coalescing__6xFNKEy	0		0
+copilot-claude-opus-5-max-nosub	all-1	langchain-request-coalescing	langchain-request-coalescing__9DUZ8Ab	0		0
+copilot-claude-opus-5-max-nosub	all-1	langchain-request-coalescing	langchain-request-coalescing__qChk8RJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__DxJCQ4M	0		1
+copilot-claude-opus-5-max-nosub	all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__Fy97UoJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__X3dTXnD	0		1
+copilot-claude-opus-5-max-nosub	all-1	mashumaro-flattened-dataclass-fi	mashumaro-flattened-dataclass-fi__sfp3awR	0		0
+copilot-claude-opus-5-max-nosub	all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__29urvYs	0		1
+copilot-claude-opus-5-max-nosub	all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__MQ8RYT6	0		1
+copilot-claude-opus-5-max-nosub	all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__YExwF5v	0		1
+copilot-claude-opus-5-max-nosub	all-1	meriyah-explicit-resource-declar	meriyah-explicit-resource-declar__hmJKLqi	0		0
+copilot-claude-opus-5-max-nosub	all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__6VeTsvA	0		1
+copilot-claude-opus-5-max-nosub	all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__Fm8TMV7	0		1
+copilot-claude-opus-5-max-nosub	all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__QZceonn	0		1
+copilot-claude-opus-5-max-nosub	all-1	mnamer-daemon-watch-lifecycle	mnamer-daemon-watch-lifecycle__SMTBQYM	0		1
+copilot-claude-opus-5-max-nosub	all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__QhVMtXX	0		1
+copilot-claude-opus-5-max-nosub	all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__WunPMNU	0		1
+copilot-claude-opus-5-max-nosub	all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__tZ53TQa	0		1
+copilot-claude-opus-5-max-nosub	all-1	mobly-grouped-test-barriers	mobly-grouped-test-barriers__tgrYmN3	0		1
+copilot-claude-opus-5-max-nosub	all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__XuUr4mH	0		1
+copilot-claude-opus-5-max-nosub	all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__exuENwc	0		1
+copilot-claude-opus-5-max-nosub	all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__nyRN4MT	0		1
+copilot-claude-opus-5-max-nosub	all-1	narwhals-rolling-window-suite	narwhals-rolling-window-suite__pcoKYMY	0		1
+copilot-claude-opus-5-max-nosub	all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__2w9gNYt	0		1
+copilot-claude-opus-5-max-nosub	all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__4S8FHWW	0		1
+copilot-claude-opus-5-max-nosub	all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__f7dAtWY	0		1
+copilot-claude-opus-5-max-nosub	all-1	numba-stencil-boundary-modes	numba-stencil-boundary-modes__nJtWtiK	0		1
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__4W8QFxh	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__8MFUv2V	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__YyzUAWU	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-auto-table-of-co	obsidian-linter-auto-table-of-co__wgEwoa7	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__JFXF672	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__KFhCbYG	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__c7WDPtE	0		1
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-link-format-conv	obsidian-linter-link-format-conv__kKcnRMD	0		0
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__BrKfpxv	0		1
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__aLLMAmg	0		1
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__iRdLWsr	0		1
+copilot-claude-opus-5-max-nosub	all-1	obsidian-linter-scoped-ignore-ma	obsidian-linter-scoped-ignore-ma__sNre38E	0		1
+copilot-claude-opus-5-max-nosub	all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__DZNAxUw	0		1
+copilot-claude-opus-5-max-nosub	all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__b3tYkB7	0		1
+copilot-claude-opus-5-max-nosub	all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__ftjGy4M	0		1
+copilot-claude-opus-5-max-nosub	all-1	ofetch-per-origin-circuit-breake	ofetch-per-origin-circuit-breake__ziNtFeF	0		1
+copilot-claude-opus-5-max-nosub	all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__RRS3pQg	0		0
+copilot-claude-opus-5-max-nosub	all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__TB74LX4	0		0
+copilot-claude-opus-5-max-nosub	all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__frW4ii8	0		0
+copilot-claude-opus-5-max-nosub	all-1	onedump-dump-encryption-pipeline	onedump-dump-encryption-pipeline__jxLiaKN	0		0
+copilot-claude-opus-5-max-nosub	all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__XDDNQqA	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__ghnoTeT	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__rppwhLJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-rego-rule-profiling	opa-rego-rule-profiling__yjqurRh	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__ZvG986Q	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__aB9zxV7	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__aXXhTh7	0		1
+copilot-claude-opus-5-max-nosub	all-1	opa-template-string-reconstructi	opa-template-string-reconstructi__h8TAZzz	0		1
+copilot-claude-opus-5-max-nosub	all-1	optique-conditional-option-depen	optique-conditional-option-depen__87C4ZfN	0		1
+copilot-claude-opus-5-max-nosub	all-1	optique-conditional-option-depen	optique-conditional-option-depen__Hz6YQ5h	0		1
+copilot-claude-opus-5-max-nosub	all-1	optique-conditional-option-depen	optique-conditional-option-depen__JdRFuDT	0		1
+copilot-claude-opus-5-max-nosub	all-1	optique-conditional-option-depen	optique-conditional-option-depen__agWKfhz	0		1
+copilot-claude-opus-5-max-nosub	all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__5xYRUTN	0		0
+copilot-claude-opus-5-max-nosub	all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__fq2CpFy	0		1
+copilot-claude-opus-5-max-nosub	all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__g8HJq79	0		1
+copilot-claude-opus-5-max-nosub	all-1	oxvg-structural-selector-preserv	oxvg-structural-selector-preserv__jkn8pcr	0		0
+copilot-claude-opus-5-max-nosub	all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__4xLWYZD	0		1
+copilot-claude-opus-5-max-nosub	all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__AEmxQwi	0		0
+copilot-claude-opus-5-max-nosub	all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__Ld7JNGJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	participle-grammar-conflict-anal	participle-grammar-conflict-anal__Z3oB8iG	0		0
+copilot-claude-opus-5-max-nosub	all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__5TdZPr6	0		1
+copilot-claude-opus-5-max-nosub	all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__BUoAAeG	0		1
+copilot-claude-opus-5-max-nosub	all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__HgxzF3F	0		1
+copilot-claude-opus-5-max-nosub	all-1	pebble-durability-wait-apis	pebble-durability-wait-apis__vcmP6Yw	0		1
+copilot-claude-opus-5-max-nosub	all-1	pest-character-class-coalescing	pest-character-class-coalescing__2AQBrYc	0		0
+copilot-claude-opus-5-max-nosub	all-1	pest-character-class-coalescing	pest-character-class-coalescing__XsECQ7J	0		0
+copilot-claude-opus-5-max-nosub	all-1	pest-character-class-coalescing	pest-character-class-coalescing__fE2qogS	0		0
+copilot-claude-opus-5-max-nosub	all-1	pest-character-class-coalescing	pest-character-class-coalescing__nZxobKp	0		0
+copilot-claude-opus-5-max-nosub	all-1	prometheus-transactional-reload	prometheus-transactional-reload__9FHtLSJ	0		1
+copilot-claude-opus-5-max-nosub	all-1	prometheus-transactional-reload	prometheus-transactional-reload__BvCXZYX	0		0
+copilot-claude-opus-5-max-nosub	all-1	prometheus-transactional-reload	prometheus-transactional-reload__LAJon6B	0		0
+copilot-claude-opus-5-max-nosub	all-1	prometheus-transactional-reload	prometheus-transactional-reload__RUpsYhZ	0		0
+copilot-claude-opus-5-max-nosub	all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__DQX2rEe	0		1
+copilot-claude-opus-5-max-nosub	all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__UBAMLUT	0		1
+copilot-claude-opus-5-max-nosub	all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__W3sMYMn	0		1
+copilot-claude-opus-5-max-nosub	all-1	prometheus-typed-label-sorting	prometheus-typed-label-sorting__i8LNGdk	0		1
+copilot-claude-opus-5-max-nosub	all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__PCLctkK	0		1
+copilot-claude-opus-5-max-nosub	all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__VtNvfG4	0		1
+copilot-claude-opus-5-max-nosub	all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__Zq9kf2V	0		1
+copilot-claude-opus-5-max-nosub	all-1	psd-tools-blend-range-api	psd-tools-blend-range-api__pLkqzqq	0		1
+copilot-claude-opus-5-max-nosub	all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__DDZw5Pm	0		1
+copilot-claude-opus-5-max-nosub	all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__KKr5Ua2	0		0
+copilot-claude-opus-5-max-nosub	all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__USMoL6w	0		1
+copilot-claude-opus-5-max-nosub	all-1	pwntools-tube-multiplexing	pwntools-tube-multiplexing__egaqGXC	0		
+copilot-claude-opus-5-max-nosub	all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__2wqPLfT	0		1
+copilot-claude-opus-5-max-nosub	all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__5zF7gUi	0		1
+copilot-claude-opus-5-max-nosub	all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__RMsE47C	0		0
+copilot-claude-opus-5-max-nosub	all-1	python-statemachine-state-data-s	python-statemachine-state-data-s__T2Aa5fJ	0		0
+copilot-claude-opus-5-max-nosub	all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__QTkD7Am	0		1
+copilot-claude-opus-5-max-nosub	all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__ZJbftTg	0		1
+copilot-claude-opus-5-max-nosub	all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__taDcrm6	0		0
+copilot-claude-opus-5-max-nosub	all-1	query-persist-restored-query-sta	query-persist-restored-query-sta__vGQ97gY	0		1
+copilot-claude-opus-5-max-nosub	all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__SA64EYf	0		0
+copilot-claude-opus-5-max-nosub	all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__dNbiDRH	0		1
+copilot-claude-opus-5-max-nosub	all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__jSuxFtx	0		1
+copilot-claude-opus-5-max-nosub	all-1	quill-shared-toolbar-focus	quill-shared-toolbar-focus__ndvnUQ4	0		1
+copilot-claude-opus-5-max-nosub	all-1	returns-validated-error-accumula	returns-validated-error-accumula__Thh6yVj	0		1
+copilot-claude-opus-5-max-nosub	all-1	returns-validated-error-accumula	returns-validated-error-accumula__hmQDxXN	0		1
+copilot-claude-opus-5-max-nosub	all-1	returns-validated-error-accumula	returns-validated-error-accumula__whrRqtf	0		1
+copilot-claude-opus-5-max-nosub	all-1	returns-validated-error-accumula	returns-validated-error-accumula__yrn5qgg	0		1
+copilot-claude-opus-5-max-nosub	all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__49mF6Zw	0		0
+copilot-claude-opus-5-max-nosub	all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__JxW3V7R	0		0
+copilot-claude-opus-5-max-nosub	all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__fWvKwHz	0		1
+copilot-claude-opus-5-max-nosub	all-1	scc-bounded-memory-spilling	scc-bounded-memory-spilling__p7eKcNY	0		1
+copilot-claude-opus-5-max-nosub	all-1	scriggo-method-declarations	scriggo-method-declarations__9iLejEj	0		1
+copilot-claude-opus-5-max-nosub	all-1	scriggo-method-declarations	scriggo-method-declarations__JvToVxj	0		1
+copilot-claude-opus-5-max-nosub	all-1	scriggo-method-declarations	scriggo-method-declarations__NsEcTq5	0		1
+copilot-claude-opus-5-max-nosub	all-1	scriggo-method-declarations	scriggo-method-declarations__kiug9sj	0		1
+copilot-claude-opus-5-max-nosub	all-1	skrub-duration-encoding	skrub-duration-encoding__mi7aE8r	0		1
+copilot-claude-opus-5-max-nosub	all-1	skrub-duration-encoding	skrub-duration-encoding__qQRBGdz	0		1
+copilot-claude-opus-5-max-nosub	all-1	skrub-duration-encoding	skrub-duration-encoding__qtLdbHo	0		1
+copilot-claude-opus-5-max-nosub	all-1	skrub-duration-encoding	skrub-duration-encoding__uoaKxfN	0		1
+copilot-claude-opus-5-max-nosub	all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__FvhEjHh	0		1
+copilot-claude-opus-5-max-nosub	all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__LgNma8r	0		1
+copilot-claude-opus-5-max-nosub	all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__UShCR4P	0		1
+copilot-claude-opus-5-max-nosub	all-1	sql-formatter-bigquery-pipe-form	sql-formatter-bigquery-pipe-form__eoWLwHg	0		1
+copilot-claude-opus-5-max-nosub	all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__5o3KGPp	0		1
+copilot-claude-opus-5-max-nosub	all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__9GXzoFG	0		0
+copilot-claude-opus-5-max-nosub	all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__BR33NsP	0		0
+copilot-claude-opus-5-max-nosub	all-1	sqlfmt-create-table-ddl-formatti	sqlfmt-create-table-ddl-formatti__W6jp7VQ	0		0
+copilot-claude-opus-5-max-nosub	all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__Ahtzor8	0		1
+copilot-claude-opus-5-max-nosub	all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__BGfHCCq	0		1
+copilot-claude-opus-5-max-nosub	all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__BTWwFHT	0		1
+copilot-claude-opus-5-max-nosub	all-1	sqlite-utils-safe-import-checkpo	sqlite-utils-safe-import-checkpo__oDE9NsG	0		1
+copilot-claude-opus-5-max-nosub	all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__DVi5Kwc	0		0
+copilot-claude-opus-5-max-nosub	all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__H4AULjD	0		0
+copilot-claude-opus-5-max-nosub	all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__XmQJBsy	0		0
+copilot-claude-opus-5-max-nosub	all-1	superjson-error-stack-serializat	superjson-error-stack-serializat__nvc5Hu4	0		0
+copilot-claude-opus-5-max-nosub	all-1	task-task-graph-export	task-task-graph-export__7X6ATfp	0		1
+copilot-claude-opus-5-max-nosub	all-1	task-task-graph-export	task-task-graph-export__abTamjG	0		1
+copilot-claude-opus-5-max-nosub	all-1	task-task-graph-export	task-task-graph-export__hLEQyUx	0		1
+copilot-claude-opus-5-max-nosub	all-1	task-task-graph-export	task-task-graph-export__ppWHg97	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__FVNjBQU	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__QyPvCsS	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__ctiuBXi	0		0
+copilot-claude-opus-5-max-nosub	all-1	tengo-callable-instance-isolatio	tengo-callable-instance-isolatio__r5ETgxj	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__CmQexXw	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__dLYa4Fw	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__fN4zmWC	0		1
+copilot-claude-opus-5-max-nosub	all-1	tengo-destructuring-bindings	tengo-destructuring-bindings__pXt5NSg	0		1
+copilot-claude-opus-5-max-nosub	all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__4DPEYJW	0		0
+copilot-claude-opus-5-max-nosub	all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__4uzVDk4	0		0
+copilot-claude-opus-5-max-nosub	all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__AdBKmWg	0		0
+copilot-claude-opus-5-max-nosub	all-1	termenv-preserve-ansi-resets	termenv-preserve-ansi-resets__w2hMQuS	0		0
+copilot-claude-opus-5-max-nosub	all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__NeodieU	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__QdfCMbm	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__XUZorbc	0		0
+copilot-claude-opus-5-max-nosub	all-1	testem-bail-on-test-failure	testem-bail-on-test-failure__dtEKBsk	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-per-launcher-reports	testem-per-launcher-reports__9VSWg3J	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-per-launcher-reports	testem-per-launcher-reports__Wqt9fKz	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-per-launcher-reports	testem-per-launcher-reports__dbnNQWF	0		1
+copilot-claude-opus-5-max-nosub	all-1	testem-per-launcher-reports	testem-per-launcher-reports__iTmV5Ha	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-kitty-key-phases	textual-kitty-key-phases__9LHv8os	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-kitty-key-phases	textual-kitty-key-phases__QVdnXHU	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-kitty-key-phases	textual-kitty-key-phases__tjmkE7c	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-kitty-key-phases	textual-kitty-key-phases__urm4N2u	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-richlog-follow-state	textual-richlog-follow-state__WhnswNX	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-richlog-follow-state	textual-richlog-follow-state__WofduDP	0		0
+copilot-claude-opus-5-max-nosub	all-1	textual-richlog-follow-state	textual-richlog-follow-state__aLAJG2g	0		1
+copilot-claude-opus-5-max-nosub	all-1	textual-richlog-follow-state	textual-richlog-follow-state__fwLgHHs	0		1
+copilot-claude-opus-5-max-nosub	all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__SQrDb5j	0		1
+copilot-claude-opus-5-max-nosub	all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__hj2wL54	0		1
+copilot-claude-opus-5-max-nosub	all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__xCXigCu	0		1
+copilot-claude-opus-5-max-nosub	all-1	tomlkit-toml-table-converters	tomlkit-toml-table-converters__yNxT3rK	0		1
+copilot-claude-opus-5-max-nosub	all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__4BVBAyC	0		1
+copilot-claude-opus-5-max-nosub	all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__EqYuk5E	0		1
+copilot-claude-opus-5-max-nosub	all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__URrhmek	0		1
+copilot-claude-opus-5-max-nosub	all-1	true-myth-iterable-collection-co	true-myth-iterable-collection-co__jDxuhNj	0		1
+copilot-claude-opus-5-max-nosub	all-1	ts-pattern-match-each	ts-pattern-match-each__7fNv3jx	0		1
+copilot-claude-opus-5-max-nosub	all-1	ts-pattern-match-each	ts-pattern-match-each__YZxQ3n6	0		1
+copilot-claude-opus-5-max-nosub	all-1	ts-pattern-match-each	ts-pattern-match-each__dNyCtaR	0		1
+copilot-claude-opus-5-max-nosub	all-1	ts-pattern-match-each	ts-pattern-match-each__uKUPCFD	0		1
+copilot-claude-opus-5-max-nosub	all-1	updo-policy-alerting	updo-policy-alerting__BJ7HW2u	0		0
+copilot-claude-opus-5-max-nosub	all-1	updo-policy-alerting	updo-policy-alerting__YkHYsXX	0		0
+copilot-claude-opus-5-max-nosub	all-1	updo-policy-alerting	updo-policy-alerting__cvajieK	0		1
+copilot-claude-opus-5-max-nosub	all-1	updo-policy-alerting	updo-policy-alerting__sQhapca	0		1
+copilot-claude-opus-5-max-nosub	all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__NwTPtkQ	0		1
+copilot-claude-opus-5-max-nosub	all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__ZtNecuW	0		1
+copilot-claude-opus-5-max-nosub	all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__giTy3iW	0		1
+copilot-claude-opus-5-max-nosub	all-1	valibot-recursive-schema-composi	valibot-recursive-schema-composi__iHQdRfr	0		1
+copilot-claude-opus-5-max-nosub	all-1	vitest-duration-sharding	vitest-duration-sharding__Amac33w	0		1
+copilot-claude-opus-5-max-nosub	all-1	vitest-duration-sharding	vitest-duration-sharding__P6LzEKV	0		1
+copilot-claude-opus-5-max-nosub	all-1	vitest-duration-sharding	vitest-duration-sharding__fpA9VLN	0		1
+copilot-claude-opus-5-max-nosub	all-1	vitest-duration-sharding	vitest-duration-sharding__sM5KfZ5	0		1
+copilot-claude-opus-5-max-nosub	all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__GVNKLCF	0		0
+copilot-claude-opus-5-max-nosub	all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__N3oDgCx	0		0
+copilot-claude-opus-5-max-nosub	all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__Q6DbkGQ	0		0
+copilot-claude-opus-5-max-nosub	all-1	vulture-persistent-analysis-cach	vulture-persistent-analysis-cach__S8qzKzd	0		0
+copilot-claude-opus-5-max-nosub	all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__BHdTw2P	0		1
+copilot-claude-opus-5-max-nosub	all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__DUdBfAp	0		1
+copilot-claude-opus-5-max-nosub	all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__kz5ohQS	0		1
+copilot-claude-opus-5-max-nosub	all-1	wasmi-trap-coredumps	wasmi-trap-coredumps__sAbiMRf	0		1
+copilot-claude-opus-5-max-nosub	all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__2ruTvTE	0		0
+copilot-claude-opus-5-max-nosub	all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__CPHZUVr	0		0
+copilot-claude-opus-5-max-nosub	all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__JiywsVd	0		1
+copilot-claude-opus-5-max-nosub	all-1	wazero-multi-module-snapshots	wazero-multi-module-snapshots__JsFaKPt	0		1
+copilot-claude-opus-5-max-nosub	all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__2bhA3m5	0		0
+copilot-claude-opus-5-max-nosub	all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__RSJ8tpt	0		0
+copilot-claude-opus-5-max-nosub	all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__WnQcANE	0		1
+copilot-claude-opus-5-max-nosub	all-1	yaegi-go-embed-directives	yaegi-go-embed-directives__ywSggZm	0		0
+copilot-claude-opus-5-max-nosub	all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__2JHCjsq	0		1
+copilot-claude-opus-5-max-nosub	all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__9c5n8hs	0		1
+copilot-claude-opus-5-max-nosub	all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__QhsDxdA	0		1
+copilot-claude-opus-5-max-nosub	all-1	yjs-map-conflict-detection	yjs-map-conflict-detection__ZoC5joP	0		1
+copilot-claude-opus-5-max-nosub	all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__9FqubT6	0		1
+copilot-claude-opus-5-max-nosub	all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__CRKe5Vw	0		1
+copilot-claude-opus-5-max-nosub	all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__GuVRjjY	0		1
+copilot-claude-opus-5-max-nosub	all-1	ytt-jsonpath-query-api	ytt-jsonpath-query-api__QPVT3at	0		1

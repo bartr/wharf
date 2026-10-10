@@ -1,129 +1,206 @@
-# Wharf
+# Data Analytics Repro Guide
 
-Wharf is an enterprise-focused .NET CLI for running trustworthy software
-evaluations on customer-owned infrastructure. The DeepSWE task corpus and
-existing benchmark tooling in this repository are its reference workload.
+This file documents how to reproduce the benchmark comparisons from `data/*.jsonl` with the same metric definitions used in this repo.
 
-## Development
+Scope here:
+- compare `cc-claude-opus-5-max`
+- vs `copilot-claude-opus-5-max`
+- vs `copilot-claude-opus-5-max-nosub`
 
-Wharf requires the .NET 10.0.401 SDK pinned by `global.json`. The executable
-project is under `src/wharf`, with tests under `tests/wharf.Tests`.
+All three use the same base model family (`claude-opus-5-max`) and differ by harness/agent behavior and depth.
 
-Run the complete local validation workflow from a fresh clone with:
+## 1) Canonical analytics rules
 
-```bash
-./scripts/validate-wharf.sh
-```
+Use these definitions consistently:
 
-The command formats and analyzes Wharf C# sources, runs unit and integration
-tests, and builds the executable.
+- Row unit: one trial (`data/<arm>.jsonl` is one JSON object per trial).
+- Task solved (for accuracy): task counts as solved if **any** trial for that task has `reward > 0`.
+- Language accuracy: solved tasks / tasks seen in that language.
+- Cost per task: total `cost_usd` across that language / number of unique tasks in that language.
+- Runtime headline metric (required): **agent-only**, k-normalized per task.
+  - Per task: `task_agent_seconds = sum(agent_seconds for task) / k_task`.
+  - Summary for language/arm: average `task_agent_seconds` across tasks (unweighted by attempts).
+- Validator-inclusive wall time (`trial_seconds`) is optional supporting context, not the primary performance metric.
 
-Release builds can override the source version with:
+## 2) Clean separation: benchmarking vs reporting
 
-```bash
-dotnet build -p:WharfVersion=<semver>
-```
+This repo now treats these as separate phases:
 
-Build a Debian package with checksums and SBOM metadata:
+- Benchmark/export phase (needs `jobs/`): produce `data/<arm>.jsonl` from raw trial dirs.
+- Reporting phase (does NOT need `jobs/`): compute summaries from `data/*.jsonl` only.
 
-```bash
-./scripts/package-wharf.sh <semver> [output-directory]
-```
+If you delete `jobs/` after exporting JSONL, reporting should still work.
 
-Set `SIGNING_KEY` to produce and verify a detached GPG signature. Install or
-upgrade a package with `scripts/wharf-bootstrap.sh`; the wrapper records the
-previous package for `scripts/wharf-rollback.sh` when `dpkg-repack` is
-available.
+## 3) Data export format and regeneration
 
-## Image preparation
+Current export format:
+- analytics files are plain `data/<arm>.jsonl` (not `.jsonl.gz`)
+- index file is `data/manifest.json`
+- manifest size key is `bytes_jsonl`
 
-The `Wharf.Image` library boundary inspects the local Docker image store before
-pulling, coalesces duplicate image requests, and retries only explicit registry
-rate limits with bounded exponential backoff and jitter. Image preparation can
-write versioned evidence to `image-pulls.jsonl` and
-`image-pull-summary.json`. Derived image builds and the complete preparation
-concurrency gate are coordinated by `DerivedImageCoordinator`, which applies
-the configured `P` limit across agent and verifier preparation. Verifier
-commands run after the permit is released. Deterministic cache keys allow
-normal builds to be reused and coalesced; force builds bypass the cache.
-
-## Copilot adapter
-
-The `Wharf.Copilot` boundary validates exact requested/effective CLI versions,
-records native and normalized frontier effort, restricts endpoints to an
-explicit HTTPS allowlist, and supports environment, file, and stdin
-credential sources. Credential values are never included in invocation
-arguments, environment configuration, or redacted command output.
-
-## Agent execution
-
-The `Wharf.Agent` boundary validates separate source and workspace mounts,
-keeps hidden verifier material outside the agent, and provides an unprivileged
-Docker runner with explicit network and mounts. Agent stdout, stderr,
-trajectory, patch, timing, usage, and result evidence are retained. Empty
-patches are recorded as unfinished rather than successful.
-
-## Pristine verification
-
-The `Wharf.Verifier` boundary copies task source into a fresh workspace,
-applies a retained patch, and runs verifier commands sequentially with
-explicit timeouts. Raw command output, the applied patch, and an atomic
-versioned trial result are retained. The verifier never reuses the agent
-workspace.
-
-## Scheduling
-
-The `Wharf.Scheduler` boundary admits attempts deterministically under
-concurrency and trial limits, banks successful logical attempts, skips
-duplicates, exposes lifecycle counts, and records cancellation transitions.
-
-## Phase execution
-
-The `Wharf.Execution` boundary shares preparation capacity while keeping agent and
-verifier execution independent, applies timeout multipliers and overrides, and
-retries only classified infrastructure failures within a bound.
-Infrastructure retry evidence is persisted separately from logical attempts.
-
-## Recovery
-
-The `Wharf.Recovery` boundary replays retained events, resumes only unfinished
-or explicitly retryable logical attempts in stable order, preserves retry
-identity, and reports orphaned live resources for explicit reconciliation.
-
-## Operations
-
-The `Wharf.Operations` boundary provides non-mutating status snapshots,
-bounded graceful stop, targeted ephemeral cleanup, and durable completion or
-blocked notifications. Optional webhook delivery is HTTPS-only.
-
-## Repository layout
-
-- `src/wharf/` contains the executable implementation.
-- `tests/wharf.Tests/` contains automated tests.
-- `docs/` contains requirements, session logs, and retrospectives.
-- `.github/tracking/` contains Research, Plan, Changes, and Review artifacts
-  for implementation sessions.
-
-## Host profiles
-
-`wharf profile` emits a conservative concurrency recommendation for the
-published `on-prem-32` and `on-prem-88` targets. Recommendations never exceed
-the operator-provided `--operator-limit` or `--preparation-limit`, and profiles
-are not considered qualified without retained benchmark evidence.
-
-## Release qualification
-
-Run the automated 0.20.0 qualification checkpoint with:
+If you have full `jobs/` locally and want to regenerate these 3 arms only:
 
 ```bash
-./scripts/qualify-release.sh 0.20.0
+python3 scripts/export_analytics.py \
+  cc-claude-opus-5-max \
+  copilot-claude-opus-5-max \
+  copilot-claude-opus-5-max-nosub
 ```
 
-Set `WHARF_RELEASE_OWNER` to record the accountable operator. The matrix is
-documented in [docs/release-qualification.md](docs/release-qualification.md);
-overnight benchmark and Ubuntu/WSL gates require retained evidence from the
-target infrastructure.
+To export one exact batch without merging other jobs from the same arm:
 
-The first actual MVP/1.0 release is deferred until real `wharf smoke`,
-non-dry-run `wharf run`, and HydraFusion provider support are proven. See
-[`docs/wharf-sessions.md`](docs/wharf-sessions.md) for the follow-on plan.
+```bash
+python3 scripts/export_analytics.py \
+    --job k2-1 \
+    muse-spark-1.2-contributor-ultra
+python3 scripts/build_data_manifest.py
+```
+
+Repeat `--job` to export several batches from the same arm:
+
+```bash
+python3 scripts/export_analytics.py \
+    --job all-1 \
+    --job all-2 \
+    --job all-3 \
+    --job all-4 \
+    --job all-5 \
+    muse-spark-1.2-contributor-xhigh
+python3 scripts/build_data_manifest.py
+```
+
+The Muse export keeps per-trial `cost_usd` null. Its disposable-key dashboard
+reported `$34.62` for the complete 226-trial batch, but did not provide an
+authoritative per-trial allocation. Do not divide or prorate that total into
+row-level cost; use the batch accounting recorded in
+[ANALYTICS.md](../ANALYTICS.md).
+
+Important:
+- `--job` is repeatable, requires at least one arm name, and matches each job name exactly.
+- Running without arm args exports whatever is present under local `jobs/` and rewrites `data/manifest.json` to that subset.
+
+## 4) Reporting-only manifest rebuild (no jobs required)
+
+Use this command to rebuild `data/manifest.json` strictly from `data/*.jsonl`:
+
+```bash
+python3 scripts/build_data_manifest.py
+```
+
+The script intentionally does not read `jobs/`.
+
+## 5) Reproduce the comparison (copy/paste)
+
+Run from repo root:
+
+```bash
+python3 - <<'PY'
+import json, collections, statistics as st
+from pathlib import Path
+
+arms=[
+  'cc-claude-opus-5-max',
+  'copilot-claude-opus-5-max',
+  'copilot-claude-opus-5-max-nosub',
+]
+langs=['go','python','typescript','javascript','rust']
+
+all_rows={}
+for arm in arms:
+    p=Path('data')/(arm+'.jsonl')
+    all_rows[arm]=[json.loads(l) for l in p.read_text().splitlines() if l.strip()]
+
+print('BY_LANGUAGE')
+print('arm\tlanguage\ttasks\tavg_k\taccuracy_pct\tcost_per_task_usd\tagent_h_per_task_norm\tclock_h_per_task_norm')
+for arm in arms:
+    rows=all_rows[arm]
+    by_lang=collections.defaultdict(list)
+    for r in rows:
+        by_lang[r['language']].append(r)
+
+    for lang in langs:
+        rs=by_lang.get(lang,[])
+        by_task=collections.defaultdict(list)
+        for r in rs:
+            by_task[r['task_id']].append(r)
+        if not by_task:
+            print(f"{arm}\t{lang}\t0\t0\tNA\tNA\tNA\tNA")
+            continue
+
+        solved=0
+        total_cost=0.0
+        k_vals=[]
+        task_agent=[]
+        task_clock=[]
+
+        for tid, trs in by_task.items():
+            k=len(trs)
+            k_vals.append(k)
+            rewards=[t.get('reward') for t in trs if t.get('reward') is not None]
+            if rewards and max(rewards) > 0:
+                solved += 1
+            total_cost += sum((t.get('cost_usd') or 0.0) for t in trs)
+            task_agent.append(sum((t.get('agent_seconds') or 0.0) for t in trs)/k)
+            task_clock.append(sum((t.get('trial_seconds') or 0.0) for t in trs)/k)
+
+        n_tasks=len(by_task)
+        print(
+            f"{arm}\t{lang}\t{n_tasks}\t{st.mean(k_vals):.2f}\t"
+            f"{100*solved/n_tasks:.1f}\t{total_cost/n_tasks:.2f}\t"
+            f"{st.mean(task_agent)/3600:.2f}\t{st.mean(task_clock)/3600:.2f}"
+        )
+
+print('\nOVERALL')
+print('arm\ttasks\tavg_k\taccuracy_pct\tcost_per_task_usd\tagent_h_per_task_norm\tclock_h_per_task_norm')
+for arm in arms:
+    rows=all_rows[arm]
+    by_task=collections.defaultdict(list)
+    for r in rows:
+        by_task[r['task_id']].append(r)
+
+    solved=0
+    total_cost=0.0
+    k_vals=[]
+    task_agent=[]
+    task_clock=[]
+
+    for tid, trs in by_task.items():
+        k=len(trs)
+        k_vals.append(k)
+        rewards=[t.get('reward') for t in trs if t.get('reward') is not None]
+        if rewards and max(rewards) > 0:
+            solved += 1
+        total_cost += sum((t.get('cost_usd') or 0.0) for t in trs)
+        task_agent.append(sum((t.get('agent_seconds') or 0.0) for t in trs)/k)
+        task_clock.append(sum((t.get('trial_seconds') or 0.0) for t in trs)/k)
+
+    n_tasks=len(by_task)
+    print(
+        f"{arm}\t{n_tasks}\t{st.mean(k_vals):.2f}\t{100*solved/n_tasks:.1f}\t"
+        f"{total_cost/n_tasks:.2f}\t{st.mean(task_agent)/3600:.2f}\t{st.mean(task_clock)/3600:.2f}"
+    )
+PY
+```
+
+## 6) Expected headline numbers (2026-08-06 snapshot)
+
+Overall (same metric definitions as above):
+
+- `cc-claude-opus-5-max`: accuracy `77.9%`, avg_k `1.93`, cost/task `$25.85`, agent_h/task `0.51`
+- `copilot-claude-opus-5-max`: accuracy `89.4%`, avg_k `4.00`, cost/task `$22.35`, agent_h/task `0.60`
+- `copilot-claude-opus-5-max-nosub`: accuracy `91.2%`, avg_k `4.00`, cost/task `$18.99`, agent_h/task `0.52`
+
+Language-level expected agent_h/task (k-normalized):
+
+- go: cc `0.50`, copilot `0.60`, copilot-nosub `0.52`
+- python: cc `0.48`, copilot `0.60`, copilot-nosub `0.51`
+- typescript: cc `0.51`, copilot `0.58`, copilot-nosub `0.52`
+- javascript: cc `0.44`, copilot `0.48`, copilot-nosub `0.45`
+- rust: cc `0.76`, copilot `0.74`, copilot-nosub `0.68`
+
+## 7) Repro gotchas
+
+- Do not compare wall/task without k-normalization; it mostly measures depth (`k`) rather than per-attempt efficiency.
+- `subagents` in these exports is boolean (`True`/`False`), not per-trial call counts.
+- JS and Rust have only 5 tasks each, so language-level percentages are higher variance.
+- Keep task universe at 113 benchmark tasks. `hello-go` and `hello-py` are harness smoke tests, not benchmark tasks.

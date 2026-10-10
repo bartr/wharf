@@ -902,3 +902,21 @@ All OOMs, timeouts, infrastructure retries, trial retries, and verifier
 outcomes remain in the result. Record the source commit, effective Wharf and
 Copilot versions, manifest, task checksum, and warm/cold Docker state before
 interpreting the run.
+
+### Qualification enhancement list
+
+* Report terminal attempt completion independently from grader-result
+  coverage. A K wave whose 113 attempts all reached a terminal state must show
+  `complete=113/113`, even when only 112 or 111 attempts produced test
+  statistics. Show missing grader results separately and classify their
+  terminal outcomes instead of leaving them looking active.
+* Track queue entry, stage start, and queue duration for every staged
+  operation. Include agent and verifier image builds, workspace preparation,
+  patch application, and agent and verifier cleanup so P-gate pressure can be
+  separated from build, cleanup, and execution time.
+* Add stage-level queue counts and wait-time aggregates to durable status and
+  reporting. Include operation type and K wave so qualification analysis can
+  identify where work is waiting as the run drains.
+* Add a `queued=<count>` field to interactive Wharf progress. Keep it distinct
+  from active occupancy and completed counts, and derive it from structured
+  queue transitions rather than inferred process state.
