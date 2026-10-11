@@ -119,6 +119,7 @@ public sealed class RunService
                 resolvedOutput,
                 BuildJobDirectoryName(
                     configuration.Model,
+                    configuration.Effort,
                     configuration.CliVersion,
                     invocation?.EffectiveVersion));
             Directory.CreateDirectory(jobDirectory);
@@ -1120,9 +1121,10 @@ public sealed class RunService
 
     internal static string BuildJobDirectoryName(
         string model,
+        string effort,
         string requestedVersion,
         string? effectiveVersion) =>
-        $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-max-" +
+        $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-{effort}-" +
         $"{effectiveVersion ?? requestedVersion}";
 
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
