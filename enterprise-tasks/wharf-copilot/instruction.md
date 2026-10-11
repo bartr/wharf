@@ -15,7 +15,8 @@ Expose `CopilotAdapter`, `CopilotInvocation`, `ICopilotCliProbe`, and
 `CopilotAdapterOptions`. Also expose `CopilotCredentialSourceKind` with exactly
 three enum values, `CopilotCredentialSource` with a public `Validate` method,
 and `CopilotAdapterException`. `CopilotInvocation` must expose public
-`EffectiveVersion`, `RedactedCommand`, and `SubagentModels` properties.
+`string EffectiveVersion`, `string RedactedCommand`, and
+`IReadOnlyList<string> SubagentModels` properties.
 
 Use these historical public shapes:
 

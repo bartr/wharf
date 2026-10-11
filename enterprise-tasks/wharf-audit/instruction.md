@@ -45,7 +45,8 @@ Use the target release's measurement and scoring shapes:
 PASS@1 uses the lowest-numbered attempt for each expected task. Each attempt's
 enterprise score is 80 times clamped new-test coverage plus 20 for a pass, and
 is zero when existing tests regress. Missing or invalid cost evidence makes
-aggregate cost null and completeness false.
+aggregate cost null and completeness false. Zero-state cost evidence also
+makes aggregate cost null, but does not make completeness false.
 
 Before finishing, build the solution and resolve all compilation errors in the
 implementation.
