@@ -1,0 +1,101 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,96 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsVerifierContractsAndSchema()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.VerifierRequest"));
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.VerifierCommandResult"));
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.TrialResult"));
++        Type? schema = assembly.GetType("Wharf.Verifier.TrialResultSchema");
++        Assert.Equal("1.0", schema?.GetField("Version")?.GetValue(null));
++    }
++
++    [Fact]
++    public void RejectsAgentWorkspaceReuse()
++    {
++        using TemporaryDirectory source = new();
++        object request = CreateRequest(source.Path, source.Path, ["VERIFIER_TOKEN"]);
++
++        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
++            () => request.GetType().GetMethod("Validate")!.Invoke(request, null));
++
++        Assert.Equal("VerifierExecutionException", exception.InnerException?.GetType().Name);
++    }
++
++    [Fact]
++    public void RejectsMalformedCredentialEnvironmentNames()
++    {
++        using TemporaryDirectory source = new();
++        using TemporaryDirectory agent = new();
++        object request = CreateRequest(source.Path, agent.Path, ["BAD-NAME"]);
++
++        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
++            () => request.GetType().GetMethod("Validate")!.Invoke(request, null));
++
++        Assert.Equal("VerifierExecutionException", exception.InnerException?.GetType().Name);
++    }
++
++    [Fact]
++    public void ExposesPristineVerificationService()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type service = assembly.GetType("Wharf.Verifier.PristineVerifierService")!;
++
++        Assert.NotNull(service);
++        Assert.NotNull(service.GetMethod("VerifyAsync"));
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPristineWorkspaceFactory"));
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPatchApplier"));
++        Assert.NotNull(assembly.GetType("Wharf.Verifier.IVerifierRunner"));
++    }
++
++    private static object CreateRequest(
++        string source,
++        string agent,
++        IReadOnlyList<string> credentials)
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type commandType = assembly.GetType("Wharf.Verifier.VerifierCommand")!;
++        Type requestType = assembly.GetType("Wharf.Verifier.VerifierRequest")!;
++        object command = Activator.CreateInstance(
++            commandType,
++            "check",
++            "true",
++            TimeSpan.FromSeconds(1))!;
++        Array commands = Array.CreateInstance(commandType, 1);
++        commands.SetValue(command, 0);
++        return Activator.CreateInstance(
++            requestType,
++            "task-1",
++            source,
++            agent,
++            "no-network",
++            commands,
++            Array.Empty<string>(),
++            credentials)!;
++    }
++
++    private sealed class TemporaryDirectory : IDisposable
++    {
++        public TemporaryDirectory()
++        {
++            Path = System.IO.Path.Combine(
++                System.IO.Path.GetTempPath(),
++                $"wharf-verifier-test-{Guid.NewGuid():N}");
++            Directory.CreateDirectory(Path);
++        }
++
++        public string Path { get; }
++
++        public void Dispose() => Directory.Delete(Path, recursive: true);
++    }
++}

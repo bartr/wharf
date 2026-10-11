@@ -1,0 +1,44 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+index 0000000..7c73538
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,38 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsPackagingScriptsWithSupplyChainControls()
++    {
++        string root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
++        string package = Path.Combine(root, "scripts/package-wharf.sh");
++        string bootstrap = Path.Combine(root, "scripts/wharf-bootstrap.sh");
++        string rollback = Path.Combine(root, "scripts/wharf-rollback.sh");
++        Assert.True(File.Exists(package));
++        Assert.True(File.Exists(bootstrap));
++        Assert.True(File.Exists(rollback));
++        Assert.Contains("dpkg-deb --build", File.ReadAllText(package));
++        Assert.Contains("sha256sum", File.ReadAllText(package));
++        Assert.Contains("SBOM", File.ReadAllText(package));
++    }
++
++    [Fact]
++    public void KeepsPrivilegeAndRollbackBoundariesExplicit()
++    {
++        string root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
++        Assert.Contains("exec sudo", File.ReadAllText(Path.Combine(root, "scripts/wharf-bootstrap.sh")));
++        Assert.Contains("exec sudo", File.ReadAllText(Path.Combine(root, "scripts/wharf-rollback.sh")));
++        Assert.Contains("previous.deb", File.ReadAllText(Path.Combine(root, "scripts/wharf-rollback.sh")));
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++    }
++}

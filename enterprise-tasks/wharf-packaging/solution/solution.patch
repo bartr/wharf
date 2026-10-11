@@ -1,0 +1,123 @@
+diff --git a/scripts/package-wharf.sh b/scripts/package-wharf.sh
+new file mode 100755
+index 0000000..cd04722
+--- /dev/null
++++ b/scripts/package-wharf.sh
+@@ -0,0 +1,71 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++VERSION="${1:-}"
++OUTPUT="${2:-dist}"
++if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
++  echo "usage: $0 VERSION [OUTPUT_DIRECTORY]" >&2
++  exit 2
++fi
++
++ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++OUTPUT="$(mkdir -p "$OUTPUT" && cd "$OUTPUT" && pwd)"
++WORK="$(mktemp -d)"
++trap 'rm -rf "$WORK"' EXIT
++PACKAGE_ROOT="$WORK/package"
++mkdir -p "$PACKAGE_ROOT/DEBIAN" "$PACKAGE_ROOT/usr/bin" "$PACKAGE_ROOT/usr/lib/wharf" \
++  "$PACKAGE_ROOT/usr/share/doc/wharf" "$PACKAGE_ROOT/usr/share/wharf"
++
++dotnet publish "$ROOT/src/wharf/wharf.csproj" --configuration Release --no-restore \
++  -p:WharfVersion="$VERSION" --output "$WORK/publish" >/dev/null
++cp "$WORK/publish/wharf" "$PACKAGE_ROOT/usr/lib/wharf/wharf"
++chmod 0755 "$PACKAGE_ROOT/usr/lib/wharf/wharf"
++ln -s ../lib/wharf/wharf "$PACKAGE_ROOT/usr/bin/wharf"
++cp "$ROOT/scripts/wharf-bootstrap.sh" "$PACKAGE_ROOT/usr/share/wharf/bootstrap.sh"
++cp "$ROOT/README.md" "$PACKAGE_ROOT/usr/share/doc/wharf/README.md"
++cat > "$PACKAGE_ROOT/DEBIAN/control" <<EOF
++Package: wharf
++Version: $VERSION
++Section: utils
++Priority: optional
++Architecture: amd64
++Depends: dotnet-runtime-10.0
++Maintainer: Wharf maintainers
++Description: Trustworthy software evaluation CLI
++EOF
++cat > "$PACKAGE_ROOT/DEBIAN/postinst" <<'EOF'
++#!/bin/sh
++set -eu
++chmod 0755 /usr/lib/wharf/wharf
++EOF
++chmod 0755 "$PACKAGE_ROOT/DEBIAN/postinst"
++
++PACKAGE="$OUTPUT/wharf_${VERSION}_amd64.deb"
++dpkg-deb --build --root-owner-group "$PACKAGE_ROOT" "$PACKAGE" >/dev/null
++(
++  cd "$OUTPUT"
++  sha256sum "$(basename "$PACKAGE")" > SHA256SUMS
++  python3 - "$PACKAGE" "$VERSION" > SBOM.json <<'PY'
++import hashlib, json, pathlib, sys
++package = pathlib.Path(sys.argv[1])
++print(json.dumps({
++    "bomFormat": "CycloneDX",
++    "specVersion": "1.5",
++    "version": 1,
++    "metadata": {"component": {"name": "wharf", "version": sys.argv[2]}},
++    "components": [{
++        "type": "file",
++        "name": path.name,
++        "version": sys.argv[2],
++        "hashes": [{"alg": "SHA-256", "content": hashlib.sha256(path.read_bytes()).hexdigest()}]
++    } for path in sorted(package.parent.glob("*")) if path.is_file() and path.name != "SBOM.json"]
++}, sort_keys=True, indent=2))
++PY
++  if [[ -n "${SIGNING_KEY:-}" ]]; then
++    gpg --batch --yes --local-user "$SIGNING_KEY" --detach-sign --armor "$PACKAGE"
++    gpg --batch --verify "$PACKAGE.asc" "$PACKAGE"
++  else
++    echo "unsigned: set SIGNING_KEY to create and verify a detached signature" > SIGNING.txt
++  fi
++)
++echo "$PACKAGE"
+diff --git a/scripts/wharf-bootstrap.sh b/scripts/wharf-bootstrap.sh
+new file mode 100755
+index 0000000..8c59a67
+--- /dev/null
++++ b/scripts/wharf-bootstrap.sh
+@@ -0,0 +1,21 @@
++#!/usr/bin/env bash
++set -euo pipefail
++
++PACKAGE="${1:-}"
++if [[ -z "$PACKAGE" || ! -f "$PACKAGE" ]]; then
++  echo "usage: $0 PACKAGE.deb" >&2
++  exit 2
++fi
++if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
++  exec sudo "$0" "$@"
++fi
++
++STATE=/var/lib/wharf
++mkdir -p "$STATE"
++if dpkg-query -W -f='${Status}' wharf 2>/dev/null | grep -q 'install ok installed'; then
++  dpkg-query -W -f='${Version}' wharf > "$STATE/previous-version"
++  dpkg-repack wharf > "$STATE/previous.deb"
++fi
++dpkg --install "$PACKAGE"
++dpkg-query -W -f='${Version}\n' wharf > "$STATE/current-version"
++echo "installed wharf $(cat "$STATE/current-version")"
+diff --git a/scripts/wharf-rollback.sh b/scripts/wharf-rollback.sh
+new file mode 100755
+index 0000000..fe6fc4a
+--- /dev/null
++++ b/scripts/wharf-rollback.sh
+@@ -0,0 +1,13 @@
++#!/usr/bin/env bash
++set -euo pipefail
++STATE=/var/lib/wharf
++if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
++  exec sudo "$0" "$@"
++fi
++if [[ ! -s "$STATE/previous.deb" ]]; then
++  echo "no previous Wharf package is available for rollback" >&2
++  exit 2
++fi
++dpkg --install "$STATE/previous.deb"
++dpkg-query -W -f='${Version}\n' wharf > "$STATE/current-version"
++echo "rolled back wharf $(cat "$STATE/current-version")"

@@ -1,0 +1,44 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,39 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsDerivedImageCoordinatorBoundary()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageCoordinator"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.IDerivedImageBackend"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageRequest"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageResult"));
++    }
++
++    [Fact]
++    public void ExposesDeterministicDerivedImageCacheKey()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type cache = assembly.GetType("Wharf.Image.DerivedImageCacheKey")!;
++        Assert.NotNull(cache.GetMethod("Create", BindingFlags.Public | BindingFlags.Static));
++        Type request = assembly.GetType("Wharf.Image.DerivedImageRequest")!;
++        Assert.NotNull(request.GetMethod("Validate"));
++    }
++
++    [Fact]
++    public void RejectsInvalidDerivedImageRequests()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type request = assembly.GetType("Wharf.Image.DerivedImageRequest")!;
++        object value = Activator.CreateInstance(
++            request, "", Array.Empty<string>(),
++            new Dictionary<string, string>(), new Dictionary<string, string>(), false)!;
++        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
++            () => request.GetMethod("Validate")!.Invoke(value, null));
++        Assert.Equal("ArgumentException", exception.InnerException?.GetType().Name);
++    }
++}

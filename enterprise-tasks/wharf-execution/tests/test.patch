@@ -1,0 +1,40 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+index 0000000..750e9bb
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,34 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsHistoricalContracts()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseExecutionService"));
++        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseExecutionResult`1"));
++        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseResourceLimits"));
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type type = assembly.GetType("Wharf.Execution.PhaseExecutionService")!;
++        Assert.NotNull(type);
++        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
++        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseTimeoutPolicy"));
++        Assert.NotNull(assembly.GetType("Wharf.Execution.InfrastructureRetryPolicy"));
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++    }
++}

@@ -1,0 +1,39 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+index 0000000..ed588ff
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,33 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsHistoricalContracts()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Audit.AuditScorer"));
++        Assert.NotNull(assembly.GetType("Wharf.Audit.AuditRun"));
++        Assert.NotNull(assembly.GetType("Wharf.Audit.AuditReport"));
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type type = assembly.GetType("Wharf.Audit.AuditScorer")!;
++        Assert.NotNull(type);
++        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
++        Assert.NotNull(assembly.GetType("Wharf.Audit.MeasurementState"));
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++    }
++}

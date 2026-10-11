@@ -1,0 +1,42 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,37 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsIsolatedAgentExecutionBoundary()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionService"));
++        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionRequest"));
++        Assert.NotNull(assembly.GetType("Wharf.Agent.IAgentRunner"));
++        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentRunResult"));
++    }
++
++    [Fact]
++    public void AddsVersionedAgentEvidenceContract()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type schema = assembly.GetType("Wharf.Agent.AgentEvidenceSchema")!;
++        Assert.Equal("1.0", schema.GetField("Version")?.GetValue(null));
++        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentEvidenceSummary"));
++        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionException"));
++    }
++
++    [Fact]
++    public void AgentRequestExposesHiddenPathAndWorkspaceFields()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type request = assembly.GetType("Wharf.Agent.AgentExecutionRequest")!;
++        Assert.NotNull(request.GetMethod("Validate"));
++        Assert.NotNull(request.GetProperty("SourceDirectory"));
++        Assert.NotNull(request.GetProperty("WorkspaceDirectory"));
++        Assert.NotNull(request.GetProperty("HiddenPaths"));
++    }
++}

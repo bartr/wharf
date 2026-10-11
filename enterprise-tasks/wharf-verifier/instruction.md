@@ -1,0 +1,44 @@
+The Wharf 0.9.0 release has agent execution but no verifier boundary. Add the
+pristine verifier execution vertical slice from the next release.
+
+Use the historical public contract below. These names and signatures are part
+of the task contract; do not replace them with alternate names such as
+`VerifierExecutionRequest`.
+
+Required types in the `Wharf.Verifier` namespace:
+
+- `VerifierCommand(string Name, string Command, TimeSpan Timeout)`
+- `VerifierRequest(string TaskId, string SourceDirectory,
+  string AgentWorkspaceDirectory, string Network,
+  IReadOnlyList<VerifierCommand> Commands,
+  IReadOnlyList<string> HiddenPaths,
+  IReadOnlyList<string> CredentialEnvironmentVariables)`
+- `VerifierCommandResult` with name, exit code, stdout, stderr, duration in
+  milliseconds, and timeout status
+- `TrialResult` with schema version, task ID, status, verifier workspace,
+  command results, and applied patch path
+- `VerifierExecutionException`
+- `TrialResultSchema.Version`, equal to `"1.0"`
+- `IPristineWorkspaceFactory`, `IPatchApplier`, and `IVerifierRunner`
+- `PristineVerifierService.VerifyAsync(...)`
+
+`VerifierRequest.Validate()` must reject malformed credential environment
+variable names as well as invalid paths, commands, and workspace reuse.
+
+Implement the verifier boundary so that it:
+
+- validates task, source, agent workspace, network, command, and hidden-path
+  inputs;
+- copies the task source into a fresh workspace before applying the retained
+  agent patch;
+- runs verifier commands sequentially with explicit timeouts;
+- retains each command's stdout, stderr, exit code, duration, and timeout
+  status;
+- stops after the first failed command;
+- atomically persists a versioned `trial-result.json`;
+- rejects empty patches before creating trial evidence.
+
+Keep the agent workspace separate from the pristine verifier workspace and do
+not modify the existing test files.
+
+IMPORTANT: Commit everything when you are done.

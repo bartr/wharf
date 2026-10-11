@@ -1,0 +1,22 @@
+{
+  "base_commit": "7a93fbf7f87e8526b946b188fbda55b6d1ecfcea",
+  "f2p_node_ids": [
+    "WharfRelease.DeepSweWharfTests.AddsHistoricalContracts",
+    "WharfRelease.DeepSweWharfTests.ExposesExpectedBoundaryOperations",
+    "WharfRelease.DeepSweWharfTests.PreservesExistingReleaseAssembly"
+  ],
+  "p2p_node_ids": [
+    "WharfRelease.RunConfigurationTests.PrecedenceIsFlagThenEnvironmentThenManifestThenDefault"
+  ],
+  "grade": {
+    "format": "ctrf",
+    "node_id": "suite.name",
+    "tool_label": "dotnet-smoke-runner",
+    "reports": [
+      "/logs/verifier/base-ctrf.json",
+      "/logs/verifier/contracts-ctrf.json",
+      "/logs/verifier/operations-ctrf.json",
+      "/logs/verifier/compatibility-ctrf.json"
+    ]
+  }
+}

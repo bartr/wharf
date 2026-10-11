@@ -1,0 +1,39 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+index 0000000..a408e35
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,33 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsHistoricalContracts()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Scheduler.DeterministicScheduler"));
++        Assert.NotNull(assembly.GetType("Wharf.Scheduler.SchedulerResult"));
++        Assert.NotNull(assembly.GetType("Wharf.Scheduler.ITrialRunner"));
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type type = assembly.GetType("Wharf.Scheduler.DeterministicScheduler")!;
++        Assert.NotNull(type);
++        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
++        Assert.NotNull(assembly.GetType("Wharf.Scheduler.ISchedulerEventSink"));
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
++        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++    }
++}

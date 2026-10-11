@@ -1,0 +1,42 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,37 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsCopilotAdapterBoundary()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapter"));
++        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotInvocation"));
++        Assert.NotNull(assembly.GetType("Wharf.Copilot.ICopilotCliProbe"));
++        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapterOptions"));
++    }
++
++    [Fact]
++    public void AddsCredentialSourceKindsAndValidationTypes()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type kind = assembly.GetType("Wharf.Copilot.CopilotCredentialSourceKind")!;
++        Assert.Equal(3, Enum.GetNames(kind).Length);
++        Type source = assembly.GetType("Wharf.Copilot.CopilotCredentialSource")!;
++        Assert.NotNull(source.GetMethod("Validate"));
++        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapterException"));
++    }
++
++    [Fact]
++    public void InvocationCarriesEffectiveVersionAndRedactedCommand()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type invocation = assembly.GetType("Wharf.Copilot.CopilotInvocation")!;
++        Assert.NotNull(invocation.GetProperty("EffectiveVersion"));
++        Assert.NotNull(invocation.GetProperty("RedactedCommand"));
++        Assert.NotNull(invocation.GetProperty("SubagentModels"));
++    }
++}

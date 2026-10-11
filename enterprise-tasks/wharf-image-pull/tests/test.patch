@@ -1,0 +1,45 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,40 @@
++using System.Reflection;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsImagePullBoundaryAndTelemetryContracts()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImagePullCoordinator"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImagePullOptions"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.IImagePullTelemetry"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.IImageClient"));
++        Type schema = assembly.GetType("Wharf.Image.ImagePullSchema")!;
++        Assert.Equal("1.0", schema.GetField("Version")?.GetValue(null));
++    }
++
++    [Fact]
++    public void RejectsInvalidPullRetryOptions()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Type options = assembly.GetType("Wharf.Image.ImagePullOptions")!;
++        object value = Activator.CreateInstance(
++            options, 0, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), 0.2)!;
++        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
++            () => options.GetMethod("Validate")!.Invoke(value, null));
++        Assert.Equal("ArgumentOutOfRangeException", exception.InnerException?.GetType().Name);
++    }
++
++    [Fact]
++    public void ExposesRateLimitResultAndSummaryRecords()
++    {
++        Assembly assembly = Assembly.Load("wharf");
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImagePullAttempt"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImagePullResult"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImageRateLimitEvent"));
++        Assert.NotNull(assembly.GetType("Wharf.Image.ImagePullSummary"));
++    }
++}

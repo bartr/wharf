@@ -1,0 +1,41 @@
+schema_version = "1.3"
+artifacts = ["/logs/artifacts/model.patch"]
+[task]
+name = "wharf/wharf-agent"
+description = "Isolated agent execution task based on the Wharf 0.8.0 release source."
+authors = []
+keywords = ["wharf", "release", "agent", "evidence"]
+[metadata]
+task_id = "wharf-agent"
+display_title = "Implement isolated agent execution"
+display_description = "Add the agent execution boundary with isolated workspaces, evidence capture, and result summaries."
+original_title = "Wharf 0.9 isolated agent execution"
+category = "feature"
+language = "csharp"
+base_commit_hash = "47c4490bf5a31a99f886755afa16f6af44088dd7"
+[verifier]
+network_mode = "no-network"
+environment_mode = "separate"
+timeout_sec = 1800.0
+
+[verifier.env]
+[verifier.environment]
+build_timeout_sec = 1800.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 20480
+
+[agent]
+network_mode = "no-network"
+timeout_sec = 1800.0
+[environment]
+build_timeout_sec = 1800.0
+os = "linux"
+cpus = 2
+memory_mb = 4096
+storage_mb = 20480
+gpus = 0
+mcp_servers = []
+
+[environment.env]
+[solution.env]
