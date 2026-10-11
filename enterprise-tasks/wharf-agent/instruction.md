@@ -10,7 +10,14 @@ Implement agent execution so that it:
 - classifies empty patches as unfinished rather than success;
 - preserves evidence before reporting execution failures.
 
+Preserve the historical public contract in the `Wharf.Agent` namespace.
+Expose `AgentExecutionService`, `AgentExecutionRequest`, `IAgentRunner`,
+`AgentRunResult`, `AgentEvidenceSchema`, `AgentEvidenceSummary`, and
+`AgentExecutionException`. `AgentExecutionRequest` must expose public
+`WorkspaceDirectory` and `HiddenPaths` properties.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 
-IMPORTANT: Commit everything when you are done.
+Do not commit changes. The evaluator captures the working-tree patch after
+implementation.

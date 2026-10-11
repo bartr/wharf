@@ -9,5 +9,11 @@ retain explicit errors rather than silent fallbacks.
 The implementation should match the target release's public API and tests for
 this boundary. Keep unrelated workflow artifacts out of the change.
 
-IMPORTANT: Do not commit changes. The evaluator captures the working-tree
-patch after implementation.
+Preserve the historical public contract in the `Wharf.Qualification`
+namespace. Expose `HostProfiles`, `HostProfileService`,
+`QualificationReport`, and `QualificationEvidence`, while preserving the
+existing `Wharf.Configuration.RunConfiguration` and
+`Wharf.Configuration.WharfConfiguration` types.
+
+Do not commit changes. The evaluator captures the working-tree patch after
+implementation.

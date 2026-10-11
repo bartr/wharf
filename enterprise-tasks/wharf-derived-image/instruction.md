@@ -11,7 +11,16 @@ Implement derived-image coordination so that it:
 - lets caller cancellation stop only that caller's wait;
 - removes failed in-flight operations so later attempts can retry.
 
+Preserve the historical public contract from 0.7.0. The implementation must
+expose `Wharf.Image.DerivedImageCoordinator`,
+`Wharf.Image.IDerivedImageBackend`, `Wharf.Image.DerivedImageRequest`,
+`Wharf.Image.DerivedImageResult`, and
+`Wharf.Image.DerivedImageCacheKey`. `DerivedImageCacheKey` must expose a public
+static `Create` method accepting a `DerivedImageRequest`; the request must
+expose a public `Validate` method that rejects invalid requests.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 
-IMPORTANT: Commit everything when you are done.
+Do not commit changes. The evaluator captures the working-tree patch after
+implementation.
