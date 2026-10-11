@@ -11,6 +11,87 @@ public sealed class DockerAgentImagePreparerTests
     private const string TaskId = "aiomonitor-task-snapshots-diff";
 
     [Fact]
+    public void BuildsAgentCacheWithLinkedCliPayload()
+    {
+        string dockerfile = DockerAgentImagePreparer.BuildAgentCacheDockerfile(
+            "registry.example.test/task@sha256:abc",
+            "wharf-copilot-cli:1.0.95-linux-amd64-v1",
+            "1.0.95",
+            "cache-key");
+
+        Assert.Contains(
+            "COPY --link --from=cli /opt/wharf/copilot /opt/wharf/copilot",
+            dockerfile,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "ENV PATH=\"/opt/wharf/copilot/node_modules/.bin:${PATH}\"",
+            dockerfile,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "LABEL com.bartr.wharf.cache-key=\"cache-key\"",
+            dockerfile,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildsVersionedCopilotPayloadWithLinkedScratchLayer()
+    {
+        string dockerfile = DockerAgentImagePreparer.BuildCopilotPayloadDockerfile(
+            "registry.example.test/task:1",
+            "1.0.95");
+
+        Assert.Contains("FROM scratch", dockerfile, StringComparison.Ordinal);
+        Assert.Contains(
+            "npm install --prefix /opt/wharf/copilot --no-fund --no-audit " +
+            "@github/copilot@1.0.95",
+            dockerfile,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "COPY --link --from=installer /opt/wharf/copilot /opt/wharf/copilot",
+            dockerfile,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".version !== '1.0.95'",
+            dockerfile,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NamesCopilotCacheByExactVersionPlatformAndRecipe()
+    {
+        string image = DockerAgentImagePreparer.BuildCopilotCacheImageName("1.0.95");
+
+        Assert.StartsWith("wharf-copilot-cli:1.0.95-linux-", image, StringComparison.Ordinal);
+        Assert.EndsWith("-v1", image, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReadsConfiguredEcrBaseWithoutLocalSubstitution()
+    {
+        string dockerfile = Path.Combine(
+            FindRepositoryRoot(),
+            "smoke-tasks",
+            "smoke-go",
+            "environment",
+            "Dockerfile");
+
+        string image = DockerAgentImagePreparer.ReadBaseImage(dockerfile);
+
+        Assert.Equal("public.ecr.aws/x8v8d7g8/mars-base:latest", image);
+    }
+
+    [Fact]
+    public void SanitizesSupportedVersionMetadataForDockerTag()
+    {
+        string image = DockerAgentImagePreparer.BuildCopilotCacheImageName("1.2.3-rc.1+build.4");
+
+        Assert.StartsWith(
+            "wharf-copilot-cli:1.2.3-rc.1-build.4-linux-",
+            image,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task EnvironmentImageTaskBuildsAndRemovesUniqueTrialImage()
     {
         string repositoryRoot = FindRepositoryRoot();

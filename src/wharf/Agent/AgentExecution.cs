@@ -403,7 +403,7 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
         arguments.Add(
-            "export PATH=/workspace/.wharf-copilot/node_modules/.bin:$PATH; " +
+            "export PATH=/opt/wharf/copilot/node_modules/.bin:$PATH; " +
             "cd /workspace/; " +
             "\"$@\" >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
             "status=$?; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
@@ -820,12 +820,15 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             containerName,
             "/bin/bash",
             "-lc",
-            "if ! command -v npm >/dev/null 2>&1; then " +
-            "echo 'Copilot installation requires npm (Node.js 22+).' >&2; exit 127; fi; " +
-            "mkdir -p /home/wharf/.cache /workspace/.wharf-copilot; " +
-            $"npm install --prefix /workspace/.wharf-copilot --no-fund --no-audit " +
-            $"@github/copilot@{request.Invocation.EffectiveVersion} >/workspace/.wharf-copilot-install.log 2>&1 || " +
-            "{ cat /workspace/.wharf-copilot-install.log >&2; exit 127; }"
+            "if ! command -v node >/dev/null 2>&1; then " +
+            "echo 'Cached Copilot CLI requires Node.js 22+.' >&2; exit 127; fi; " +
+            "package=/opt/wharf/copilot/node_modules/@github/copilot/package.json; " +
+            "if [ ! -f \"$package\" ]; then " +
+            "echo 'Cached Copilot CLI package is missing.' >&2; exit 127; fi; " +
+            "actual=$(node -p \"require('$package').version\") || exit 127; " +
+            $"if [ \"$actual\" != \"{request.Invocation.EffectiveVersion}\" ]; then " +
+            $"echo 'Cached Copilot CLI version mismatch: expected " +
+            $"{request.Invocation.EffectiveVersion}, found '\"$actual\" >&2; exit 127; fi"
         ];
 
     internal static void EnsureSuccessful(DockerProcessResult result, string stage)

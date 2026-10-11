@@ -192,7 +192,7 @@ public sealed class AgentExecutionTests
     }
 
     [Fact]
-    public void InstallsCopilotAsUid1000DuringWorkspacePreparation()
+    public void ValidatesCachedCopilotAsUid1000DuringWorkspacePreparation()
     {
         using TemporaryDirectory source = new();
         using TemporaryDirectory workspace = new();
@@ -208,8 +208,13 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(arguments, "--env", "HOME=/home/wharf");
         AssertArgumentsContain(arguments, "--env", "XDG_CACHE_HOME=/home/wharf/.cache");
         Assert.Contains(arguments, argument =>
-            argument.Contains("npm install", StringComparison.Ordinal) &&
-            argument.Contains("@github/copilot@1.2.3", StringComparison.Ordinal));
+            argument.Contains(
+                "/opt/wharf/copilot/node_modules/@github/copilot/package.json",
+                StringComparison.Ordinal) &&
+            argument.Contains("expected 1.2.3", StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            arguments,
+            argument => argument.Contains("npm install", StringComparison.Ordinal));
         Assert.DoesNotContain(
             arguments,
             argument => argument.Contains("HOME=/workspace", StringComparison.Ordinal));
@@ -240,6 +245,11 @@ public sealed class AgentExecutionTests
             argument => argument.Contains("HOME=/workspace", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, argument => argument.Contains("cp -a /app", StringComparison.Ordinal));
         Assert.DoesNotContain(arguments, argument => argument.Contains("npm install", StringComparison.Ordinal));
+        Assert.Contains(
+            arguments,
+            argument => argument.Contains(
+                "PATH=/opt/wharf/copilot/node_modules/.bin:$PATH",
+                StringComparison.Ordinal));
     }
 
     [Fact]

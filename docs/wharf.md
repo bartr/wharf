@@ -50,10 +50,16 @@ container and reuse the task's configured environment image. After MVP,
 
 - Build a local, version-pinned agent image from each task environment image.
 - Install the requested Copilot CLI and its runtime dependencies in the
-  derived image rather than during every agent startup.
+  derived image rather than during every agent startup. Retain one local
+  `wharf-copilot-cli` payload image per exact CLI version and platform, then
+  compose it onto each configured task image with a BuildKit `COPY --link`
+  layer. Retain the composed `wharf-agent-cache` image across logical trials
+  and future runs.
 - For the mountless Docker spike, use the derived image only for its logical
   trial and remove it after trial evidence is complete. Preserve the configured
-  base image and every pulled ECR environment image.
+  base image, every pulled ECR environment image, versioned CLI payload images,
+  and composed agent cache images. Register only uniquely named trial children
+  for automatic cleanup.
 - Create agent containers without host bind mounts or named volumes. Initialize
   `/workspace`, `/home/wharf`, and `/logs/agent` inside the container, then
   assign them to UID/GID `1000:1000`. Run Copilot and all task commands as that
@@ -422,9 +428,9 @@ container and reuse the task's configured environment image. After MVP,
 - Verify that Docker can allocate a trial network before a run.
 - Remove only unused stale trial networks during preflight.
 - Detect insufficient disk, memory, file descriptors, PIDs, and network capacity before launch.
-- Preserve the required local `mars-base` override until DeepSWE no longer needs it.
-- Rewrite the generated DeepSWE agent build context to use the local `mars-base` override without editing task definitions.
-- Fail before a run when a required local base image is missing.
+- Use each task Dockerfile's configured base image without local substitution.
+- Inspect the local image store before pulling a missing configured base image.
+- Fail before agent execution when a configured base image cannot be prepared.
 
 ## Image pulls and builds
 

@@ -246,7 +246,8 @@ public sealed class RunService
                                             Path.Combine(trialDirectory, "agent"),
                                             requestedImage,
                                             message => logger.Info($"{prefix} status={message}"),
-                                            buildTimeout.Token);
+                                            buildTimeout.Token,
+                                            invocation?.EffectiveVersion);
                                     removeAgentImage = string.Equals(
                                         image,
                                         requestedImage,
