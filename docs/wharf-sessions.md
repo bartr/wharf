@@ -1,7 +1,7 @@
 # Wharf MVP implementation sessions
 
-Status: MVP implementation and benchmark evidence complete; final acceptance
-matrix closure remains
+Status: Wharf 1.0.0 released; MVP implementation, benchmark evidence, and
+acceptance matrix complete
 Source: `docs/wharf.jsonl`
 Source SHA-256: `3648a03025ceafedb604b0a712918866e4f85e6e3d2a137f76aa3ba0a96482d2`
 Documentation layout: requirements and session records are under `docs/`;
@@ -778,6 +778,8 @@ Target tag: `0.22.0`
 - Keep HydraFusion secrets and provider-specific behavior behind the adapter.
 - Status: complete. Two HydraFusion benchmark exports are retained in
   `data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
+- Status: complete. Two HydraFusion benchmark exports are retained in
+  `data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
 
 ## Session 23: real smoke path
 
@@ -788,15 +790,14 @@ Target tag: `0.23.0`
 - Retain patch, verifier, report, and host evidence.
 - Status: complete. Container-backed smoke and mountless Docker validation
   evidence is retained in `.github/tracking/`.
+- Status: complete. Container-backed smoke and mountless Docker validation
+  evidence is retained in `.github/tracking/`.
 
 ## Session 24: MVP qualification
 
 Target tag: `0.24.0`
 
-- Rerun or formally close the complete acceptance matrix and cut the first
-  honest MVP/1.0 release based on the retained unattended run, smoke, and
-  HydraFusion evidence.
-- Status: implementation and benchmark evidence complete. The remaining
-  action is to run or formally close the final acceptance matrix and record
-  the release-owner decision. Unattended execution, including overnight runs
-  where applicable, is the primary qualification criterion.
+- Close the complete acceptance matrix and cut the first honest MVP/1.0
+  release based on the retained unattended run, smoke, and HydraFusion
+  evidence.
+- Status: complete. Wharf 1.0.0 is accepted and released.

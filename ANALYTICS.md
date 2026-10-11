@@ -543,13 +543,12 @@ Auto selected for an individual trial, so the result cannot be attributed to a
 particular routed model. Cost comparisons are also omitted: 27 trial rows lack
 cost values, making the arm total incomplete.
 
-The Copilot team is developing a replacement Auto implementation called
-**Hydrafusion**. It is not yet available for this benchmark. Once access is
-provided, rerun all 113 tasks at K=5 under the same timeout, effort, tool, and
-verifier settings as `copilot-auto-max-1`. Preserve the selected model per
-trial if the new implementation exposes it, and require complete cost coverage
-before making a cost comparison. Report Hydrafusion separately from the
-existing Auto arm rather than overwriting this baseline.
+HydraFusion is now available in two retained benchmark exports:
+`copilot-hydrafusion-max-1.0.95.jsonl` and
+`copilot-hydrafusion-max-1.0.95-all-2.jsonl`. Report the runs separately from
+the existing Auto arm rather than overwriting this baseline. Preserve their
+planned denominator, retained trial count, and cost-evidence coverage when
+making comparisons.
 
 ### Local xhigh K=5 result (2026-08-10)
 

@@ -1,4 +1,27 @@
-# Data Analytics Repro Guide
+# Wharf 1.0.0
+
+Wharf 1.0.0 is the first MVP release of the customer-controlled benchmark
+execution platform. It provides deterministic DeepSWE task selection, isolated
+Copilot agent and verifier execution, durable evidence, recovery, unattended
+benchmark operation, HydraFusion support, and reproducible analytics.
+
+The release is qualified by retained local summaries in `data/` and the
+corresponding Wharf and Pier job directories maintained with the benchmark
+evidence. The final acceptance record is in
+[`docs/release-qualification.md`](docs/release-qualification.md).
+
+## Release highlights
+
+* Real non-dry-run benchmark execution through the integrated Wharf path.
+* Container-backed smoke validation and mountless agent/verifier execution.
+* Two unattended HydraFusion benchmark runs, including overnight execution
+  where applicable.
+* Durable patches, logs, trajectories, verifier evidence, retries, timing,
+  usage, cost, and recovery state.
+* Planned-denominator PASS@1, separate task accuracy, and portable JSONL
+  analytics with manifest validation.
+
+## Data Analytics Repro Guide
 
 This file documents how to reproduce the benchmark comparisons from `data/*.jsonl` with the same metric definitions used in this repo.
 

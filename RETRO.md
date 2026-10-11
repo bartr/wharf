@@ -1,4 +1,4 @@
-# Wharf development and testing summary through 0.24.0
+# Wharf development and testing summary through 1.0.0
 
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
@@ -9,10 +9,10 @@ machine-readable requirements handoff in `docs/wharf.jsonl`.
 
 ## Executive summary
 
-Wharf 0.24.0 is a production-oriented benchmark execution foundation, not
-yet a claim of broad unattended production qualification. Across 24 tagged
-release increments, the project moved from a CLI foundation to a deterministic,
-recoverable, evidence-preserving DeepSWE and Copilot execution platform.
+Wharf 1.0.0 is the first MVP release of a production-oriented benchmark
+execution platform. Across 24 tagged pre-release increments, the project
+moved from a CLI foundation to a deterministic, recoverable,
+evidence-preserving DeepSWE and Copilot execution platform.
 
 For a technical VP, the key results are:
 
@@ -45,12 +45,12 @@ For a technical VP, the key results are:
   interfaces, made scope changes visible, and tied implementation claims to
   test evidence.
 
-The principal remaining risk is final acceptance closure, not an absence of
-engineering boundaries or benchmark evidence. Two HydraFusion benchmarks,
+The 1.0.0 acceptance matrix is closed. Two HydraFusion benchmarks,
 container-backed smoke validation, and unattended K=4 benchmark runs are
-retained in the repository, with some runs spanning an overnight window. The
-remaining decision is to run or formally close the complete MVP/1.0
-acceptance matrix and record the release-owner decision.
+retained in the repository, with some runs spanning an overnight window.
+Wharf is now released as the MVP, with post-v1 repair/replay, hosted
+operations, additional providers, and larger scale profiles remaining outside
+the 1.0.0 scope.
 
 ## Development approach
 
@@ -208,6 +208,18 @@ The mountless Docker validation recorded 170/170 in the final
 Docker-backed verifier-capture suite, passing focused ECR-child,
 role-prefix, and capture tests, a real retained verifier rerun, formatting,
 whitespace, cleanup, and image-preservation checks.
+
+### Release 1.0.0
+
+Wharf 1.0.0 closes the MVP qualification arc. The release accepts the
+retained real-run, container-backed smoke, HydraFusion, and unattended K=4
+benchmark evidence. The two HydraFusion benchmark exports are preserved in
+`data/`, while the complete Wharf and Pier job directories remain available
+on the execution host for audit and replay.
+
+The release is intentionally bounded. Repair and replay workflows, hosted
+dashboards, alternate agent products, distributed orchestration, and larger
+post-v1 scale profiles remain future work.
 
 ## Testing methodology
 

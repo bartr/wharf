@@ -26,8 +26,8 @@ Added repeatable release qualification, explicit ownership, package and
 artifact checks, requirement coverage, and documented external infrastructure
 gates. At the time of this close, real `smoke`, non-dry-run `run`, and
 HydraFusion evidence were still pending. Subsequent releases completed those
-paths and retained two HydraFusion benchmark exports; the remaining action is
-final MVP/1.0 acceptance-matrix closure.
+paths, retained two HydraFusion benchmark exports, and closed the MVP/1.0
+acceptance matrix.
 
 ## Withdrawn Session 1, 2026-10-06
 

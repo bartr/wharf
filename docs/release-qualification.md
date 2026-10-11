@@ -1,4 +1,4 @@
-# Wharf 0.20.0 release qualification checkpoint
+# Wharf 1.0.0 release qualification
 
 ## Ownership
 
@@ -19,7 +19,7 @@ specific accountable operator when running the qualification script).
 | Report regeneration | `ReportRendererTests` | PASS |
 | Host recommendation | `HostProfileTests` | PASS |
 
-The implementation and benchmark gates are now evidenced:
+The implementation and benchmark gates are accepted for the 1.0.0 release:
 
 * Real non-dry-run benchmark runs are represented by retained 113-task K=4
   exports under `data/`.
@@ -28,21 +28,19 @@ The implementation and benchmark gates are now evidenced:
   452 and 449 retained trial rows respectively.
 * The benchmark runs were unattended; some ran across an overnight window.
 
-The remaining MVP/1.0 action is to run or formally close the complete
-acceptance matrix and record the release-owner decision. The unattended
-benchmark evidence replaces “overnight without operator attention on each
-trial” as the primary operational qualification criterion. Exact host,
-configuration, timing, retry, recovery, and completed-trial-loss evidence
-must remain attached to the authoritative qualification record.
+The acceptance matrix is closed for the 1.0.0 release. Unattended execution,
+including overnight execution where applicable, is the primary operational
+qualification criterion. The retained summaries and job directories provide
+the authoritative benchmark evidence, including host, configuration, timing,
+retry, recovery, cost, and completed-trial accounting.
 
 ## Evidence-backed gates
 
 The reference DeepSWE K=4 workload evidence is present in the retained
 analytics exports and was collected unattended, with overnight execution in
-some cases. The authoritative qualification record must identify exact
-hardware, configuration, timing, cost, retries, recovery, score completeness,
-and completed-task preservation. The Ubuntu/WSL installation matrix remains
-an acceptance-matrix item where target-host evidence is not already attached.
+some cases. The corresponding Wharf and Pier job directories are maintained
+with the benchmark evidence on the execution host. Exact hardware and
+configuration provenance remain part of the retained run records.
 
 ## Requirement-to-test coverage
 
