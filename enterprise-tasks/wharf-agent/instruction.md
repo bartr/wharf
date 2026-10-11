@@ -40,6 +40,13 @@ Use these historical public shapes:
 `patch.diff`, and `result.json` under the supplied evidence directory before
 reporting an unfinished or failed result.
 
+`AgentExecutionRequest.Validate()` must throw `AgentExecutionException` for
+invalid requests, including a hidden verifier path located inside the source
+or agent workspace mount. Use status `"completed"` for an exit-code-zero run
+with a non-empty patch, `"unfinished"` for an empty patch, and `"failed"` for
+a nonzero exit. An unfinished or failed run must retain its evidence before
+throwing `AgentExecutionException`.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

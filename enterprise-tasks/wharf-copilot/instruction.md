@@ -42,6 +42,10 @@ invocation environment: set `WHARF_COPILOT_CREDENTIAL_SOURCE` to
 `environment` and `WHARF_COPILOT_CREDENTIAL_VARIABLE` to the credential
 reference. Never resolve or include the credential value.
 
+`CopilotCredentialSource.Validate()` must require environment references to
+match `^[A-Za-z_][A-Za-z0-9_]*$` and throw `ArgumentException` for malformed
+names such as `BAD-NAME`.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

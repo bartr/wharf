@@ -23,6 +23,9 @@ Use these historical public shapes:
   TimeSpan MaximumBackoff, double JitterRatio)` exposes `Validate()`;
 - `ImagePullAttempt(bool Succeeded, string StandardOutput,
   string StandardError)`;
+- `ImagePullResult(string Image, string Registry, string Outcome,
+  int PullAttempts, int RateLimitResponses,
+  long CumulativeRetryDelayMilliseconds, string? Error = null)`;
 - `IImageClient.ExistsAsync(string, CancellationToken)` and
   `PullAsync(string, CancellationToken)`;
 - `IAsyncDelay.DelayAsync(TimeSpan, CancellationToken)`;

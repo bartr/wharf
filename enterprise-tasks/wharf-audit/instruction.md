@@ -39,5 +39,8 @@ enterprise score is 80 times clamped new-test coverage plus 20 for a pass, and
 is zero when existing tests regress. Missing or invalid cost evidence makes
 aggregate cost null and completeness false.
 
+Before finishing, build the solution and resolve all compilation errors in the
+implementation.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.
