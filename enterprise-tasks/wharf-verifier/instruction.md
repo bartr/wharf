@@ -20,7 +20,9 @@ Required types in the `Wharf.Verifier` namespace:
 - `VerifierExecutionException`
 - `TrialResultSchema.Version`, equal to `"1.0"`
 - `IPristineWorkspaceFactory`, `IPatchApplier`, and `IVerifierRunner`
-- `PristineVerifierService.VerifyAsync(...)`
+- `PristineVerifierService.VerifyAsync(...)`. At least one public overload must
+  accept the verifier request, retained patch, evidence directory, and
+  cancellation token. Additional convenience overloads are allowed.
 
 `VerifierRequest.Validate()` must reject malformed credential environment
 variable names as well as invalid paths, commands, and workspace reuse.
@@ -41,4 +43,5 @@ Implement the verifier boundary so that it:
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 
-IMPORTANT: Commit everything when you are done.
+IMPORTANT: Do not commit changes. The evaluator captures the working-tree
+patch after implementation.

@@ -17,6 +17,7 @@
       "/logs/verifier/base-ctrf.json",
       "/logs/verifier/contracts-ctrf.json",
       "/logs/verifier/operations-ctrf.json",
+      "/logs/verifier/credentials-ctrf.json",
       "/logs/verifier/compatibility-ctrf.json"
     ]
   }

@@ -33,7 +33,7 @@ PY
 }
 
 run_test "RunConfigurationTests.PrecedenceIsFlagThenEnvironmentThenManifestThenDefault" base-ctrf
-run_test "DeepSweWharfTests.AddsHistoricalContracts" contracts-ctrf
-run_test "DeepSweWharfTests.ExposesExpectedBoundaryOperations" operations-ctrf
-run_test "DeepSweWharfTests.PreservesExistingReleaseAssembly" compatibility-ctrf
+run_test "DeepSweWharfTests.AddsIsolatedAgentExecutionBoundary" contracts-ctrf
+run_test "DeepSweWharfTests.AddsVersionedAgentEvidenceContract" operations-ctrf
+run_test "DeepSweWharfTests.AgentRequestExposesHiddenPathAndWorkspaceFields" compatibility-ctrf
 python3 /tests/grader.py grade

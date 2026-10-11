@@ -33,7 +33,7 @@ PY
 }
 
 run_test "RunConfigurationTests.PrecedenceIsFlagThenEnvironmentThenManifestThenDefault" base-ctrf
-run_test "DeepSweWharfTests.AddsHistoricalContracts" contracts-ctrf
-run_test "DeepSweWharfTests.ExposesExpectedBoundaryOperations" operations-ctrf
-run_test "DeepSweWharfTests.PreservesExistingReleaseAssembly" compatibility-ctrf
+run_test "DeepSweWharfTests.AddsImagePullBoundaryAndTelemetryContracts" contracts-ctrf
+run_test "DeepSweWharfTests.RejectsInvalidPullRetryOptions" operations-ctrf
+run_test "DeepSweWharfTests.ExposesRateLimitResultAndSummaryRecords" compatibility-ctrf
 python3 /tests/grader.py grade

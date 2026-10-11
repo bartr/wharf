@@ -2,7 +2,7 @@ diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweW
 new file mode 100644
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,96 @@
+@@ -0,0 +1,98 @@
 +using System.Reflection;
 +
 +namespace Wharf.Tests;
@@ -52,7 +52,9 @@ new file mode 100644
 +        Type service = assembly.GetType("Wharf.Verifier.PristineVerifierService")!;
 +
 +        Assert.NotNull(service);
-+        Assert.NotNull(service.GetMethod("VerifyAsync"));
++        Assert.Contains(
++            service.GetMethods(BindingFlags.Public | BindingFlags.Instance),
++            method => method.Name == "VerifyAsync");
 +        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPristineWorkspaceFactory"));
 +        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPatchApplier"));
 +        Assert.NotNull(assembly.GetType("Wharf.Verifier.IVerifierRunner"));
