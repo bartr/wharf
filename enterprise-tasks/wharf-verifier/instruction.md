@@ -56,6 +56,10 @@ Implement the verifier boundary so that it:
 - atomically persists a versioned `trial-result.json`;
 - rejects empty patches before creating trial evidence.
 
+Retain command output in the evidence directory as
+`<command-name>.stdout.log` and `<command-name>.stderr.log`, including output
+from the failing command.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

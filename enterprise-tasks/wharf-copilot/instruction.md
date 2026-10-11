@@ -37,6 +37,11 @@ Use these historical public shapes:
 Normalize a leading `v` from CLI versions and map frontier effort `xhigh` to
 `high`.
 
+For an environment credential source, add only source metadata to the
+invocation environment: set `WHARF_COPILOT_CREDENTIAL_SOURCE` to
+`environment` and `WHARF_COPILOT_CREDENTIAL_VARIABLE` to the credential
+reference. Never resolve or include the credential value.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

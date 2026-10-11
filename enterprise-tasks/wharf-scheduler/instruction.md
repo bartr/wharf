@@ -31,7 +31,9 @@ Use these historical public shapes:
 - `DeterministicScheduler(ITrialRunner, ISchedulerEventSink)`; and
 - `RunAsync(IReadOnlyList<ScheduledAttempt>, SchedulerOptions,
   CancellationToken cancellationToken = default)` returns a `SchedulerResult`
-  exposing `StartedAttempts`, `BankedLogicalAttempts`, and lifecycle `Counts`;
+  with the exact shape
+  `SchedulerResult(IReadOnlyList<ScheduledAttempt> StartedAttempts,
+  IReadOnlySet<string> BankedLogicalAttempts, SchedulerCounts Counts)`;
   `SchedulerCounts` exposes `Pending`, `Preparing`, `Starting`, `Agent`,
   `Verifier`, `Completed`, `Errored`, and `Cancelled`.
 

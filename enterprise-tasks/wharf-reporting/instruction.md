@@ -32,7 +32,10 @@ Reject a report when its schema version is not `ReportSchema.Version` or when
 its run ID differs from the audit run ID. Rendering must be deterministic.
 JSON Lines output contains one compact JSON object followed by exactly one
 platform newline. Markdown uses `missing` for absent aggregate values and
-includes PASS@1, infrastructure retry, and HTTP 429 totals.
+renders summary values in labeled lines using these exact label formats:
+`PASS@1: \`50%\``, `Cost: \`missing\``,
+`Infrastructure retries: \`2\``, and `HTTP 429 responses: \`3\`` for the
+corresponding sample values.
 
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

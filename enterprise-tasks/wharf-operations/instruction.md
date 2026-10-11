@@ -35,7 +35,10 @@ Use these historical public shapes:
 
 Completion notifications are sent to every configured sink. Graceful stop
 cancels the run first, waits only within the supplied bound, and removes only
-the explicitly supplied ephemeral resource IDs.
+the explicitly supplied ephemeral resource IDs. If the completion wait times
+out or returns a canceled task while the caller's cancellation token remains
+active, treat the run as unfinished and invoke the cleaner. Propagate
+caller-requested cancellation.
 
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

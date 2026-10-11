@@ -44,6 +44,10 @@ and `GetRegistry(string)`. Treat explicit HTTP 429 and
 An image present locally returns outcome `"local"` without calling pull and
 records the result through telemetry.
 
+`ImagePullOptions.Validate()` must reject a retry count less than one, a
+non-positive initial backoff, a maximum backoff smaller than the initial
+backoff, and a jitter ratio outside the inclusive range zero through one.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

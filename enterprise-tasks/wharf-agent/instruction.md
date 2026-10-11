@@ -29,6 +29,11 @@ Use these historical public shapes:
 - `AgentExecutionService(IAgentRunner)` and
   `ExecuteAsync(AgentExecutionRequest, string evidenceDirectory,
   CancellationToken cancellationToken = default)`; and
+- `AgentEvidenceSummary(string SchemaVersion, string TaskId, string Status,
+  int ExitCode, long DurationMilliseconds, int? Tokens, int? Steps,
+  int? Requests, decimal? Cost, string PatchPath,
+  string StandardOutputPath, string StandardErrorPath,
+  string TrajectoryPath)`; and
 - `AgentEvidenceSchema.Version`, equal to `"1.0"`.
 
 `ExecuteAsync` must write `stdout.log`, `stderr.log`, `trajectory.jsonl`,

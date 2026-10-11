@@ -26,6 +26,9 @@ returns status `"completed"` with exit code zero, distinct agent and verifier
 workspace paths, a retained trial file, a report file, and `report.jsonl`. A
 blocking host check returns status `"qualification-blocked"`, preserves the
 host report's exit code, and writes `host-check.json` plus the report.
+Write `report.jsonl` and `host-check.json` directly under the supplied
+`outputDirectory`, not under an additional smoke subdirectory. The paths
+returned by `SmokeResult` must identify files that exist when `Run` returns.
 
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.
