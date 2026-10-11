@@ -13,15 +13,16 @@ costed trials rather than treating missing cost as zero.
 | 2 | Copilot GPT-5.6 Luna Max 1.0.77 | 74.12% | $0.3711 |
 | 3 | Copilot Claude Opus 5 Max 1.0.77 | 71.24% | $5.6623 |
 | 4 | Copilot GPT-6 Astra Max 1.0.91 | 71.02% | $8.4274 |
-| 5 | **HydraFusion Max 1.0.95** | **70.13%** | **$1.1726** |
-| 6 | Copilot GPT-5.6 Luna Max 1.0.91 | 69.91% | $0.3670 |
-| 7 | Copilot GPT-5.6 Sol XHigh 1.0.77 | 69.69% | $8.4366 |
-| 8 | **HydraFusion Max 1.0.95 All-1** | **68.81%** | **$1.2074** |
-| 9 | Copilot GPT-5.6 Terra Max 1.0.77 | 66.55% | $4.2576 |
-| 10 | **Claude Code Opus 5 Max 2.1.220** | **64.38%** | **$13.4885** |
-| 11 | Copilot GPT-6 Luna Max 1.0.91 | 61.06% | $0.1759 |
-| 12 | Muse Spark 1.2 Contributor XHigh 0.1.0 | 59.82% | $0.0613 |
-| 13 | Copilot Auto Max 1.0.77 | 36.99% | $1.6234 |
+| 5 | **Copilot Claude Opus 5.5 Max 1.0.95** | **70.80%** | **$11.9774** |
+| 6 | **HydraFusion Max 1.0.95** | **70.13%** | **$1.1726** |
+| 7 | Copilot GPT-5.6 Luna Max 1.0.91 | 69.91% | $0.3670 |
+| 8 | Copilot GPT-5.6 Sol XHigh 1.0.77 | 69.69% | $8.4366 |
+| 9 | **HydraFusion Max 1.0.95 All-1** | **68.81%** | **$1.2074** |
+| 10 | Copilot GPT-5.6 Terra Max 1.0.77 | 66.55% | $4.2576 |
+| 11 | **Claude Code Opus 5 Max 2.1.220** | **64.38%** | **$13.4885** |
+| 12 | Copilot GPT-6 Luna Max 1.0.91 | 61.06% | $0.1759 |
+| 13 | Muse Spark 1.2 Contributor XHigh 0.1.0 | 59.82% | $0.0613 |
+| 14 | Copilot Auto Max 1.0.77 | 36.99% | $1.6234 |
 
 ## 1) Canonical analytics rules
 

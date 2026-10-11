@@ -36,6 +36,15 @@
     "with_cost": 450
   },
   {
+    "arm": "copilot-claude-opus-5.5-max-1.0.95",
+    "bytes_jsonl": 319931,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 4443.62,
+    "trials": 452,
+    "with_cost": 371
+  },
+  {
     "arm": "copilot-gemini-3.8-flash-high-1.0.91",
     "bytes_jsonl": 346811,
     "scored": 452,
