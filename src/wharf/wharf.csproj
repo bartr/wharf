@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WharfVersion Condition="'$(WharfVersion)' == ''">0.23.0</WharfVersion>
+    <WharfVersion Condition="'$(WharfVersion)' == ''">0.24.0</WharfVersion>
     <Version>$(WharfVersion)</Version>
     <AssemblyVersion>$(WharfVersion)</AssemblyVersion>
     <FileVersion>$(WharfVersion)</FileVersion>
