@@ -103,6 +103,19 @@ public static class ProgressService
             if (log is null)
                 continue;
             totalRecords++;
+            if (log.Message.StartsWith("resume plan ", StringComparison.Ordinal))
+            {
+                foreach (string staleKey in records
+                             .Where(item => !item.Value.Terminal)
+                             .Select(item => item.Key)
+                             .ToArray())
+                {
+                    records.Remove(staleKey);
+                }
+                fullTaskNames.Clear();
+                queuedOperations.Clear();
+                continue;
+            }
             if (log.EventType == "preparation-gate" &&
                 TryPreparationQueueRecord(log, out PreparationQueueRecord queueRecord))
             {
@@ -133,7 +146,9 @@ public static class ProgressService
             if (!match.Success)
                 continue;
 
-            string key = $"{match.Groups["run"].Value}:{match.Groups["task"].Value}";
+            string key =
+                $"{match.Groups["run"].Value}:{match.Groups["task"].Value}:" +
+                $"{match.Groups["attempt"].Value}";
             int runNumber = match.Groups["run"].Success
                 ? int.Parse(match.Groups["run"].Value, CultureInfo.InvariantCulture)
                 : 1;

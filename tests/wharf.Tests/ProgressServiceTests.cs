@@ -643,6 +643,97 @@ public sealed class ProgressServiceTests
         }
     }
 
+    [Fact]
+    public void GivenMultipleResumeBoundaries_WhenReadingProgress_UsesNewestActiveEpoch()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record("run=001/002 task=stale-original attempt=2/2 status=running-agent"),
+                Record(
+                    "resume plan tasks=1 attempts=2 runs=1 task-concurrency=1 " +
+                    "preparation-concurrency=1 admission-order=longest-first K=2"),
+                Record("run=001/001 task=stale-resume attempt=2/2 status=running-verifier"),
+                Record(
+                    "resume plan tasks=1 attempts=2 runs=1 task-concurrency=1 " +
+                    "preparation-concurrency=1 admission-order=longest-first K=2"),
+                Record("run=001/001 task=current-resume attempt=2/2 status=running-agent")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            ActiveTrialProgress active = Assert.Single(progress.ActiveTrials);
+            Assert.Equal("current-resume", active.Name);
+            Assert.Equal("agent", active.Stage);
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(1, progress.Agents);
+            Assert.Equal(0, progress.Verifiers);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void GivenResumeBoundary_WhenReadingProgress_ReconcilesStaleActivity()
+    {
+        string path = Path.Combine(
+            Path.GetTempPath(),
+            $"wharf-progress-{Guid.NewGuid():N}.jsonl");
+        try
+        {
+            File.WriteAllLines(path,
+            [
+                Record(
+                    "run=001/002 task=completed-task attempt=1/2 " +
+                    "status=verifier-complete result=passed pass@1=1"),
+                Record(
+                    "run=001/002 task=completed-task attempt=1/2 " +
+                    "status=complete result=passed cost=10"),
+                Record("run=002/002 task=stale-task attempt=2/2 status=running-verifier"),
+                PreparationRecord(2, "stale-task", "verifier", "waiting", 2, 2, 0, 0),
+                Record(
+                    "resume plan tasks=1 attempts=2 runs=1 task-concurrency=1 " +
+                    "preparation-concurrency=1 admission-order=longest-first K=2"),
+                JsonSerializer.Serialize(new
+                {
+                    timestamp = "2026-10-08T01:00:00Z",
+                    level = "info",
+                    message =
+                        "run=001/001 task=current-task-with-full-name " +
+                        "stage=agent transition=started attempt=2 retry=0",
+                    eventType = "stage",
+                    runNumber = 1,
+                    taskId = "current-task-with-full-name"
+                }),
+                Record(
+                    "run=001/001 task=current-task-with-full-na attempt=2/2 " +
+                    "status=running-agent",
+                    timestamp: "2026-10-08T01:00:00Z")
+            ]);
+
+            RunProgress progress = ProgressService.Read(path);
+
+            ActiveTrialProgress active = Assert.Single(progress.ActiveTrials);
+            Assert.Equal("current-task-with-full-name", active.Name);
+            Assert.Equal("agent", active.Stage);
+            Assert.Equal(1, progress.TestsCompleted);
+            Assert.Equal(1, progress.TestsRunning);
+            Assert.Equal(0, progress.Queued);
+            Assert.Equal(1, progress.PassAtTotal);
+            Assert.Equal(0.10m, progress.TotalCost);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static string Record(
         string message,
         string? error = null,
