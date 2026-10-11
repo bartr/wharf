@@ -1,7 +1,7 @@
 schema_version = "1.3"
 artifacts = ["/logs/artifacts/model.patch"]
 [task]
-name = "datacurve/smoke-go"
+name = "wharf/smoke-go"
 description = "Trivial Go bug-fix task for exercising the DeepSWE harness end to end (build, agent, patch capture, separate verifier, CTRF grading) rather than the model. Source ships in-repo and is copied into the container (no clone)."
 authors = []
 keywords = ["infra", "smoke-test", "trivial"]
