@@ -2,7 +2,8 @@ The Wharf 0.9.0 release has agent execution but no verifier boundary. Add the
 pristine verifier execution vertical slice from the next release.
 
 Use the historical public contract below. These names and signatures are part
-of the compatibility boundary.
+of the task contract; do not replace them with alternate names such as
+`VerifierExecutionRequest`.
 
 Required types in the `Wharf.Verifier` namespace:
 

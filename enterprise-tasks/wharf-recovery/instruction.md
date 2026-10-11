@@ -1,12 +1,13 @@
-The Wharf 0.12.0 release has phase retries but lacks interruption recovery.
-Implement the 0.13.0 recovery-planning slice.
+The Wharf 0.12.0 release has the preceding architecture but does not include
+this release boundary. Implement the 0.12.0 to 0.13.0 change for Implement interruption recovery planning.
 
-Replay and validate retained events for the requested run. Exclude completed
-logical attempts and deterministic failures, resume unfinished and explicitly
-retryable attempts in stable attempt-ID order, and preserve infrastructure
-retry counts. Inspect live resources without deleting them and report resources
-that cannot be associated with a known trial as orphaned. Reject mixed-run or
-malformed evidence explicitly.
+Use the historical public contract in the target release as the compatibility
+boundary. Add the production types, validation, and behavior for the
+Implement interruption recovery planning. Preserve existing behavior, do not modify existing test files, and
+retain explicit errors rather than silent fallbacks.
+
+The implementation should match the target release's public API and tests for
+this boundary. Keep unrelated workflow artifacts out of the change.
 
 Preserve the historical public contract in the `Wharf.Recovery` namespace.
 Expose `RunRecoveryPlanner`, `RecoveryPlan`, `RecoveryAttempt`, and
@@ -14,5 +15,5 @@ Expose `RunRecoveryPlanner`, `RecoveryPlan`, `RecoveryAttempt`, and
 `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
-Do not modify existing tests or commit changes. The evaluator captures the working-tree
+IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.
