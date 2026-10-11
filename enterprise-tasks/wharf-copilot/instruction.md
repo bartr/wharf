@@ -10,7 +10,15 @@ Implement the Copilot adapter so that it:
 - supports environment, file, and stdin credential sources;
 - retains credential source metadata without exposing credential values.
 
+Preserve the historical public contract in the `Wharf.Copilot` namespace.
+Expose `CopilotAdapter`, `CopilotInvocation`, `ICopilotCliProbe`, and
+`CopilotAdapterOptions`. Also expose `CopilotCredentialSourceKind` with exactly
+three enum values, `CopilotCredentialSource` with a public `Validate` method,
+and `CopilotAdapterException`. `CopilotInvocation` must expose public
+`EffectiveVersion`, `RedactedCommand`, and `SubagentModels` properties.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 
-IMPORTANT: Commit everything when you are done.
+Do not commit changes. The evaluator captures the working-tree patch after
+implementation.
