@@ -30,8 +30,9 @@ Use these historical public shapes:
 - `QualificationEvidence(string ProfileId, string HardwareDescription,
   DateTimeOffset StartedAt, DateTimeOffset FinishedAt, int ExpectedTasks,
   int CompletedTasks, int LostCompletedTasks, TimeSpan Deadline,
-  double? Cost, bool ScoreComplete, string EvidencePath)`
-  exposes the derived `IsQualified` property; and
+  double? Cost, bool ScoreComplete, string EvidencePath)` is a positional
+  record with init-accessible properties so non-destructive `with` updates are
+  supported, and exposes the derived `IsQualified` property; and
 - `HostProfileService.CreateReport(IEnumerable<QualificationEvidence>,
   IEnumerable<ProfileRecommendation>)` returns a `QualificationReport` with
   schema version `"1.0"` and recommendations ordered by profile ID.

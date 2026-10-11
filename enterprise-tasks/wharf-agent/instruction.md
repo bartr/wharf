@@ -39,6 +39,9 @@ Use these historical public shapes:
 `ExecuteAsync` must write `stdout.log`, `stderr.log`, `trajectory.jsonl`,
 `patch.diff`, and `result.json` under the supplied evidence directory before
 reporting an unfinished or failed result.
+Persist `result.json` with camel-case property names, including
+`schemaVersion`, `taskId`, `status`, `exitCode`, and
+`durationMilliseconds`.
 
 `AgentExecutionRequest.Validate()` must throw `AgentExecutionException` for
 invalid requests, including a hidden verifier path located inside the source
