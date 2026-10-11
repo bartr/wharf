@@ -15,3 +15,10 @@ Preserve existing source behavior, do not modify existing test files, and keep
 privilege escalation explicit. The implementation should match the target
 release's scripts and observable contracts. Do not commit changes; the
  evaluator captures the working-tree patch after implementation.
+
+Provide the historical scripts at exactly these paths:
+`scripts/package-wharf.sh`, `scripts/wharf-bootstrap.sh`, and
+`scripts/wharf-rollback.sh`. The package script must use `dpkg-deb --build`,
+produce SHA-256 checksums, and include an explicit SBOM step. The bootstrap
+and rollback scripts must invoke privileged operations with `exec sudo`; the
+rollback script must support restoring `previous.deb`.
