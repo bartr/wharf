@@ -234,7 +234,7 @@ public static class RunConfigurationResolver
 public static class RunConfigurationValidator
 {
     private static readonly HashSet<string> Formats = ["text", "json"];
-    private static readonly HashSet<string> Efforts = ["low", "medium", "high", "max"];
+    private static readonly HashSet<string> Efforts = ["default", "low", "medium", "high", "max"];
     private static readonly HashSet<string> Policies = ["default", "restricted", "unrestricted"];
 
     public static void Validate(RunManifest? manifest, RunConfiguration configuration)

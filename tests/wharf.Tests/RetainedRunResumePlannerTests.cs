@@ -97,6 +97,18 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal("1.0.95", plan.CliVersion);
     }
 
+    [Fact]
+    public void GivenDefaultEffortRun_WhenPlanning_PreservesDefaultEffort()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1, effort: "default");
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory,
+            FixtureRoot);
+
+        Assert.Equal("default", plan.Effort);
+    }
+
     private static void CompleteAllExcept(
         RetainedRunFixture fixture,
         TaskAttempt pending)
@@ -132,11 +144,11 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.True(Directory.Exists(Path.Combine(trialDirectory, "verifier-retries", "retry-1")));
     }
 
-    private RetainedRunFixture CreateRun(int k)
+    private RetainedRunFixture CreateRun(int k, string effort = "max")
     {
         string runDirectory = Path.Combine(
             temporaryRoot,
-            "copilot-test-model-max-1.0.95",
+            $"copilot-test-model-{effort}-1.0.95",
             "all-1");
         Directory.CreateDirectory(runDirectory);
         IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);

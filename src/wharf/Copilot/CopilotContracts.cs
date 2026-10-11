@@ -107,13 +107,16 @@ public sealed partial class CopilotAdapter
 
         string normalizedFrontierEffort = NormalizeFrontierEffort(options.FrontierEffort);
         bool isHydraFusion = options.Model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase);
+        bool useModelDefaultEffort = options.NativeEffort.Equals(
+            "default",
+            StringComparison.OrdinalIgnoreCase);
         var arguments = new List<string>
         {
             "--model", options.Model,
             "--allow-all-tools",
             "--no-auto-update"
         };
-        if (!isHydraFusion)
+        if (!isHydraFusion && !useModelDefaultEffort)
         {
             arguments.Add("--reasoning-effort");
             arguments.Add(options.NativeEffort);
@@ -250,6 +253,7 @@ public sealed partial class CopilotAdapter
     private static string NormalizeFrontierEffort(string effort) =>
         effort.Trim().ToLowerInvariant() switch
         {
+            "default" => "default",
             "low" => "low",
             "medium" => "medium",
             "high" => "high",
@@ -269,7 +273,7 @@ public sealed partial class CopilotAdapter
 
     private static void ValidateEffort(string effort, string name)
     {
-        if (effort.Trim().ToLowerInvariant() is not ("low" or "medium" or "high" or "max"))
+        if (effort.Trim().ToLowerInvariant() is not ("default" or "low" or "medium" or "high" or "max"))
         {
             throw new CopilotAdapterException($"unsupported {name}: {effort}");
         }

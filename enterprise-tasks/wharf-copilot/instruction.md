@@ -37,6 +37,10 @@ Use these historical public shapes:
 Normalize a leading `v` from CLI versions and map frontier effort `xhigh` to
 `high`.
 
+Build the invocation arguments with `--model` followed by the model, one
+`--subagent-model` and value pair for every subagent model, and one
+`--endpoint` and value pair for every endpoint.
+
 For an environment credential source, add only source metadata to the
 invocation environment: set `WHARF_COPILOT_CREDENTIAL_SOURCE` to
 `environment` and `WHARF_COPILOT_CREDENTIAL_VARIABLE` to the credential

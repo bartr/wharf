@@ -23,6 +23,20 @@ public sealed class CopilotAdapterTests
     }
 
     [Fact]
+    public async Task UsesModelDefaultWithoutPassingReasoningEffort()
+    {
+        var adapter = new CopilotAdapter(new FakeProbe("1.2.3"));
+
+        CopilotInvocation invocation = await adapter.PrepareAsync(Options(
+            nativeEffort: "default",
+            frontierEffort: "default"));
+
+        Assert.Equal("default", invocation.NativeEffort);
+        Assert.Equal("default", invocation.FrontierEffort);
+        Assert.DoesNotContain("--reasoning-effort", invocation.Arguments);
+    }
+
+    [Fact]
     public async Task RejectsVersionDrift()
     {
         var adapter = new CopilotAdapter(new FakeProbe("1.2.4"));
@@ -138,6 +152,7 @@ public sealed class CopilotAdapterTests
 
     private static CopilotAdapterOptions Options(
         string requestedVersion = "1.2.3",
+        string nativeEffort = "medium",
         string frontierEffort = "medium",
         string model = "gpt-5",
         CopilotCredentialSource? credential = null,
@@ -146,7 +161,7 @@ public sealed class CopilotAdapterTests
         new(
             requestedVersion,
             model,
-            "medium",
+            nativeEffort,
             frontierEffort,
             subagentModels ?? [],
             credential ?? new CopilotCredentialSource(

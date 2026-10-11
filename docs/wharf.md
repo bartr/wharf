@@ -366,6 +366,8 @@ container and reuse the task's configured environment image. After MVP,
 - Validate all run settings before creating output directories or consuming model quota.
 - Pin agent CLI versions and record the effective version for every trial.
 - Record requested and effective model and effort settings.
+- Accept `default` as an effort setting and omit the provider effort argument
+  so the selected model uses its own default effort.
 - Treat model-specific maximum settings as the common `frontier` effort class in reports.
 - Keep provider-native effort values in raw results.
 - record the effective merged configuration with every run

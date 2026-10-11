@@ -188,7 +188,10 @@ public static class CommandTree
             Description = "JSONL progress log path. Defaults to run.jsonl inside the run directory."
         };
         var model = new Option<string?>("--model") { Description = "Model name." };
-        var effort = new Option<string?>("--effort") { Description = "Model effort: low, medium, high, or max." };
+        var effort = new Option<string?>("--effort")
+        {
+            Description = "Model effort: default, low, medium, high, or max."
+        };
         var retainWorkspaces = new Option<bool>("--retain-workspaces")
         {
             Description = "Retain terminal trial workspaces instead of deleting them after evidence capture."

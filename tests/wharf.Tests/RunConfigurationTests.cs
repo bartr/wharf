@@ -68,6 +68,19 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void AcceptsDefaultEffortFromEnvironment()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["WHARF_EFFORT"] = "default" });
+
+        RunConfigurationValidator.Validate(new RunManifest(), result);
+
+        Assert.Equal("default", result.Effort);
+    }
+
+    [Fact]
     public void DefaultsConcurrencyToFour()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(

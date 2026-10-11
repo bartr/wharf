@@ -27,7 +27,7 @@ public sealed record RetainedResumePlan(
 public sealed class RetainedRunResumePlanner
 {
     private static readonly Regex ArmPattern = new(
-        @"^copilot-(?<model>.+)-(?<effort>low|medium|high|max)-(?<version>\d+\.\d+\.\d+)$",
+        @"^copilot-(?<model>.+)-(?<effort>default|low|medium|high|max)-(?<version>\d+\.\d+\.\d+)$",
         RegexOptions.CultureInvariant);
     private static readonly Regex PlanPattern = new(
         @"plan tasks=(?<tasks>\d+) attempts=(?<k>\d+) runs=(?<runs>\d+) " +

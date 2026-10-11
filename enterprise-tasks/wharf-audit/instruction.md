@@ -30,9 +30,17 @@ Use the target release's measurement and scoring shapes:
 - `AuditTask(string TaskId, IReadOnlyList<AuditAttempt> Attempts)`;
 - `AuditRun(string RunId, IReadOnlyList<string> ExpectedTaskIds,
   IReadOnlyList<AuditTask> ObservedTasks)`; and
-- `AuditScorer.Score(AuditRun)` returns an `AuditReport` with `PassAt1`,
-  `EnterpriseScore`, `ExistingTestRegression`, nullable aggregate `Cost`, and
-  a `Completeness` value exposing `IsComplete` and measurement counts.
+- instantiable `AuditScorer` with an instance `Score(AuditRun)` method;
+- `AuditCompleteness(int ExpectedTasks, int ObservedTasks, int MissingTasks,
+  int ExpectedAttempts, int ObservedAttempts, int MissingMeasurements,
+  int InvalidMeasurements, int PartialMeasurements, int ZeroMeasurements)`
+  with a derived `IsComplete` property; and
+- `AuditReport(string RunId, double PassAt1, double EnterpriseScore,
+  int PassingTasks, int ExpectedTasks, double NewTestCoverage,
+  bool ExistingTestRegression, double? Cost, long? InputTokens,
+  long? OutputTokens, long? CacheTokens, long? Requests, long? Steps,
+  TimeSpan? AgentTime, TimeSpan? TrialTime,
+  AuditCompleteness Completeness)`.
 
 PASS@1 uses the lowest-numbered attempt for each expected task. Each attempt's
 enterprise score is 80 times clamped new-test coverage plus 20 for a pass, and
