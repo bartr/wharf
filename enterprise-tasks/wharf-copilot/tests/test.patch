@@ -2,41 +2,77 @@ diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweW
 new file mode 100644
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,37 @@
-+using System.Reflection;
+@@ -0,0 +1,73 @@
++using Wharf.Copilot;
 +
 +namespace Wharf.Tests;
 +
 +public sealed class DeepSweWharfTests
 +{
 +    [Fact]
-+    public void AddsCopilotAdapterBoundary()
++    public async Task AddsCopilotAdapterBoundary()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapter"));
-+        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotInvocation"));
-+        Assert.NotNull(assembly.GetType("Wharf.Copilot.ICopilotCliProbe"));
-+        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapterOptions"));
++        var adapter = new CopilotAdapter(new StaticProbe("v1.2.3"));
++        var options = Options(
++            new CopilotCredentialSource(CopilotCredentialSourceKind.Stdin, "stdin"));
++
++        CopilotInvocation invocation = await adapter.PrepareAsync(options);
++
++        Assert.Equal("1.2.3", invocation.EffectiveVersion);
++        Assert.Equal("high", invocation.FrontierEffort);
++        Assert.True(invocation.ReadsCredentialFromStdin);
++        Assert.Contains("--model", invocation.Arguments);
++        Assert.Contains("--subagent-model", invocation.Arguments);
++        Assert.Contains("--endpoint", invocation.Arguments);
 +    }
 +
 +    [Fact]
-+    public void AddsCredentialSourceKindsAndValidationTypes()
++    public async Task AddsCredentialSourceKindsAndValidationTypes()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type kind = assembly.GetType("Wharf.Copilot.CopilotCredentialSourceKind")!;
-+        Assert.Equal(3, Enum.GetNames(kind).Length);
-+        Type source = assembly.GetType("Wharf.Copilot.CopilotCredentialSource")!;
-+        Assert.NotNull(source.GetMethod("Validate"));
-+        Assert.NotNull(assembly.GetType("Wharf.Copilot.CopilotAdapterException"));
++        var adapter = new CopilotAdapter(new StaticProbe("1.2.3"));
++        var credential = new CopilotCredentialSource(
++            CopilotCredentialSourceKind.Environment,
++            "COPILOT_TOKEN");
++
++        CopilotInvocation invocation = await adapter.PrepareAsync(Options(credential));
++
++        Assert.Equal("environment", invocation.Environment["WHARF_COPILOT_CREDENTIAL_SOURCE"]);
++        Assert.Equal("COPILOT_TOKEN", invocation.Environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"]);
++        Assert.DoesNotContain("secret-value", invocation.RedactedCommand);
++        Assert.Throws<ArgumentException>(
++            () => new CopilotCredentialSource(
++                CopilotCredentialSourceKind.Environment,
++                "BAD-NAME").Validate());
 +    }
 +
 +    [Fact]
-+    public void InvocationCarriesEffectiveVersionAndRedactedCommand()
++    public async Task InvocationCarriesEffectiveVersionAndRedactedCommand()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type invocation = assembly.GetType("Wharf.Copilot.CopilotInvocation")!;
-+        Assert.NotNull(invocation.GetProperty("EffectiveVersion"));
-+        Assert.NotNull(invocation.GetProperty("RedactedCommand"));
-+        Assert.NotNull(invocation.GetProperty("SubagentModels"));
++        var adapter = new CopilotAdapter(new StaticProbe("1.2.4"));
++
++        await Assert.ThrowsAsync<CopilotAdapterException>(
++            () => adapter.PrepareAsync(Options(
++                new CopilotCredentialSource(CopilotCredentialSourceKind.Stdin, "stdin"))));
++    }
++
++    private static CopilotAdapterOptions Options(CopilotCredentialSource credential) =>
++        new(
++            "1.2.3",
++            "gpt-test",
++            "high",
++            "xhigh",
++            ["subagent"],
++            credential,
++            ["https://api.example.test/v1"],
++            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
++            {
++                "api.example.test"
++            });
++
++    private sealed class StaticProbe(string version) : ICopilotCliProbe
++    {
++        public Task<CopilotCliVersion> GetVersionAsync(
++            CancellationToken cancellationToken) =>
++            Task.FromResult(new CopilotCliVersion(version));
 +    }
 +}

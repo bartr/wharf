@@ -1,10 +1,10 @@
 diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
 new file mode 100644
-index 0000000..9197b68
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,33 @@
-+using System.Reflection;
+@@ -0,0 +1,50 @@
++using Wharf.Host;
++using Wharf.Smoke;
 +
 +namespace Wharf.Tests;
 +
@@ -13,27 +13,43 @@ index 0000000..9197b68
 +    [Fact]
 +    public void AddsHistoricalContracts()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Smoke.SmokeService"));
-+        Assert.NotNull(assembly.GetType("Wharf.Smoke.SmokeResult"));
-+        Assert.NotNull(assembly.GetType("Wharf.Smoke.SmokeException"));
++        string output = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
++        var host = new HostCheckReport(
++            [new HostCheck("platform", true, true, "supported")]);
++
++        SmokeResult result = new SmokeService().Run(output, host);
++
++        Assert.Equal("completed", result.Status);
++        Assert.Equal(0, result.ExitCode);
++        Assert.True(File.Exists(result.TrialPath));
++        Assert.True(File.Exists(result.ReportPath));
++        Assert.True(File.Exists(Path.Combine(output, "report.jsonl")));
++        Assert.NotEqual(
++            Path.Combine(output, "agent-workspace"),
++            Path.Combine(output, "verifier-workspace"));
 +    }
 +
 +    [Fact]
 +    public void ExposesExpectedBoundaryOperations()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type type = assembly.GetType("Wharf.Smoke.SmokeService")!;
-+        Assert.NotNull(type);
-+        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
-+        Assert.NotNull(assembly.GetType("Wharf.Command.CommandTree"));
++        string output = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
++        var host = new HostCheckReport(
++            [new HostCheck("docker", false, false, "unreachable")]);
++
++        SmokeResult result = new SmokeService().Run(output, host);
++
++        Assert.Equal("qualification-blocked", result.Status);
++        Assert.Equal(host.ExitCode, result.ExitCode);
++        Assert.True(File.Exists(Path.Combine(output, "host-check.json")));
++        Assert.True(File.Exists(result.ReportPath));
 +    }
 +
 +    [Fact]
 +    public void PreservesExistingReleaseAssembly()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++        var host = new HostCheckReport(
++            [new HostCheck("platform", true, true, "supported")]);
++
++        Assert.Throws<SmokeException>(() => new SmokeService().Run("", host));
 +    }
 +}

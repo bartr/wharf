@@ -2,8 +2,10 @@ diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweW
 new file mode 100644
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,37 @@
-+using System.Reflection;
+@@ -0,0 +1,105 @@
++using System.Text.Json;
++using Wharf.Agent;
++using Wharf.Copilot;
 +
 +namespace Wharf.Tests;
 +
@@ -12,31 +14,97 @@ new file mode 100644
 +    [Fact]
 +    public void AddsIsolatedAgentExecutionBoundary()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionService"));
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionRequest"));
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.IAgentRunner"));
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentRunResult"));
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        var request = Request(source.Path, workspace.Path, [Path.Combine(workspace.Path, "hidden")]);
++
++        Assert.Throws<AgentExecutionException>(request.Validate);
 +    }
 +
 +    [Fact]
-+    public void AddsVersionedAgentEvidenceContract()
++    public async Task AddsVersionedAgentEvidenceContract()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type schema = assembly.GetType("Wharf.Agent.AgentEvidenceSchema")!;
-+        Assert.Equal("1.0", schema.GetField("Version")?.GetValue(null));
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentEvidenceSummary"));
-+        Assert.NotNull(assembly.GetType("Wharf.Agent.AgentExecutionException"));
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var runner = new StaticRunner(new AgentRunResult(
++            0, "out", "err", "trajectory", "diff --git a/a b/a", TimeSpan.FromSeconds(2)));
++
++        AgentEvidenceSummary summary = await new AgentExecutionService(runner).ExecuteAsync(
++            Request(source.Path, workspace.Path, []),
++            evidence.Path);
++
++        Assert.Equal("1.0", summary.SchemaVersion);
++        Assert.Equal("completed", summary.Status);
++        Assert.Equal(2000, summary.DurationMilliseconds);
++        Assert.Equal("out", File.ReadAllText(Path.Combine(evidence.Path, "stdout.log")));
++        Assert.Equal("diff --git a/a b/a", File.ReadAllText(Path.Combine(evidence.Path, "patch.diff")));
++        using JsonDocument json = JsonDocument.Parse(
++            File.ReadAllText(Path.Combine(evidence.Path, "result.json")));
++        Assert.Equal("completed", json.RootElement.GetProperty("status").GetString());
 +    }
 +
 +    [Fact]
-+    public void AgentRequestExposesHiddenPathAndWorkspaceFields()
++    public async Task AgentRequestExposesHiddenPathAndWorkspaceFields()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type request = assembly.GetType("Wharf.Agent.AgentExecutionRequest")!;
-+        Assert.NotNull(request.GetMethod("Validate"));
-+        Assert.NotNull(request.GetProperty("SourceDirectory"));
-+        Assert.NotNull(request.GetProperty("WorkspaceDirectory"));
-+        Assert.NotNull(request.GetProperty("HiddenPaths"));
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var runner = new StaticRunner(new AgentRunResult(
++            0, "out", "err", "trajectory", "", TimeSpan.Zero));
++
++        await Assert.ThrowsAsync<AgentExecutionException>(
++            () => new AgentExecutionService(runner).ExecuteAsync(
++                Request(source.Path, workspace.Path, []),
++                evidence.Path));
++
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "result.json")));
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "patch.diff")));
++    }
++
++    private static AgentExecutionRequest Request(
++        string source,
++        string workspace,
++        IReadOnlyList<string> hiddenPaths) =>
++        new(
++            "task",
++            "agent-image",
++            source,
++            workspace,
++            "network",
++            new CopilotInvocation(
++                "copilot",
++                [],
++                new Dictionary<string, string>(),
++                false,
++                "1.2.3",
++                "1.2.3",
++                "model",
++                "high",
++                "high",
++                [],
++                []),
++            hiddenPaths);
++
++    private sealed class StaticRunner(AgentRunResult result) : IAgentRunner
++    {
++        public Task<AgentRunResult> RunAsync(
++            AgentExecutionRequest request,
++            CancellationToken cancellationToken) => Task.FromResult(result);
++    }
++
++    private sealed class TemporaryDirectory : IDisposable
++    {
++        public TemporaryDirectory()
++        {
++            Path = System.IO.Path.Combine(
++                System.IO.Path.GetTempPath(),
++                Guid.NewGuid().ToString("N"));
++            Directory.CreateDirectory(Path);
++        }
++
++        public string Path { get; }
++
++        public void Dispose() => Directory.Delete(Path, recursive: true);
 +    }
 +}

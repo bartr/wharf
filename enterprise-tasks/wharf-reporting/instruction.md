@@ -1,18 +1,17 @@
-The Wharf 0.15.0 release has the preceding architecture but does not include
-this release boundary. Implement the 0.15.0 to 0.16.0 change for Implement deterministic report rendering.
+The Wharf 0.15.0 release has audit results but no deterministic report
+rendering. Implement the 0.16.0 reporting slice.
 
-Use the historical public contract in the target release as the compatibility
-boundary. Add the production types, validation, and behavior for the
-Implement deterministic report rendering. Preserve existing behavior, do not modify existing test files, and
-retain explicit errors rather than silent fallbacks.
-
-The implementation should match the target release's public API and tests for
-this boundary. Keep unrelated workflow artifacts out of the change.
+Render schema-versioned Markdown, indented JSON, and one-record JSON Lines from
+the same input. Include PASS@1, enterprise score, completeness, coverage,
+regression, cost, token, timing, retry, and registry-rate-limit evidence.
+Missing optional measurements must remain visibly missing rather than becoming
+zero. Identical inputs must produce identical output. Reject unsupported
+schemas and disagreements between report and audit run IDs.
 
 Preserve the historical public contract in the `Wharf.Reporting` namespace.
 Expose `ReportRenderer`, `ReportInput`, `ReportSchema`, and `RetryReport`,
 while preserving the existing `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
-IMPORTANT: Do not commit changes. The evaluator captures the working-tree
+Do not modify existing tests or commit changes. The evaluator captures the working-tree
 patch after implementation.

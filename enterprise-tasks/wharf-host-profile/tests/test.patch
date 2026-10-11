@@ -1,10 +1,9 @@
 diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
 new file mode 100644
-index 0000000..d398418
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,33 @@
-+using System.Reflection;
+@@ -0,0 +1,63 @@
++using Wharf.Qualification;
 +
 +namespace Wharf.Tests;
 +
@@ -13,27 +12,57 @@ index 0000000..d398418
 +    [Fact]
 +    public void AddsHistoricalContracts()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Qualification.HostProfiles"));
-+        Assert.NotNull(assembly.GetType("Wharf.Qualification.HostProfileService"));
-+        Assert.NotNull(assembly.GetType("Wharf.Qualification.QualificationReport"));
++        HostProfile profile = HostProfiles.Get("ON-PREM-32");
++        ProfileRecommendation recommendation = new HostProfileService().Recommend(
++            profile,
++            new HostCapacity(4, 8L * 1024 * 1024 * 1024),
++            6,
++            3);
++
++        Assert.Equal("on-prem-32", recommendation.ProfileId);
++        Assert.Equal(4, recommendation.RecommendedConcurrency);
++        Assert.Equal(3, recommendation.RecommendedBuildConcurrency);
++        Assert.False(recommendation.RaisedOperatorLimit);
 +    }
 +
 +    [Fact]
 +    public void ExposesExpectedBoundaryOperations()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type type = assembly.GetType("Wharf.Qualification.HostProfiles")!;
-+        Assert.NotNull(type);
-+        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
-+        Assert.NotNull(assembly.GetType("Wharf.Qualification.QualificationEvidence"));
++        DateTimeOffset started = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
++        var qualified = new QualificationEvidence(
++            "on-prem-32",
++            "host",
++            started,
++            started.AddHours(10),
++            10,
++            10,
++            0,
++            TimeSpan.FromHours(12),
++            1,
++            true,
++            "evidence");
++        QualificationEvidence late = qualified with
++        {
++            FinishedAt = started.AddHours(13)
++        };
++
++        Assert.True(qualified.IsQualified);
++        Assert.False(late.IsQualified);
 +    }
 +
 +    [Fact]
 +    public void PreservesExistingReleaseAssembly()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++        var service = new HostProfileService();
++        QualificationReport report = service.CreateReport(
++            [],
++            [
++                new ProfileRecommendation("z", 1, 1, 1, false, []),
++                new ProfileRecommendation("a", 1, 1, 1, false, [])
++            ]);
++
++        Assert.Equal("1.0", report.SchemaVersion);
++        Assert.Equal(["a", "z"], report.Recommendations.Select(item => item.ProfileId));
++        Assert.Throws<QualificationException>(() => HostProfiles.Get("missing"));
 +    }
 +}

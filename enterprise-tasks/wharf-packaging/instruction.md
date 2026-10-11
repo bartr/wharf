@@ -16,9 +16,13 @@ privilege escalation explicit. The implementation should match the target
 release's scripts and observable contracts. Do not commit changes; the
  evaluator captures the working-tree patch after implementation.
 
-Provide the historical scripts at exactly these paths:
+The public distribution entrypoints remain:
 `scripts/package-wharf.sh`, `scripts/wharf-bootstrap.sh`, and
-`scripts/wharf-rollback.sh`. The package script must use `dpkg-deb --build`,
-produce SHA-256 checksums, and include an explicit SBOM step. The bootstrap
-and rollback scripts must invoke privileged operations with `exec sudo`; the
-rollback script must support restoring `previous.deb`.
+`scripts/wharf-rollback.sh`.
+
+The package script must build with standard Debian tooling, emit a verifiable
+SHA-256 checksum, and create deterministic CycloneDX JSON describing the
+package. When `SIGNING_KEY` is set, create and verify a detached signature.
+Bootstrap and rollback must re-exec through `sudo` when unprivileged rather
+than mixing privileged and unprivileged steps. Preserve the installed package
+before replacement and require a nonempty retained package before rollback.

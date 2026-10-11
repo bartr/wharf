@@ -2,88 +2,138 @@ diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweW
 new file mode 100644
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,98 @@
-+using System.Reflection;
+@@ -0,0 +1,148 @@
++using System.Text.Json;
++using Wharf.Verifier;
 +
 +namespace Wharf.Tests;
 +
 +public sealed class DeepSweWharfTests
 +{
 +    [Fact]
-+    public void AddsVerifierContractsAndSchema()
++    public async Task AddsVerifierContractsAndSchema()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.VerifierRequest"));
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.VerifierCommandResult"));
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.TrialResult"));
-+        Type? schema = assembly.GetType("Wharf.Verifier.TrialResultSchema");
-+        Assert.Equal("1.0", schema?.GetField("Version")?.GetValue(null));
++        using var source = new TemporaryDirectory();
++        using var agent = new TemporaryDirectory();
++        using var verifier = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var runner = new RecordingRunner(
++            new VerifierCommandResult("first", 1, "out", "err", 5, false));
++        var service = new PristineVerifierService(
++            new StaticWorkspaceFactory(verifier.Path),
++            new RecordingPatchApplier(),
++            runner);
++
++        TrialResult result = await service.VerifyAsync(
++            Request(source.Path, agent.Path),
++            "patch",
++            evidence.Path);
++
++        Assert.Equal("1.0", result.SchemaVersion);
++        Assert.Equal("failed", result.Status);
++        Assert.Single(result.Commands);
++        Assert.Single(runner.Commands);
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "first.stdout.log")));
 +    }
 +
 +    [Fact]
 +    public void RejectsAgentWorkspaceReuse()
 +    {
-+        using TemporaryDirectory source = new();
-+        object request = CreateRequest(source.Path, source.Path, ["VERIFIER_TOKEN"]);
++        using var source = new TemporaryDirectory();
++        VerifierRequest request = Request(source.Path, source.Path);
 +
-+        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
-+            () => request.GetType().GetMethod("Validate")!.Invoke(request, null));
-+
-+        Assert.Equal("VerifierExecutionException", exception.InnerException?.GetType().Name);
++        Assert.Throws<VerifierExecutionException>(request.Validate);
 +    }
 +
 +    [Fact]
 +    public void RejectsMalformedCredentialEnvironmentNames()
 +    {
-+        using TemporaryDirectory source = new();
-+        using TemporaryDirectory agent = new();
-+        object request = CreateRequest(source.Path, agent.Path, ["BAD-NAME"]);
++        using var source = new TemporaryDirectory();
++        using var agent = new TemporaryDirectory();
++        VerifierRequest request = Request(source.Path, agent.Path, ["BAD-NAME"]);
 +
-+        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
-+            () => request.GetType().GetMethod("Validate")!.Invoke(request, null));
-+
-+        Assert.Equal("VerifierExecutionException", exception.InnerException?.GetType().Name);
++        Assert.Throws<VerifierExecutionException>(request.Validate);
 +    }
 +
 +    [Fact]
-+    public void ExposesPristineVerificationService()
++    public async Task ExposesPristineVerificationService()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type service = assembly.GetType("Wharf.Verifier.PristineVerifierService")!;
++        using var source = new TemporaryDirectory();
++        using var agent = new TemporaryDirectory();
++        using var verifier = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var factory = new StaticWorkspaceFactory(verifier.Path);
++        var service = new PristineVerifierService(
++            factory,
++            new RecordingPatchApplier(),
++            new RecordingRunner());
 +
-+        Assert.NotNull(service);
-+        Assert.Contains(
-+            service.GetMethods(BindingFlags.Public | BindingFlags.Instance),
-+            method => method.Name == "VerifyAsync");
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPristineWorkspaceFactory"));
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.IPatchApplier"));
-+        Assert.NotNull(assembly.GetType("Wharf.Verifier.IVerifierRunner"));
++        await Assert.ThrowsAsync<VerifierExecutionException>(
++            () => service.VerifyAsync(
++                Request(source.Path, agent.Path),
++                "",
++                evidence.Path));
++
++        Assert.Equal(0, factory.Calls);
++        Assert.False(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
 +    }
 +
-+    private static object CreateRequest(
++    private static VerifierRequest Request(
 +        string source,
 +        string agent,
-+        IReadOnlyList<string> credentials)
-+    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type commandType = assembly.GetType("Wharf.Verifier.VerifierCommand")!;
-+        Type requestType = assembly.GetType("Wharf.Verifier.VerifierRequest")!;
-+        object command = Activator.CreateInstance(
-+            commandType,
-+            "check",
-+            "true",
-+            TimeSpan.FromSeconds(1))!;
-+        Array commands = Array.CreateInstance(commandType, 1);
-+        commands.SetValue(command, 0);
-+        return Activator.CreateInstance(
-+            requestType,
-+            "task-1",
++        IReadOnlyList<string>? credentials = null) =>
++        new(
++            "task",
 +            source,
 +            agent,
-+            "no-network",
-+            commands,
-+            Array.Empty<string>(),
-+            credentials)!;
++            "network",
++            [
++                new VerifierCommand("first", "first", TimeSpan.FromSeconds(1)),
++                new VerifierCommand("second", "second", TimeSpan.FromSeconds(1))
++            ],
++            [],
++            credentials ?? ["VERIFIER_TOKEN"]);
++
++    private sealed class StaticWorkspaceFactory(string path)
++        : IPristineWorkspaceFactory
++    {
++        public int Calls { get; private set; }
++
++        public Task<string> CreateAsync(
++            string sourceDirectory,
++            CancellationToken cancellationToken)
++        {
++            Calls++;
++            return Task.FromResult(path);
++        }
++    }
++
++    private sealed class RecordingPatchApplier : IPatchApplier
++    {
++        public Task ApplyAsync(
++            string workspaceDirectory,
++            string patch,
++            CancellationToken cancellationToken) => Task.CompletedTask;
++    }
++
++    private sealed class RecordingRunner(params VerifierCommandResult[] results)
++        : IVerifierRunner
++    {
++        public List<string> Commands { get; } = [];
++
++        public Task<VerifierCommandResult> RunAsync(
++            VerifierRequest request,
++            string workspaceDirectory,
++            VerifierCommand command,
++            CancellationToken cancellationToken)
++        {
++            Commands.Add(command.Name);
++            VerifierCommandResult result = results.Length >= Commands.Count
++                ? results[Commands.Count - 1]
++                : new VerifierCommandResult(command.Name, 0, "", "", 1, false);
++            return Task.FromResult(result);
++        }
 +    }
 +
 +    private sealed class TemporaryDirectory : IDisposable
@@ -92,7 +142,7 @@ new file mode 100644
 +        {
 +            Path = System.IO.Path.Combine(
 +                System.IO.Path.GetTempPath(),
-+                $"wharf-verifier-test-{Guid.NewGuid():N}");
++                Guid.NewGuid().ToString("N"));
 +            Directory.CreateDirectory(Path);
 +        }
 +

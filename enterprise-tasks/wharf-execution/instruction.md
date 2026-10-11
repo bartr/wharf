@@ -1,13 +1,14 @@
-The Wharf 0.11.0 release has the preceding architecture but does not include
-this release boundary. Implement the 0.11.0 to 0.12.0 change for Implement phase execution policies and retries.
+The Wharf 0.11.0 release schedules logical attempts but lacks independent
+phase execution policy. Implement the 0.12.0 execution slice.
 
-Use the historical public contract in the target release as the compatibility
-boundary. Add the production types, validation, and behavior for the
-Implement phase execution policies and retries. Preserve existing behavior, do not modify existing test files, and
-retain explicit errors rather than silent fallbacks.
-
-The implementation should match the target release's public API and tests for
-this boundary. Keep unrelated workflow artifacts out of the change.
+Give build, agent, and verifier phases independent concurrency gates and
+positive resource limits. Compute effective timeouts from phase defaults,
+multipliers, and optional phase overrides. Retry only failures explicitly
+classified as retryable infrastructure failures, cap retry counts, and retain
+versioned evidence for every retry without changing logical-attempt identity.
+Caller cancellation must propagate without being reclassified as a timeout or
+retryable failure. Always release phase permits after success, failure, timeout,
+or cancellation.
 
 Preserve the historical public contract in the `Wharf.Execution` namespace.
 Expose `PhaseExecutionService`, `PhaseExecutionResult<T>`,
@@ -16,5 +17,5 @@ Expose `PhaseExecutionService`, `PhaseExecutionResult<T>`,
 `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
-IMPORTANT: Do not commit changes. The evaluator captures the working-tree
+Do not modify existing tests or commit changes. The evaluator captures the working-tree
 patch after implementation.

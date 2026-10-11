@@ -1,39 +1,82 @@
 diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
 new file mode 100644
-index 0000000..a408e35
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,33 @@
-+using System.Reflection;
+@@ -0,0 +1,77 @@
++using Wharf.Scheduler;
 +
 +namespace Wharf.Tests;
 +
 +public sealed class DeepSweWharfTests
 +{
 +    [Fact]
-+    public void AddsHistoricalContracts()
++    public async Task AddsHistoricalContracts()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Scheduler.DeterministicScheduler"));
-+        Assert.NotNull(assembly.GetType("Wharf.Scheduler.SchedulerResult"));
-+        Assert.NotNull(assembly.GetType("Wharf.Scheduler.ITrialRunner"));
++        var runner = new SuccessfulRunner();
++        var sink = new RecordingSink();
++        var scheduler = new DeterministicScheduler(runner, sink);
++        var attempts = new[]
++        {
++            new ScheduledAttempt("b", "logical-b", "task-b"),
++            new ScheduledAttempt("a", "logical-a", "task-a")
++        };
++
++        SchedulerResult result = await scheduler.RunAsync(
++            attempts,
++            new SchedulerOptions(1, 2));
++
++        Assert.Equal(["a", "b"], result.StartedAttempts.Select(item => item.AttemptId));
++        Assert.Equal(["a", "b"], runner.AttemptIds);
++        Assert.Equal(2, result.Counts.Completed);
 +    }
 +
 +    [Fact]
-+    public void ExposesExpectedBoundaryOperations()
++    public async Task ExposesExpectedBoundaryOperations()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type type = assembly.GetType("Wharf.Scheduler.DeterministicScheduler")!;
-+        Assert.NotNull(type);
-+        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
-+        Assert.NotNull(assembly.GetType("Wharf.Scheduler.ISchedulerEventSink"));
++        var runner = new SuccessfulRunner();
++        var scheduler = new DeterministicScheduler(runner, new RecordingSink());
++        var attempts = new[]
++        {
++            new ScheduledAttempt("a", "logical", "task"),
++            new ScheduledAttempt("b", "logical", "task")
++        };
++
++        SchedulerResult result = await scheduler.RunAsync(
++            attempts,
++            new SchedulerOptions(1, 2));
++
++        Assert.Equal(["a"], runner.AttemptIds);
++        Assert.Equal(["logical"], result.BankedLogicalAttempts);
++        Assert.Equal(2, result.Counts.Completed);
 +    }
 +
 +    [Fact]
 +    public void PreservesExistingReleaseAssembly()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++        Assert.Throws<ArgumentOutOfRangeException>(
++            () => new SchedulerOptions(0, 1).Validate());
++    }
++
++    private sealed class SuccessfulRunner : ITrialRunner
++    {
++        public List<string> AttemptIds { get; } = [];
++
++        public async Task<TrialExecutionResult> RunAsync(
++            ScheduledAttempt attempt,
++            Func<string, Task> transition,
++            CancellationToken cancellationToken)
++        {
++            AttemptIds.Add(attempt.AttemptId);
++            await transition(SchedulerLifecycle.Agent);
++            await transition(SchedulerLifecycle.Verifier);
++            return new TrialExecutionResult(true);
++        }
++    }
++
++    private sealed class RecordingSink : ISchedulerEventSink
++    {
++        public Task RecordAsync(
++            SchedulerEvent schedulerEvent,
++            CancellationToken cancellationToken) => Task.CompletedTask;
 +    }
 +}

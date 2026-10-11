@@ -2,43 +2,100 @@ diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweW
 new file mode 100644
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,39 @@
-+using System.Reflection;
+@@ -0,0 +1,96 @@
++using Wharf.Image;
 +
 +namespace Wharf.Tests;
 +
 +public sealed class DeepSweWharfTests
 +{
 +    [Fact]
-+    public void AddsDerivedImageCoordinatorBoundary()
++    public async Task AddsDerivedImageCoordinatorBoundary()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageCoordinator"));
-+        Assert.NotNull(assembly.GetType("Wharf.Image.IDerivedImageBackend"));
-+        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageRequest"));
-+        Assert.NotNull(assembly.GetType("Wharf.Image.DerivedImageResult"));
++        var backend = new RecordingBackend();
++        await using var coordinator = new DerivedImageCoordinator(backend, 1);
++        DerivedImageRequest request = Request();
++
++        DerivedImageResult first = await coordinator.PrepareAsync(request);
++        DerivedImageResult second = await coordinator.PrepareAsync(request);
++
++        Assert.False(first.Reused);
++        Assert.True(second.Reused);
++        Assert.Equal(1, backend.Builds);
++        Assert.Equal(first.CacheKey, second.CacheKey);
 +    }
 +
 +    [Fact]
 +    public void ExposesDeterministicDerivedImageCacheKey()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type cache = assembly.GetType("Wharf.Image.DerivedImageCacheKey")!;
-+        Assert.NotNull(cache.GetMethod("Create", BindingFlags.Public | BindingFlags.Static));
-+        Type request = assembly.GetType("Wharf.Image.DerivedImageRequest")!;
-+        Assert.NotNull(request.GetMethod("Validate"));
++        DerivedImageRequest first = Request(
++            versions: new Dictionary<string, string>
++            {
++                ["b"] = "2",
++                ["a"] = "1"
++            });
++        DerivedImageRequest second = Request(
++            versions: new Dictionary<string, string>
++            {
++                ["a"] = "1",
++                ["b"] = "2"
++            });
++        DerivedImageRequest reorderedScripts = first with
++        {
++            Scripts = ["second", "first"]
++        };
++
++        Assert.Equal(
++            DerivedImageCacheKey.Create(first),
++            DerivedImageCacheKey.Create(second));
++        Assert.NotEqual(
++            DerivedImageCacheKey.Create(first),
++            DerivedImageCacheKey.Create(reorderedScripts));
 +    }
 +
 +    [Fact]
 +    public void RejectsInvalidDerivedImageRequests()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type request = assembly.GetType("Wharf.Image.DerivedImageRequest")!;
-+        object value = Activator.CreateInstance(
-+            request, "", Array.Empty<string>(),
-+            new Dictionary<string, string>(), new Dictionary<string, string>(), false)!;
-+        TargetInvocationException exception = Assert.Throws<TargetInvocationException>(
-+            () => request.GetMethod("Validate")!.Invoke(value, null));
-+        Assert.Equal("ArgumentException", exception.InnerException?.GetType().Name);
++        var request = new DerivedImageRequest(
++            "",
++            ["script"],
++            new Dictionary<string, string>(),
++            new Dictionary<string, string>());
++
++        Assert.Throws<ArgumentException>(request.Validate);
++    }
++
++    private static DerivedImageRequest Request(
++        IReadOnlyDictionary<string, string>? versions = null) =>
++        new(
++            "base:latest",
++            ["first", "second"],
++            versions ?? new Dictionary<string, string>(),
++            new Dictionary<string, string>
++            {
++                ["mode"] = "test"
++            });
++
++    private sealed class RecordingBackend : IDerivedImageBackend
++    {
++        public int Builds { get; private set; }
++
++        public Task EnsureBaseImageAsync(
++            string image,
++            CancellationToken cancellationToken) => Task.CompletedTask;
++
++        public Task PrepareContextAsync(
++            DerivedImageRequest request,
++            string cacheKey,
++            CancellationToken cancellationToken) => Task.CompletedTask;
++
++        public Task<string> BuildAsync(
++            DerivedImageRequest request,
++            string cacheKey,
++            CancellationToken cancellationToken)
++        {
++            Builds++;
++            return Task.FromResult($"derived:{cacheKey}");
++        }
 +    }
 +}

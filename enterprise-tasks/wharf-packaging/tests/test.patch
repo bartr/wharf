@@ -1,10 +1,9 @@
 diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
 new file mode 100644
-index 0000000..7c73538
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,38 @@
-+using System.Reflection;
+@@ -0,0 +1,95 @@
++using System.Diagnostics;
 +
 +namespace Wharf.Tests;
 +
@@ -13,32 +12,89 @@ index 0000000..7c73538
 +    [Fact]
 +    public void AddsPackagingScriptsWithSupplyChainControls()
 +    {
-+        string root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-+        string package = Path.Combine(root, "scripts/package-wharf.sh");
-+        string bootstrap = Path.Combine(root, "scripts/wharf-bootstrap.sh");
-+        string rollback = Path.Combine(root, "scripts/wharf-rollback.sh");
-+        Assert.True(File.Exists(package));
-+        Assert.True(File.Exists(bootstrap));
-+        Assert.True(File.Exists(rollback));
-+        Assert.Contains("dpkg-deb --build", File.ReadAllText(package));
-+        Assert.Contains("sha256sum", File.ReadAllText(package));
-+        Assert.Contains("SBOM", File.ReadAllText(package));
++        string root = FindRoot();
++        string[] scripts =
++        [
++            "scripts/package-wharf.sh",
++            "scripts/wharf-bootstrap.sh",
++            "scripts/wharf-rollback.sh"
++        ];
++
++        foreach (string script in scripts)
++        {
++            string path = Path.Combine(root, script);
++            Assert.True(File.Exists(path), $"missing {script}");
++            ProcessResult syntax = Run("bash", ["-n", path], root);
++            Assert.Equal(0, syntax.ExitCode);
++        }
 +    }
 +
 +    [Fact]
 +    public void KeepsPrivilegeAndRollbackBoundariesExplicit()
 +    {
-+        string root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
-+        Assert.Contains("exec sudo", File.ReadAllText(Path.Combine(root, "scripts/wharf-bootstrap.sh")));
-+        Assert.Contains("exec sudo", File.ReadAllText(Path.Combine(root, "scripts/wharf-rollback.sh")));
-+        Assert.Contains("previous.deb", File.ReadAllText(Path.Combine(root, "scripts/wharf-rollback.sh")));
++        string root = FindRoot();
++        string package = Path.Combine(root, "scripts/package-wharf.sh");
++        string bootstrap = Path.Combine(root, "scripts/wharf-bootstrap.sh");
++
++        ProcessResult invalidVersion = Run("bash", [package, "not-a-version"], root);
++        ProcessResult missingPackage = Run(
++            "bash",
++            [bootstrap, Path.Combine(root, "missing.deb")],
++            root);
++
++        Assert.NotEqual(0, invalidVersion.ExitCode);
++        Assert.NotEqual(0, missingPackage.ExitCode);
++        Assert.Contains("usage:", invalidVersion.StandardError);
++        Assert.Contains("usage:", missingPackage.StandardError);
 +    }
 +
 +    [Fact]
 +    public void PreservesExistingReleaseAssembly()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++        string package = File.ReadAllText(
++            Path.Combine(FindRoot(), "scripts/package-wharf.sh"));
++
++        Assert.Contains("\"bomFormat\": \"CycloneDX\"", package);
++        Assert.Contains("sort_keys=True", package);
++        Assert.Contains("--detach-sign", package);
++        Assert.Contains("--verify", package);
 +    }
++
++    private static string FindRoot()
++    {
++        string? current = AppContext.BaseDirectory;
++        while (current is not null &&
++               !File.Exists(Path.Combine(current, "wharf.slnx")))
++        {
++            current = Directory.GetParent(current)?.FullName;
++        }
++
++        return current ?? throw new InvalidOperationException("repository root not found");
++    }
++
++    private static ProcessResult Run(
++        string fileName,
++        IReadOnlyList<string> arguments,
++        string workingDirectory)
++    {
++        var start = new ProcessStartInfo(fileName)
++        {
++            WorkingDirectory = workingDirectory,
++            RedirectStandardOutput = true,
++            RedirectStandardError = true,
++            UseShellExecute = false
++        };
++        foreach (string argument in arguments)
++            start.ArgumentList.Add(argument);
++        using Process process = Process.Start(start)!;
++        string stdout = process.StandardOutput.ReadToEnd();
++        string stderr = process.StandardError.ReadToEnd();
++        process.WaitForExit();
++        return new ProcessResult(process.ExitCode, stdout, stderr);
++    }
++
++    private sealed record ProcessResult(
++        int ExitCode,
++        string StandardOutput,
++        string StandardError);
 +}

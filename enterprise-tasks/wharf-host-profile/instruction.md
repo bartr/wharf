@@ -1,13 +1,12 @@
-The Wharf 0.18.0 release has the preceding architecture but does not include
-this release boundary. Implement the 0.18.0 to 0.19.0 change for Implement host profile qualification.
+The Wharf 0.18.0 release has packaging but no host qualification profiles.
+Implement the 0.19.0 qualification slice.
 
-Use the historical public contract in the target release as the compatibility
-boundary. Add the production types, validation, and behavior for the
-Implement host profile qualification. Preserve existing behavior, do not modify existing test files, and
-retain explicit errors rather than silent fallbacks.
-
-The implementation should match the target release's public API and tests for
-this boundary. Keep unrelated workflow artifacts out of the change.
+Publish the historical 32-concurrent and 88-concurrent overnight profiles.
+Recommendations must respect both operator limits and detected CPU and memory
+capacity; they must never silently raise an operator limit. Qualification
+requires all expected tasks, no lost completed tasks, completion within the
+deadline, and a complete score. Produce deterministic profile-ordered evidence
+and recommendation reports using schema version `1.0`.
 
 Preserve the historical public contract in the `Wharf.Qualification`
 namespace. Expose `HostProfiles`, `HostProfileService`,
@@ -15,5 +14,5 @@ namespace. Expose `HostProfiles`, `HostProfileService`,
 existing `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
-Do not commit changes. The evaluator captures the working-tree patch after
+Do not modify existing tests or commit changes. The evaluator captures the working-tree patch after
 implementation.

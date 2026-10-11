@@ -15,7 +15,9 @@ Preserve the historical public contract in the `Wharf.Image` namespace.
 Expose `ImagePullCoordinator`, `ImagePullOptions`, `IImagePullTelemetry`,
 `IImageClient`, `ImagePullSchema`, `ImagePullAttempt`, `ImagePullResult`,
 `ImageRateLimitEvent`, and `ImagePullSummary`. `ImagePullSchema.Version` must
-be `"1.0"`, and invalid retry options must be rejected explicitly.
+be `"1.0"`, and invalid retry options must be rejected explicitly before a
+pull begins. Rejection may occur during option construction, coordinator
+construction, or an explicit validation call.
 
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.

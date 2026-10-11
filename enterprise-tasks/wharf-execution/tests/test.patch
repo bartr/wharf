@@ -1,10 +1,9 @@
 diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
 new file mode 100644
-index 0000000..750e9bb
 --- /dev/null
 +++ b/tests/wharf.Tests/DeepSweWharfTests.cs
-@@ -0,0 +1,34 @@
-+using System.Reflection;
+@@ -0,0 +1,63 @@
++using Wharf.Execution;
 +
 +namespace Wharf.Tests;
 +
@@ -13,28 +12,57 @@ index 0000000..750e9bb
 +    [Fact]
 +    public void AddsHistoricalContracts()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseExecutionService"));
-+        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseExecutionResult`1"));
-+        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseResourceLimits"));
++        var limits = new PhaseResourceLimits(1, 2, 3);
++        var timeouts = new PhaseTimeoutPolicy(
++            TimeSpan.FromSeconds(1),
++            TimeSpan.FromSeconds(2),
++            TimeSpan.FromSeconds(3),
++            2,
++            new Dictionary<ExecutionPhase, TimeSpan>
++            {
++                [ExecutionPhase.Agent] = TimeSpan.FromSeconds(4)
++            });
++
++        Assert.Equal(3, limits.For(ExecutionPhase.Verifier));
++        Assert.Equal(TimeSpan.FromSeconds(8), timeouts.For(ExecutionPhase.Agent));
 +    }
 +
 +    [Fact]
-+    public void ExposesExpectedBoundaryOperations()
++    public async Task ExposesExpectedBoundaryOperations()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Type type = assembly.GetType("Wharf.Execution.PhaseExecutionService")!;
-+        Assert.NotNull(type);
-+        Assert.NotEmpty(type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static));
-+        Assert.NotNull(assembly.GetType("Wharf.Execution.PhaseTimeoutPolicy"));
-+        Assert.NotNull(assembly.GetType("Wharf.Execution.InfrastructureRetryPolicy"));
++        await using var service = new PhaseExecutionService(
++            new PhaseResourceLimits(1, 1, 1),
++            new PhaseTimeoutPolicy(
++                TimeSpan.FromSeconds(5),
++                TimeSpan.FromSeconds(5),
++                TimeSpan.FromSeconds(5)),
++            new InfrastructureRetryPolicy(1));
++        int calls = 0;
++
++        PhaseExecutionResult<string> result = await service.ExecuteAsync(
++            "logical-1",
++            ExecutionPhase.Agent,
++            _ =>
++            {
++                calls++;
++                return calls == 1
++                    ? Task.FromException<string>(new IOException("transient"))
++                    : Task.FromResult("ok");
++            },
++            exception => exception is IOException);
++
++        Assert.Equal("ok", result.Value);
++        Assert.Equal(1, result.InfrastructureRetries);
++        Assert.Equal(2, calls);
 +    }
 +
 +    [Fact]
 +    public void PreservesExistingReleaseAssembly()
 +    {
-+        Assembly assembly = Assembly.Load("wharf");
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.RunConfiguration"));
-+        Assert.NotNull(assembly.GetType("Wharf.Configuration.WharfConfiguration"));
++        var limits = new PhaseResourceLimits(1, 0, 1);
++        var retries = new InfrastructureRetryPolicy(-1);
++
++        Assert.Throws<ArgumentOutOfRangeException>(limits.Validate);
++        Assert.Throws<ArgumentOutOfRangeException>(retries.Validate);
 +    }
 +}
