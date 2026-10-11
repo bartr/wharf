@@ -12,6 +12,7 @@ using Wharf.Reporting;
 using Wharf.Run;
 using Wharf.Smoke;
 using Wharf.Qualification;
+using Wharf.Recovery;
 using Wharf.Tasks;
 using Wharf.Versioning;
 using CliCommand = System.CommandLine.Command;
@@ -68,9 +69,10 @@ public static class CommandTree
         root.Subcommands.Add(CreateCompletionCommand());
         root.Subcommands.Add(CreateBuildCommand(() => configuration));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
+        root.Subcommands.Add(CreateResumeCommand(configuration, cancellationToken));
         root.Subcommands.Add(CreateProgressCommand());
         root.Subcommands.Add(CreateCheckCommand());
-        foreach (string? name in new[] { "resume", "status", "stop" })
+        foreach (string? name in new[] { "status", "stop" })
         {
             root.Subcommands.Add(CreatePlaceholderCommand(name));
         }
@@ -343,6 +345,130 @@ public static class CommandTree
                 return ExitCode.Success.Value;
             }
             catch (RunConfigurationException exception)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+        });
+        return command;
+    }
+
+    private static CliCommand CreateResumeCommand(
+        WharfConfiguration configuration,
+        CancellationToken cancellationToken)
+    {
+        var command = new CliCommand(
+            "resume",
+            "Resume unfinished logical attempts in an existing run directory.");
+        var runDirectory = new Option<string>("--run-directory")
+        {
+            Description = "Existing Wharf all-N run directory."
+        };
+        var tasks = new Option<string?>("--tasks")
+        {
+            Description = "Task root. Inferred from retained results when omitted."
+        };
+        var n = new Option<int?>("--n") { Description = "Override retained task concurrency." };
+        var p = new Option<int?>("--p") { Description = "Override retained preparation concurrency." };
+        var dryRun = new Option<bool>("--dry-run")
+        {
+            Description = "Validate and list the resume plan without running trials."
+        };
+        dryRun.Aliases.Add("-d");
+        var verbose = new Option<bool>("--verbose")
+        {
+            Description = "Show resume execution details."
+        };
+        verbose.Aliases.Add("-v");
+        command.Options.Add(runDirectory);
+        command.Options.Add(tasks);
+        command.Options.Add(n);
+        command.Options.Add(p);
+        command.Options.Add(dryRun);
+        command.Options.Add(verbose);
+        command.SetAction(parseResult =>
+        {
+            try
+            {
+                string? requestedRun = parseResult.GetValue(runDirectory);
+                if (string.IsNullOrWhiteSpace(requestedRun))
+                    throw new RecoveryException("resume run directory is required");
+
+                RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+                    requestedRun,
+                    parseResult.GetValue(tasks),
+                    parseResult.GetValue(n),
+                    parseResult.GetValue(p));
+                Console.WriteLine(
+                    $"resume completed={plan.CompletedCount} pending={plan.Attempts.Count} " +
+                    $"K={plan.K} N={plan.N} P={plan.P} model={plan.Model} " +
+                    $"effort={plan.Effort} cli={plan.CliVersion}");
+                if (parseResult.GetValue(dryRun) || plan.Attempts.Count == 0)
+                {
+                    foreach (RetainedResumeAttempt attempt in plan.Attempts)
+                    {
+                        Console.WriteLine(
+                            $"pending task={attempt.Attempt.Task.TaskId} " +
+                            $"attempt={attempt.Attempt.AttemptNumber} " +
+                            $"trial-retry={attempt.TrialRetry}");
+                    }
+                    return ExitCode.Success.Value;
+                }
+
+                var runConfiguration = new RunConfiguration(
+                    plan.K,
+                    plan.N,
+                    Math.Min(plan.P, plan.N),
+                    new PhaseTimeouts(),
+                    new RetryPolicy(MaxAttempts: 1),
+                    "text",
+                    "jobs",
+                    plan.Model,
+                    plan.Effort,
+                    plan.CliVersion,
+                    [],
+                    [],
+                    30,
+                    false,
+                    "default",
+                    new SecretSettings(
+                        Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                        Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                        Environment.GetEnvironmentVariable("WHARF_PASSWORD")),
+                    plan.ShortestFirst);
+                RunConfigurationValidator.Validate(null, runConfiguration);
+                WharfConfiguration loggerConfiguration = configuration with
+                {
+                    Verbosity = Math.Max(
+                        configuration.Verbosity,
+                        parseResult.GetValue(verbose) ? 1 : 0)
+                };
+                using WharfLogger logger = WharfLogger.CreateDeferred(
+                    loggerConfiguration,
+                    Path.Combine(Directory.GetCurrentDirectory(), "run.jsonl"));
+                IReadOnlyList<HarborTask> loadedTasks =
+                    new HarborTaskLoader().Load(plan.TaskRoot);
+                RunResult result = new RunService(
+                    imagePreparer: new DockerAgentImagePreparer(
+                        progress: message => logger.Info(message))).Execute(
+                    plan.TaskRoot,
+                    "jobs",
+                    runConfiguration,
+                    logger,
+                    loadedTasks,
+                    cancellationToken: cancellationToken,
+                    resume: new RunResumeTarget(plan.RunDirectory, plan.Attempts));
+                Console.WriteLine(
+                    $"resume complete trials={plan.Attempts.Count} " +
+                    $"run={result.AttemptDirectory} log={logger.JsonlPath}");
+                return ExitCode.Success.Value;
+            }
+            catch (Exception exception) when (
+                exception is RecoveryException or
+                RunException or
+                RunConfigurationException or
+                CopilotAdapterException or
+                IOException)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;

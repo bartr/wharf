@@ -10,6 +10,7 @@ using Wharf.Docker;
 using Wharf.Execution;
 using Wharf.Image;
 using Wharf.Logging;
+using Wharf.Recovery;
 using Wharf.Tasks;
 using Wharf.Verifier;
 
@@ -23,6 +24,10 @@ public sealed record RunResult(
     string OutputDirectory,
     string JobDirectory,
     string AttemptDirectory);
+
+public sealed record RunResumeTarget(
+    string RunDirectory,
+    IReadOnlyList<RetainedResumeAttempt> Attempts);
 
 internal sealed record VerifierRetryOutcome(
     TrialResult Result,
@@ -60,7 +65,8 @@ public sealed class RunService
         WharfLogger logger,
         IReadOnlyList<HarborTask>? selectedTasks = null,
         string attemptPrefix = "all",
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        RunResumeTarget? resume = null)
     {
         string resolvedRoot = Path.GetFullPath(taskRoot);
         if (!Directory.Exists(resolvedRoot))
@@ -86,7 +92,12 @@ public sealed class RunService
         if (tasks.Count == 0)
             throw new RunException($"run task directory contains no task.toml files: {resolvedRoot}");
 
-        int plannedRuns = checked(tasks.Count * configuration.K);
+        IReadOnlyList<TaskAttempt> scheduledAttempts = resume is null
+            ? TaskSelector.OrderAttemptsForAdmission(
+                TaskSelector.ExpandAttempts(tasks, configuration.K),
+                configuration.ShortestFirst)
+            : resume.Attempts.Select(item => item.Attempt).ToArray();
+        int plannedRuns = scheduledAttempts.Count;
         string runId = Guid.NewGuid().ToString("N")[..8];
         CopilotInvocation? invocation = null;
         string? invocationError = null;
@@ -100,28 +111,43 @@ public sealed class RunService
             logger.Info($"agent setup failed error={exception.Message}");
         }
         string resolvedOutput = Path.GetFullPath(outputDirectory);
-        string jobDirectory = Path.Combine(
-            resolvedOutput,
-            BuildJobDirectoryName(
-                configuration.Model,
-                configuration.CliVersion,
-                invocation?.EffectiveVersion));
-        Directory.CreateDirectory(jobDirectory);
-        string attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
+        string jobDirectory;
+        string attemptDirectory;
+        if (resume is null)
+        {
+            jobDirectory = Path.Combine(
+                resolvedOutput,
+                BuildJobDirectoryName(
+                    configuration.Model,
+                    configuration.CliVersion,
+                    invocation?.EffectiveVersion));
+            Directory.CreateDirectory(jobDirectory);
+            attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
+        }
+        else
+        {
+            string runDirectory = Path.GetFullPath(resume.RunDirectory);
+            if (!Directory.Exists(runDirectory))
+                throw new RunException($"resume run directory does not exist: {runDirectory}");
+            jobDirectory = Directory.GetParent(runDirectory)?.FullName
+                ?? throw new RunException($"resume run directory has no parent: {runDirectory}");
+            attemptDirectory = Path.GetFileName(runDirectory);
+        }
         logger.AttachJsonlPathIfUnset(
             Path.Combine(jobDirectory, attemptDirectory, "run.jsonl"));
         logger.Info(
-            $"plan tasks={tasks.Count} attempts={configuration.K} runs={plannedRuns} " +
+            $"{(resume is null ? "plan" : "resume plan")} tasks={tasks.Count} " +
+            $"attempts={configuration.K} runs={plannedRuns} " +
             $"task-concurrency={configuration.N} preparation-concurrency={configuration.P} " +
             $"admission-order={(configuration.ShortestFirst ? "shortest-first" : "longest-first")}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
         logger.Info(
-            $"run created {attemptDirectory} under {jobDirectory}" +
+            $"run {(resume is null ? "created" : "resuming")} {attemptDirectory} under {jobDirectory}" +
             (configuration.K > 1 ? $" K={configuration.K}" : ""));
 
-        IReadOnlyList<TaskAttempt> scheduledAttempts = TaskSelector.OrderAttemptsForAdmission(
-            TaskSelector.ExpandAttempts(tasks, configuration.K),
-            configuration.ShortestFirst);
+        IReadOnlyDictionary<string, RetainedResumeAttempt> resumeAttempts =
+            resume?.Attempts.ToDictionary(item => item.Attempt.AttemptId, StringComparer.Ordinal)
+            ?? new Dictionary<string, RetainedResumeAttempt>(StringComparer.Ordinal);
         using var preparationGate = new PreparationGate(
             configuration.P,
             logger.PreparationGateChanged);
@@ -152,13 +178,38 @@ public sealed class RunService
                 attemptDirectory,
                 $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}{attemptSuffix}");
             int maximumTrialRetries = configuration.Retries.MaxAttempts ?? 1;
-            decimal? totalCost = null;
-            for (int trialRetry = 0; ; trialRetry++)
+            RetainedResumeAttempt? resumeAttempt =
+                resumeAttempts.GetValueOrDefault(attempt.AttemptId);
+            if (resumeAttempt is not null)
             {
-                if (trialRetry > 0)
+                if (!string.Equals(
+                        Path.GetFullPath(trialDirectory),
+                        Path.GetFullPath(resumeAttempt.TrialDirectory),
+                        StringComparison.Ordinal))
+                {
+                    throw new RunException(
+                        $"resume trial path mismatch for {attempt.AttemptId}");
+                }
+                if (File.Exists(Path.Combine(trialDirectory, "result.json")))
+                {
+                    throw new RunException(
+                        $"resume trial already has a terminal result: {trialDirectory}");
+                }
+                string archived = ResumeEvidenceArchiver.Archive(trialDirectory);
+                logger.Info(
+                    $"{prefix} status=resume-evidence-archived path={archived}");
+            }
+
+            int initialTrialRetry = resumeAttempt?.TrialRetry ?? 0;
+            decimal? totalCost = resumeAttempt?.TotalCost;
+            bool firstExecution = true;
+            for (int trialRetry = initialTrialRetry; ; trialRetry++)
+            {
+                if (trialRetry > 0 && !firstExecution)
                 {
                     ArchiveTrialExecution(trialDirectory, trialRetry);
                 }
+                firstExecution = false;
                 string trialRetrySuffix = trialRetry > 0
                     ? $"__trial-retry-{trialRetry}"
                     : string.Empty;
