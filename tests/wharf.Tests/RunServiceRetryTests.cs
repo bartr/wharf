@@ -8,7 +8,6 @@ public sealed class RunServiceRetryTests
 {
     [Theory]
     [InlineData("failed", "OutOfMemory")]
-    [InlineData("failed", "AgentTimeout")]
     [InlineData("failed", "AgentExecution")]
     [InlineData("failed", "AgentImage")]
     public void GivenAgentFailureBeforeCompletion_ShouldRetryTrial_ReturnsTrue(
@@ -27,6 +26,8 @@ public sealed class RunServiceRetryTests
     [InlineData("passed", "OutOfMemory", false, 0)]
     [InlineData("failed", "OutOfMemory", true, 0)]
     [InlineData("failed", null, false, 0)]
+    [InlineData("failed", "AgentTimeout", false, 0)]
+    [InlineData("unfinished", "AgentUnfinished", false, 0)]
     [InlineData("failed", "AgentTimeout", false, 1)]
     [InlineData("failed", "Invocation", false, 0)]
     [InlineData("failed", "Verifier", false, 0)]
@@ -237,6 +238,14 @@ public sealed class RunServiceRetryTests
         Assert.Equal(
             "verifier-task_name__run:latest",
             RunService.BuildVerifierImageName("task/name", "run"));
+    }
+
+    [Fact]
+    public void ManagedAgentContainerNamesUseRolePrefix()
+    {
+        Assert.Equal(
+            "agent-task__attempt-1__run",
+            RunService.BuildAgentContainerName("task__attempt-1__run"));
     }
 
     [Fact]

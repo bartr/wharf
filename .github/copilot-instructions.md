@@ -163,7 +163,9 @@ Verifier timeouts and externally terminated verifier commands retry only the
 verifier boundary. Preserve the exact agent patch and cost, archive failed
 verifier evidence under `verifier-retries/retry-N`, and use a fresh verifier
 image identity and pristine workspace for the retry. Agent-side typed failures
-continue to use whole-trial retry under `trial-retries/retry-N`; ordinary
+other than `AgentTimeout` and `AgentUnfinished` continue to use whole-trial
+retry under `trial-retries/retry-N`. A clean exit with no patch and an agent
+execution timeout are terminal and must not rerun the agent. Ordinary
 reward-zero verification is not retryable.
 
 The controlled benchmark decision made before the next result excludes All-1
@@ -193,7 +195,8 @@ from the pulled parent. Never run multiple logical trials directly from the
 shared ECR tag, and register only the child image for deletion.
 Prefix Wharf-owned agent image tags with `agent-` and verifier image tags with
 `verifier-` so operators can list managed images without matching pulled ECR
-images.
+images. Prefix Wharf-owned agent container names with `agent-` and verifier
+container names with `verifier-` so `docker ps` exposes resource ownership.
 
 Run admission remains longest-estimated-duration first by default within each K
 wave. The opt-in `--shortest-first` flag reverses duration ordering within each

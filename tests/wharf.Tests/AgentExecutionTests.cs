@@ -65,10 +65,28 @@ public sealed class AgentExecutionTests
         var service = new AgentExecutionService(
             new FakeAgentRunner(new AgentRunResult(0, "out", "", "trace", "", TimeSpan.Zero)));
 
-        await Assert.ThrowsAsync<AgentExecutionException>(
+        AgentExecutionException exception = await Assert.ThrowsAsync<AgentExecutionException>(
             () => service.ExecuteAsync(Request(source.Path, workspace.Path), evidence.Path));
 
+        Assert.Equal("AgentUnfinished", exception.ErrorType);
         Assert.Contains("\"status\":\"unfinished\"", File.ReadAllText(Path.Combine(evidence.Path, "result.json")));
+    }
+
+    [Fact]
+    public async Task NonzeroExitWithoutPatchIsFailedRatherThanUnfinished()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory workspace = new();
+        using TemporaryDirectory evidence = new();
+        var service = new AgentExecutionService(
+            new FakeAgentRunner(new AgentRunResult(1, "out", "error", "trace", "", TimeSpan.Zero)));
+
+        AgentEvidenceSummary summary = await service.ExecuteAsync(
+            Request(source.Path, workspace.Path),
+            evidence.Path);
+
+        Assert.Equal("failed", summary.Status);
+        Assert.Null(summary.ErrorType);
     }
 
     [Fact]

@@ -30,9 +30,9 @@ public sealed class AgentExecutionService
             cancellationToken);
         string status = result.OutOfMemory || result.TimedOut
             ? "failed"
-            : string.IsNullOrWhiteSpace(result.Patch)
-            ? "unfinished"
-            : result.ExitCode == 0 ? "completed" : "failed";
+            : result.ExitCode != 0
+            ? "failed"
+            : string.IsNullOrWhiteSpace(result.Patch) ? "unfinished" : "completed";
         AgentEvidenceSummary summary = WriteEvidence(
             evidenceDirectory,
             request.TaskId,
@@ -48,7 +48,8 @@ public sealed class AgentExecutionService
         if (status == "unfinished")
         {
             throw new AgentExecutionException(
-                $"agent produced no patch for task {request.TaskId}");
+                $"agent produced no patch for task {request.TaskId}",
+                "AgentUnfinished");
         }
 
         return summary;

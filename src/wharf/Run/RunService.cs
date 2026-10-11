@@ -280,7 +280,7 @@ public sealed class RunService
                                         .ToArray()
                                 },
                                 [],
-                                executionName,
+                                BuildAgentContainerName(executionName),
                                 TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400),
                                 RetainWorkspace: configuration.RetainWorkspaces);
                             logger.Info($"{prefix} status=preparing-workspace");
@@ -335,7 +335,8 @@ public sealed class RunService
                                 AgentExecutionRequest retryRequest = failedRequest with
                                 {
                                     WorkspaceDirectory = retryWorkspace,
-                                    ContainerName = $"{executionName}-retry-{retryNumber}"
+                                    ContainerName = BuildAgentContainerName(
+                                        $"{executionName}-retry-{retryNumber}")
                                 };
                                 await preparationGate.ExecuteAsync(
                                     PreparationOperation.AgentRetry,
@@ -652,7 +653,7 @@ public sealed class RunService
                             await PrepareWorkspacesForCleanupAsync(
                                 trialDirectory,
                                 agentRequest,
-                                executionName,
+                                BuildAgentContainerName(executionName),
                                 workspacePreparer,
                                 trialCancellationToken);
                         }
@@ -777,6 +778,8 @@ public sealed class RunService
         !string.Equals(taskStatus, "passed", StringComparison.OrdinalIgnoreCase) &&
         !string.IsNullOrWhiteSpace(agentErrorType) &&
         !string.Equals(agentErrorType, "Invocation", StringComparison.Ordinal) &&
+        !string.Equals(agentErrorType, "AgentTimeout", StringComparison.Ordinal) &&
+        !string.Equals(agentErrorType, "AgentUnfinished", StringComparison.Ordinal) &&
         !IsVerifierError(agentErrorType) &&
         completedRetries < maximumRetries;
 
@@ -1117,6 +1120,9 @@ public sealed class RunService
 
     internal static string BuildAgentImageName(string executionName) =>
         $"agent-{executionName}:latest";
+
+    internal static string BuildAgentContainerName(string executionName) =>
+        $"agent-{executionName}";
 
     internal static string BuildVerifierImageName(string taskId, string runId) =>
         $"verifier-{SanitizePathPart(taskId)}__{runId}:latest";

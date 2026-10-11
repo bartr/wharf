@@ -933,3 +933,7 @@ Completed on 2026-10-10:
   whole-trial fallback: it reran the completed agent and then aborted with
   missing agent evidence. All `Verifier*` failures now remain inside the
   verifier-only retry boundary against the retained patch.
+* The Opus 5.5 qualification run established that a clean agent exit with no
+  patch is terminal `AgentUnfinished`, not a retryable execution error. Agent
+  execution timeouts are also terminal. Verifier timeouts remain eligible for
+  bounded verifier-only retry against the retained patch.

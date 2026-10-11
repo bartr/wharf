@@ -64,6 +64,8 @@ container and reuse the task's configured environment image. After MVP,
 - Create verifier containers without host mounts. Copy retained artifacts into
   `/logs/artifacts`, run the verifier, and copy `/logs/verifier` back into the
   run directory before removing the container.
+- Prefix Wharf-owned agent container names with `agent-` and verifier
+  container names with `verifier-` so `docker ps` exposes resource ownership.
 - Limit each agent and verifier container to 8 GiB of memory while leaving
   Docker's default swap allowance in effect, matching Harbor behavior. Agent
   containers also have a 1024-process limit. Disable pnpm's automatic
@@ -92,7 +94,9 @@ container and reuse the task's configured environment image. After MVP,
   produce a passing patch. Archive the failed execution under
   `trial-retries/retry-1`, then use fresh agent workspace and container
   identities without incrementing K. Do not retry an agent failure whose
-  retained patch passes.
+  retained patch passes. A clean agent exit with no patch is terminal
+  `unfinished`, and an agent execution timeout is terminal `AgentTimeout`;
+  neither reruns the agent.
 - Retry verifier timeouts and externally terminated verifier commands against
   the exact retained agent patch without rerunning the agent. Archive failed
   verifier evidence under `verifier-retries/retry-1`, then use a fresh
