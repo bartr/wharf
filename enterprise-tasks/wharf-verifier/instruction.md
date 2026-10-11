@@ -14,15 +14,31 @@ Required types in the `Wharf.Verifier` namespace:
   IReadOnlyList<string> HiddenPaths,
   IReadOnlyList<string> CredentialEnvironmentVariables)`
 - `VerifierCommandResult` with name, exit code, stdout, stderr, duration in
-  milliseconds, and timeout status
-- `TrialResult` with schema version, task ID, status, verifier workspace,
-  command results, and applied patch path
+  milliseconds, and timeout status, using
+  `VerifierCommandResult(string Name, int ExitCode, string StandardOutput,
+  string StandardError, long DurationMilliseconds, bool TimedOut)`
+- `TrialResult(string SchemaVersion, string TaskId, string Status,
+  string WorkspaceDirectory, IReadOnlyList<VerifierCommandResult> Commands,
+  string PatchApplied)`
 - `VerifierExecutionException`
 - `TrialResultSchema.Version`, equal to `"1.0"`
 - `IPristineWorkspaceFactory`, `IPatchApplier`, and `IVerifierRunner`
 - `PristineVerifierService.VerifyAsync(...)`. At least one public overload must
   accept the verifier request, retained patch, evidence directory, and
   cancellation token. Additional convenience overloads are allowed.
+
+Use these exact boundary methods:
+
+- `IPristineWorkspaceFactory.CreateAsync(string sourceDirectory,
+  CancellationToken)`;
+- `IPatchApplier.ApplyAsync(string workspaceDirectory, string patch,
+  CancellationToken)`;
+- `IVerifierRunner.RunAsync(VerifierRequest, string workspaceDirectory,
+  VerifierCommand, CancellationToken)`;
+- `PristineVerifierService(IPristineWorkspaceFactory, IPatchApplier,
+  IVerifierRunner)`; and
+- `VerifyAsync(VerifierRequest, string patch, string evidenceDirectory,
+  CancellationToken cancellationToken = default)`.
 
 `VerifierRequest.Validate()` must reject malformed credential environment
 variable names as well as invalid paths, commands, and workspace reuse.

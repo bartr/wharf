@@ -15,5 +15,27 @@ Expose `RunStatusSnapshot`, `GracefulStopService`, `NotificationService`, and
 `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
+Use these historical public shapes:
+
+- `RunNotification` exposes `SchemaVersion`, `RunId`, and `Status`, with
+  schema version `"1.0"`;
+- `IRunNotificationSink.NotifyAsync(RunNotification, CancellationToken)`;
+- `NotificationService(params IRunNotificationSink[] sinks)` and
+  `CompletedAsync(string runId, CancellationToken cancellationToken =
+  default)`;
+- `WebhookRunNotificationSink(HttpClient, Uri endpoint)` rejects non-HTTPS
+  endpoints;
+- `IGracefulRun.CancelAsync(CancellationToken)` and
+  `WaitForCompletionAsync(CancellationToken)`;
+- `IEphemeralResourceCleaner.RemoveAsync(IReadOnlySet<string> resourceIds,
+  CancellationToken)`; and
+- `GracefulStopService(IGracefulRun, IEphemeralResourceCleaner)` with
+  `StopAsync(IReadOnlySet<string> ephemeralResourceIds, TimeSpan timeout,
+  CancellationToken cancellationToken = default)`.
+
+Completion notifications are sent to every configured sink. Graceful stop
+cancels the run first, waits only within the supplied bound, and removes only
+the explicitly supplied ephemeral resource IDs.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

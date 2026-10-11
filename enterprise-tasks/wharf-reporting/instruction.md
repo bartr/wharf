@@ -14,5 +14,25 @@ Expose `ReportRenderer`, `ReportInput`, `ReportSchema`, and `RetryReport`,
 while preserving the existing `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
+Use these historical public shapes:
+
+- `ReportSchema.Version`, equal to `"1.0"`;
+- `RetryReport(int InfrastructureRetries, int RetryableFailures,
+  int ExhaustedRetries)`;
+- `RateLimitReport(int Responses429, int AffectedImages,
+  int ExhaustedImages, long CumulativeDelayMilliseconds)`;
+- `ReportInput(string SchemaVersion, string RunId, JsonElement Configuration,
+  IReadOnlyDictionary<string, string> Provenance, AuditReport Audit,
+  RetryReport Retries, RateLimitReport RateLimits)`;
+- instantiable `ReportRenderer` methods `RenderMarkdown(ReportInput)`,
+  `RenderJson(ReportInput)`, and `RenderJsonLines(ReportInput)`; and
+- `ReportInputException` for invalid or inconsistent report input.
+
+Reject a report when its schema version is not `ReportSchema.Version` or when
+its run ID differs from the audit run ID. Rendering must be deterministic.
+JSON Lines output contains one compact JSON object followed by exactly one
+platform newline. Markdown uses `missing` for absent aggregate values and
+includes PASS@1, infrastructure retry, and HTTP 429 totals.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

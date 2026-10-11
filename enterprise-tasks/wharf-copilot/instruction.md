@@ -17,6 +17,26 @@ three enum values, `CopilotCredentialSource` with a public `Validate` method,
 and `CopilotAdapterException`. `CopilotInvocation` must expose public
 `EffectiveVersion`, `RedactedCommand`, and `SubagentModels` properties.
 
+Use these historical public shapes:
+
+- `CopilotCredentialSource(CopilotCredentialSourceKind Kind, string Reference)`;
+- `CopilotAdapterOptions(string RequestedVersion, string Model,
+  string NativeEffort, string FrontierEffort,
+  IReadOnlyList<string> SubagentModels, CopilotCredentialSource Credential,
+  IReadOnlyList<string> Endpoints,
+  IReadOnlySet<string> AllowedEndpointHosts)`;
+- `CopilotCliVersion(string Value)`;
+- `ICopilotCliProbe.GetVersionAsync(CancellationToken)` returning
+  `Task<CopilotCliVersion>`;
+- `CopilotAdapter(ICopilotCliProbe probe, string executable = "copilot")`; and
+- `CopilotAdapter.PrepareAsync(CopilotAdapterOptions,
+  CancellationToken cancellationToken = default)`.
+
+`CopilotInvocation` must also expose `Arguments`, `Environment`,
+`ReadsCredentialFromStdin`, `NativeEffort`, `FrontierEffort`, and `Endpoints`.
+Normalize a leading `v` from CLI versions and map frontier effort `xhigh` to
+`high`.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

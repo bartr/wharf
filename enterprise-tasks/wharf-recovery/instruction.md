@@ -15,5 +15,26 @@ Expose `RunRecoveryPlanner`, `RecoveryPlan`, `RecoveryAttempt`, and
 `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
+Use these historical public shapes:
+
+- `RecoveryAttempt(string AttemptId, string LogicalAttemptId, string TrialId)`;
+- `LiveResourceSnapshot(IReadOnlySet<string> ResourceIds)`;
+- `ILiveResourceReconciler.InspectAsync(RunId, CancellationToken)`;
+- `RecoveryPlan(RunId RunId,
+  IReadOnlyList<RecoveryAttempt> AttemptsToResume,
+  IReadOnlySet<string> CompletedLogicalAttempts,
+  IReadOnlyDictionary<string, int> InfrastructureRetryCounts,
+  IReadOnlySet<string> OrphanedResourceIds)`;
+- `RunRecoveryPlanner(ILiveResourceReconciler? resources = null)`; and
+- `PlanAsync(RunId runId, string eventsPath,
+  IReadOnlyList<RecoveryAttempt> attempts,
+  CancellationToken cancellationToken = default)`.
+
+Resume eligible attempts in stable attempt-ID order. Exclude completed logical
+attempts and deterministic terminal failures, preserve replayed infrastructure
+retry counts, and report live resource IDs whose trial IDs are not represented
+by the supplied attempts. An empty valid event stream and empty attempt list
+produce an empty plan.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

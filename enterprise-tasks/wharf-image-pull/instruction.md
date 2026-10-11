@@ -17,6 +17,33 @@ Expose `ImagePullCoordinator`, `ImagePullOptions`, `IImagePullTelemetry`,
 `ImageRateLimitEvent`, and `ImagePullSummary`. `ImagePullSchema.Version` must
 be `"1.0"`, and invalid retry options must be rejected explicitly.
 
+Use these historical public shapes:
+
+- `ImagePullOptions(int MaxRetries, TimeSpan InitialBackoff,
+  TimeSpan MaximumBackoff, double JitterRatio)` exposes `Validate()`;
+- `ImagePullAttempt(bool Succeeded, string StandardOutput,
+  string StandardError)`;
+- `IImageClient.ExistsAsync(string, CancellationToken)` and
+  `PullAsync(string, CancellationToken)`;
+- `IAsyncDelay.DelayAsync(TimeSpan, CancellationToken)`;
+- `IRandomSource.NextDouble()`;
+- `IImagePullTelemetry.RecordRateLimitAsync(ImageRateLimitEvent,
+  CancellationToken)` and `RecordResultAsync(ImagePullResult,
+  CancellationToken)`;
+- `IImagePullConsole.RateLimitRetry(ImageRateLimitEvent)` and
+  `RateLimitSummary(ImagePullResult)`;
+- `ImagePullCoordinator(IImageClient, IAsyncDelay, IRandomSource,
+  IImagePullTelemetry, IImagePullConsole, ImagePullOptions? options = null)`;
+  and
+- `PrepareAsync(string image, CancellationToken cancellationToken = default)`
+  returns an `ImagePullResult` exposing `Outcome` and `PullAttempts`.
+
+Expose public static `ImagePullCoordinator.IsRateLimitFailure(ImagePullAttempt)`
+and `GetRegistry(string)`. Treat explicit HTTP 429 and
+`toomanyrequests` responses as rate limits, but not authentication failures.
+An image present locally returns outcome `"local"` without calling pull and
+records the result through telemetry.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

@@ -15,5 +15,17 @@ existing `Wharf.Command.CommandTree`,
 `Wharf.Configuration.RunConfiguration`, and
 `Wharf.Configuration.WharfConfiguration` types.
 
+Use these historical public shapes:
+
+- `SmokeResult(HostCheckReport Host, string Status, string ArtifactDirectory,
+  string ReportPath, string TrialPath, int ExitCode)`; and
+- `SmokeService.Run(string outputDirectory, HostCheckReport host)`.
+
+Reject an empty output directory with `SmokeException`. A passing host check
+returns status `"completed"` with exit code zero, distinct agent and verifier
+workspace paths, a retained trial file, a report file, and `report.jsonl`. A
+blocking host check returns status `"qualification-blocked"`, preserves the
+host report's exit code, and writes `host-check.json` plus the report.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

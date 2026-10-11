@@ -16,6 +16,25 @@ Expose `AgentExecutionService`, `AgentExecutionRequest`, `IAgentRunner`,
 `AgentExecutionException`. `AgentExecutionRequest` must expose public
 `WorkspaceDirectory` and `HiddenPaths` properties.
 
+Use these historical public shapes:
+
+- `AgentExecutionRequest(string TaskId, string AgentImage,
+  string SourceDirectory, string WorkspaceDirectory, string Network,
+  CopilotInvocation Invocation, IReadOnlyList<string> HiddenPaths)` with a
+  public `Validate()` method;
+- `AgentRunResult(int ExitCode, string StandardOutput, string StandardError,
+  string Trajectory, string Patch, TimeSpan Duration, int? Tokens = null,
+  int? Steps = null, int? Requests = null, decimal? Cost = null)`;
+- `IAgentRunner.RunAsync(AgentExecutionRequest, CancellationToken)`;
+- `AgentExecutionService(IAgentRunner)` and
+  `ExecuteAsync(AgentExecutionRequest, string evidenceDirectory,
+  CancellationToken cancellationToken = default)`; and
+- `AgentEvidenceSchema.Version`, equal to `"1.0"`.
+
+`ExecuteAsync` must write `stdout.log`, `stderr.log`, `trajectory.jsonl`,
+`patch.diff`, and `result.json` under the supplied evidence directory before
+reporting an unfinished or failed result.
+
 Keep the agent workspace separate from the pristine verifier workspace and do
 not modify the existing test files.
 

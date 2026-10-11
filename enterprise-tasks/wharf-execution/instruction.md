@@ -16,5 +16,27 @@ Expose `PhaseExecutionService`, `PhaseExecutionResult<T>`,
 `Wharf.Configuration.RunConfiguration` and
 `Wharf.Configuration.WharfConfiguration` types.
 
+Use these historical public shapes:
+
+- `ExecutionPhase` has `Build`, `Agent`, and `Verifier` values;
+- `PhaseResourceLimits(int Build, int Agent, int Verifier)` exposes
+  `For(ExecutionPhase)` and `Validate()`;
+- `PhaseTimeoutPolicy(TimeSpan Build, TimeSpan Agent, TimeSpan Verifier,
+  double Multiplier = 1,
+  IReadOnlyDictionary<ExecutionPhase, TimeSpan>? Overrides = null)` exposes
+  `For(ExecutionPhase)` and `Validate()`;
+- `InfrastructureRetryPolicy(int MaxRetries)` exposes `Validate()`;
+- `PhaseExecutionService(PhaseResourceLimits, PhaseTimeoutPolicy,
+  InfrastructureRetryPolicy)` implements `IAsyncDisposable`; and
+- `ExecuteAsync<T>(string logicalAttemptId, ExecutionPhase,
+  Func<CancellationToken, Task<T>>,
+  Func<Exception, bool> isRetryableInfrastructureFailure,
+  CancellationToken cancellationToken = default)` returns a
+  `PhaseExecutionResult<T>` exposing `Value` and `InfrastructureRetries`.
+
+Resource limits are independent per phase. Apply the timeout override first,
+then the multiplier. Retry only failures accepted by the supplied predicate,
+up to `MaxRetries`, without changing the logical attempt ID.
+
 IMPORTANT: Do not commit changes. The evaluator captures the working-tree
 patch after implementation.

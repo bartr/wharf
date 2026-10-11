@@ -22,3 +22,9 @@ Provide the historical scripts at exactly these paths:
 produce SHA-256 checksums, and include an explicit SBOM step. The bootstrap
 and rollback scripts must invoke privileged operations with `exec sudo`; the
 rollback script must support restoring `previous.deb`.
+
+All invalid-input diagnostics must include the lowercase prefix `usage:` on
+standard error. Generate the CycloneDX document with Python JSON serialization
+using `sort_keys=True` so the SBOM is deterministic. The package script must
+contain explicit `--detach-sign` and `--verify` operations for the optional
+signature path.
