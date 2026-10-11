@@ -19,18 +19,30 @@ specific accountable operator when running the qualification script).
 | Report regeneration | `ReportRendererTests` | PASS |
 | Host recommendation | `HostProfileTests` | PASS |
 
-The first actual MVP/1.0 release remains blocked until real non-dry-run
-`wharf run`, the container-backed smoke path, HydraFusion, and overnight
-DeepSWE evidence pass.
+The implementation and benchmark gates are now evidenced:
+
+* Real non-dry-run benchmark runs are represented by retained 113-task K=4
+  exports under `data/`.
+* The container-backed smoke path passed its Docker-backed validation suite.
+* HydraFusion has two retained benchmark exports, `all-1` and `all-2`, with
+  452 and 449 retained trial rows respectively.
+* The benchmark runs were unattended; some ran across an overnight window.
+
+The remaining MVP/1.0 action is to run or formally close the complete
+acceptance matrix and record the release-owner decision. The unattended
+benchmark evidence replaces “overnight without operator attention on each
+trial” as the primary operational qualification criterion. Exact host,
+configuration, timing, retry, recovery, and completed-trial-loss evidence
+must remain attached to the authoritative qualification record.
 
 ## Evidence-backed gates
 
-The reference DeepSWE K=4 workload and Ubuntu/WSL installation matrix require
-customer-owned hardware, Docker, credentials, and an overnight window. They
-are not claimed as completed by this source-only qualification run. Their
-retained evidence must identify exact hardware, configuration, deadline,
-cost, retries, recovery, score completeness, and completed-task preservation
-before a profile is marked qualified.
+The reference DeepSWE K=4 workload evidence is present in the retained
+analytics exports and was collected unattended, with overnight execution in
+some cases. The authoritative qualification record must identify exact
+hardware, configuration, timing, cost, retries, recovery, score completeness,
+and completed-task preservation. The Ubuntu/WSL installation matrix remains
+an acceptance-matrix item where target-host evidence is not already attached.
 
 ## Requirement-to-test coverage
 

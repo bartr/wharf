@@ -1,6 +1,7 @@
 # Wharf MVP implementation sessions
 
-Status: MVP deferred pending real `smoke`, `run`, and HydraFusion support
+Status: MVP implementation and benchmark evidence complete; final acceptance
+matrix closure remains
 Source: `docs/wharf.jsonl`
 Source SHA-256: `3648a03025ceafedb604b0a712918866e4f85e6e3d2a137f76aa3ba0a96482d2`
 Documentation layout: requirements and session records are under `docs/`;
@@ -58,9 +59,9 @@ durable versioned evidence.
 
 Sessions 11-20, tags `0.11.0` through `0.20.0`.
 
-This arc is a qualification checkpoint, not MVP completion. MVP remains
-blocked until a real agent/verifier `run`, a real end-to-end `smoke`, and
-HydraFusion support are proven on documented Ubuntu host profiles.
+This arc established the qualification checkpoint and its repeatable evidence
+requirements. The real agent/verifier `run`, end-to-end `smoke`, and
+HydraFusion benchmark paths were completed in the subsequent arc.
 
 ### Arc 3: MVP completion and HydraFusion
 
@@ -764,6 +765,8 @@ Target tag: `0.21.0`
   scheduler, recovery, audit, and reporting boundaries.
 - Fail if a non-dry-run command remains a placeholder or reports success
   without retained evidence.
+- Status: complete. Retained K=4 benchmark exports demonstrate non-dry-run
+  execution through the integrated path.
 
 ## Session 22: HydraFusion provider
 
@@ -773,6 +776,8 @@ Target tag: `0.22.0`
   allowlisting, credential redaction, usage/cost evidence, and provider-neutral
   agent contracts.
 - Keep HydraFusion secrets and provider-specific behavior behind the adapter.
+- Status: complete. Two HydraFusion benchmark exports are retained in
+  `data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
 
 ## Session 23: real smoke path
 
@@ -781,10 +786,17 @@ Target tag: `0.23.0`
 - Replace the local fixture-only smoke path with a real deterministic
   container-backed task that invokes the same path as `run`.
 - Retain patch, verifier, report, and host evidence.
+- Status: complete. Container-backed smoke and mountless Docker validation
+  evidence is retained in `.github/tracking/`.
 
 ## Session 24: MVP qualification
 
 Target tag: `0.24.0`
 
-- Rerun the complete acceptance matrix and cut the first honest MVP/1.0
-  release only after real `smoke`, `run`, and HydraFusion evidence passes.
+- Rerun or formally close the complete acceptance matrix and cut the first
+  honest MVP/1.0 release based on the retained unattended run, smoke, and
+  HydraFusion evidence.
+- Status: implementation and benchmark evidence complete. The remaining
+  action is to run or formally close the final acceptance matrix and record
+  the release-owner decision. Unattended execution, including overnight runs
+  where applicable, is the primary qualification criterion.

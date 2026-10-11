@@ -37,9 +37,12 @@
   arm passed only **209/565 trials (37.0%)**, 35.8 percentage points below Luna
   and 31.5 points below Opus 5 with Copilot. Excluding its 27 agent timeouts
   would raise the rate only to 38.8%, so timeouts do not explain the gap.
-  The Copilot team is developing a new Auto implementation called
-  **Hydrafusion**; we will rerun the full benchmark when access becomes
-  available.
+- **HydraFusion completed two benchmark runs.** The `all-1` run passed
+  **311/452 trials (68.81%)** across all 113 tasks, with **$539.70** in known
+  cost and 447 costed trials. The `all-2` run retained **449/452 planned
+  trials (99.3%)**, passed **317/449 (70.60%)**, and recorded **$524.13** in
+  known cost across 447 costed trials. Both runs were unattended; some
+  qualification runs also spanned an overnight window.
 
 These are aggregate benchmark comparisons, not paired claims that every task
 or rollout improved. They nevertheless show why an agent-model configuration
@@ -56,12 +59,17 @@ quality-cost frontier substantially.
 | Astra-max | 73.2% | 71.0%§ | | | |
 | Muse-xhigh | | | | 59.8% | 59.3% |
 | Auto-max | | 37.0%‡ | | | |
+| HydraFusion-max | | 68.8% / 70.6% | | | |
 
 † API content safety filter blocked 2 tasks
 
 ‡ Auto completed all 565 planned trials across 113 tasks. The export retains
 `model: auto` and does not identify the model selected for each trial.
-Hydrafusion has not yet been evaluated in this repository.
+
+The HydraFusion values are the two retained Wharf benchmark exports:
+`all-1` is 311/452 and `all-2` is 317/449. The second export retains three
+unmeasured planned trials in its denominator diagnostics rather than silently
+dropping them.
 
 § Astra completed all 452 planned trials across 113 tasks. Its six error
 outcomes remain in the official full-denominator PASS@1 calculation.

@@ -24,8 +24,10 @@ Tag: `0.20.0`
 
 Added repeatable release qualification, explicit ownership, package and
 artifact checks, requirement coverage, and documented external infrastructure
-gates. MVP remains deferred because real `smoke`, non-dry-run `run`, and
-HydraFusion support are not yet implemented.
+gates. At the time of this close, real `smoke`, non-dry-run `run`, and
+HydraFusion evidence were still pending. Subsequent releases completed those
+paths and retained two HydraFusion benchmark exports; the remaining action is
+final MVP/1.0 acceptance-matrix closure.
 
 ## Withdrawn Session 1, 2026-10-06
 
