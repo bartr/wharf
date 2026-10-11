@@ -111,7 +111,10 @@ fi
 systemctl daemon-reload
 
 # configure inotify
-echo 'fs.inotify.max_user_instances = 1024' > /etc/sysctl.d/99-deep-swe.conf
+cat > /etc/sysctl.d/99-deep-swe.conf <<'EOF'
+fs.inotify.max_user_instances = 1024
+fs.inotify.max_user_watches = 1048576
+EOF
 sysctl --system
 dockerd --validate --config-file=/etc/docker/daemon.json
 containerd --config /etc/containerd/config.toml config dump > /dev/null

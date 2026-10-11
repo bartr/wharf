@@ -1,0 +1,11 @@
+{
+  "base_commit": "49b7d4703202586331b7eb75f0913cd467cf0301",
+  "f2p_node_ids": ["SmokeDotnet.TestGreetHello"],
+  "p2p_node_ids": ["SmokeDotnet.TestGreetNonEmpty"],
+  "grade": {
+    "format": "ctrf",
+    "node_id": "suite.name",
+    "tool_label": "dotnet-smoke-runner",
+    "reports": ["/logs/verifier/base-ctrf.json", "/logs/verifier/new-ctrf.json"]
+  }
+}

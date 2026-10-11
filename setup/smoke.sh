@@ -8,4 +8,4 @@ git pull
 dotnet build
 
 # smoke test
-./wharf smoke
+./wharf smoke --include smoke-dotnet

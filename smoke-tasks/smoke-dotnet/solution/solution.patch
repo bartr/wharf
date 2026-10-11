@@ -1,0 +1,11 @@
+diff --git a/src/Hello.cs b/src/Hello.cs
+index 0000000..0000000 100644
+--- a/src/Hello.cs
++++ b/src/Hello.cs
+@@ -3,5 +3,5 @@ namespace SmokeDotnet;
+ public static class Hello
+ {
+-    public static string Greet() => "Hello";
++    public static string Greet() => "Hello world!";
+ 
+     public static int Run(string[] args)

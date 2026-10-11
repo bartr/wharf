@@ -1,11 +1,15 @@
 # Dataset manifest for the Wharf smoke task.
 
 [dataset]
-name = "datacurve/smoke"
+name = "wharf/smoke"
 description = "Single-task Wharf smoke dataset."
 authors = []
 keywords = ["smoke-test"]
 
 [[tasks]]
-name = "datacurve/smoke-go"
+name = "wharf/smoke-go"
+digest = ""
+
+[[tasks]]
+name = "wharf/smoke-dotnet"
 digest = ""
