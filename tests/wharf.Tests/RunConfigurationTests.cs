@@ -65,6 +65,21 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?> { ["MODEL"] = "hydrafusion" });
 
         Assert.Equal("hydrafusion", result.Model);
+        Assert.Equal("default", result.Effort);
+    }
+
+    [Fact]
+    public void RejectsInvalidHydraFusionEffort()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(Model: "hydrafusion", Effort: "invalid"),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+            () => RunConfigurationValidator.Validate(new RunManifest(), result));
+
+        Assert.Contains("effort", exception.Message);
     }
 
     [Fact]

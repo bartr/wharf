@@ -1123,9 +1123,12 @@ public sealed class RunService
         string model,
         string effort,
         string requestedVersion,
-        string? effectiveVersion) =>
-        $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-{effort}-" +
-        $"{effectiveVersion ?? requestedVersion}";
+        string? effectiveVersion)
+    {
+        string effectiveEffort = RunConfigurationResolver.ResolveEffectiveEffort(model, effort);
+        return $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-{effectiveEffort}-" +
+               $"{effectiveVersion ?? requestedVersion}";
+    }
 
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
     {

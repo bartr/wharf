@@ -5,7 +5,7 @@ namespace Wharf.Tests;
 public sealed class RunServiceTests
 {
     [Fact]
-    public void GivenEffectiveVersion_WhenBuildingJobDirectoryName_UsesEffectiveVersion()
+    public void GivenHydraFusion_WhenBuildingJobDirectoryName_UsesDefaultEffort()
     {
         string result = RunService.BuildJobDirectoryName(
             "hydrafusion",
@@ -13,7 +13,7 @@ public sealed class RunServiceTests
             "latest",
             "1.0.91");
 
-        Assert.Equal("copilot-hydrafusion-max-1.0.91", result);
+        Assert.Equal("copilot-hydrafusion-default-1.0.91", result);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public sealed class RunServiceTests
             "latest",
             null);
 
-        Assert.Equal("copilot-hydrafusion-max-latest", result);
+        Assert.Equal("copilot-hydrafusion-default-latest", result);
     }
 
     [Fact]

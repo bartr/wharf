@@ -131,6 +131,12 @@ public static class RunConfigurationResolver
     public const string DefaultCopilotModel = "gpt-5.6-luna";
     public const string DefaultCopilotVersion = "latest";
 
+    public static string ResolveEffectiveEffort(string model, string effort) =>
+        model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase) &&
+        RunConfigurationValidator.IsSupportedEffort(effort)
+            ? "default"
+            : effort;
+
     public static RunConfiguration Resolve(
         RunManifest? manifest,
         RunConfigurationOverrides overrides,
@@ -163,6 +169,7 @@ public static class RunConfigurationResolver
             "jobs");
         string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, DefaultCopilotModel);
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "max");
+        effort = ResolveEffectiveEffort(model, effort);
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
             EnvironmentValue("WHARF_TOKEN") ?? manifest.Credentials?.Token,
@@ -236,6 +243,8 @@ public static class RunConfigurationValidator
     private static readonly HashSet<string> Formats = ["text", "json"];
     private static readonly HashSet<string> Efforts = ["default", "low", "medium", "high", "max"];
     private static readonly HashSet<string> Policies = ["default", "restricted", "unrestricted"];
+
+    internal static bool IsSupportedEffort(string effort) => Efforts.Contains(effort);
 
     public static void Validate(RunManifest? manifest, RunConfiguration configuration)
     {
