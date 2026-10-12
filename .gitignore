@@ -1,4 +1,5 @@
 **/bin/
 **/obj/
 jobs/
+enterprise-jobs/
 /run.jsonl
