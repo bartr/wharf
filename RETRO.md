@@ -14,8 +14,6 @@ execution platform. Across 24 tagged pre-release increments, the project
 moved from a CLI foundation to a deterministic, recoverable,
 evidence-preserving DeepSWE and Copilot execution platform.
 
-For a technical VP, the key results are:
-
 * The system now has explicit boundaries for configuration, Harbor task
   loading, host checks, image preparation, Copilot execution, agent isolation,
   verifier isolation, scheduling, retries, recovery, operations, analytics,
@@ -285,6 +283,18 @@ what was surprising and what should be done differently in the next session.
   when project configuration has higher precedence. Keep package-manager homes
   outside project trees, retain hard resource limits as containment, and use
   isolated task reruns to qualify the root-cause fix before another full run.
+- Session 25 (`0.25.0`): Turning Wharf into 14 enterprise DeepSWE tasks made
+  evaluator quality part of benchmark correctness. Reflection and API-shape
+  checks could reward implementations that echoed prompt details without
+  proving behavior, so replace them with executable contract tests and keep
+  pass-to-pass compatibility checks separate. Validate every task baseline
+  and reference patch before exporting results. The seven existing `all-1`
+  arms provide 392 K=4 trials with complete cost and timing evidence, but do
+  not compare them with the earlier 13/14 result until a controlled rerun uses
+  the revised evaluators. Carry task/evaluator revision identity into future
+  exports so comparisons cannot silently mix contracts. The new `default`
+  effort setting also leaves provider effort selection to the model and is
+  recorded in run identity.
 
 - Session 1 (`0.1.0`): Cobra's automatic version flag unexpectedly allowed
   trailing unknown input to succeed, and parsing lower-precedence environment
