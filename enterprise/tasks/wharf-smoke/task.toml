@@ -1,0 +1,41 @@
+schema_version = "1.3"
+artifacts = ["/logs/artifacts/model.patch"]
+[task]
+name = "wharf/wharf-smoke"
+description = "Implement the local smoke workflow from historical Wharf release sources."
+authors = []
+keywords = ["wharf", "release", "verifier"]
+[metadata]
+task_id = "wharf-smoke"
+display_title = "Implement the local smoke workflow"
+display_description = "Implement the local smoke workflow and its production contracts."
+original_title = "Wharf wharf-smoke release boundary"
+category = "feature"
+language = "csharp"
+base_commit_hash = "5ec352c65946d8912dd1578df8444b1e1297e506"
+[verifier]
+network_mode = "no-network"
+environment_mode = "separate"
+timeout_sec = 1800.0
+
+[verifier.env]
+[verifier.environment]
+build_timeout_sec = 1800.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 20480
+
+[agent]
+network_mode = "no-network"
+timeout_sec = 1800.0
+[environment]
+build_timeout_sec = 1800.0
+os = "linux"
+cpus = 2
+memory_mb = 4096
+storage_mb = 20480
+gpus = 0
+mcp_servers = []
+
+[environment.env]
+[solution.env]

@@ -1,0 +1,115 @@
+using System.Text.Json;
+using Wharf.Configuration;
+
+namespace Wharf.Tests;
+
+public sealed class RunConfigurationTests
+{
+    [Fact]
+    public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
+    {
+        var manifest = new RunManifest(K: 3, N: 2, B: 1, Model: "manifest-model");
+        var environment = new Dictionary<string, string?>
+        {
+            ["WHARF_K"] = "5",
+            ["WHARF_N"] = "4",
+            ["WHARF_MODEL"] = "environment-model"
+        };
+
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            manifest,
+            new RunConfigurationOverrides(K: 7),
+            environment);
+
+        Assert.Equal(7, result.K);
+        Assert.Equal(4, result.N);
+        Assert.Equal(1, result.B);
+        Assert.Equal("environment-model", result.Model);
+        Assert.Equal("medium", result.Effort);
+    }
+
+    [Fact]
+    public void RendererIsDeterministicAndRedactsSecrets()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(
+                K: 2,
+                Output: new OutputSettings("json", "preview"),
+                Credentials: new SecretSettings(Token: "top-secret")),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationValidator.Validate(new RunManifest(), configuration);
+        string first = RunConfigurationRenderer.Render(configuration, "json");
+        string second = RunConfigurationRenderer.Render(configuration, "json");
+
+        Assert.Equal(first, second);
+        Assert.DoesNotContain("top-secret", first);
+        Assert.Contains("[REDACTED]", first);
+        Assert.NotNull(JsonDocument.Parse(first));
+    }
+
+    [Fact]
+    public void SecretEnvironmentValuesAreRedacted()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["WHARF_TOKEN"] = "environment-secret" });
+
+        string output = RunConfigurationRenderer.Render(configuration, "json");
+
+        Assert.DoesNotContain("environment-secret", output);
+        Assert.Contains("[REDACTED]", output);
+    }
+
+    [Fact]
+    public void UnknownManifestKeyIsRejected()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{"schemaVersion":"1.0","unknown":true}""");
+
+        try
+        {
+            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+                () => RunManifestLoader.Load(path));
+            Assert.Contains("invalid manifest", exception.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void InvalidOutputDirectoryIsRejected()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(Output: new OutputSettings(Directory: "/absolute")),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+            () => RunConfigurationValidator.Validate(new RunManifest(), configuration));
+
+        Assert.Contains("relative", exception.Message);
+    }
+
+    [Fact]
+    public void ManifestMustDeclareSchemaVersion()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{"k":2}""");
+
+        try
+        {
+            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+                () => RunManifestLoader.Load(path));
+            Assert.Contains("schemaVersion", exception.Message);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+}

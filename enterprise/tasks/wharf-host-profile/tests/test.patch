@@ -1,0 +1,68 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,63 @@
++using Wharf.Qualification;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsHistoricalContracts()
++    {
++        HostProfile profile = HostProfiles.Get("ON-PREM-32");
++        ProfileRecommendation recommendation = new HostProfileService().Recommend(
++            profile,
++            new HostCapacity(4, 8L * 1024 * 1024 * 1024),
++            6,
++            3);
++
++        Assert.Equal("on-prem-32", recommendation.ProfileId);
++        Assert.Equal(4, recommendation.RecommendedConcurrency);
++        Assert.Equal(3, recommendation.RecommendedBuildConcurrency);
++        Assert.False(recommendation.RaisedOperatorLimit);
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        DateTimeOffset started = DateTimeOffset.Parse("2026-01-01T00:00:00Z");
++        var qualified = new QualificationEvidence(
++            "on-prem-32",
++            "host",
++            started,
++            started.AddHours(10),
++            10,
++            10,
++            0,
++            TimeSpan.FromHours(12),
++            1,
++            true,
++            "evidence");
++        QualificationEvidence late = qualified with
++        {
++            FinishedAt = started.AddHours(13)
++        };
++
++        Assert.True(qualified.IsQualified);
++        Assert.False(late.IsQualified);
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        var service = new HostProfileService();
++        QualificationReport report = service.CreateReport(
++            [],
++            [
++                new ProfileRecommendation("z", 1, 1, 1, false, []),
++                new ProfileRecommendation("a", 1, 1, 1, false, [])
++            ]);
++
++        Assert.Equal("1.0", report.SchemaVersion);
++        Assert.Equal(["a", "z"], report.Recommendations.Select(item => item.ProfileId));
++        Assert.Throws<QualificationException>(() => HostProfiles.Get("missing"));
++    }
++}

@@ -1,0 +1,91 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,86 @@
++using Wharf.Operations;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public async Task AddsHistoricalContracts()
++    {
++        var first = new RecordingSink();
++        var second = new RecordingSink();
++        var service = new NotificationService(first, second);
++
++        await service.CompletedAsync("run-1");
++
++        Assert.Single(first.Notifications);
++        Assert.Single(second.Notifications);
++        Assert.Equal("completed", first.Notifications[0].Status);
++        Assert.Equal("1.0", first.Notifications[0].SchemaVersion);
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        using var client = new HttpClient();
++
++        Assert.Throws<ArgumentException>(
++            () => new WebhookRunNotificationSink(client, new Uri("http://example.test")));
++    }
++
++    [Fact]
++    public async Task PreservesExistingReleaseAssembly()
++    {
++        var run = new CancellingRun();
++        var cleaner = new RecordingCleaner();
++        var service = new GracefulStopService(run, cleaner);
++
++        await service.StopAsync(
++            new HashSet<string>(StringComparer.Ordinal) { "ephemeral-1" },
++            TimeSpan.FromSeconds(1));
++
++        Assert.True(run.Cancelled);
++        Assert.Equal(["ephemeral-1"], cleaner.Removed);
++    }
++
++    private sealed class RecordingSink : IRunNotificationSink
++    {
++        public List<RunNotification> Notifications { get; } = [];
++
++        public Task NotifyAsync(
++            RunNotification notification,
++            CancellationToken cancellationToken)
++        {
++            Notifications.Add(notification);
++            return Task.CompletedTask;
++        }
++    }
++
++    private sealed class CancellingRun : IGracefulRun
++    {
++        public bool Cancelled { get; private set; }
++
++        public Task CancelAsync(CancellationToken cancellationToken)
++        {
++            Cancelled = true;
++            return Task.CompletedTask;
++        }
++
++        public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
++            Task.FromCanceled(new CancellationToken(canceled: true));
++    }
++
++    private sealed class RecordingCleaner : IEphemeralResourceCleaner
++    {
++        public IReadOnlySet<string> Removed { get; private set; } =
++            new HashSet<string>(StringComparer.Ordinal);
++
++        public Task RemoveAsync(
++            IReadOnlySet<string> resourceIds,
++            CancellationToken cancellationToken)
++        {
++            Removed = resourceIds;
++            return Task.CompletedTask;
++        }
++    }
++}

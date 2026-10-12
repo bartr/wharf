@@ -1,0 +1,55 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,50 @@
++using Wharf.Host;
++using Wharf.Smoke;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsHistoricalContracts()
++    {
++        string output = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
++        var host = new HostCheckReport(
++            [new HostCheck("platform", true, true, "supported")]);
++
++        SmokeResult result = new SmokeService().Run(output, host);
++
++        Assert.Equal("completed", result.Status);
++        Assert.Equal(0, result.ExitCode);
++        Assert.True(File.Exists(result.TrialPath));
++        Assert.True(File.Exists(result.ReportPath));
++        Assert.True(File.Exists(Path.Combine(output, "report.jsonl")));
++        Assert.NotEqual(
++            Path.Combine(output, "agent-workspace"),
++            Path.Combine(output, "verifier-workspace"));
++    }
++
++    [Fact]
++    public void ExposesExpectedBoundaryOperations()
++    {
++        string output = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
++        var host = new HostCheckReport(
++            [new HostCheck("docker", false, false, "unreachable")]);
++
++        SmokeResult result = new SmokeService().Run(output, host);
++
++        Assert.Equal("qualification-blocked", result.Status);
++        Assert.Equal(host.ExitCode, result.ExitCode);
++        Assert.True(File.Exists(Path.Combine(output, "host-check.json")));
++        Assert.True(File.Exists(result.ReportPath));
++    }
++
++    [Fact]
++    public void PreservesExistingReleaseAssembly()
++    {
++        var host = new HostCheckReport(
++            [new HostCheck("platform", true, true, "supported")]);
++
++        Assert.Throws<SmokeException>(() => new SmokeService().Run("", host));
++    }
++}

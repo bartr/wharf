@@ -1,0 +1,110 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,105 @@
++using System.Text.Json;
++using Wharf.Agent;
++using Wharf.Copilot;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsIsolatedAgentExecutionBoundary()
++    {
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        var request = Request(source.Path, workspace.Path, [Path.Combine(workspace.Path, "hidden")]);
++
++        Assert.Throws<AgentExecutionException>(request.Validate);
++    }
++
++    [Fact]
++    public async Task AddsVersionedAgentEvidenceContract()
++    {
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var runner = new StaticRunner(new AgentRunResult(
++            0, "out", "err", "trajectory", "diff --git a/a b/a", TimeSpan.FromSeconds(2)));
++
++        AgentEvidenceSummary summary = await new AgentExecutionService(runner).ExecuteAsync(
++            Request(source.Path, workspace.Path, []),
++            evidence.Path);
++
++        Assert.Equal("1.0", summary.SchemaVersion);
++        Assert.Equal("completed", summary.Status);
++        Assert.Equal(2000, summary.DurationMilliseconds);
++        Assert.Equal("out", File.ReadAllText(Path.Combine(evidence.Path, "stdout.log")));
++        Assert.Equal("diff --git a/a b/a", File.ReadAllText(Path.Combine(evidence.Path, "patch.diff")));
++        using JsonDocument json = JsonDocument.Parse(
++            File.ReadAllText(Path.Combine(evidence.Path, "result.json")));
++        Assert.Equal("completed", json.RootElement.GetProperty("status").GetString());
++    }
++
++    [Fact]
++    public async Task AgentRequestExposesHiddenPathAndWorkspaceFields()
++    {
++        using var source = new TemporaryDirectory();
++        using var workspace = new TemporaryDirectory();
++        using var evidence = new TemporaryDirectory();
++        var runner = new StaticRunner(new AgentRunResult(
++            0, "out", "err", "trajectory", "", TimeSpan.Zero));
++
++        await Assert.ThrowsAsync<AgentExecutionException>(
++            () => new AgentExecutionService(runner).ExecuteAsync(
++                Request(source.Path, workspace.Path, []),
++                evidence.Path));
++
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "result.json")));
++        Assert.True(File.Exists(Path.Combine(evidence.Path, "patch.diff")));
++    }
++
++    private static AgentExecutionRequest Request(
++        string source,
++        string workspace,
++        IReadOnlyList<string> hiddenPaths) =>
++        new(
++            "task",
++            "agent-image",
++            source,
++            workspace,
++            "network",
++            new CopilotInvocation(
++                "copilot",
++                [],
++                new Dictionary<string, string>(),
++                false,
++                "1.2.3",
++                "1.2.3",
++                "model",
++                "high",
++                "high",
++                [],
++                []),
++            hiddenPaths);
++
++    private sealed class StaticRunner(AgentRunResult result) : IAgentRunner
++    {
++        public Task<AgentRunResult> RunAsync(
++            AgentExecutionRequest request,
++            CancellationToken cancellationToken) => Task.FromResult(result);
++    }
++
++    private sealed class TemporaryDirectory : IDisposable
++    {
++        public TemporaryDirectory()
++        {
++            Path = System.IO.Path.Combine(
++                System.IO.Path.GetTempPath(),
++                Guid.NewGuid().ToString("N"));
++            Directory.CreateDirectory(Path);
++        }
++
++        public string Path { get; }
++
++        public void Dispose() => Directory.Delete(Path, recursive: true);
++    }
++}

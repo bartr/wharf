@@ -1,0 +1,112 @@
+diff --git a/tests/wharf.Tests/DeepSweWharfTests.cs b/tests/wharf.Tests/DeepSweWharfTests.cs
+new file mode 100644
+--- /dev/null
++++ b/tests/wharf.Tests/DeepSweWharfTests.cs
+@@ -0,0 +1,107 @@
++using Wharf.Image;
++
++namespace Wharf.Tests;
++
++public sealed class DeepSweWharfTests
++{
++    [Fact]
++    public void AddsImagePullBoundaryAndTelemetryContracts()
++    {
++        Assert.True(ImagePullCoordinator.IsRateLimitFailure(
++            new ImagePullAttempt(false, "", "HTTP 429 Too Many Requests")));
++        Assert.True(ImagePullCoordinator.IsRateLimitFailure(
++            new ImagePullAttempt(false, "", "toomanyrequests")));
++        Assert.False(ImagePullCoordinator.IsRateLimitFailure(
++            new ImagePullAttempt(false, "", "authentication denied")));
++        Assert.Equal("docker.io", ImagePullCoordinator.GetRegistry("ubuntu:latest"));
++        Assert.Equal(
++            "registry.example.test",
++            ImagePullCoordinator.GetRegistry("registry.example.test/team/image:tag"));
++    }
++
++    [Fact]
++    public void RejectsInvalidPullRetryOptions()
++    {
++        Exception? exception = Record.Exception(() =>
++        {
++            var options = new ImagePullOptions(
++                0,
++                TimeSpan.FromSeconds(1),
++                TimeSpan.FromSeconds(2),
++                0.2);
++            options.Validate();
++        });
++
++        Assert.IsType<ArgumentOutOfRangeException>(exception);
++    }
++
++    [Fact]
++    public async Task ExposesRateLimitResultAndSummaryRecords()
++    {
++        var client = new LocalImageClient();
++        var telemetry = new RecordingTelemetry();
++        var coordinator = new ImagePullCoordinator(
++            client,
++            new NoDelay(),
++            new FixedRandom(),
++            telemetry,
++            new QuietConsole());
++
++        ImagePullResult result = await coordinator.PrepareAsync("ubuntu:latest");
++
++        Assert.Equal("local", result.Outcome);
++        Assert.Equal(0, result.PullAttempts);
++        Assert.Equal(0, client.PullCalls);
++        Assert.Same(result, telemetry.Result);
++    }
++
++    private sealed class LocalImageClient : IImageClient
++    {
++        public int PullCalls { get; private set; }
++
++        public Task<bool> ExistsAsync(string image, CancellationToken cancellationToken) =>
++            Task.FromResult(true);
++
++        public Task<ImagePullAttempt> PullAsync(
++            string image,
++            CancellationToken cancellationToken)
++        {
++            PullCalls++;
++            return Task.FromResult(new ImagePullAttempt(true, "", ""));
++        }
++    }
++
++    private sealed class NoDelay : IAsyncDelay
++    {
++        public Task DelayAsync(TimeSpan delay, CancellationToken cancellationToken) =>
++            Task.CompletedTask;
++    }
++
++    private sealed class FixedRandom : IRandomSource
++    {
++        public double NextDouble() => 0.5;
++    }
++
++    private sealed class RecordingTelemetry : IImagePullTelemetry
++    {
++        public ImagePullResult? Result { get; private set; }
++
++        public Task RecordRateLimitAsync(
++            ImageRateLimitEvent rateLimitEvent,
++            CancellationToken cancellationToken) => Task.CompletedTask;
++
++        public Task RecordResultAsync(
++            ImagePullResult result,
++            CancellationToken cancellationToken)
++        {
++            Result = result;
++            return Task.CompletedTask;
++        }
++    }
++
++    private sealed class QuietConsole : IImagePullConsole
++    {
++        public void RateLimitRetry(ImageRateLimitEvent rateLimitEvent) { }
++        public void RateLimitSummary(ImagePullResult result) { }
++    }
++}

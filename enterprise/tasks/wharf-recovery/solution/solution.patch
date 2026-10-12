@@ -1,0 +1,117 @@
+diff --git a/src/wharf/Recovery/RecoveryContracts.cs b/src/wharf/Recovery/RecoveryContracts.cs
+new file mode 100644
+index 0000000..2fc67dd
+--- /dev/null
++++ b/src/wharf/Recovery/RecoveryContracts.cs
+@@ -0,0 +1,111 @@
++using Wharf.Scheduler;
++using Wharf.State;
++
++namespace Wharf.Recovery;
++
++public sealed record RecoveryAttempt(
++    string AttemptId,
++    string LogicalAttemptId,
++    string TrialId);
++
++public sealed record LiveResourceSnapshot(
++    IReadOnlySet<string> ResourceIds);
++
++public sealed record RecoveryPlan(
++    RunId RunId,
++    IReadOnlyList<RecoveryAttempt> AttemptsToResume,
++    IReadOnlySet<string> CompletedLogicalAttempts,
++    IReadOnlyDictionary<string, int> InfrastructureRetryCounts,
++    IReadOnlySet<string> OrphanedResourceIds);
++
++public interface ILiveResourceReconciler
++{
++    Task<LiveResourceSnapshot> InspectAsync(
++        RunId runId,
++        CancellationToken cancellationToken);
++}
++
++public sealed class NullLiveResourceReconciler : ILiveResourceReconciler
++{
++    public Task<LiveResourceSnapshot> InspectAsync(
++        RunId runId,
++        CancellationToken cancellationToken) =>
++        Task.FromResult(new LiveResourceSnapshot(new HashSet<string>(StringComparer.Ordinal)));
++}
++
++public sealed class RecoveryException(string message) : Exception(message);
++
++public sealed class RunRecoveryPlanner
++{
++    private readonly ILiveResourceReconciler resources;
++
++    public RunRecoveryPlanner(ILiveResourceReconciler? resources = null) =>
++        this.resources = resources ?? new NullLiveResourceReconciler();
++
++    public async Task<RecoveryPlan> PlanAsync(
++        RunId runId,
++        string eventsPath,
++        IReadOnlyList<RecoveryAttempt> attempts,
++        CancellationToken cancellationToken = default)
++    {
++        IReadOnlyList<StateEvent> events = StateReplay.ReadEvents(eventsPath);
++        if (events.Any(stateEvent => stateEvent.RunId != runId))
++        {
++            throw new RecoveryException("event stream contains a different run ID");
++        }
++
++        var completedLogical = new HashSet<string>(StringComparer.Ordinal);
++        var terminalAttempts = new HashSet<string>(StringComparer.Ordinal);
++        var retryableAttempts = new HashSet<string>(StringComparer.Ordinal);
++        var retryCounts = new Dictionary<string, int>(StringComparer.Ordinal);
++        foreach (StateEvent stateEvent in events.OrderBy(item => item.Sequence))
++        {
++            if (stateEvent.LogicalAttemptId is LogicalAttemptId logicalAttempt &&
++                stateEvent.EventType == StateEventTypes.TrialCompleted)
++            {
++                completedLogical.Add(logicalAttempt.Value);
++                terminalAttempts.Add(logicalAttempt.Value);
++            }
++
++            if (stateEvent.LogicalAttemptId is LogicalAttemptId failedAttempt &&
++                stateEvent.Status == StateStatuses.Failed)
++            {
++                bool retryable = stateEvent.Payload is not null &&
++                    stateEvent.Payload.TryGetValue("retryable", out string? value) &&
++                    bool.TryParse(value, out bool parsed) &&
++                    parsed;
++                if (retryable)
++                {
++                    retryableAttempts.Add(failedAttempt.Value);
++                }
++                else
++                {
++                    terminalAttempts.Add(failedAttempt.Value);
++                }
++            }
++
++            if (stateEvent.InfrastructureRetryId is not null &&
++                stateEvent.LogicalAttemptId is LogicalAttemptId retriedAttempt)
++            {
++                retryCounts[retriedAttempt.Value] =
++                    retryCounts.GetValueOrDefault(retriedAttempt.Value) + 1;
++            }
++        }
++
++        LiveResourceSnapshot live = await resources.InspectAsync(runId, cancellationToken);
++        var knownResources = attempts.Select(attempt => attempt.TrialId)
++            .ToHashSet(StringComparer.Ordinal);
++        IReadOnlySet<string> orphaned = live.ResourceIds
++            .Where(resource => !knownResources.Contains(resource))
++            .ToHashSet(StringComparer.Ordinal);
++        IReadOnlyList<RecoveryAttempt> resume = attempts
++            .Where(attempt =>
++                !completedLogical.Contains(attempt.LogicalAttemptId) &&
++                !terminalAttempts.Contains(attempt.LogicalAttemptId) ||
++                retryableAttempts.Contains(attempt.LogicalAttemptId))
++            .OrderBy(attempt => attempt.AttemptId, StringComparer.Ordinal)
++            .ToArray();
++
++        return new RecoveryPlan(runId, resume, completedLogical, retryCounts, orphaned);
++    }
++}
