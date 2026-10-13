@@ -21,7 +21,7 @@ execution platform.
 ## Qualification
 
 The 1.0.0 acceptance matrix is closed using retained summaries in `data/` and
-the corresponding Wharf and Pier job directories on the execution host.
+the corresponding Wharf and DeepSWE reference job directories on the execution host.
 Benchmark runs were unattended, with overnight execution where applicable.
 The qualification record preserves run configuration, timing, retries,
 recovery, cost, score coverage, and completed-trial accounting.

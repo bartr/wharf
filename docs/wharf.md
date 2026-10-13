@@ -1,7 +1,7 @@
 # Wharf Requirements
 
-Wharf is a simple, scalable, enterprise-focused CLI that replaces Pier while
-remaining compatible with Harbor task definitions.
+Wharf is a simple, scalable, enterprise-focused CLI for running DeepSWE and
+enterprise benchmarks from Harbor task definitions.
 
 ## Users
 
@@ -17,7 +17,7 @@ remaining compatible with Harbor task definitions.
 - Scale from a 32-concurrent on-prem server to large cloud VMs with 88 or more concurrent trials.
 - Run on customer-owned infrastructure so source, tests, patches, and results remain under customer control.
 - Be cloud- and location-agnostic, but intentionally not Linux-distribution-agnostic.
-- Preserve proven Pier behavior and the local Pier enhancements without runtime monkey patches.
+- Preserve proven Harbor task behavior and local DeepSWE execution enhancements without runtime monkey patches.
 - use the DeepSWE K=4 suite as the reference workload for scale and overnight qualification
 - publish validated host profiles for 32-concurrent and 88-concurrent runs
 - a qualified overnight run must complete before the documented deadline with no completed trials lost
@@ -46,7 +46,7 @@ remaining compatible with Harbor task definitions.
 
 The MVP may install the requested Copilot CLI inside each temporary agent
 container and reuse the task's configured environment image. After MVP,
-`wharf build` must support the Pier-style derived-image workflow:
+`wharf build` must support the Harbor-compatible derived-image workflow:
 
 - Build a local, version-pinned agent image from each task environment image.
 - Install the requested Copilot CLI and its runtime dependencies in the
@@ -154,7 +154,7 @@ container and reuse the task's configured environment image. After MVP,
   storage; qualification must measure Docker layer, workspace, log, and
   verifier I/O under that constraint.
 - Preserve the MVP's no-derived-agent-image startup path for this profile.
-  Earlier Pier image builds took more than ten minutes at full load and
+  Earlier reference-run image builds took more than ten minutes at full load and
   limited a 64-vCPU host to approximately N=80. Avoiding those builds is an
   important cold-start and concurrency advantage until a persistent,
   rate-limit-safe image cache is available.
@@ -168,7 +168,7 @@ container and reuse the task's configured environment image. After MVP,
 - a hosted dashboard
 - licensing or task redistribution automation
 - support for Linux distributions other than the documented Ubuntu LTS release
-- byte-for-byte reproduction of Pier's internal implementation
+- byte-for-byte reproduction of another benchmark runner's internal implementation
 
 ## Supported platform
 
@@ -261,9 +261,9 @@ container and reuse the task's configured environment image. After MVP,
 - wharf must retain all files, directories, logs, patches, trajectories, verifier evidence, cost data, and run state
 - retention defaults to retain everything
 - deleting retained data requires a separate explicit prune command
-- wharf must read existing Pier 0.3.1 job directories
-- wharf must emit the documented Pier-compatible trial artifact subset
-- Wharf-native metadata may be additive and does not need to be byte-for-byte Pier compatible
+- wharf must read existing legacy Pier 0.3.1 job directories
+- wharf must emit the documented legacy Pier-compatible trial artifact subset
+- Wharf-native metadata may be additive and does not need to be byte-for-byte compatible with the legacy format
 - if the agent finishes, the patch should be saved in the run directory to make reuse easier
 - if a test fails validation, wharf should first create a deterministic sanitized failure record
 - wharf may ask a separately identified LLM summarizer to render the sanitized record into an explanation and a prompt for trying again
@@ -279,8 +279,8 @@ container and reuse the task's configured environment image. After MVP,
   - I should be able to run all, smoke, go, ts, python, rust, javascript, random N
     - I should be able to combine the languages - i.e. go python
 - I should be able to turn on verbose logging with `--verbose`, `-v`, `-vv`, or `-vvv`
-- most of the time, wharf will be running in the background via tmux - I don't like the way pier repaints the output - we need a way to get the current status
-- the pier states of starting environment, running agent, verifying are good - we should add pulling image, building image to the list
+- most of the time, wharf will be running in the background via tmux - avoid repainting the output and provide a way to get the current status
+- the reference runner states of starting environment, running agent, and verifying are good - add pulling image and building image to the list
 - wharf should also compute the "enterprise score" for each run
 
 ## Initial scope

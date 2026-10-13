@@ -6,8 +6,8 @@ Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
 
 The release is qualified by retained local summaries in `data/` and the
-corresponding Wharf and Pier job directories maintained with the benchmark
-evidence. The final acceptance record is in
+corresponding Wharf and DeepSWE reference job directories maintained with the
+benchmark evidence. The final acceptance record is in
 [`docs/release-qualification.md`](docs/release-qualification.md).
 
 ## Release highlights

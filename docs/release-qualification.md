@@ -38,9 +38,9 @@ retry, recovery, cost, and completed-trial accounting.
 
 The reference DeepSWE K=4 workload evidence is present in the retained
 analytics exports and was collected unattended, with overnight execution in
-some cases. The corresponding Wharf and Pier job directories are maintained
-with the benchmark evidence on the execution host. Exact hardware and
-configuration provenance remain part of the retained run records.
+some cases. The corresponding Wharf and DeepSWE reference job directories are
+maintained with the benchmark evidence on the execution host. Exact hardware
+and configuration provenance remain part of the retained run records.
 
 ## Requirement-to-test coverage
 

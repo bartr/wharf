@@ -268,7 +268,7 @@ make it `x/3`.
 
 Two conventions are load-bearing:
 
-- **`pier` truncates the task id to 32 characters** in the trial directory name, then
+- **The legacy Pier 0.3.1 runner truncates the task id to 32 characters** in the trial directory name, then
   strips a trailing hyphen. 41 of the 113 ids are affected, so the join to the dashboard
   export must be by prefix. A naive equality join silently drops them and reports a third
   of the benchmark as missing.
@@ -564,7 +564,8 @@ evidence of an improvement.
 
 ## Muse API-key accounting and cost
 
-Pier and the Muse adapter currently leave `agent_result.cost_usd` null. Muse's
+The legacy Pier-based DeepSWE runner and the Muse adapter leave
+`agent_result.cost_usd` null. Muse's
 API-key usage page is the authoritative billing source: it reports usage by key,
 which lets a disposable key act as an accounting boundary for one batch or one
 trial. The JSONL session logs remain useful for diagnostics, but they can
@@ -590,7 +591,7 @@ cost_usd = (I * input_rate + C * cached_rate + O * output_rate) / 1_000_000
 Use the dashboard's input, cached-input, and output buckets directly. Do not add
 Muse's separately exposed local `reasoning_tokens` to the dashboard output
 bucket; the dashboard categories are already the billing categories. When only
-local Pier fields are available, this Muse CLI build reports cached input as a
+local runner fields are available, this Muse CLI build reports cached input as a
 subset of `n_input_tokens`, so the diagnostic uncached value is:
 
 ```text
@@ -640,7 +641,7 @@ concurrent tasks. Use one key per task when per-task cost is required.
 2. Before inference, record the key's dashboard input, cached-input, output, and
   cost counters. Do not assume a new key starts at zero.
 3. Follow [RUN_MONITORING.md](RUN_MONITORING.md) to start or attach a named
-  tmux session. Run Pier in the foreground without redirecting or piping its
+  tmux session. Run the legacy DeepSWE runner in the foreground without redirecting or piping its
   output so humans can monitor the pane.
 4. Export the key only in that shell. For a disposable key in zsh, avoid shell
   history and persistent dotfiles:
@@ -651,14 +652,14 @@ concurrent tasks. Use one key per task when per-task cost is required.
   export MODEL_API_KEY
   ```
 
-5. Run Pier with `MuseCli`. Do **not** pass the secret through
-  `--ae MODEL_API_KEY=...`: Pier persists `--ae` values in job configuration.
-  The adapter inherits `MODEL_API_KEY` from the Pier process and supplies it to
+5. Run the legacy runner with `MuseCli`. Do **not** pass the secret through
+  `--ae MODEL_API_KEY=...`: the runner persists `--ae` values in job configuration.
+  The adapter inherits `MODEL_API_KEY` from the runner process and supplies it to
   `muse exec` over stdin.
 6. Wait for every trial to finish, then wait for the usage dashboard to settle.
   Refresh until its counters and cost stop changing, and record or export the
   final values before deleting the key. The audited xhigh run below continued
-  updating after all five Pier trials had finished.
+  updating after all five runner trials had finished.
 7. Compute authoritative billed cost as
   `ending_dashboard_cost - starting_dashboard_cost`. Token-price arithmetic is
   a reconciliation check because dashboard counters and displayed dollars may
@@ -780,7 +781,7 @@ usage comparisons.
 
 ## Copilot credits and cost
 
-Pier does not currently populate `agent_result.cost_usd` for Copilot CLI trials. The
+The legacy DeepSWE runner does not populate `agent_result.cost_usd` for Copilot CLI trials. The
 authoritative usage value is preserved in each trial's session event stream:
 
 ```

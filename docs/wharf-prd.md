@@ -3,13 +3,13 @@
 Status: Draft v0.1
 Date: 2026-10-06
 Owner: Not specified
-Sources: `docs/wharf.md` SHA-256 `3e46bc8a12da5b7c74142f044777e734ff77157ae3e784d3cd18269312271ae7`
+Sources: `docs/wharf.md` SHA-256 `143518988f5458a9c2482bd85c66a31e23e84e3325121fc5de61fc40dd04048f`
 Machine companion: `docs/wharf.jsonl`
 
 ## 1. Overview
 
-Wharf is a simple, scalable, enterprise-focused CLI that replaces Pier while
-remaining compatible with Harbor task definitions. It is built for enterprise
+Wharf is a simple, scalable, enterprise-focused CLI for running DeepSWE and
+enterprise benchmarks from Harbor task definitions. It is built for enterprise
 evaluation engineers who run coding-agent benchmarks on customer-owned Ubuntu
 infrastructure and for engineering leaders who consume the resulting model,
 cost, and quality comparisons. V1 establishes reliable local execution,
@@ -47,8 +47,8 @@ Delivery and support]
   trials. [Source: Product goals]
 - [must] Keep source code, hidden tests, patches, credentials, run state, and
   results under customer control. [Source: Users, Product goals]
-- [must] Preserve Harbor task compatibility and proven Pier behavior without
-  runtime monkey patches. [Source: Product goals, Task compatibility]
+- [must] Preserve Harbor task compatibility and proven DeepSWE execution
+  behavior without runtime monkey patches. [Source: Product goals, Task compatibility]
 - [must] Produce trustworthy PASS@1, Enterprise Score, cost, usage, runtime,
   and coverage reports from retained evidence. [Source: Release scope and
   phases, Auditing and trustworthy scoring]
@@ -68,7 +68,7 @@ V1 does not include:
 - A hosted control plane or dashboard.
 - Licensing or task-redistribution automation.
 - Linux distributions other than Ubuntu 24.04 LTS.
-- Byte-for-byte reproduction of Pier internals.
+- Byte-for-byte reproduction of another benchmark runner's internals.
 - Claude Code or Codex adapters; these arrive in v1.1.
 - Automated repair and replay; these follow stable v1 execution and reporting.
 - A second implementation language; .NET is the canonical Wharf implementation.
@@ -115,7 +115,7 @@ State model, Task compatibility, Results and artifacts]
 - Harbor task directories provide task metadata, instructions, environment
   definitions, artifacts, tests, verifier settings, and checksums.
 - DeepSWE is the initial dataset.
-- Existing Pier 0.3.1 job directories are accepted as migration input.
+- Existing legacy Pier 0.3.1 job directories are accepted as migration input.
 - Wharf stores versioned configuration, append-only events, job and trial
   summaries, artifacts, and portable analytics records.
 - `docs/wharf.jsonl` is the canonical LLM requirements handoff; it is not runtime
@@ -125,7 +125,7 @@ State model, Task compatibility, Results and artifacts]
 ### 5.2 Packaging
 
 - Runtime outputs remain in customer-owned storage.
-- Wharf emits a documented Pier-compatible trial artifact subset plus additive
+- Wharf emits a documented legacy Pier-compatible trial artifact subset plus additive
   Wharf metadata.
 - Reports are static Markdown and machine-readable JSON or JSONL.
 - The data-only reporting manifest does not require raw jobs. [Source: Features,

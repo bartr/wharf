@@ -774,7 +774,7 @@ Pin, validate, and invoke Copilot CLI without leaking credentials.
 ### Frame
 
 * Goal: qualify the real 113-task Copilot run at K=1, N=32, and B=12 on z01,
-  compare clean matched outcomes with Pier, and convert every observed
+  compare clean matched outcomes with the DeepSWE reference evidence, and convert every observed
   reliability defect into retained, tested behavior.
 * Out of scope: claiming a final score before the active run completes or
   committing benchmark solutions and verifier-only material.

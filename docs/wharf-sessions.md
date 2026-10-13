@@ -3,7 +3,7 @@
 Status: Wharf 1.0.0 released; MVP implementation, benchmark evidence, and
 acceptance matrix complete
 Source: `docs/wharf.jsonl`
-Source SHA-256: `3648a03025ceafedb604b0a712918866e4f85e6e3d2a137f76aa3ba0a96482d2`
+Source SHA-256: `105a284f5a18e6c2a71928433602b6717d7583926b0ace4005c505833bbfdc0d`
 Documentation layout: requirements and session records are under `docs/`;
 Research, Plan, Changes, and Review artifacts are under `.github/tracking/`.
 Session model: one very senior engineer paired with a frontier model
@@ -24,7 +24,7 @@ Target duration: 60-90 focused minutes per session
   settle and pin the .NET SDK before scaffolding the application.
 - Post-v1 repair/replay requirements `REQ-153` through `REQ-180` and `AC-019`
   are excluded from this MVP arc.
-- Post-MVP work includes the Pier-style derived agent-image cache: install the
+- Post-MVP work includes the Harbor-compatible derived agent-image cache: install the
   requested Copilot version into local task images, reuse those images across
   K=4 and future runs, retain the images locally to avoid Copilot CLI download
   rate limits, support Docker-based inspection/restart, and provide bounded
@@ -35,7 +35,7 @@ Target duration: 60-90 focused minutes per session
   Copilot API limits.
 - The 64-vCPU host profile uses network-attached storage. Its lower throughput
   and higher latency must be measured explicitly. The MVP should retain
-  Wharf's no-derived-agent-image startup path because Pier image builds
+  Wharf's no-derived-agent-image startup path because reference-run image builds
   exceeded ten minutes at full load and capped that host near N=80.
 - Native Windows, Kubernetes, multi-node orchestration, hosted control-plane
   work, licensing automation, non-Ubuntu distributions, Claude Code, Codex,
@@ -608,7 +608,7 @@ Target tag: `0.16.0`
 - Emit static Markdown plus versioned JSON/JSONL.
 - Include configuration, provenance, score, cost, usage, timing, coverage,
   retry, and 429 completeness.
-- Support the portable data-only manifest and existing Pier 0.3.1 migration
+- Support the portable data-only manifest and existing legacy Pier 0.3.1 migration
   input.
 - Golden-test deterministic regeneration.
 

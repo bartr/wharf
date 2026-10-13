@@ -214,8 +214,8 @@ whitespace, cleanup, and image-preservation checks.
 Wharf 1.0.0 closes the MVP qualification arc. The release accepts the
 retained real-run, container-backed smoke, HydraFusion, and unattended K=4
 benchmark evidence. The two HydraFusion benchmark exports are preserved in
-`data/`, while the complete Wharf and Pier job directories remain available
-on the execution host for audit and replay.
+`data/`, while the complete Wharf and DeepSWE reference job directories remain
+available on the execution host for audit and replay.
 
 The final `0.25.0` release-candidate work strengthened the enterprise task
 evaluators, added provider-default effort handling, normalized HydraFusion

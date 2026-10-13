@@ -1,7 +1,7 @@
 # DeepSWE v1.1 published cost reference — `claude-opus-5 [max]`
 
 External reference data pulled from the public DeepSWE leaderboard, used to contextualize our
-`pier` + Copilot CLI benchmarking.
+DeepSWE + Copilot CLI benchmarking.
 
 Methodology and infrastructure notes from the Muse Spark 1.2 paper and related links are tracked in:
 
