@@ -82,11 +82,12 @@ container and reuse the task's configured environment image. After MVP,
 - Monitor Docker OOM events for each agent. On the first cgroup OOM kill, stop
   that container, retain its evidence, and fail the trial with the explicit
   `OutOfMemory` error type instead of allowing repeated child-process kills.
-- Enforce each task manifest's independent agent-image build, agent execution,
-  verifier-image build, and verifier execution timeouts. Timed-out processes
-  and containers are terminated, and agent and build timeouts are retained as
-  explicit `AgentTimeout`, `AgentBuildTimeout`, or `VerifierBuildTimeout`
-  failures. Retain verifier command evidence before surfacing
+- Enforce independent agent-image build, agent execution, verifier-image build,
+  and verifier execution timeouts. Effective run phase overrides take
+  precedence over task timeouts, which take precedence over built-in defaults.
+  Timed-out processes and containers are terminated, and agent and build
+  timeouts are retained as explicit `AgentTimeout`, `AgentBuildTimeout`, or
+  `VerifierBuildTimeout` failures. Retain verifier command evidence before surfacing
   `VerifierTimeout`; classify externally terminated verifier containers as
   `VerifierInfrastructure`. Both are eligible for bounded verifier-only retry
   against the retained patch, while an ordinary reward-zero verifier remains a
@@ -402,8 +403,10 @@ container and reuse the task's configured environment image. After MVP,
 - Make large cloud VMs an acceleration option, not a requirement.
 - On success, failure, cancellation, or stop, clean up per-trial containers, networks, volumes, and disposable images reliably.
 - Cleanup must delete only Docker processes and ephemeral Docker resources.
-- Ctrl-C cleanup stops Wharf-owned containers (including legacy run-name matches)
-  and removes transient per-run images while retaining reusable task and registry images.
+- Ctrl-C requests cancellation so active agent and verifier lifecycles can
+  retain evidence before removing their own containers and transient images.
+  Explicit orphan cleanup selects only Wharf-labeled containers; it never
+  matches unrelated resources by name.
 - Cleanup must retain every run directory and file.
 - Preserve reusable base and pulled registry images across trials and jobs.
   During the mountless Docker spike, task-derived images are disposable and
@@ -421,6 +424,12 @@ container and reuse the task's configured environment image. After MVP,
 - distinguish logical attempts from infrastructure retries in state, results, and reports
 - preserve enough state to recover after the Wharf process, host, Docker daemon, or provider is interrupted
 - version persisted event, configuration, result, and summary schemas
+- atomically retain a secret-free run plan with the exact selected task IDs,
+  checksums, and effective policy so filtered runs resume without changing
+  timeout, retry, retention, model, effort, or CLI-version behavior
+- validate terminal result identity before classifying a logical attempt as
+  complete; malformed terminal evidence remains pending and is archived only
+  when execution actually resumes
 - storage implementation details are deliberately left to the implementer as long as the state contract is satisfied
 
 ## Docker and host behavior
@@ -485,6 +494,8 @@ container and reuse the task's configured environment image. After MVP,
 
 - Never place secrets in process arguments, persisted job configuration, or normal logs.
 - Support environment, file, stdin, and future secret-manager credential sources.
+  Resolved run credentials are passed transiently through the Docker process
+  environment and are omitted from the retained run plan.
 - Redact secrets from diagnostic output and exported artifacts.
 - Restrict agent egress to adapter-declared endpoints.
 - Keep verifier execution isolated from model credentials and agent-only network access.

@@ -51,19 +51,34 @@ public sealed class PristineVerifierService
         string workspace = await workspaceFactory.CreateAsync(
             request.SourceDirectory,
             cancellationToken);
-        if (Path.GetFullPath(workspace).Equals(
-                Path.GetFullPath(request.AgentWorkspaceDirectory),
-                StringComparison.Ordinal))
+        try
         {
-            throw new VerifierExecutionException("pristine workspace reused the agent workspace");
-        }
+            if (Path.GetFullPath(workspace).Equals(
+                    Path.GetFullPath(request.AgentWorkspaceDirectory),
+                    StringComparison.Ordinal))
+            {
+                throw new VerifierExecutionException(
+                    "pristine workspace reused the agent workspace");
+            }
 
-        await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
-        return new PreparedVerifierRun(
-            request,
-            patch,
-            evidenceDirectory,
-            workspace);
+            await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
+            return new PreparedVerifierRun(
+                request,
+                patch,
+                evidenceDirectory,
+                workspace,
+                workspaceFactory.DeleteWorkspaceAfterVerification);
+        }
+        catch
+        {
+            if (workspaceFactory.DeleteWorkspaceAfterVerification &&
+                Directory.Exists(workspace))
+            {
+                Directory.Delete(workspace, recursive: true);
+            }
+
+            throw;
+        }
     }
 
     public async Task<TrialResult> VerifyPreparedAsync(
@@ -74,58 +89,69 @@ public sealed class PristineVerifierService
         VerifierRequest request = prepared.Request;
         string evidenceDirectory = prepared.EvidenceDirectory;
         string workspace = prepared.WorkspaceDirectory;
-        var results = new List<VerifierCommandResult>();
-        foreach (VerifierCommand command in request.Commands)
+        try
         {
-            VerifierCommandResult result = await runner.RunAsync(
-                request,
-                workspace,
-                command,
-                cancellationToken);
-            results.Add(result);
-            WriteCommandEvidence(evidenceDirectory, result);
-            if (result.TimedOut || result.ExitCode != 0)
+            var results = new List<VerifierCommandResult>();
+            foreach (VerifierCommand command in request.Commands)
             {
-                break;
+                VerifierCommandResult result = await runner.RunAsync(
+                    request,
+                    workspace,
+                    command,
+                    cancellationToken);
+                results.Add(result);
+                WriteCommandEvidence(evidenceDirectory, result);
+                if (result.TimedOut || result.ExitCode != 0)
+                {
+                    break;
+                }
+            }
+
+            VerifierMetrics? metrics = ReadMetrics(evidenceDirectory);
+            string status = results.Any(result => result.TimedOut || result.ExitCode != 0) ||
+                metrics is { PassAt: 0 }
+                    ? "failed"
+                    : "passed";
+            var trial = new TrialResult(
+                TrialResultSchema.Version,
+                request.TaskId,
+                status,
+                workspace,
+                results,
+                Path.Combine(evidenceDirectory, "patch.diff"),
+                metrics);
+            File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), prepared.Patch);
+            AtomicFile.Replace(
+                Path.Combine(evidenceDirectory, "trial-result.json"),
+                JsonSerializer.Serialize(trial, StateJson.Options));
+            VerifierCommandResult? timeout = results.FirstOrDefault(result => result.TimedOut);
+            if (timeout is not null)
+            {
+                throw new VerifierExecutionException(
+                    $"verifier command '{timeout.Name}' exceeded its timeout",
+                    "VerifierTimeout");
+            }
+
+            VerifierCommandResult? terminated = results.FirstOrDefault(result =>
+                result.ExitCode is 137 or 143);
+            if (terminated is not null)
+            {
+                throw new VerifierExecutionException(
+                    $"verifier command '{terminated.Name}' was externally terminated " +
+                    $"with exit code {terminated.ExitCode}",
+                    "VerifierInfrastructure");
+            }
+
+            return trial;
+        }
+        finally
+        {
+            if (prepared.DeleteWorkspaceAfterVerification &&
+                Directory.Exists(workspace))
+            {
+                Directory.Delete(workspace, recursive: true);
             }
         }
-
-        VerifierMetrics? metrics = ReadMetrics(evidenceDirectory);
-        string status = results.Any(result => result.TimedOut || result.ExitCode != 0) ||
-            metrics is { PassAt: 0 }
-                ? "failed"
-                : "passed";
-        var trial = new TrialResult(
-            TrialResultSchema.Version,
-            request.TaskId,
-            status,
-            workspace,
-            results,
-            Path.Combine(evidenceDirectory, "patch.diff"),
-            metrics);
-        File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), prepared.Patch);
-        AtomicFile.Replace(
-            Path.Combine(evidenceDirectory, "trial-result.json"),
-            JsonSerializer.Serialize(trial, StateJson.Options));
-        VerifierCommandResult? timeout = results.FirstOrDefault(result => result.TimedOut);
-        if (timeout is not null)
-        {
-            throw new VerifierExecutionException(
-                $"verifier command '{timeout.Name}' exceeded its timeout",
-                "VerifierTimeout");
-        }
-
-        VerifierCommandResult? terminated = results.FirstOrDefault(result =>
-            result.ExitCode is 137 or 143);
-        if (terminated is not null)
-        {
-            throw new VerifierExecutionException(
-                $"verifier command '{terminated.Name}' was externally terminated " +
-                $"with exit code {terminated.ExitCode}",
-                "VerifierInfrastructure");
-        }
-
-        return trial;
     }
 
     private static VerifierMetrics? ReadMetrics(string evidenceDirectory)
@@ -169,6 +195,8 @@ public sealed class PristineVerifierService
 
 public sealed class FilePristineWorkspaceFactory : IPristineWorkspaceFactory
 {
+    public bool DeleteWorkspaceAfterVerification => true;
+
     public Task<string> CreateAsync(
         string sourceDirectory,
         CancellationToken cancellationToken)
@@ -261,8 +289,8 @@ public sealed class ProcessVerifierRunner : IVerifierRunner
         using Process process = Process.Start(startInfo)
             ?? throw new VerifierExecutionException("verifier process could not be started");
         var stopwatch = Stopwatch.StartNew();
-        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+        Task<string> errorTask = process.StandardError.ReadToEndAsync();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(command.Timeout);
         bool timedOut = false;
@@ -275,6 +303,17 @@ public sealed class ProcessVerifierRunner : IVerifierRunner
             timedOut = true;
             process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync(CancellationToken.None);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync(CancellationToken.None);
+            }
+
+            await Task.WhenAll(outputTask, errorTask);
+            throw;
         }
 
         stopwatch.Stop();

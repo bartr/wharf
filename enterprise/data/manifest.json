@@ -36,6 +36,15 @@
     "with_cost": 56
   },
   {
+    "arm": "copilot-gpt-5.6-terra-default-1.0.96",
+    "bytes_jsonl": 37176,
+    "scored": 56,
+    "tasks": 14,
+    "total_cost_usd": 13.79,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
     "arm": "copilot-gpt-6-astra-default-1.0.95",
     "bytes_jsonl": 37028,
     "scored": 56,

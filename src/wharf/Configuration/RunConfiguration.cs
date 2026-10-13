@@ -266,7 +266,11 @@ public static class RunConfigurationValidator
         ValidateTimeout(configuration.Timeouts.SetupSeconds, "setupSeconds");
         ValidateTimeout(configuration.Timeouts.AgentSeconds, "agentSeconds");
         ValidateTimeout(configuration.Timeouts.VerifierSeconds, "verifierSeconds");
-        ValidateTimeout(configuration.Timeouts.ReportSeconds, "reportSeconds");
+        if (configuration.Timeouts.ReportSeconds is not null)
+        {
+            throw new RunConfigurationException(
+                "timeout reportSeconds is not supported by the current run pipeline");
+        }
         ValidateTimeout(configuration.Retries.MaxAttempts, "maxAttempts", allowZero: true);
         ValidateTimeout(configuration.Retries.BackoffSeconds, "backoffSeconds", allowZero: true);
         ValidateValue(configuration.OutputFormat, Formats, "output format");

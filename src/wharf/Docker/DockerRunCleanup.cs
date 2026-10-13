@@ -23,17 +23,8 @@ public static class DockerRunCleanup
     {
         try
         {
-            string containerIds = string.Join(
-                Environment.NewLine,
-                new[]
-                {
-                    RunDocker(["ps", "-aq", "--filter", "name=__"]),
-                    RunDocker(["ps", "-aq", "--filter", "label=com.bartr.wharf.managed=true"])
-                }
-                .SelectMany(output => output.Split(
-                    ['\r', '\n'],
-                    StringSplitOptions.RemoveEmptyEntries))
-                .Distinct(StringComparer.Ordinal));
+            string containerIds = RunDocker(
+                ["ps", "-aq", "--filter", "label=com.bartr.wharf.managed=true"]);
             if (!string.IsNullOrWhiteSpace(containerIds))
             {
                 RunDocker(["rm", "--force", .. containerIds

@@ -183,6 +183,74 @@ public sealed class VerifierExecutionTests
     }
 
     [Fact]
+    public async Task DeletesOwnedPristineWorkspaceAfterVerification()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        File.WriteAllText(Path.Combine(source.Path, "source.txt"), "source");
+        var service = new PristineVerifierService(
+            new FilePristineWorkspaceFactory(),
+            new RecordingPatchApplier(),
+            new FakeVerifierRunner());
+
+        TrialResult result = await service.VerifyAsync(
+            Request(source.Path, agent.Path),
+            "patch",
+            evidence.Path);
+
+        Assert.False(Directory.Exists(result.WorkspaceDirectory));
+        Assert.True(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
+    }
+
+    [Fact]
+    public async Task DeletesOwnedPristineWorkspaceWhenPreparationFails()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using TemporaryDirectory evidence = new();
+        var factory = new OwnedWorkspaceFactory();
+        var service = new PristineVerifierService(
+            factory,
+            new FailingPatchApplier(),
+            new FakeVerifierRunner());
+
+        await Assert.ThrowsAsync<VerifierExecutionException>(
+            () => service.PrepareAsync(
+                Request(source.Path, agent.Path),
+                "patch",
+                evidence.Path));
+
+        Assert.NotNull(factory.Workspace);
+        Assert.False(Directory.Exists(factory.Workspace));
+    }
+
+    [Fact]
+    public async Task ExternalCancellationTerminatesHostVerifier()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        using var cancellation = new CancellationTokenSource(
+            TimeSpan.FromMilliseconds(200));
+        var runner = new ProcessVerifierRunner();
+        VerifierRequest request = Request(source.Path, agent.Path);
+        var command = new VerifierCommand(
+            "cancelled",
+            "sleep 30",
+            TimeSpan.FromMinutes(1));
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => runner.RunAsync(
+                request,
+                source.Path,
+                command,
+                cancellation.Token));
+
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
     public void RejectsAgentWorkspaceReuse()
     {
         using TemporaryDirectory source = new();
@@ -300,6 +368,32 @@ public sealed class VerifierExecutionTests
         {
             Patch = patch;
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FailingPatchApplier : IPatchApplier
+    {
+        public Task ApplyAsync(
+            string workspaceDirectory,
+            string patch,
+            CancellationToken cancellationToken) =>
+            throw new VerifierExecutionException("patch failed");
+    }
+
+    private sealed class OwnedWorkspaceFactory : IPristineWorkspaceFactory
+    {
+        public bool DeleteWorkspaceAfterVerification => true;
+        public string? Workspace { get; private set; }
+
+        public Task<string> CreateAsync(
+            string sourceDirectory,
+            CancellationToken cancellationToken)
+        {
+            Workspace = Path.Combine(
+                Path.GetTempPath(),
+                $"wharf-owned-verifier-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(Workspace);
+            return Task.FromResult(Workspace);
         }
     }
 

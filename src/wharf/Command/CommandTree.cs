@@ -426,27 +426,15 @@ public static class CommandTree
                     return ExitCode.Success.Value;
                 }
 
-                var runConfiguration = new RunConfiguration(
-                    plan.K,
-                    plan.N,
-                    Math.Min(plan.P, plan.N),
-                    new PhaseTimeouts(),
-                    new RetryPolicy(MaxAttempts: 1),
-                    "text",
-                    "jobs",
-                    plan.Model,
-                    plan.Effort,
-                    plan.CliVersion,
-                    [],
-                    [],
-                    30,
-                    false,
-                    "default",
-                    new SecretSettings(
+                RunConfiguration runConfiguration = plan.Configuration with
+                {
+                    N = plan.N,
+                    P = Math.Min(plan.P, plan.N),
+                    Credentials = new SecretSettings(
                         Environment.GetEnvironmentVariable("WHARF_API_KEY"),
                         Environment.GetEnvironmentVariable("WHARF_TOKEN"),
-                        Environment.GetEnvironmentVariable("WHARF_PASSWORD")),
-                    plan.ShortestFirst);
+                        Environment.GetEnvironmentVariable("WHARF_PASSWORD"))
+                };
                 RunConfigurationValidator.Validate(null, runConfiguration);
                 WharfConfiguration loggerConfiguration = configuration with
                 {

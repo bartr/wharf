@@ -142,6 +142,21 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void RejectsUnsupportedReportTimeout()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(Timeouts: new PhaseTimeouts(ReportSeconds: 30)),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+            () => RunConfigurationValidator.Validate(new RunManifest(), configuration));
+
+        Assert.Contains("reportSeconds", exception.Message);
+        Assert.Contains("not supported", exception.Message);
+    }
+
+    [Fact]
     public void RetainWorkspacesUsesFlagEnvironmentManifestDefaultPrecedence()
     {
         var manifest = new RunManifest(RetainWorkspaces: true);

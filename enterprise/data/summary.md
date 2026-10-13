@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Verified 2026-10-12 from nine completed `all-1` runs. Each arm contains 14
+Verified 2026-10-12 from ten completed `all-1` runs. Each arm contains 14
 tasks and four attempts per task.
 
 | Model | Passes | PASS@1 | P2P errors | Cost/run |
@@ -19,6 +19,7 @@ tasks and four attempts per task.
 | Claude Opus 5 | 48 / 56 | 85.71% | 2 | $1.0990 |
 | MAI Code 1.1 Flash | 46 / 56 | 82.14% | 5 | $0.0770 |
 | GPT-5.6 Luna | 46 / 56 | 82.14% | 6 | $0.0231 |
+| GPT-5.6 Terra | 44 / 56 | 78.57% | 2 | $0.2463 |
 
 PASS@1 is the trial-level pass rate. P2P errors count trial patches that failed
 at least one pre-existing test. Cost/run divides known cost by cost-bearing
@@ -36,6 +37,7 @@ logical trials; all rows in this table have 56/56 cost coverage.
 | Claude Opus 5.5 | 56 / 56 | $0.4792 | $1.9166 | 180.8 s | 261.9 s |
 | Claude Opus 5 | 56 / 56 | $1.0990 | $4.3958 | 230.7 s | 268.1 s |
 | GPT-5.6 Luna | 56 / 56 | $0.0231 | $0.0923 | 190.6 s | 318.1 s |
+| GPT-5.6 Terra | 56 / 56 | $0.2463 | $0.9851 | 141.5 s | 212.8 s |
 | MAI Code 1.1 Flash | 56 / 56 | $0.0770 | $0.3081 | 275.1 s | 334.1 s |
 
 Cost uses the retained Copilot AI Credit evidence at one cent per credit.
@@ -45,12 +47,12 @@ exported trial.
 
 ## Data coverage
 
-* Exported arms: 9
-* Exported logical trials: 504
+* Exported arms: 10
+* Exported logical trials: 560
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 504 / 504 trials
-* Agent and trial duration measurements: 504 / 504 trials
+* Functional and regression measurements: 560 / 560 trials
+* Agent and trial duration measurements: 560 / 560 trials
 * Trials with an exception category: 0
 
 The empty Gemini `all-2` directory is excluded.

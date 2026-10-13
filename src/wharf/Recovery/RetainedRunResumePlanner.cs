@@ -9,7 +9,8 @@ public sealed record RetainedResumeAttempt(
     TaskAttempt Attempt,
     string TrialDirectory,
     int TrialRetry,
-    decimal? TotalCost);
+    decimal? TotalCost,
+    bool HasInvalidTerminalResult = false);
 
 public sealed record RetainedResumePlan(
     string RunDirectory,
@@ -22,7 +23,8 @@ public sealed record RetainedResumePlan(
     string CliVersion,
     bool ShortestFirst,
     IReadOnlyList<RetainedResumeAttempt> Attempts,
-    int CompletedCount);
+    int CompletedCount,
+    RunConfiguration Configuration);
 
 public sealed class RetainedRunResumePlanner
 {
@@ -61,11 +63,19 @@ public sealed class RetainedRunResumePlanner
         int k = ParsePositive(metadata, "k", "attempt count");
         int taskCount = ParsePositive(metadata, "tasks", "task count");
         int plannedRuns = ParsePositive(metadata, "runs", "planned run count");
-        int taskConcurrency = n ?? ParsePositive(metadata, "n", "task concurrency");
-        int preparationConcurrency = p ?? ParsePositive(
+        int loggedTaskConcurrency = ParsePositive(metadata, "n", "task concurrency");
+        int loggedPreparationConcurrency = ParsePositive(
             metadata,
             "p",
             "preparation concurrency");
+        RetainedRunMetadata? retainedMetadata =
+            RetainedRunMetadataStore.Read(resolvedRun);
+        int retainedTaskConcurrency = retainedMetadata?.Configuration.N ??
+            loggedTaskConcurrency;
+        int retainedPreparationConcurrency = retainedMetadata?.Configuration.P ??
+            loggedPreparationConcurrency;
+        int taskConcurrency = n ?? retainedTaskConcurrency;
+        int preparationConcurrency = p ?? retainedPreparationConcurrency;
         if (taskConcurrency <= 0)
             throw new RecoveryException("resume task concurrency must be positive");
         if (preparationConcurrency <= 0)
@@ -74,13 +84,69 @@ public sealed class RetainedRunResumePlanner
         if (plannedRuns != checked(taskCount * k))
             throw new RecoveryException("resume run plan has inconsistent task and attempt counts");
 
-        string resolvedTaskRoot = Path.GetFullPath(
-            taskRoot ?? ReadTaskRoot(resolvedRun));
-        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(resolvedTaskRoot);
-        if (tasks.Count != taskCount)
+        string resolvedTaskRoot = Path.GetFullPath(taskRoot ??
+            retainedMetadata?.TaskRoot ??
+            ReadTaskRoot(resolvedRun));
+        IReadOnlyList<HarborTask> availableTasks =
+            new HarborTaskLoader().Load(resolvedTaskRoot);
+        IReadOnlyList<HarborTask> tasks;
+        if (retainedMetadata is null)
         {
-            throw new RecoveryException(
-                $"resume task count mismatch: retained={taskCount} current={tasks.Count}");
+            tasks = availableTasks;
+            if (tasks.Count != taskCount)
+            {
+                throw new RecoveryException(
+                    $"resume task count mismatch: retained={taskCount} current={tasks.Count}");
+            }
+        }
+        else
+        {
+            if (retainedMetadata.Tasks.Count != taskCount ||
+                retainedMetadata.Configuration.K != k ||
+                retainedMetadata.Configuration.N != loggedTaskConcurrency ||
+                retainedMetadata.Configuration.P != loggedPreparationConcurrency ||
+                !string.Equals(
+                    retainedMetadata.Configuration.Model,
+                    arm.Groups["model"].Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    retainedMetadata.Configuration.Effort,
+                    arm.Groups["effort"].Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
+                    retainedMetadata.Configuration.CliVersion,
+                    arm.Groups["version"].Value,
+                    StringComparison.Ordinal) ||
+                retainedMetadata.Configuration.ShortestFirst !=
+                    (metadata.Groups["order"].Value == "shortest-first"))
+            {
+                throw new RecoveryException(
+                    "resume run plan does not match retained log metadata");
+            }
+
+            var availableById = availableTasks.ToDictionary(
+                task => task.TaskId,
+                StringComparer.Ordinal);
+            tasks = retainedMetadata.Tasks.Select(identity =>
+            {
+                if (!availableById.TryGetValue(identity.TaskId, out HarborTask? task))
+                {
+                    throw new RecoveryException(
+                        $"resume task is missing from current task root: {identity.TaskId}");
+                }
+
+                if (!string.Equals(
+                        task.SourceChecksum,
+                        identity.SourceChecksum,
+                        StringComparison.Ordinal))
+                {
+                    throw new RecoveryException(
+                        $"resume task checksum mismatch for {identity.TaskId}: " +
+                        $"retained={identity.SourceChecksum} current={task.SourceChecksum}");
+                }
+
+                return task;
+            }).ToArray();
         }
 
         IReadOnlyList<TaskAttempt> expected = TaskSelector.ExpandAttempts(tasks, k);
@@ -92,19 +158,53 @@ public sealed class RetainedRunResumePlanner
                 resolvedRun,
                 TrialDirectoryName(attempt, k));
             ValidateRetainedTrialIdentity(resolvedRun, trialDirectory, attempt, k);
-            if (File.Exists(Path.Combine(trialDirectory, "result.json")))
+            string resultPath = Path.Combine(trialDirectory, "result.json");
+            if (File.Exists(resultPath) &&
+                IsValidTerminalResult(resultPath, attempt))
             {
                 completed++;
                 continue;
             }
 
+            int trialRetry = ExistingTrialRetry(trialDirectory);
+            decimal? totalCost = ExistingTotalCost(trialDirectory);
             attempts.Add(new RetainedResumeAttempt(
                 attempt,
                 trialDirectory,
-                ExistingTrialRetry(trialDirectory),
-                ExistingTotalCost(trialDirectory)));
+                trialRetry,
+                totalCost,
+                File.Exists(resultPath)));
         }
 
+        bool shortestFirst = metadata.Groups["order"].Value == "shortest-first";
+        RunConfiguration configuration = retainedMetadata?.Configuration ??
+            new RunConfiguration(
+                k,
+                taskConcurrency,
+                preparationConcurrency,
+                new PhaseTimeouts(),
+                new RetryPolicy(MaxAttempts: 1),
+                "text",
+                "jobs",
+                arm.Groups["model"].Value,
+                arm.Groups["effort"].Value,
+                arm.Groups["version"].Value,
+                [],
+                [],
+                30,
+                false,
+                "default",
+                new SecretSettings(),
+                shortestFirst);
+        configuration = configuration with
+        {
+            K = k,
+            N = taskConcurrency,
+            P = preparationConcurrency,
+            Credentials = new SecretSettings(),
+            ShortestFirst = shortestFirst
+        };
+        RunConfigurationValidator.Validate(null, configuration);
         return new RetainedResumePlan(
             resolvedRun,
             resolvedTaskRoot,
@@ -114,13 +214,14 @@ public sealed class RetainedRunResumePlanner
             arm.Groups["model"].Value,
             arm.Groups["effort"].Value,
             arm.Groups["version"].Value,
-            metadata.Groups["order"].Value == "shortest-first",
+            shortestFirst,
             TaskSelector.OrderAttemptsForAdmission(
                     attempts.Select(item => item.Attempt).ToArray(),
-                    metadata.Groups["order"].Value == "shortest-first")
+                    shortestFirst)
                 .Select(attempt => attempts.Single(item => item.Attempt.AttemptId == attempt.AttemptId))
                 .ToArray(),
-            completed);
+            completed,
+            configuration);
     }
 
     internal static string TrialDirectoryName(TaskAttempt attempt, int k) =>
@@ -239,10 +340,38 @@ public sealed class RetainedRunResumePlanner
                 ? cost.GetDecimal()
                 : null;
         }
+
         catch (JsonException exception)
         {
             throw new RecoveryException(
                 $"{description} contains malformed JSON: {path}: {exception.Message}");
+        }
+    }
+
+    private static bool IsValidTerminalResult(
+        string path,
+        TaskAttempt attempt)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+            JsonElement root = document.RootElement;
+            return root.ValueKind == JsonValueKind.Object &&
+                root.TryGetProperty("taskId", out JsonElement taskId) &&
+                string.Equals(
+                    taskId.GetString(),
+                    attempt.Task.TaskId,
+                    StringComparison.Ordinal) &&
+                root.TryGetProperty("attempt", out JsonElement attemptNumber) &&
+                attemptNumber.TryGetInt32(out int retainedAttempt) &&
+                retainedAttempt == attempt.AttemptNumber &&
+                root.TryGetProperty("status", out JsonElement status) &&
+                status.ValueKind == JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(status.GetString());
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 

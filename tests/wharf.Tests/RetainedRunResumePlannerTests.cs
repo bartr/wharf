@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wharf.Configuration;
 using Wharf.Recovery;
 using Wharf.Tasks;
 
@@ -109,6 +110,66 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal("default", plan.Effort);
     }
 
+    [Fact]
+    public void GivenFilteredRun_WhenPlanning_RestoresOnlySelectedTasks()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 2, selectedTaskCount: 1);
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory,
+            FixtureRoot);
+
+        Assert.Equal(2, plan.Attempts.Count);
+        Assert.All(
+            plan.Attempts,
+            attempt => Assert.Equal(
+                fixture.Tasks.Single().TaskId,
+                attempt.Attempt.Task.TaskId));
+    }
+
+    [Fact]
+    public void GivenRetainedMetadata_WhenPlanning_PreservesEffectivePolicyWithoutSecrets()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1);
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory,
+            FixtureRoot);
+        string metadata = File.ReadAllText(Path.Combine(
+            fixture.RunDirectory,
+            RetainedRunMetadataStore.FileName));
+
+        Assert.Equal(321, plan.Configuration.Timeouts.AgentSeconds);
+        Assert.Equal(3, plan.Configuration.Retries.MaxAttempts);
+        Assert.True(plan.Configuration.RetainWorkspaces);
+        Assert.DoesNotContain("should-not-persist", metadata);
+        Assert.Null(plan.Configuration.Credentials.Token);
+    }
+
+    [Fact]
+    public void GivenMalformedTerminalResult_WhenPlanning_ArchivesAndRerunsAttempt()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1, selectedTaskCount: 1);
+        TaskAttempt attempt = fixture.Attempts.Single();
+        string trialDirectory = Path.Combine(
+            fixture.RunDirectory,
+            RetainedRunResumePlanner.TrialDirectoryName(attempt, fixture.K));
+        Directory.CreateDirectory(trialDirectory);
+        File.WriteAllText(Path.Combine(trialDirectory, "result.json"), "{");
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory,
+            FixtureRoot);
+
+        RetainedResumeAttempt resumed = Assert.Single(plan.Attempts);
+        Assert.True(resumed.HasInvalidTerminalResult);
+        Assert.Equal(0, plan.CompletedCount);
+        Assert.True(File.Exists(Path.Combine(trialDirectory, "result.json")));
+        Assert.False(Directory.Exists(Path.Combine(
+            trialDirectory,
+            "resume-history")));
+    }
+
     private static void CompleteAllExcept(
         RetainedRunFixture fixture,
         TaskAttempt pending)
@@ -122,7 +183,13 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             Directory.CreateDirectory(trialDirectory);
             WriteJson(
                 Path.Combine(trialDirectory, "result.json"),
-                new { taskRoot = FixtureRoot });
+                new
+                {
+                    status = "passed",
+                    taskRoot = FixtureRoot,
+                    taskId = attempt.Task.TaskId,
+                    attempt = attempt.AttemptNumber
+                });
         }
     }
 
@@ -144,15 +211,39 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.True(Directory.Exists(Path.Combine(trialDirectory, "verifier-retries", "retry-1")));
     }
 
-    private RetainedRunFixture CreateRun(int k, string effort = "max")
+    private RetainedRunFixture CreateRun(
+        int k,
+        string effort = "max",
+        int? selectedTaskCount = null)
     {
         string runDirectory = Path.Combine(
             temporaryRoot,
             $"copilot-test-model-{effort}-1.0.95",
             "all-1");
         Directory.CreateDirectory(runDirectory);
-        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);
+        IReadOnlyList<HarborTask> loadedTasks =
+            new HarborTaskLoader().Load(FixtureRoot);
+        IReadOnlyList<HarborTask> tasks = selectedTaskCount.HasValue
+            ? loadedTasks.Take(selectedTaskCount.Value).ToArray()
+            : loadedTasks;
         IReadOnlyList<TaskAttempt> attempts = TaskSelector.ExpandAttempts(tasks, k);
+        var configuration = new RunConfiguration(
+            k,
+            4,
+            2,
+            new PhaseTimeouts(AgentSeconds: 321),
+            new RetryPolicy(MaxAttempts: 3, BackoffSeconds: 7),
+            "text",
+            "jobs",
+            "test-model",
+            effort,
+            "1.0.95",
+            [],
+            [],
+            30,
+            true,
+            "default",
+            new SecretSettings(Token: "should-not-persist"));
         WriteJson(
             Path.Combine(runDirectory, "run.jsonl"),
             new
@@ -162,6 +253,11 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
                     "task-concurrency=4 preparation-concurrency=2 " +
                     "admission-order=longest-first"
             });
+        RetainedRunMetadataStore.Write(
+            runDirectory,
+            FixtureRoot,
+            configuration,
+            tasks);
         return new RetainedRunFixture(runDirectory, k, tasks, attempts);
     }
 

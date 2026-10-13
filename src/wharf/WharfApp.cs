@@ -1,7 +1,6 @@
 using System.CommandLine;
 using Wharf.Command;
 using Wharf.Configuration;
-using Wharf.Docker;
 using Wharf.ExitCodes;
 using Wharf.Logging;
 using Wharf.Versioning;
@@ -17,14 +16,7 @@ public static class WharfApp
         ConsoleCancelEventHandler handler = (_, eventArgs) =>
         {
             eventArgs.Cancel = true;
-            try
-            {
-                cancellation.Cancel();
-            }
-            finally
-            {
-                DockerRunCleanup.CleanupAll();
-            }
+            cancellation.Cancel();
         };
         Console.CancelKeyPress += handler;
         try

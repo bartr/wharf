@@ -76,7 +76,8 @@ public sealed record PreparedVerifierRun(
     VerifierRequest Request,
     string Patch,
     string EvidenceDirectory,
-    string WorkspaceDirectory);
+    string WorkspaceDirectory,
+    bool DeleteWorkspaceAfterVerification = false);
 
 public sealed record TrialResult(
     string SchemaVersion,
@@ -94,6 +95,8 @@ public sealed record VerifierMetrics(
 
 public interface IPristineWorkspaceFactory
 {
+    bool DeleteWorkspaceAfterVerification => false;
+
     Task<string> CreateAsync(string sourceDirectory, CancellationToken cancellationToken);
 }
 

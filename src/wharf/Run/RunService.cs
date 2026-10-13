@@ -11,6 +11,7 @@ using Wharf.Execution;
 using Wharf.Image;
 using Wharf.Logging;
 using Wharf.Recovery;
+using Wharf.State;
 using Wharf.Tasks;
 using Wharf.Verifier;
 
@@ -134,6 +135,14 @@ public sealed class RunService
                 ?? throw new RunException($"resume run directory has no parent: {runDirectory}");
             attemptDirectory = Path.GetFileName(runDirectory);
         }
+        if (resume is null)
+        {
+            RetainedRunMetadataStore.Write(
+                Path.Combine(jobDirectory, attemptDirectory),
+                resolvedRoot,
+                configuration,
+                tasks);
+        }
         logger.AttachJsonlPathIfUnset(
             Path.Combine(jobDirectory, attemptDirectory, "run.jsonl"));
         logger.Info(
@@ -191,7 +200,8 @@ public sealed class RunService
                     throw new RunException(
                         $"resume trial path mismatch for {attempt.AttemptId}");
                 }
-                if (File.Exists(Path.Combine(trialDirectory, "result.json")))
+                if (File.Exists(Path.Combine(trialDirectory, "result.json")) &&
+                    !resumeAttempt.HasInvalidTerminalResult)
                 {
                     throw new RunException(
                         $"resume trial already has a terminal result: {trialDirectory}");
@@ -288,7 +298,10 @@ public sealed class RunService
                                        preparationCancellationToken))
                             {
                                 buildTimeout.CancelAfter(TimeSpan.FromSeconds(
-                                    task.AgentBuildTimeoutSeconds ?? 1800));
+                                    ResolveTimeoutSeconds(
+                                        configuration.Timeouts.SetupSeconds,
+                                        task.AgentBuildTimeoutSeconds,
+                                        1800)));
                                 try
                                 {
                                     string requestedImage =
@@ -334,7 +347,10 @@ public sealed class RunService
                                 },
                                 [],
                                 BuildAgentContainerName(executionName),
-                                TimeSpan.FromSeconds(task.AgentTimeoutSeconds ?? 5400),
+                                TimeSpan.FromSeconds(ResolveTimeoutSeconds(
+                                    configuration.Timeouts.AgentSeconds,
+                                    task.AgentTimeoutSeconds,
+                                    5400)),
                                 RetainWorkspace: configuration.RetainWorkspaces);
                             logger.Info($"{prefix} status=preparing-workspace");
                             await workspacePreparer.PrepareAsync(
@@ -572,6 +588,10 @@ public sealed class RunService
                                                         verifierRetrySuffix,
                                                         logger,
                                                         prefix,
+                                                        ResolveTimeoutSeconds(
+                                                            configuration.Timeouts.SetupSeconds,
+                                                            task.VerifierBuildTimeoutSeconds,
+                                                            1800),
                                                         preparationCancellationToken);
                                                     PristineVerifierService verifierService =
                                                         verifierImage is null
@@ -593,7 +613,10 @@ public sealed class RunService
                                                                 ? VerifierCommandFor(task.Language)
                                                                 : "/tests/test.sh",
                                                             TimeSpan.FromSeconds(
-                                                                task.VerifierTimeoutSeconds ?? 1800))],
+                                                                ResolveTimeoutSeconds(
+                                                                    configuration.Timeouts.VerifierSeconds,
+                                                                    task.VerifierTimeoutSeconds,
+                                                                    1800)))],
                                                         [],
                                                         [],
                                                         verifierImage,
@@ -756,7 +779,7 @@ public sealed class RunService
                     totalCost,
                     verifierError
                 };
-                File.WriteAllText(
+                AtomicFile.Replace(
                     Path.Combine(trialDirectory, "result.json"),
                     JsonSerializer.Serialize(result, JsonOptions));
                 if (removeAgentImage)
@@ -1017,6 +1040,7 @@ public sealed class RunService
         string runId,
         WharfLogger logger,
         string prefix,
+        double timeoutSeconds,
         CancellationToken cancellationToken)
     {
         string context = Path.Combine(task.RootPath, "tests");
@@ -1046,7 +1070,7 @@ public sealed class RunService
         Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
         Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(task.VerifierBuildTimeoutSeconds ?? 1800));
+        timeout.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
         try
         {
             await process.WaitForExitAsync(timeout.Token);
@@ -1133,20 +1157,44 @@ public sealed class RunService
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
     {
         CopilotAdapter adapter = new(new ProcessCopilotCliProbe());
-        return adapter.PrepareAsync(
+        (CopilotCredentialSource credentialSource, string? configuredCredential) =
+            ResolveCredential(configuration.Credentials);
+        CopilotInvocation invocation = adapter.PrepareAsync(
             new CopilotAdapterOptions(
                 configuration.CliVersion,
                 configuration.Model,
                 configuration.Effort,
                 configuration.Effort,
                 [],
-                new CopilotCredentialSource(
-                    CopilotCredentialSourceKind.File,
-                    "~/.secrets/copilot_a"),
+                credentialSource,
                 [],
                 new HashSet<string>(StringComparer.Ordinal)),
             CancellationToken.None).GetAwaiter().GetResult();
+        return configuredCredential is null
+            ? invocation
+            : invocation with { CredentialValue = configuredCredential };
     }
+
+    internal static (CopilotCredentialSource Source, string? Value) ResolveCredential(
+        SecretSettings credentials)
+    {
+        string? configuredCredential =
+            new[] { credentials.Token, credentials.ApiKey, credentials.Password }
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+        return configuredCredential is null
+            ? (new CopilotCredentialSource(
+                CopilotCredentialSourceKind.File,
+                "~/.secrets/copilot_a"), null)
+            : (new CopilotCredentialSource(
+                CopilotCredentialSourceKind.Environment,
+                "GH_TOKEN"), configuredCredential);
+    }
+
+    internal static double ResolveTimeoutSeconds(
+        int? configuredSeconds,
+        double? taskSeconds,
+        double defaultSeconds) =>
+        configuredSeconds ?? taskSeconds ?? defaultSeconds;
 
     private static string CreateAttemptDirectory(string jobDirectory, string prefix)
     {
