@@ -939,3 +939,69 @@ Completed on 2026-10-10:
   patch is terminal `AgentUnfinished`, not a retryable execution error. Agent
   execution timeouts are also terminal. Verifier timeouts remain eligible for
   bounded verifier-only retry against the retained patch.
+
+---
+
+## 1.0.0 release close, 2026-10-12
+
+Start time: 18:54 CDT
+End time: 23:38 CDT
+Tag: `1.0.0` (pending next release action)
+
+### Frame
+
+* Goal: close the MVP candidate with current enterprise evidence, explicit
+  Copilot CLI selection, a release-blocker code review, fixed major runtime
+  defects, and durable repository memory.
+* Out of scope: hosted operations, post-v1 repair/replay, alternate agent
+  products, distributed execution, and creating the tag before the user-owned
+  final qualification decision.
+* Failure condition: tag code that ignores effective configuration, loses
+  recovery evidence, races cleanup against cancellation, or leaves the next
+  session without an exact release commit and validation record.
+
+### During
+
+* Drift: yes. Enterprise Opus, Terra, CLI-install diagnosis, timeout policy,
+  analytics, and the release review accumulated into one long close rather
+  than separate 90-to-120-minute sessions.
+* Fit check: close the coherent MVP candidate rather than pull in post-v1 work.
+* The existing `1.0.0` tag pointed at an older commit and was deleted locally
+  and from origin. The same-named branch was intentionally left untouched.
+* The release review found seven high-severity runtime issues and one
+  medium-severity cancellation issue. Configuration fidelity, atomic run
+  evidence, filtered resume, cancellation safety, and verifier cleanup were
+  fixed before qualification.
+
+### Close
+
+* [x] Full tests green: 226/226
+* [x] Release build passed
+* [x] Formatting verification passed
+* [x] Docker-backed smoke passed with Copilot CLI 1.0.96
+* [x] Branch pushed through commit `54c887b`
+* [x] Repo memory and retrospective updated
+* [x] Research, plan, changes, and review artifacts retained
+* [ ] Replacement `1.0.0` tag created and pushed
+
+### Summary
+
+The 1.0.0 candidate now honors configured credentials and phase timeouts,
+atomically retains terminal results and a secret-free exact run plan, resumes
+filtered task subsets without policy drift, keeps resume planning read-only,
+and cleans verifier resources across completion, failure, and cancellation.
+The enterprise dataset contains 10 K=4 model arms and 560 fully scored, fully
+costed trials. Commit `54c887b` is the validated runtime candidate; the
+release-close memory commit that contains it is the replacement tag target.
+
+### Next session starter
+
+Commit the release-close memory on branch `0.25.0`, verify `54c887b` is its
+direct runtime ancestor, create annotated tag `1.0.0` at the new HEAD, push it
+to origin, and record the tag URL without changing runtime code.
+
+### Health signal
+
+* Framing quality, 1 to 5: 2
+* Drift, yes or no: yes
+* Close complete, yes or no: no, tag intentionally pending

@@ -202,3 +202,38 @@ Run admission remains longest-estimated-duration first by default within each K
 wave. The opt-in `--shortest-first` flag reverses duration ordering within each
 wave to produce early results sooner while preserving deterministic task and
 attempt tie-breakers.
+
+The 1.0.0 runtime candidate is commit `54c887b` on branch `0.25.0`. The old
+`1.0.0` tag was removed locally and from origin; do not recreate it on an older
+commit. The candidate passed 226/226 tests, a Release build, formatting
+verification, and Docker-backed smoke with Copilot CLI 1.0.96. Commit this
+release-close memory, then create and push the replacement `1.0.0` tag at that
+new HEAD with `54c887b` as its validated runtime ancestor.
+
+Copilot CLI selection follows
+`--cli-version` over `WHARF_CLI_VERSION` over manifest `cliVersion` over
+`latest`. Exact requested/effective version equality remains mandatory. Run
+phase timeout overrides take precedence over task timeouts, which take
+precedence over built-in defaults; `reportSeconds` is rejected because the
+current pipeline has no report phase.
+
+Every new run atomically retains a secret-free `run-plan.json` containing the
+exact selected task IDs, checksums, and effective configuration. Resume must
+restore that task subset and immutable policy, validate terminal result
+identity, leave planning and `--dry-run` read-only, and archive malformed
+terminal evidence only when execution resumes. Terminal `result.json` writes
+remain atomic.
+
+Ctrl+C requests cancellation only so agent and verifier lifecycles can retain
+evidence before cleanup. Never restore generic container-name cleanup; explicit
+orphan cleanup may select only Wharf ownership labels. File-backed verifier
+workspaces must be deleted after verification and preparation failures, and
+external host-verifier cancellation must kill and reap the complete process
+tree.
+
+The enterprise analytics dataset under `enterprise/data/` contains 10 K=4 arms
+and 560 logical trials with complete score, cost, and duration coverage. The
+latest GPT-5.6 Terra arm passed 44/56 trials (78.57%), had two P2P regression
+failures, and cost $0.2463 per costed trial. Keep enterprise analytics separate
+from the 113-task DeepSWE controlled benchmark dataset and rebuild the matching
+manifest after either dataset changes.

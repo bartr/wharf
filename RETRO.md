@@ -10,7 +10,7 @@ machine-readable requirements handoff in `docs/wharf.jsonl`.
 ## Executive summary
 
 Wharf 1.0.0 is the first MVP release of a production-oriented benchmark
-execution platform. Across 24 tagged pre-release increments, the project
+execution platform. Across 25 versioned development increments, the project
 moved from a CLI foundation to a deterministic, recoverable,
 evidence-preserving DeepSWE and Copilot execution platform.
 
@@ -32,8 +32,9 @@ evidence-preserving DeepSWE and Copilot execution platform.
   $0.3556 per costed task attempt.
 * Validation is layered rather than simulated. The repository contains unit,
   boundary, Docker-backed, smoke, packaging, analytics, and controlled
-  benchmark checks. The final mountless Docker verifier-capture suite passed
-  170/170 tests.
+  benchmark checks. The final release-candidate suite passed 226/226 tests,
+  a Release build, formatting verification, and a Docker-backed smoke run
+  using Copilot CLI 1.0.96.
 * Reporting is designed for auditability. PASS@1 uses the planned trial
   denominator, task-level accuracy is reported separately, infrastructure
   retries do not become extra trials, missing costs remain missing, and
@@ -43,12 +44,13 @@ evidence-preserving DeepSWE and Copilot execution platform.
   interfaces, made scope changes visible, and tied implementation claims to
   test evidence.
 
-The 1.0.0 acceptance matrix is closed. Two HydraFusion benchmarks,
-container-backed smoke validation, and unattended K=4 benchmark runs are
-retained in the repository, with some runs spanning an overnight window.
-Wharf is now released as the MVP, with post-v1 repair/replay, hosted
-operations, additional providers, and larger scale profiles remaining outside
-the 1.0.0 scope.
+The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
+unattended K=4 benchmark runs are retained in the repository, with some runs
+spanning an overnight window. The enterprise dataset contains 10 model arms
+and 560 logical trials with complete score, cost, and duration coverage. Wharf
+is ready for the 1.0.0 tag, with post-v1 repair/replay, hosted operations,
+additional providers, and larger scale profiles remaining outside the 1.0.0
+scope.
 
 ## Development approach
 
@@ -215,6 +217,33 @@ benchmark evidence. The two HydraFusion benchmark exports are preserved in
 `data/`, while the complete Wharf and Pier job directories remain available
 on the execution host for audit and replay.
 
+The final `0.25.0` release-candidate work strengthened the enterprise task
+evaluators, added provider-default effort handling, normalized HydraFusion
+identity, added `--cli-version` and `WHARF_CLI_VERSION`, and raised enterprise
+agent timeouts to 60 minutes. Portable enterprise analytics now retain 10
+K=4 arms and 560 fully scored, fully costed logical trials.
+
+The pre-tag code review found and fixed configuration and recovery gaps that
+would have undermined unattended runs:
+
+* resolved credentials now cross the Docker boundary transiently rather than
+  being ignored in favor of a machine-specific file;
+* run-level setup, agent, and verifier timeout overrides now take precedence
+  over task values and defaults;
+* terminal results and secret-free run plans are written atomically;
+* filtered resume restores exact task identities and effective policy, treats
+  malformed results as pending, and keeps dry-run planning read-only;
+* Ctrl+C requests cancellation before lifecycle-owned cleanup instead of
+  racing global Docker deletion against evidence capture; and
+* verifier workspaces and externally cancelled process trees are cleaned on
+  success and failure paths.
+
+The final runtime candidate at commit `54c887b` passed 226/226 tests, a Release
+build, formatting verification, and Docker-backed smoke with Copilot CLI
+1.0.96. The old `1.0.0` tag was removed. The replacement tag should target the
+release-close commit that includes this retrospective and repository memory,
+with `54c887b` as its validated runtime ancestor.
+
 The release is intentionally bounded. Repair and replay workflows, hosted
 dashboards, alternate agent products, distributed orchestration, and larger
 post-v1 scale profiles remain future work.
@@ -295,6 +324,14 @@ what was surprising and what should be done differently in the next session.
   exports so comparisons cannot silently mix contracts. The new `default`
   effort setting also leaves provider effort selection to the model and is
   recorded in run identity.
+- Release candidate (`1.0.0`): The final review showed that accepting,
+  validating, and rendering configuration is not proof that runtime execution
+  consumes it. Trace every effective setting through the execution boundary,
+  persist the exact secret-free resume contract at run creation, and test
+  failure-path cleanup rather than only successful completion. The first
+  cleanup check also found a preparation-failure workspace leak after the main
+  suite was green, so future release closes should include filesystem and
+  Docker residue checks before declaring the candidate complete.
 
 - Session 1 (`0.1.0`): Cobra's automatic version flag unexpectedly allowed
   trailing unknown input to succeed, and parsing lower-precedence environment
