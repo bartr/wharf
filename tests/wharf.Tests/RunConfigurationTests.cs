@@ -8,17 +8,23 @@ public sealed class RunConfigurationTests
     [Fact]
     public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
     {
-        var manifest = new RunManifest(K: 3, N: 2, P: 1, Model: "manifest-model");
+        var manifest = new RunManifest(
+            K: 3,
+            N: 2,
+            P: 1,
+            Model: "manifest-model",
+            CliVersion: "manifest-version");
         var environment = new Dictionary<string, string?>
         {
             ["WHARF_K"] = "5",
             ["WHARF_N"] = "4",
-            ["WHARF_MODEL"] = "environment-model"
+            ["WHARF_MODEL"] = "environment-model",
+            ["WHARF_CLI_VERSION"] = "environment-version"
         };
 
         RunConfiguration result = RunConfigurationResolver.Resolve(
             manifest,
-            new RunConfigurationOverrides(K: 7),
+            new RunConfigurationOverrides(K: 7, CliVersion: "flag-version"),
             environment);
 
         Assert.Equal(7, result.K);
@@ -26,6 +32,21 @@ public sealed class RunConfigurationTests
         Assert.Equal(1, result.P);
         Assert.Equal("environment-model", result.Model);
         Assert.Equal("max", result.Effort);
+        Assert.Equal("flag-version", result.CliVersion);
+    }
+
+    [Fact]
+    public void CliVersionUsesEnvironmentBeforeManifest()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(CliVersion: "manifest-version"),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["WHARF_CLI_VERSION"] = "environment-version"
+            });
+
+        Assert.Equal("environment-version", result.CliVersion);
     }
 
     [Fact]

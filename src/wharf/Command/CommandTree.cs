@@ -192,6 +192,10 @@ public static class CommandTree
         {
             Description = "Model effort: default, low, medium, high, or max."
         };
+        var cliVersion = new Option<string?>("--cli-version")
+        {
+            Description = "Exact Copilot CLI version, or latest."
+        };
         var retainWorkspaces = new Option<bool>("--retain-workspaces")
         {
             Description = "Retain terminal trial workspaces instead of deleting them after evidence capture."
@@ -222,6 +226,7 @@ public static class CommandTree
         command.Options.Add(logFile);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(cliVersion);
         command.Options.Add(retainWorkspaces);
         command.Options.Add(shortestFirst);
         command.Options.Add(include);
@@ -239,15 +244,16 @@ public static class CommandTree
                     RunConfiguration runConfiguration = RunConfigurationResolver.Resolve(
                         runManifest,
                         new RunConfigurationOverrides(
-                            parseResult.GetValue(k),
-                            parseResult.GetValue(n),
-                            parseResult.GetValue(p),
-                            parseResult.GetValue(outputFormat),
-                            parseResult.GetValue(outputDirectory),
-                            parseResult.GetValue(model),
-                            parseResult.GetValue(effort),
-                            parseResult.GetValue(retainWorkspaces) ? true : null,
-                            parseResult.GetValue(shortestFirst) ? true : null),
+                            K: parseResult.GetValue(k),
+                            N: parseResult.GetValue(n),
+                            P: parseResult.GetValue(p),
+                            OutputFormat: parseResult.GetValue(outputFormat),
+                            OutputDirectory: parseResult.GetValue(outputDirectory),
+                            Model: parseResult.GetValue(model),
+                            Effort: parseResult.GetValue(effort),
+                            CliVersion: parseResult.GetValue(cliVersion),
+                            RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
+                            ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null),
                         new Dictionary<string, string?>
                         {
                             ["K"] = Environment.GetEnvironmentVariable("K"),
@@ -261,6 +267,7 @@ public static class CommandTree
                             ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
                             ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                             ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                            ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                             ["WHARF_RETAIN_WORKSPACES"] =
                                 Environment.GetEnvironmentVariable("WHARF_RETAIN_WORKSPACES"),
                             ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
@@ -334,15 +341,16 @@ public static class CommandTree
                 string? rendered = DryRunService.Execute(
                     parseResult.GetValue(manifest),
                     new RunConfigurationOverrides(
-                        parseResult.GetValue(k),
-                        parseResult.GetValue(n),
-                        parseResult.GetValue(p),
-                        parseResult.GetValue(outputFormat),
-                        parseResult.GetValue(outputDirectory),
-                        parseResult.GetValue(model),
-                        parseResult.GetValue(effort),
-                        parseResult.GetValue(retainWorkspaces) ? true : null,
-                        parseResult.GetValue(shortestFirst) ? true : null),
+                        K: parseResult.GetValue(k),
+                        N: parseResult.GetValue(n),
+                        P: parseResult.GetValue(p),
+                        OutputFormat: parseResult.GetValue(outputFormat),
+                        OutputDirectory: parseResult.GetValue(outputDirectory),
+                        Model: parseResult.GetValue(model),
+                        Effort: parseResult.GetValue(effort),
+                        CliVersion: parseResult.GetValue(cliVersion),
+                        RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
+                        ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null),
                     parseResult.GetValue(outputFormat));
                 Console.WriteLine(rendered);
                 return ExitCode.Success.Value;

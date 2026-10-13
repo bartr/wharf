@@ -76,6 +76,7 @@ public sealed class SmokeService
                 ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
                 ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                 ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                 ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
                 ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
                 ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")

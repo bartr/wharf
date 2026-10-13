@@ -364,7 +364,10 @@ container and reuse the task's configured environment image. After MVP,
 - Support bounded trial retries with configurable included and excluded exception types.
 - Support force-build, environment retention, resource-policy, mount, and artifact options.
 - Validate all run settings before creating output directories or consuming model quota.
-- Pin agent CLI versions and record the effective version for every trial.
+- Pin agent CLI versions with `--cli-version` or `WHARF_CLI_VERSION` and record
+  the effective version for every trial. CLI version follows the same
+  flag-over-environment-over-manifest-over-default precedence as other run
+  settings.
 - Record requested and effective model and effort settings.
 - Accept `default` as an effort setting and omit the provider effort argument
   so the selected model uses its own default effort.

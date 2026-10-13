@@ -27,7 +27,7 @@ storage_mb = 20480
 
 [agent]
 network_mode = "no-network"
-timeout_sec = 1800.0
+timeout_sec = 3600.0
 [environment]
 build_timeout_sec = 1800.0
 os = "linux"

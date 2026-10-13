@@ -73,7 +73,8 @@ public sealed record RunConfigurationOverrides(
     string? Model = null,
     string? Effort = null,
     bool? RetainWorkspaces = null,
-    bool? ShortestFirst = null);
+    bool? ShortestFirst = null,
+    string? CliVersion = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -170,6 +171,11 @@ public static class RunConfigurationResolver
         string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, DefaultCopilotModel);
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "max");
         effort = ResolveEffectiveEffort(model, effort);
+        string cliVersion = Pick(
+            overrides.CliVersion,
+            EnvironmentValue("WHARF_CLI_VERSION"),
+            manifest.CliVersion,
+            DefaultCopilotVersion);
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
             EnvironmentValue("WHARF_TOKEN") ?? manifest.Credentials?.Token,
@@ -193,7 +199,7 @@ public static class RunConfigurationResolver
             directory,
             model,
             effort,
-            manifest.CliVersion ?? DefaultCopilotVersion,
+            cliVersion,
             manifest.Mounts ?? [],
             manifest.Artifacts ?? [],
             manifest.RetentionDays ?? 30,

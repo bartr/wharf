@@ -1,5 +1,23 @@
 [
   {
+    "arm": "copilot-claude-opus-5-default-1.0.91",
+    "bytes_jsonl": 37242,
+    "scored": 56,
+    "tasks": 14,
+    "total_cost_usd": 61.54,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
+    "arm": "copilot-claude-opus-5.5-default-1.0.91",
+    "bytes_jsonl": 37421,
+    "scored": 56,
+    "tasks": 14,
+    "total_cost_usd": 26.83,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
     "arm": "copilot-gemini-3.8-flash-default-1.0.95",
     "bytes_jsonl": 37617,
     "scored": 56,
