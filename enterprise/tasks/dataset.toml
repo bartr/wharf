@@ -1,0 +1,67 @@
+# Dataset manifest for fe-labs/enterprise-1.0
+# Add tasks using: harbor dataset add <org>/<name>
+# Publish using: harbor publish
+
+[dataset]
+name = "fe-labs/enterprise-1.0"
+version = "1.0.0"
+description = "Wharf enterprise release reconstruction benchmark"
+authors = []
+keywords = []
+
+[[tasks]]
+name = "wharf/wharf-agent"
+digest = "sha256:6ecb13be486cc5139421ae22beb8d905edaa3add73f2db4bbff7e800ae42493d"
+
+[[tasks]]
+name = "wharf/wharf-audit"
+digest = "sha256:6fb7a05ee341feade282dfc9e62a5c3e2254c2cf255527784a0840bbb7f661b1"
+
+[[tasks]]
+name = "wharf/wharf-copilot"
+digest = "sha256:2f9e8e54f6deca242a2b5e23cc8794705c47f880d7e0d9ecb4623a144c3c099d"
+
+[[tasks]]
+name = "wharf/wharf-derived-image"
+digest = "sha256:23b284f05c257e139fc1f70f9b3286f6ed6082b17aaa480cf4b0475856cdbcd5"
+
+[[tasks]]
+name = "wharf/wharf-execution"
+digest = "sha256:4ba687a68864ff1516221322cb9a0b79bf004c27762706a366181d66cb70497c"
+
+[[tasks]]
+name = "wharf/wharf-host-profile"
+digest = "sha256:a42037a8aab32fce4411b6bf5e05e8187e787d11f2366370c53e9a04425400d8"
+
+[[tasks]]
+name = "wharf/wharf-image-pull"
+digest = "sha256:a7aad14c7176043ac9e1f81bb27b482a8216d5b575b7736dbfc7a288576c8edc"
+
+[[tasks]]
+name = "wharf/wharf-operations"
+digest = "sha256:da1046010ba896a2cc6794f5ff6f43ecd3626d9c0eaea55bd0782dc506bb3dc0"
+
+[[tasks]]
+name = "wharf/wharf-packaging"
+digest = "sha256:02422cb3b12eb55926ec8c6b184719118b7a04feb9f3a12d63105248b5d35747"
+
+[[tasks]]
+name = "wharf/wharf-recovery"
+digest = "sha256:f7085a4d992739725a85ca5af19e1914ab2a829528ef5ac4540f59f94dec333e"
+
+[[tasks]]
+name = "wharf/wharf-reporting"
+digest = "sha256:21d7da18e3ce7e32e8c3457b1b8c5c354d51681f72d6d860456b027fae6e5fb4"
+
+[[tasks]]
+name = "wharf/wharf-scheduler"
+digest = "sha256:70fd618316de50fafe0a5b9d7dd33abe536ff324f9ab17030f57b13a8dfa6d29"
+
+[[tasks]]
+name = "wharf/wharf-smoke"
+digest = "sha256:1757a78939f69dcccdae12d3628c8e936ce0ba2d9bf223446c4fc66e89aeb7db"
+
+[[tasks]]
+name = "wharf/wharf-verifier"
+digest = "sha256:c3c8cc64ba7cbf5847f9cfc3ebe2b7c0987f399067d35a9cbe083c8995510c39"
+
