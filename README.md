@@ -40,7 +40,7 @@ costed trials rather than treating missing cost as zero.
 | 6 | **HydraFusion 1.0.95** | **70.13%** | **$1.1726** |
 | 7 | Copilot GPT-5.6 Luna Max 1.0.91 | 69.91% | $0.3670 |
 | 8 | Copilot GPT-5.6 Sol XHigh 1.0.77 | 69.69% | $8.4366 |
-| 9 | **HydraFusion 1.0.95 All-1** | **68.81%** | **$1.2074** |
+| 9 | **HydraFusion 1.0.95** | **68.81%** | **$1.2074** |
 | 10 | Copilot Claude Opus 5.5 Max 1.0.91 | 68.36% | $11.4134 |
 | 11 | Copilot GPT-5.6 Terra Max 1.0.77 | 66.55% | $4.2576 |
 | 12 | **Claude Code Opus 5 Max 2.1.220** | **64.38%** | **$13.4885** |

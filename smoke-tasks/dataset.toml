@@ -9,7 +9,3 @@ keywords = ["smoke-test"]
 [[tasks]]
 name = "wharf/smoke-go"
 digest = ""
-
-[[tasks]]
-name = "wharf/smoke-dotnet"
-digest = ""

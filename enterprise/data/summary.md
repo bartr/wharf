@@ -5,22 +5,21 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Generated 2026-10-11 from seven completed `all-1` runs. Each arm contains 14
+Verified 2026-10-12 from seven completed `all-1` runs. Each arm contains 14
 tasks and four attempts per task.
 
-| Model | Passes | PASS@1 | Tasks solved | P2P errors |
-|---|---:|---:|---:|---:|
-| GPT-6 Luna | 54 / 56 | 96.43% | 14 / 14 | 2 |
-| GPT-6.1 Sol | 54 / 56 | 96.43% | 14 / 14 | 2 |
-| GPT-6 Astra | 54 / 56 | 96.43% | 14 / 14 | 0 |
-| HydraFusion | 51 / 56 | 91.07% | 14 / 14 | 0 |
-| Gemini 3.8 Flash | 50 / 56 | 89.29% | 14 / 14 | 3 |
-| GPT-5.6 Luna | 46 / 56 | 82.14% | 14 / 14 | 6 |
-| MAI Code 1.1 Flash | 46 / 56 | 82.14% | 13 / 14 | 5 |
+| Model | Passes | PASS@1 | P2P errors |
+|---|---:|---:|---:|
+| GPT-6 Astra | 54 / 56 | 96.43% | 0 |
+| GPT-6 Luna | 54 / 56 | 96.43% | 2 |
+| GPT-6.1 Sol | 54 / 56 | 96.43% | 2 |
+| HydraFusion | 51 / 56 | 91.07% | 0 |
+| Gemini 3.8 Flash | 50 / 56 | 89.29% | 3 |
+| MAI Code 1.1 Flash | 46 / 56 | 82.14% | 5 |
+| GPT-5.6 Luna | 46 / 56 | 82.14% | 6 |
 
-PASS@1 is the trial-level pass rate. Tasks solved counts a task when any of its
-four retained attempts has positive reward, so it is reported separately.
-P2P errors count trial patches that failed at least one pre-existing test.
+PASS@1 is the trial-level pass rate. P2P errors count trial patches that failed
+at least one pre-existing test.
 
 ## Cost and timing
 
