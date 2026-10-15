@@ -31,7 +31,7 @@ public sealed class RunConfigurationTests
         Assert.Equal(4, result.N);
         Assert.Equal(1, result.P);
         Assert.Equal("environment-model", result.Model);
-        Assert.Equal("max", result.Effort);
+        Assert.Equal("default", result.Effort);
         Assert.Equal("flag-version", result.CliVersion);
     }
 
@@ -50,6 +50,34 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
+    public void EffortUsesFlagBeforeEnvironmentAndManifest()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(Effort: "low"),
+            new RunConfigurationOverrides(Effort: "high"),
+            new Dictionary<string, string?>
+            {
+                ["WHARF_EFFORT"] = "medium"
+            });
+
+        Assert.Equal("high", result.Effort);
+    }
+
+    [Fact]
+    public void EffortUsesEnvironmentBeforeManifest()
+    {
+        RunConfiguration result = RunConfigurationResolver.Resolve(
+            new RunManifest(Effort: "low"),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["WHARF_EFFORT"] = "medium"
+            });
+
+        Assert.Equal("medium", result.Effort);
+    }
+
+    [Fact]
     public void UsesGptFiveSixLunaWhenModelIsNotConfigured()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
@@ -59,7 +87,7 @@ public sealed class RunConfigurationTests
 
         Assert.Equal(1, result.K);
         Assert.Equal("gpt-5.6-luna", result.Model);
-        Assert.Equal("max", result.Effort);
+        Assert.Equal("default", result.Effort);
         Assert.Equal("latest", result.CliVersion);
         Assert.Equal(1, result.Retries.MaxAttempts);
         Assert.False(result.RetainWorkspaces);

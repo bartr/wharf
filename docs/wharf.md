@@ -373,7 +373,8 @@ container and reuse the task's configured environment image. After MVP,
   `@github/copilot` version from the npm registry before image preparation.
 - Record requested and effective model and effort settings.
 - Accept `default` as an effort setting and omit the provider effort argument
-  so the selected model uses its own default effort.
+  so the selected model uses its own default effort. Use `default` when no
+  effort is explicitly configured.
 - Treat model-specific maximum settings as the common `frontier` effort class in reports.
 - Keep provider-native effort values in raw results.
 - record the effective merged configuration with every run

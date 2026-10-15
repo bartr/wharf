@@ -169,7 +169,7 @@ public static class RunConfigurationResolver
             manifest.Output?.Directory,
             "jobs");
         string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, DefaultCopilotModel);
-        string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "max");
+        string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "default");
         effort = ResolveEffectiveEffort(model, effort);
         string cliVersion = Pick(
             overrides.CliVersion,
