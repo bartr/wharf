@@ -1156,7 +1156,7 @@ public sealed class RunService
 
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
     {
-        CopilotAdapter adapter = new(new ProcessCopilotCliProbe());
+        CopilotAdapter adapter = new(new NpmRegistryCopilotCliProbe());
         (CopilotCredentialSource credentialSource, string? configuredCredential) =
             ResolveCredential(configuration.Credentials);
         CopilotInvocation invocation = adapter.PrepareAsync(

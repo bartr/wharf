@@ -1,4 +1,5 @@
-using System.Diagnostics;
+using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Wharf.Copilot;
@@ -92,18 +93,15 @@ public sealed partial class CopilotAdapter
         CancellationToken cancellationToken = default)
     {
         ValidateOptions(options);
-        CopilotCliVersion effective = await probe.GetVersionAsync(cancellationToken);
-        string effectiveVersion = NormalizeVersion(effective.Value, "effective");
-        string requestedVersion = options.RequestedVersion.Equals(
-                "latest",
-                StringComparison.OrdinalIgnoreCase)
-            ? effectiveVersion
+        bool resolveLatest = options.RequestedVersion.Equals(
+            "latest",
+            StringComparison.OrdinalIgnoreCase);
+        string requestedVersion = resolveLatest
+            ? NormalizeVersion(
+                (await probe.GetVersionAsync(cancellationToken)).Value,
+                "published")
             : NormalizeVersion(options.RequestedVersion, "requested");
-        if (!string.Equals(requestedVersion, effectiveVersion, StringComparison.Ordinal))
-        {
-            throw new CopilotAdapterException(
-                $"requested Copilot CLI {requestedVersion} does not match effective version {effectiveVersion}");
-        }
+        string effectiveVersion = requestedVersion;
 
         string normalizedFrontierEffort = NormalizeFrontierEffort(options.FrontierEffort);
         bool isHydraFusion = options.Model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase);
@@ -285,34 +283,61 @@ public sealed partial class CopilotAdapter
     private static partial Regex SemverRegex();
 }
 
-public sealed class ProcessCopilotCliProbe(string executable = "copilot") : ICopilotCliProbe
+public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null) : ICopilotCliProbe
 {
+    private static readonly Uri LatestPackageUri =
+        new("https://registry.npmjs.org/@github%2Fcopilot/latest");
+    private static readonly HttpClient SharedClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(30)
+    };
+    private readonly HttpClient client = client ?? SharedClient;
+
     public async Task<CopilotCliVersion> GetVersionAsync(CancellationToken cancellationToken)
     {
-        var startInfo = new ProcessStartInfo(executable, "--version")
+        HttpResponseMessage response;
+        try
         {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        using Process process = Process.Start(startInfo)
-            ?? throw new CopilotAdapterException("Copilot CLI could not be started");
-        string output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-        string error = await process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
-        if (process.ExitCode != 0)
+            response = await client.GetAsync(LatestPackageUri, cancellationToken);
+        }
+        catch (HttpRequestException exception)
         {
             throw new CopilotAdapterException(
-                $"Copilot CLI version probe failed: {error.Trim()}");
+                $"Copilot CLI latest-version lookup failed: {exception.Message}");
         }
 
-        Match match = Regex.Match(
-            output,
-            @"(?<!\d)v?\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?",
-            RegexOptions.CultureInvariant);
-        if (!match.Success)
-            throw new CopilotAdapterException("Copilot CLI returned no semantic version");
-        return new CopilotCliVersion(match.Value);
+        using (response)
+        {
+            if (response.StatusCode is not HttpStatusCode.OK)
+            {
+                throw new CopilotAdapterException(
+                    $"Copilot CLI latest-version lookup failed with HTTP {(int)response.StatusCode}");
+            }
+
+            string metadata = await response.Content.ReadAsStringAsync(cancellationToken);
+            return new CopilotCliVersion(ParseVersion(metadata));
+        }
+    }
+
+    internal static string ParseVersion(string metadata)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(metadata);
+            if (document.RootElement.TryGetProperty("version", out JsonElement version) &&
+                version.ValueKind is JsonValueKind.String &&
+                !string.IsNullOrWhiteSpace(version.GetString()))
+            {
+                return version.GetString()!;
+            }
+        }
+        catch (JsonException exception)
+        {
+            throw new CopilotAdapterException(
+                $"Copilot CLI latest-version lookup returned invalid JSON: {exception.Message}");
+        }
+
+        throw new CopilotAdapterException(
+            "Copilot CLI latest-version lookup returned no version");
     }
 }

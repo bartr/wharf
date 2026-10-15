@@ -368,7 +368,9 @@ container and reuse the task's configured environment image. After MVP,
 - Pin agent CLI versions with `--cli-version` or `WHARF_CLI_VERSION` and record
   the effective version for every trial. CLI version follows the same
   flag-over-environment-over-manifest-over-default precedence as other run
-  settings.
+  settings. Exact versions drive version-specific image preparation without
+  consulting the host-installed CLI; `latest` resolves the currently published
+  `@github/copilot` version from the npm registry before image preparation.
 - Record requested and effective model and effort settings.
 - Accept `default` as an effort setting and omit the provider effort argument
   so the selected model uses its own default effort.

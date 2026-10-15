@@ -1,3 +1,4 @@
+using System.Net;
 using Wharf.Copilot;
 
 namespace Wharf.Tests;
@@ -7,7 +8,8 @@ public sealed class CopilotAdapterTests
     [Fact]
     public async Task RecordsExactVersionAndNormalizedEffort()
     {
-        var adapter = new CopilotAdapter(new FakeProbe("v1.2.3"));
+        var probe = new FakeProbe("v9.9.9");
+        var adapter = new CopilotAdapter(probe);
         CopilotInvocation invocation = await adapter.PrepareAsync(Options(
             frontierEffort: "xhigh",
             credential: new CopilotCredentialSource(
@@ -20,6 +22,7 @@ public sealed class CopilotAdapterTests
         Assert.Contains("--reasoning-effort", invocation.Arguments);
         Assert.DoesNotContain("--frontier-effort", invocation.Arguments);
         Assert.Equal("GH_TOKEN", invocation.Environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"]);
+        Assert.Equal(0, probe.CallCount);
     }
 
     [Fact]
@@ -37,14 +40,15 @@ public sealed class CopilotAdapterTests
     }
 
     [Fact]
-    public async Task RejectsVersionDrift()
+    public async Task ExactVersionDoesNotUseProbeVersion()
     {
-        var adapter = new CopilotAdapter(new FakeProbe("1.2.4"));
+        var probe = new FakeProbe("1.2.4");
+        var adapter = new CopilotAdapter(probe);
 
-        CopilotAdapterException exception = await Assert.ThrowsAsync<CopilotAdapterException>(
-            () => adapter.PrepareAsync(Options()));
+        CopilotInvocation invocation = await adapter.PrepareAsync(Options());
 
-        Assert.Contains("does not match", exception.Message);
+        Assert.Equal("1.2.3", invocation.EffectiveVersion);
+        Assert.Equal(0, probe.CallCount);
     }
 
     [Fact]
@@ -60,12 +64,55 @@ public sealed class CopilotAdapterTests
     [Fact]
     public async Task ResolvesLatestToEffectiveVersion()
     {
-        var adapter = new CopilotAdapter(new FakeProbe("1.2.3-0"));
+        var probe = new FakeProbe("1.2.3-0");
+        var adapter = new CopilotAdapter(probe);
         CopilotInvocation invocation = await adapter.PrepareAsync(
             Options(requestedVersion: "latest"));
 
         Assert.Equal("1.2.3-0", invocation.RequestedVersion);
         Assert.Equal("1.2.3-0", invocation.EffectiveVersion);
+        Assert.Equal(1, probe.CallCount);
+    }
+
+    [Fact]
+    public async Task RegistryProbeResolvesPublishedVersion()
+    {
+        using var client = new HttpClient(new StubHttpMessageHandler(
+            HttpStatusCode.OK,
+            """{"name":"@github/copilot","version":"1.0.98"}"""));
+        var probe = new NpmRegistryCopilotCliProbe(client);
+
+        CopilotCliVersion version = await probe.GetVersionAsync(CancellationToken.None);
+
+        Assert.Equal("1.0.98", version.Value);
+    }
+
+    [Fact]
+    public async Task RegistryProbeRejectsMissingVersion()
+    {
+        using var client = new HttpClient(new StubHttpMessageHandler(
+            HttpStatusCode.OK,
+            """{"name":"@github/copilot"}"""));
+        var probe = new NpmRegistryCopilotCliProbe(client);
+
+        CopilotAdapterException exception = await Assert.ThrowsAsync<CopilotAdapterException>(
+            () => probe.GetVersionAsync(CancellationToken.None));
+
+        Assert.Contains("returned no version", exception.Message);
+    }
+
+    [Fact]
+    public async Task RegistryProbeReportsHttpFailure()
+    {
+        using var client = new HttpClient(new StubHttpMessageHandler(
+            HttpStatusCode.ServiceUnavailable,
+            "{}"));
+        var probe = new NpmRegistryCopilotCliProbe(client);
+
+        CopilotAdapterException exception = await Assert.ThrowsAsync<CopilotAdapterException>(
+            () => probe.GetVersionAsync(CancellationToken.None));
+
+        Assert.Contains("HTTP 503", exception.Message);
     }
 
     [Fact]
@@ -172,7 +219,28 @@ public sealed class CopilotAdapterTests
 
     private sealed class FakeProbe(string version) : ICopilotCliProbe
     {
+        public int CallCount { get; private set; }
+
         public Task<CopilotCliVersion> GetVersionAsync(CancellationToken cancellationToken) =>
-            Task.FromResult(new CopilotCliVersion(version));
+            Task.FromResult(GetVersion());
+
+        private CopilotCliVersion GetVersion()
+        {
+            CallCount++;
+            return new CopilotCliVersion(version);
+        }
+    }
+
+    private sealed class StubHttpMessageHandler(
+        HttpStatusCode statusCode,
+        string content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(content)
+            });
     }
 }
