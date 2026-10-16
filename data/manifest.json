@@ -13,7 +13,7 @@
     "bytes_jsonl": 416600,
     "scored": 565,
     "tasks": 113,
-    "total_cost_usd": 873.4,
+    "total_cost_usd": 873.40,
     "trials": 565,
     "with_cost": 538
   },
@@ -67,7 +67,7 @@
     "bytes_jsonl": 340252,
     "scored": 452,
     "tasks": 113,
-    "total_cost_usd": 162.9,
+    "total_cost_usd": 162.90,
     "trials": 452,
     "with_cost": 439
   },
@@ -135,11 +135,20 @@
     "with_cost": 452
   },
   {
+    "arm": "copilot-hydrafusion-default-1.0.98",
+    "bytes_jsonl": 324277,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 546.71,
+    "trials": 452,
+    "with_cost": 450
+  },
+  {
     "arm": "copilot-hydrafusion-max-1.0.95",
     "bytes_jsonl": 341731,
     "scored": 452,
     "tasks": 113,
-    "total_cost_usd": 539.7,
+    "total_cost_usd": 539.70,
     "trials": 452,
     "with_cost": 447
   },

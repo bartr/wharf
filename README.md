@@ -27,26 +27,35 @@ This file documents how to reproduce the benchmark comparisons from `data/*.json
 
 ## Current benchmark results
 
-PASS@1 uses the fixed planned attempt universe. Cost/test divides known cost by
-costed trials rather than treating missing cost as zero.
+Non-HVE runs, sorted by PASS@1 descending, then P2P errors ascending, then
+cost ascending.
+PASS@1 uses the fixed planned attempt universe; Passes shows passing/planned
+trials. P2P Errors counts retained trials with at least one measured
+regression-test failure, not individual failing tests. Unmeasured P2P results
+are unknown, not confirmed regression-free trials. Cost/task means cost per
+costed task attempt: known cost divided by costed trials, with no imputation.
+The Cost column uses this definition. Agent Time is the task-weighted mean
+per-attempt agent-command duration, rounded to whole seconds; it excludes
+preparation and verification.
 
-| Rank | Test | PASS@1 | Cost/test |
-| ---: | --- | ---: | ---: |
-| 1 | Copilot Gemini 3.8 Flash High 1.0.91 | 74.12% | $2.7897 |
-| 2 | Copilot GPT-5.6 Luna Max 1.0.77 | 74.12% | $0.3711 |
-| 3 | Copilot Claude Opus 5 Max 1.0.77 | 71.24% | $5.6623 |
-| 4 | Copilot GPT-6 Astra Max 1.0.91 | 71.02% | $8.4274 |
-| 5 | Copilot Claude Opus 5.5 Max 1.0.95 | 70.80% | $11.9774 |
-| 6 | **HydraFusion 1.0.95** | **70.13%** | **$1.1726** |
-| 7 | Copilot GPT-5.6 Luna Max 1.0.91 | 69.91% | $0.3670 |
-| 8 | Copilot GPT-5.6 Sol XHigh 1.0.77 | 69.69% | $8.4366 |
-| 9 | **HydraFusion 1.0.95** | **68.81%** | **$1.2074** |
-| 10 | Copilot Claude Opus 5.5 Max 1.0.91 | 68.36% | $11.4134 |
-| 11 | Copilot GPT-5.6 Terra Max 1.0.77 | 66.55% | $4.2576 |
-| 12 | **Claude Code Opus 5 Max 2.1.220** | **64.38%** | **$13.4885** |
-| 13 | Copilot GPT-6 Luna Max 1.0.91 | 61.06% | $0.1759 |
-| 14 | Muse Spark 1.2 Contributor XHigh 0.1.0 | 59.82% | $0.0613 |
-| 15 | Copilot Auto Max 1.0.77 | 36.99% | $1.6234 |
+| Model | Passes | PASS@1 | P2P Errors | Cost | Agent Time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Copilot GPT-5.6 Luna Max 1.0.77 | 335/452 | 74.12% | 17 | $0.3711 | 1511 s |
+| Copilot Gemini 3.8 Flash High 1.0.91 | 335/452 | 74.12% | 20 | $2.7897 | 1879 s |
+| Copilot Claude Opus 5 Max 1.0.77 | 322/452 | 71.24% | 20 | $5.6623 | 2146 s |
+| Copilot GPT-6 Astra Max 1.0.91 | 321/452 | 71.02% | 43 | $8.4274 | 1619 s |
+| Copilot Claude Opus 5.5 Max 1.0.95 | 320/452 | 70.80% | 22 | $11.9774 | 3765 s |
+| **HydraFusion 1.0.98 All-1** | **318/452** | **70.35%** | **28** | **$1.2149** | **1069 s** |
+| **HydraFusion 1.0.95 All-2** | **317/452** | **70.13%** | **32** | **$1.1726** | **1466 s** |
+| Copilot GPT-5.6 Luna Max 1.0.91 | 316/452 | 69.91% | 21 | $0.3670 | 1614 s |
+| Copilot GPT-5.6 Sol XHigh 1.0.77 | 315/452 | 69.69% | 23 | $8.4366 | 1823 s |
+| **HydraFusion 1.0.95 All-1** | **311/452** | **68.81%** | **36** | **$1.2074** | **1424 s** |
+| Copilot Claude Opus 5.5 Max 1.0.91 | 309/452 | 68.36% | 27 | $11.4134 | 3452 s |
+| Copilot GPT-5.6 Terra Max 1.0.77 | 376/565 | 66.55% | 37 | $4.2576 | 1677 s |
+| Claude Code Opus 5 Max 2.1.220 | 291/452 | 64.38% | 21 | $13.4885 | 1873 s |
+| Copilot GPT-6 Luna Max 1.0.91 | 276/452 | 61.06% | 36 | $0.1759 | 1417 s |
+| Muse Spark 1.2 Contributor XHigh 0.1.0 | 338/565 | 59.82% | 44 | N/A | 1185 s |
+| Copilot Auto Max 1.0.77 | 209/565 | 36.99% | 48 | $1.6234 | 1308 s |
 
 ## 1) Canonical analytics rules
 
@@ -106,8 +115,8 @@ Export separate jobs to separate files when they must remain independently
 auditable. Merge only when the comparison contract defines them as one arm.
 
 The Muse export keeps per-trial `cost_usd` null. Its dashboard bill is the
-authoritative `$34.62` batch cost. The ranking allocates that billed total
-across the 565 retained arm trials for a comparable cost/test value. See
+authoritative `$34.62` batch cost. The ranking leaves cost/task unavailable
+rather than allocating the batch bill into missing per-trial cost evidence. See
 [ANALYTICS.md](./ANALYTICS.md) for the batch accounting.
 
 Important:

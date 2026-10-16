@@ -42,6 +42,29 @@ wharf analytics manifest --data-directory data
 
 ## The metric: PASS@1
 
+### Non-HVE cost comparison graph
+
+![PASS@1 versus average cost per task attempt](docs/pass-at-1-vs-cost.png)
+
+The [SVG](docs/pass-at-1-vs-cost.svg) and
+[summary CSV](docs/pass-at-1-vs-cost.csv) include all non-HVE JSONL arms in
+`data/`. Each costed run is a separate point. X is known cost divided by
+costed retained trials, not aggregate cost per unique task. Missing costs
+are not imputed; Muse is listed without a plotted X coordinate because its
+per-trial costs are all null. PASS@1 uses the planned K times 113 denominator,
+including missing scheduled trials. The plotted cost coverage is a count of
+costed versus retained trials.
+
+Regenerate from the repository root with Python and `matplotlib` installed:
+
+```bash
+python3 scripts/plot-pass-at-1-cost.py
+```
+
+The script uses the retained benchmark contract: K=5 for Auto 1.0.77,
+Terra 1.0.77, and Muse; K=4 for the other current arms. Update that contract
+when adding an arm with a different planned depth.
+
 DeepSWE's published score is a **trial-level pass rate** — the leaderboard column is
 literally headed `PASS@1`. It is not a count of tasks solved on every attempt.
 
@@ -543,12 +566,37 @@ Auto selected for an individual trial, so the result cannot be attributed to a
 particular routed model. Cost comparisons are also omitted: 27 trial rows lack
 cost values, making the arm total incomplete.
 
-HydraFusion is now available in two retained benchmark exports:
-`copilot-hydrafusion-max-1.0.95.jsonl` and
-`copilot-hydrafusion-max-1.0.95-all-2.jsonl`. Report the runs separately from
-the existing Auto arm rather than overwriting this baseline. Preserve their
-planned denominator, retained trial count, and cost-evidence coverage when
-making comparisons.
+HydraFusion is available in three retained benchmark exports:
+[`copilot-hydrafusion-max-1.0.95.jsonl`](data/copilot-hydrafusion-max-1.0.95.jsonl),
+[`copilot-hydrafusion-max-1.0.95-all-2.jsonl`](data/copilot-hydrafusion-max-1.0.95-all-2.jsonl),
+and [`copilot-hydrafusion-default-1.0.98.jsonl`](data/copilot-hydrafusion-default-1.0.98.jsonl).
+Report the runs separately from the existing Auto arm rather than overwriting
+this baseline.
+
+#### HydraFusion comparison (2026-10-16)
+
+All three runs planned 113 tasks at K=4 (452 logical trials). PASS@1 keeps
+that denominator, including the three missing retained rows in 1.0.95 All-2.
+Task accuracy counts tasks with any positive-reward trial and is separate
+from PASS@1.
+
+| CLI / batch | Retained / planned trials | PASS@1 | Tasks solved | Known cost | Cost coverage | Cost / costed trial | Agent min / task attempt |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1.0.95 All-1 | 452/452 | 311/452 (68.81%) | 91/113 | $539.7025 | 447/452 (98.89%) | $1.2074 | 23.74 |
+| 1.0.95 All-2 | 449/452 | 317/452 (70.13%) | 92/113 | $524.1341 | 447/449 (99.55%) | $1.1726 | 24.43 |
+| 1.0.98 All-1 | 452/452 | 318/452 (70.35%) | 96/113 | $546.7052 | 450/452 (99.56%) | $1.2149 | 17.82 |
+
+Cost coverage uses retained rows; missing costs remain null. Known cost is
+not a complete billed total. Agent runtime is the mean across tasks of each
+task's mean retained agent-command duration, including whole-trial retries,
+not preparation or verification time. Agent and trial duration coverage is
+complete for retained rows in all three exports.
+
+The 1.0.98 export preserves three whole-trial retries and seven verifier-only
+retries within their logical trials, not as extra rows. Its `default` effort
+label follows the current HydraFusion configuration contract; historical
+1.0.95 filenames retain their legacy `max` label. These are observed run
+comparisons, not an isolated causal test of CLI version.
 
 ### Local xhigh K=5 result (2026-08-10)
 
