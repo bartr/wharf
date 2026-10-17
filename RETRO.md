@@ -1,4 +1,4 @@
-# Wharf development and testing summary through 1.0.0
+# Wharf development and testing summary through 1.0.1
 
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
@@ -12,7 +12,9 @@ machine-readable requirements handoff in `docs/wharf.jsonl`.
 Wharf 1.0.0 is the first MVP release of a production-oriented benchmark
 execution platform. Across 25 versioned development increments, the project
 moved from a CLI foundation to a deterministic, recoverable,
-evidence-preserving DeepSWE and Copilot execution platform.
+evidence-preserving DeepSWE and Copilot execution platform. The subsequent
+`1.0.1` branch work corrected CLI version resolution, made provider-default
+effort the default, and extended the retained benchmark comparisons.
 
 * The system now has explicit boundaries for configuration, Harbor task
   loading, host checks, image preparation, Copilot execution, agent isolation,
@@ -34,7 +36,9 @@ evidence-preserving DeepSWE and Copilot execution platform.
   boundary, Docker-backed, smoke, packaging, analytics, and controlled
   benchmark checks. The final release-candidate suite passed 226/226 tests,
   a Release build, formatting verification, and a Docker-backed smoke run
-  using Copilot CLI 1.0.96.
+  using Copilot CLI 1.0.96. The post-1.0 CLI version fix subsequently recorded
+  229/229 Release tests, formatting verification, and Docker-backed smoke
+  using CLI 1.0.98.
 * Reporting is designed for auditability. PASS@1 uses the planned trial
   denominator, task-level accuracy is reported separately, infrastructure
   retries do not become extra trials, missing costs remain missing, and
@@ -46,11 +50,12 @@ evidence-preserving DeepSWE and Copilot execution platform.
 
 The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
 unattended K=4 benchmark runs are retained in the repository, with some runs
-spanning an overnight window. The enterprise dataset contains 10 model arms
-and 560 logical trials with complete score, cost, and duration coverage. Wharf
-is ready for the 1.0.0 tag, with post-v1 repair/replay, hosted operations,
-additional providers, and larger scale profiles remaining outside the 1.0.0
-scope.
+spanning an overnight window. Through the `1.0.1` branch checkpoint, the
+enterprise dataset contains 11 arms and 616 logical trials with complete
+score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`; the
+`1.0.1` branch checkpoint is `5cc3dac`, with no `1.0.1` tag present at this
+review. Post-v1 repair/replay, hosted operations, additional agent products,
+and larger scale profiles remain outside the delivered scope.
 
 ## Development approach
 
@@ -220,8 +225,8 @@ available on the execution host for audit and replay.
 The final `0.25.0` release-candidate work strengthened the enterprise task
 evaluators, added provider-default effort handling, normalized HydraFusion
 identity, added `--cli-version` and `WHARF_CLI_VERSION`, and raised enterprise
-agent timeouts to 60 minutes. Portable enterprise analytics now retain 10
-K=4 arms and 560 fully scored, fully costed logical trials.
+agent timeouts to 60 minutes. At the 1.0.0 close, portable enterprise analytics
+retained 10 K=4 arms and 560 fully scored, fully costed logical trials.
 
 The pre-tag code review found and fixed configuration and recovery gaps that
 would have undermined unattended runs:
@@ -240,13 +245,93 @@ would have undermined unattended runs:
 
 The final runtime candidate at commit `54c887b` passed 226/226 tests, a Release
 build, formatting verification, and Docker-backed smoke with Copilot CLI
-1.0.96. The old `1.0.0` tag was removed. The replacement tag should target the
-release-close commit that includes this retrospective and repository memory,
-with `54c887b` as its validated runtime ancestor.
+1.0.96. The old `1.0.0` tag was removed, and its replacement points to
+`1ab71c4`, with `54c887b` as its validated runtime ancestor.
 
 The release is intentionally bounded. Repair and replay workflows, hosted
 dashboards, alternate agent products, distributed orchestration, and larger
 post-v1 scale profiles remain future work.
+
+### Post-1.0 hardening and benchmark reporting: 1.0.1
+
+The `1.0.1` branch contains three post-tag commits through `5cc3dac`:
+CLI version image resolution (`54e1604`), default effort selection
+(`4238b56`), and benchmark exports and comparison reports (`5cc3dac`).
+This is a branch checkpoint, not evidence of a separate tagged release or
+a rerun of the entire MVP acceptance matrix.
+
+#### Container version identity must not depend on the host CLI
+
+Exact CLI versions previously passed through a host-installed CLI probe
+before image preparation. A valid version request could therefore fail
+because the host executable differed, even though Wharf could build and
+validate the requested container image.
+
+The fix makes an exact selected version authoritative without probing the
+host. `latest` instead resolves the published `@github/copilot` version from
+the npm registry. Image preparation still installs and validates the exact
+resolved package version, and registry transport, HTTP, malformed JSON, and
+missing-version failures remain explicit rather than falling back to host
+state. Flag, environment, manifest, and default precedence is unchanged.
+
+The retained [review](.github/tracking/2026-10-15-cli-version-image-resolution-review.md)
+records 20/20 focused adapter/image tests, 229/229 full Release tests,
+formatting verification, and Docker-backed smoke that built the CLI 1.0.98
+payload image and passed agent and verifier execution.
+
+#### Provider-default effort became the actual configuration default
+
+When no effort is configured, Wharf now selects `default` instead of `max`
+and omits the provider effort argument. Explicit flag, environment, and
+manifest settings retain their precedence. Configuration tests cover the
+default and explicit precedence cases. This is an intentional behavior
+change: future runs must retain their effective effort rather than assuming
+that an omitted setting reproduces an older maximum-effort run.
+
+#### Benchmark evidence expanded without merging benchmark universes
+
+The new HydraFusion CLI 1.0.98 exports remain separate from both historical
+HydraFusion runs and the other benchmark suite. The canonical DeepSWE suite
+uses 113 tasks at K=4 for these runs; the enterprise suite uses 14 tasks at
+K=4. Their pass rates are not interchangeable.
+
+| Dataset / HydraFusion CLI batch | Passes / planned | PASS@1 | P2P errors | Cost / costed trial | Agent time / attempt |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| DeepSWE 1.0.95 All-1 | 311/452 | 68.81% | 36 | $1.2074 | 1424 s |
+| DeepSWE 1.0.95 All-2 | 317/452 | 70.13% | 32 | $1.1726 | 1466 s |
+| DeepSWE 1.0.98 All-1 | 318/452 | 70.35% | 28 | $1.2149 | 1069 s |
+| Enterprise 1.0.95 All-1 | 51/56 | 91.07% | 0 | $0.3186 | 303 s |
+| Enterprise 1.0.98 All-1 | 54/56 | 96.43% | 0 | $0.4116 | 235 s |
+
+P2P errors count trials with at least one measured pre-existing-test failure,
+not individual failing tests. Agent time is the task-weighted mean retained
+agent-command duration per attempt, including whole-trial retries, rounded
+from unrounded evidence and excluding preparation and verification.
+
+DeepSWE All-2 retains 449 rows but keeps its planned 452-trial denominator.
+The new DeepSWE export retains all 452 logical trials, with costs for
+450/452 (99.56%) and complete duration coverage. Its known cost is $546.7052;
+three whole-trial retries and seven verifier-only retries remain nested
+evidence rather than additional rows. Both enterprise HydraFusion arms have
+complete score, test, cost, and timing evidence. The new enterprise arm has
+no retained retry directories or exception categories.
+
+The latest DeepSWE run adds one pass over All-2 while reducing observed
+agent time and measured P2P-error trials. The enterprise run adds three
+passes with no P2P errors, lower agent time, and higher average cost.
+These are observed comparisons, not an isolated causal test of CLI version.
+Historical HydraFusion filenames keep their legacy `max` label; the new
+exports use `default`.
+
+The reporting work rebuilt the matching manifests, updated ranked tables
+sorted by PASS@1, P2P errors, and cost, and added a reproducible
+[non-HVE PASS@1 versus cost graph](docs/pass-at-1-vs-cost.svg) with
+[portable source data](docs/pass-at-1-vs-cost.csv). Fifteen costed runs are
+plotted; Muse is identified without an X coordinate because per-trial cost
+evidence is unavailable. Missing costs are never imputed, including from
+batch-level bills. The [DeepSWE analytics notes](ANALYTICS.md) and
+[enterprise summary](enterprise/data/summary.md) retain the detailed metric
+definitions and coverage.
 
 ## Testing methodology
 
@@ -419,3 +504,12 @@ what was surprising and what should be done differently in the next session.
 - Session 19 (`0.19.0`): Scale qualification must not invent benchmark
   evidence. Keep hardware, deadlines, losses, and score completeness as
   explicit retained inputs, and cap every recommendation by operator limits.
+- Post-1.0 checkpoint (`1.0.1`): Version selection must describe the container
+  that executes the agent, not an unrelated host installation. Probe mutable
+  aliases at their authoritative source, keep exact versions deterministic,
+  and validate the installed image payload. Reporting also needs explicit
+  dataset, effort, cost-coverage, and denominator contracts: similarly named
+  DeepSWE and enterprise runs are not interchangeable. Preserve separate
+  exports, distinguish unknown measurements from zero, round only at
+  presentation, and do not attribute benchmark deltas to a CLI change without
+  a controlled comparison.
