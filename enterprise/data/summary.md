@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Verified 2026-10-16 from eleven completed `all-1` runs. Each arm contains 14
+Verified 2026-10-21 from twelve completed `all-1` runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
@@ -17,6 +17,7 @@ Version numbers identify the Copilot CLI; all runs use default effort.
 | GPT-6 Astra 1.0.95 | 54 / 56 | 96.43% | 0 | $1.3180 | 253 s |
 | GPT-6 Luna 1.0.95 | 54 / 56 | 96.43% | 2 | $0.0158 | 257 s |
 | GPT-6.1 Sol 1.0.95 | 54 / 56 | 96.43% | 2 | $0.2200 | 284 s |
+| **HydraFusion 1.0.101** | **52 / 56** | **92.86%** | **1** | **$0.3527** | **219 s** |
 | Claude Opus 5.5 1.0.91 | 52 / 56 | 92.86% | 3 | $0.4792 | 181 s |
 | **HydraFusion 1.0.95** | **51 / 56** | **91.07%** | **0** | **$0.3186** | **303 s** |
 | Gemini 3.8 Flash 1.0.95 | 50 / 56 | 89.29% | 3 | $0.8911 | 801 s |
@@ -41,6 +42,7 @@ the task-weighted, K-normalized mean as well.
 | GPT-6 Astra | 56 / 56 | $1.3180 | $5.2719 | 252.5 s | 352.5 s |
 | HydraFusion 1.0.95 | 56 / 56 | $0.3186 | $1.2742 | 302.9 s | 422.2 s |
 | HydraFusion 1.0.98 | 56 / 56 | $0.4116 | $1.6464 | 234.8 s | 270.5 s |
+| HydraFusion 1.0.101 | 56 / 56 | $0.3527 | $1.4108 | 218.9 s | 245.0 s |
 | Gemini 3.8 Flash | 56 / 56 | $0.8911 | $3.5644 | 801.5 s | 877.5 s |
 | Claude Opus 5.5 | 56 / 56 | $0.4792 | $1.9166 | 180.8 s | 261.9 s |
 | Claude Opus 5 | 56 / 56 | $1.0990 | $4.3958 | 230.7 s | 268.1 s |
@@ -55,12 +57,12 @@ exported trial.
 
 ## Data coverage
 
-* Exported arms: 11
-* Exported logical trials: 616
+* Exported arms: 12
+* Exported logical trials: 672
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 616 / 616 trials
-* Agent and trial duration measurements: 616 / 616 trials
+* Functional and regression measurements: 672 / 672 trials
+* Agent and trial duration measurements: 672 / 672 trials
 * Trials with an exception category: 0
 
 The empty Gemini `all-2` directory is excluded.
