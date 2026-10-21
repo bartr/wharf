@@ -5,6 +5,11 @@ execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
 
+New runs default to `hydrafusion` with no explicit reasoning effort, leaving
+effort selection to the model. Configure a different model with `--model`,
+`WHARF_MODEL`, or manifest `model`. Effort defaults to `default`, which omits
+the Copilot CLI effort argument.
+
 The release is qualified by retained local summaries in `data/` and the
 corresponding Wharf and DeepSWE reference job directories maintained with the
 benchmark evidence. The final acceptance record is in

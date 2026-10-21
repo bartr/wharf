@@ -53,7 +53,7 @@ public sealed class RunConfigurationTests
     public void EffortUsesFlagBeforeEnvironmentAndManifest()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(Effort: "low"),
+            new RunManifest(Model: "custom-model", Effort: "low"),
             new RunConfigurationOverrides(Effort: "high"),
             new Dictionary<string, string?>
             {
@@ -67,7 +67,7 @@ public sealed class RunConfigurationTests
     public void EffortUsesEnvironmentBeforeManifest()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(Effort: "low"),
+            new RunManifest(Model: "custom-model", Effort: "low"),
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>
             {
@@ -78,7 +78,7 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
-    public void UsesGptFiveSixLunaWhenModelIsNotConfigured()
+    public void UsesHydraFusionWithModelDefaultEffortWhenNotConfigured()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
             new RunManifest(),
@@ -86,7 +86,7 @@ public sealed class RunConfigurationTests
             new Dictionary<string, string?>());
 
         Assert.Equal(1, result.K);
-        Assert.Equal("gpt-5.6-luna", result.Model);
+        Assert.Equal("hydrafusion", result.Model);
         Assert.Equal("default", result.Effort);
         Assert.Equal("latest", result.CliVersion);
         Assert.Equal(1, result.Retries.MaxAttempts);

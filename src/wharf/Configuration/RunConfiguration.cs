@@ -129,7 +129,7 @@ public static class RunManifestLoader
 public static class RunConfigurationResolver
 {
     public const string DefaultCopilotCli = "copilot";
-    public const string DefaultCopilotModel = "gpt-5.6-luna";
+    public const string DefaultCopilotModel = "hydrafusion";
     public const string DefaultCopilotVersion = "latest";
 
     public static string ResolveEffectiveEffort(string model, string effort) =>

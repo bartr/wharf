@@ -372,6 +372,7 @@ container and reuse the task's configured environment image. After MVP,
   consulting the host-installed CLI; `latest` resolves the currently published
   `@github/copilot` version from the npm registry before image preparation.
 - Record requested and effective model and effort settings.
+- Use `hydrafusion` as the default model when no model is explicitly configured.
 - Accept `default` as an effort setting and omit the provider effort argument
   so the selected model uses its own default effort. Use `default` when no
   effort is explicitly configured.
