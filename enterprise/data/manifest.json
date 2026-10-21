@@ -81,6 +81,15 @@
     "with_cost": 56
   },
   {
+    "arm": "copilot-hydrafusion-default-1.0.102",
+    "bytes_jsonl": 37090,
+    "scored": 56,
+    "tasks": 14,
+    "total_cost_usd": 18.71,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
     "arm": "copilot-hydrafusion-default-1.0.95",
     "bytes_jsonl": 37846,
     "scored": 56,
