@@ -6,9 +6,15 @@ Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
 
 New runs default to `hydrafusion` with no explicit reasoning effort, leaving
-effort selection to the model. Configure a different model with `--model`,
+effort selection to the model. Configure a different model with `--model` (`-m`),
 `WHARF_MODEL`, or manifest `model`. Effort defaults to `default`, which omits
 the Copilot CLI effort argument.
+Use `--effort` (`-e`) to configure effort. Both aliases are also available for
+`wharf analytics export`.
+
+Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
+For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
+The double-dash forms `--k`, `--n`, and `--p` are not accepted.
 
 The release is qualified by retained local summaries in `data/` and the
 corresponding Wharf and DeepSWE reference job directories maintained with the

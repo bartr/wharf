@@ -178,9 +178,9 @@ public static class CommandTree
         var manifest = new Option<string?>("--manifest") { Description = "Path to a JSON run manifest." };
         var dryRun = new Option<bool>("--dry-run") { Description = "Validate and print a side-effect-free plan." };
         dryRun.Aliases.Add("-d");
-        var k = new Option<int?>("--k") { Description = "Attempts per task." };
-        var n = new Option<int?>("--n") { Description = "Task concurrency." };
-        var p = new Option<int?>("--p") { Description = "Agent and verifier preparation concurrency." };
+        var k = new Option<int?>("-k") { Description = "Attempts per task." };
+        var n = new Option<int?>("-n") { Description = "Task concurrency." };
+        var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency." };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
@@ -188,10 +188,12 @@ public static class CommandTree
             Description = "JSONL progress log path. Defaults to run.jsonl inside the run directory."
         };
         var model = new Option<string?>("--model") { Description = "Model name." };
+        model.Aliases.Add("-m");
         var effort = new Option<string?>("--effort")
         {
             Description = "Model effort: default, low, medium, high, or max."
         };
+        effort.Aliases.Add("-e");
         var cliVersion = new Option<string?>("--cli-version")
         {
             Description = "Exact Copilot CLI version, or latest."
@@ -379,8 +381,8 @@ public static class CommandTree
         {
             Description = "Task root. Inferred from retained results when omitted."
         };
-        var n = new Option<int?>("--n") { Description = "Override retained task concurrency." };
-        var p = new Option<int?>("--p") { Description = "Override retained preparation concurrency." };
+        var n = new Option<int?>("-n") { Description = "Override retained task concurrency." };
+        var p = new Option<int?>("-p") { Description = "Override retained preparation concurrency." };
         var dryRun = new Option<bool>("--dry-run")
         {
             Description = "Validate and list the resume plan without running trials."
@@ -712,11 +714,13 @@ public static class CommandTree
             Description = "Effective agent version."
         };
         var model = new Option<string>("--model") { Description = "Effective model name." };
+        model.Aliases.Add("-m");
         var effort = new Option<string>("--effort")
         {
             Description = "Effective reasoning effort.",
             DefaultValueFactory = _ => "max"
         };
+        effort.Aliases.Add("-e");
         var subagents = new Option<bool>("--subagents")
         {
             Description = "Whether subagent tools were available.",

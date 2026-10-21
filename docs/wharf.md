@@ -313,6 +313,10 @@ container and reuse the task's configured environment image. After MVP,
   - `wharf compare`
 - reserve and document stable exit codes for success, invalid input, unsupported host, blocked run, partial run, and internal failure
 - configuration precedence is command flag, environment variable, manifest, then built-in default
+- Use `-k`, `-n`, and `-p` for run attempts and concurrency; resume accepts
+  `-n` and `-p`. Do not accept the double-dash forms `--k`, `--n`, or `--p`.
+- Accept `-m` as an alias for `--model` and `-e` for `--effort` on run and
+  analytics export commands.
 - unknown commands, flags, configuration keys, models, effort values, and adapter options must fail explicitly
 - dry-run must validate configuration and show planned tasks and resources without creating run state, modifying Docker, or consuming model quota
 - status must be readable while a run is active without attaching to tmux or mutating run state

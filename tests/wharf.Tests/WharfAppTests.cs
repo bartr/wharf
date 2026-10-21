@@ -1,12 +1,61 @@
 using Wharf;
 using System.Diagnostics;
 using System.Text.Json;
+using System.CommandLine;
+using Wharf.Command;
+using Wharf.Configuration;
 using Wharf.Versioning;
 
 namespace Wharf.Tests;
 
 public sealed class WharfAppTests
 {
+    [Theory]
+    [InlineData(false, "--model", "-m", "custom-model")]
+    [InlineData(false, "--effort", "-e", "high")]
+    [InlineData(true, "--model", "-m", "custom-model")]
+    [InlineData(true, "--effort", "-e", "high")]
+    public void ModelAndEffortAcceptLongAndShortOptions(
+        bool analytics, string longName, string shortName, string value)
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        string[] prefix = analytics ? ["analytics", "export"] : ["run"];
+        var command = root.Subcommands.Single(command =>
+            command.Name == (analytics ? "analytics" : "run"));
+        if (analytics)
+            command = command.Subcommands.Single(command => command.Name == "export");
+        Option<string> option = Assert.IsType<Option<string>>(
+            command.Options.Single(option => option.Name == longName));
+
+        foreach (string name in new[] { longName, shortName })
+        {
+            var result = root.Parse([.. prefix, name, value]);
+
+            Assert.Empty(result.Errors);
+            Assert.Equal(value, result.GetValue(option));
+        }
+    }
+
+    [Theory]
+    [InlineData("run", "-k")]
+    [InlineData("run", "-n")]
+    [InlineData("run", "-p")]
+    [InlineData("resume", "-n")]
+    [InlineData("resume", "-p")]
+    public void ConcurrencyOptionsUseSingleDash(string commandName, string optionName)
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(command => command.Name == commandName);
+        Option<int?> option = Assert.IsType<Option<int?>>(
+            command.Options.Single(option => option.Name == optionName));
+
+        var result = root.Parse([commandName, optionName, "3"]);
+
+        Assert.Empty(result.Errors);
+        Assert.Equal(3, result.GetValue(option));
+        Assert.NotEmpty(root.Parse([commandName, "-" + optionName, "3"]).Errors);
+    }
+
     [Fact]
     public async Task VersionCommandPrintsOnlySemanticVersion()
     {
