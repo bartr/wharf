@@ -49,33 +49,32 @@ the task-weighted, K-normalized mean as well.
 
 ## Cost and timing
 
-| Model | Cost coverage | Cost per costed trial | Average cost per task | Mean agent time | Mean trial time |
-|---|---:|---:|---:|---:|---:|
-| GPT-6 Astra 1.0.102 | 56 / 56 | $1.2351 | $4.9406 | 254.9 s | 335.1 s |
-| GPT-6.1 Sol 1.0.102 | 56 / 56 | $0.2307 | $0.9229 | 333.9 s | 420.2 s |
-| HydraFusion 1.0.98 | 56 / 56 | $0.4116 | $1.6464 | 234.8 s | 270.5 s |
-| GPT-6 Astra 1.0.95 | 56 / 56 | $1.3180 | $5.2719 | 252.5 s | 352.5 s |
-| HydraFusion 1.0.96 | 56 / 56 | $0.3197 | $1.2790 | 272.5 s | 378.6 s |
-| GPT-6 Luna 1.0.95 | 56 / 56 | $0.0158 | $0.0633 | 257.5 s | 386.7 s |
-| GPT-6.1 Sol 1.0.95 | 56 / 56 | $0.2200 | $0.8798 | 283.7 s | 394.6 s |
-| HydraFusion 1.0.100 | 56 / 56 | $0.2932 | $1.1730 | 272.0 s | 370.9 s |
-| HydraFusion 1.0.97 | 56 / 56 | $0.3416 | $1.3662 | 316.4 s | 412.3 s |
-| HydraFusion 1.0.101 | 56 / 56 | $0.3527 | $1.4108 | 218.9 s | 245.0 s |
-| Claude Opus 5.5 1.0.91 | 56 / 56 | $0.4792 | $1.9166 | 180.8 s | 261.9 s |
-| HydraFusion 1.0.95 | 56 / 56 | $0.3186 | $1.2742 | 302.9 s | 422.2 s |
-| HydraFusion 1.0.102 | 56 / 56 | $0.3341 | $1.3366 | 266.9 s | 338.2 s |
-| Gemini 3.8 Flash 1.0.95 | 56 / 56 | $0.8911 | $3.5644 | 801.5 s | 877.5 s |
-| GPT-6 Luna 1.0.102 | 56 / 56 | $0.0152 | $0.0607 | 258.3 s | 365.3 s |
-| Claude Opus 5.5 1.0.95 | 56 / 56 | $0.5310 | $2.1242 | 215.9 s | 354.3 s |
-| Claude Opus 5 1.0.91 | 56 / 56 | $1.0990 | $4.3958 | 230.7 s | 268.1 s |
-| Claude Opus 5.5 1.0.102 | 56 / 56 | $0.4785 | $1.9140 | 214.5 s | 345.7 s |
-| MAI Code 1.1 Flash 1.0.95 | 56 / 56 | $0.0770 | $0.3081 | 275.1 s | 334.1 s |
-| GPT-5.6 Luna 1.0.95 | 56 / 56 | $0.0231 | $0.0923 | 190.6 s | 318.1 s |
-| GPT-5.6 Terra 1.0.96 | 56 / 56 | $0.2463 | $0.9851 | 141.5 s | 212.8 s |
+| Model | Cost coverage | Cost per costed trial | Mean agent time |
+|---|---:|---:|---:|
+| GPT-6 Astra 1.0.102 | 56 / 56 | $1.2351 | 254.9 s |
+| GPT-6.1 Sol 1.0.102 | 56 / 56 | $0.2307 | 333.9 s |
+| HydraFusion 1.0.98 | 56 / 56 | $0.4116 | 234.8 s |
+| GPT-6 Astra 1.0.95 | 56 / 56 | $1.3180 | 252.5 s |
+| HydraFusion 1.0.96 | 56 / 56 | $0.3197 | 272.5 s |
+| GPT-6 Luna 1.0.95 | 56 / 56 | $0.0158 | 257.5 s |
+| GPT-6.1 Sol 1.0.95 | 56 / 56 | $0.2200 | 283.7 s |
+| HydraFusion 1.0.100 | 56 / 56 | $0.2932 | 272.0 s |
+| HydraFusion 1.0.97 | 56 / 56 | $0.3416 | 316.4 s |
+| HydraFusion 1.0.101 | 56 / 56 | $0.3527 | 218.9 s |
+| Claude Opus 5.5 1.0.91 | 56 / 56 | $0.4792 | 180.8 s |
+| HydraFusion 1.0.95 | 56 / 56 | $0.3186 | 302.9 s |
+| HydraFusion 1.0.102 | 56 / 56 | $0.3341 | 266.9 s |
+| Gemini 3.8 Flash 1.0.95 | 56 / 56 | $0.8911 | 801.5 s |
+| GPT-6 Luna 1.0.102 | 56 / 56 | $0.0152 | 258.3 s |
+| Claude Opus 5.5 1.0.95 | 56 / 56 | $0.5310 | 215.9 s |
+| Claude Opus 5 1.0.91 | 56 / 56 | $1.0990 | 230.7 s |
+| Claude Opus 5.5 1.0.102 | 56 / 56 | $0.4785 | 214.5 s |
+| MAI Code 1.1 Flash 1.0.95 | 56 / 56 | $0.0770 | 275.1 s |
+| GPT-5.6 Luna 1.0.95 | 56 / 56 | $0.0231 | 190.6 s |
+| GPT-5.6 Terra 1.0.96 | 56 / 56 | $0.2463 | 141.5 s |
 
 Cost uses the retained Copilot AI Credit evidence at one cent per credit.
-Average cost per task includes all four attempts for each of the 14 tasks. No
-costs were imputed. Agent and trial duration evidence is present for every
+No costs were imputed. Agent and trial duration evidence is present for every
 exported trial.
 
 ## Data coverage

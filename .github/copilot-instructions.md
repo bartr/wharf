@@ -240,7 +240,9 @@ time, alongside trial/task totals and cost coverage. Keep
 `enterprise/data/summary.md` aligned with the manifest, displaying model,
 effort, CLI, CLI version, passes and PASS@1, P2P errors, score, cost per trial, and
 average agent time. PASS@1 is passing trials divided by all retained logical
-trials; cost per trial excludes trials without retained cost evidence; average
+trials. Do not track average cost per task or mean trial time in enterprise
+manifests or comparison summaries; retain the underlying per-trial evidence.
+Cost per trial excludes trials without retained cost evidence; average
 agent time uses retained agent-command durations. Compute
 `score = passes / trials - (p2p_errors * 0.0025)`: subtract 0.25 percentage
 points per trial with a P2P error, not per failed test. Store score as a
