@@ -51,7 +51,7 @@ effort the default, and extended the retained benchmark comparisons.
 The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
 unattended K=4 benchmark runs are retained in the repository, with some runs
 spanning an overnight window. Through the `1.0.1` branch checkpoint, the
-enterprise dataset contains 11 arms and 616 logical trials with complete
+enterprise dataset contains 22 arms and 1232 logical trials with complete
 score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`; the
 `1.0.1` branch checkpoint is `5cc3dac`, with no `1.0.1` tag present at this
 review. Post-v1 repair/replay, hosted operations, additional agent products,
@@ -302,6 +302,12 @@ K=4. Their pass rates are not interchangeable.
 | DeepSWE 1.0.98 All-1 | 318/452 | 70.35% | 28 | $1.2149 | 1069 s |
 | Enterprise 1.0.95 All-1 | 51/56 | 91.07% | 0 | $0.3186 | 303 s |
 | Enterprise 1.0.98 All-1 | 54/56 | 96.43% | 0 | $0.4116 | 235 s |
+| Enterprise 1.0.96 All-1 | 54/56 | 96.43% | 1 | $0.3197 | 273 s |
+| Enterprise 1.0.97 All-1 | 52/56 | 92.86% | 1 | $0.3416 | 316 s |
+| Enterprise 1.0.100 All-1 | 53/56 | 94.64% | 1 | $0.2932 | 272 s |
+| Enterprise 1.0.101 All-1 | 52/56 | 92.86% | 1 | $0.3527 | 219 s |
+| Enterprise 1.0.102 All-1 | 51/56 | 91.07% | 2 | $0.3341 | 267 s |
+| Enterprise 1.0.103 All-1 | 51/56 | 91.07% | 2 | $0.3930 | 229 s |
 
 P2P errors count trials with at least one measured pre-existing-test failure,
 not individual failing tests. Agent time is the task-weighted mean retained
@@ -312,9 +318,11 @@ DeepSWE All-2 retains 449 rows but keeps its planned 452-trial denominator.
 The new DeepSWE export retains all 452 logical trials, with costs for
 450/452 (99.56%) and complete duration coverage. Its known cost is $546.7052;
 three whole-trial retries and seven verifier-only retries remain nested
-evidence rather than additional rows. Both enterprise HydraFusion arms have
-complete score, test, cost, and timing evidence. The new enterprise arm has
-no retained retry directories or exception categories.
+evidence rather than additional rows. All eight enterprise HydraFusion arms
+have complete score, test, cost, and timing evidence, with no exception
+categories. The later enterprise arms, CLI 1.0.96 through 1.0.103, range from
+91.07% to 96.43% PASS@1; the latest 1.0.103 run matches 1.0.102 at 51/56
+with two P2P-error trials, at higher cost and lower agent time.
 
 The latest DeepSWE run adds one pass over All-2 while reducing observed
 agent time and measured P2P-error trials. The enterprise run adds three
