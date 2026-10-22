@@ -231,9 +231,20 @@ workspaces must be deleted after verification and preparation failures, and
 external host-verifier cancellation must kill and reap the complete process
 tree.
 
-The enterprise analytics dataset under `enterprise/data/` contains 10 K=4 arms
-and 560 logical trials with complete score, cost, and duration coverage. The
-latest GPT-5.6 Terra arm passed 44/56 trials (78.57%), had two P2P regression
-failures, and cost $0.2463 per costed trial. Keep enterprise analytics separate
-from the 113-task DeepSWE controlled benchmark dataset and rebuild the matching
-manifest after either dataset changes.
+Keep enterprise analytics in `enterprise/data/` separate from the 113-task
+DeepSWE controlled benchmark dataset. After exporting enterprise trials,
+rebuild `enterprise/data/manifest.json` with `wharf analytics manifest
+--data-directory enterprise/data`. Each manifest arm records model, effort,
+CLI, CLI version, passes, P2P errors, score, cost per costed trial, and average agent
+time, alongside trial/task totals and cost coverage. Keep
+`enterprise/data/summary.md` aligned with the manifest, displaying model,
+effort, CLI, CLI version, passes and PASS@1, P2P errors, score, cost per trial, and
+average agent time. PASS@1 is passing trials divided by all retained logical
+trials; cost per trial excludes trials without retained cost evidence; average
+agent time uses retained agent-command durations. Compute
+`score = passes / trials - (p2p_errors * 0.0025)`: subtract 0.25 percentage
+points per trial with a P2P error, not per failed test. Store score as a
+fraction, display it as a percentage, and leave negative values unclamped;
+empty arms have a null score. Keep score separate from PASS@1 and the
+Enterprise Score audit metric. Do not mix enterprise runs
+into DeepSWE analytics or rebuild the DeepSWE manifest for enterprise changes.

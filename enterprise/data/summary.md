@@ -9,34 +9,39 @@ Verified 2026-10-21 from twenty-one completed `all-1` runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
-Version numbers identify the Copilot CLI; all runs use default effort.
+All runs use default effort and the Copilot CLI.
 
-| Model | Passes | PASS@1 | P2P Errors | Cost | Agent Time |
-|---|---:|---:|---:|---:|---:|
-| GPT-6 Astra 1.0.102 | 56 / 56 | 100.00% | 0 | $1.2351 | 255 s |
-| GPT-6.1 Sol 1.0.102 | 55 / 56 | 98.21% | 1 | $0.2307 | 334 s |
-| **HydraFusion 1.0.98** | **54 / 56** | **96.43%** | **0** | **$0.4116** | **235 s** |
-| GPT-6 Astra 1.0.95 | 54 / 56 | 96.43% | 0 | $1.3180 | 253 s |
-| **HydraFusion 1.0.96** | **54 / 56** | **96.43%** | **1** | **$0.3197** | **273 s** |
-| GPT-6 Luna 1.0.95 | 54 / 56 | 96.43% | 2 | $0.0158 | 257 s |
-| GPT-6.1 Sol 1.0.95 | 54 / 56 | 96.43% | 2 | $0.2200 | 284 s |
-| **HydraFusion 1.0.100** | **53 / 56** | **94.64%** | **1** | **$0.2932** | **272 s** |
-| **HydraFusion 1.0.97** | **52 / 56** | **92.86%** | **1** | **$0.3416** | **316 s** |
-| **HydraFusion 1.0.101** | **52 / 56** | **92.86%** | **1** | **$0.3527** | **219 s** |
-| Claude Opus 5.5 1.0.91 | 52 / 56 | 92.86% | 3 | $0.4792 | 181 s |
-| **HydraFusion 1.0.95** | **51 / 56** | **91.07%** | **0** | **$0.3186** | **303 s** |
-| **HydraFusion 1.0.102** | **51 / 56** | **91.07%** | **2** | **$0.3341** | **267 s** |
-| Gemini 3.8 Flash 1.0.95 | 50 / 56 | 89.29% | 3 | $0.8911 | 801 s |
-| GPT-6 Luna 1.0.102 | 50 / 56 | 89.29% | 4 | $0.0152 | 258 s |
-| Claude Opus 5.5 1.0.95 | 49 / 56 | 87.50% | 5 | $0.5310 | 216 s |
-| Claude Opus 5 1.0.91 | 48 / 56 | 85.71% | 2 | $1.0990 | 231 s |
-| Claude Opus 5.5 1.0.102 | 48 / 56 | 85.71% | 4 | $0.4785 | 215 s |
-| MAI Code 1.1 Flash 1.0.95 | 46 / 56 | 82.14% | 5 | $0.0770 | 275 s |
-| GPT-5.6 Luna 1.0.95 | 46 / 56 | 82.14% | 6 | $0.0231 | 191 s |
-| GPT-5.6 Terra 1.0.96 | 44 / 56 | 78.57% | 2 | $0.2463 | 142 s |
+| Model | Effort | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|
+| GPT-6 Astra | default | copilot-cli | 1.0.102 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2351 | 254.9 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.102 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2307 | 333.9 s |
+| **HydraFusion** | default | copilot-cli | 1.0.98 | 54 / 56 | 96.43% | 0 | 96.43% | $0.4116 | 234.8 s |
+| GPT-6 Astra | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 0 | 96.43% | $1.3180 | 252.5 s |
+| **HydraFusion** | default | copilot-cli | 1.0.96 | 54 / 56 | 96.43% | 1 | 96.18% | $0.3197 | 272.5 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
+| **HydraFusion** | default | copilot-cli | 1.0.100 | 53 / 56 | 94.64% | 1 | 94.39% | $0.2932 | 272.0 s |
+| **HydraFusion** | default | copilot-cli | 1.0.97 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3416 | 316.4 s |
+| **HydraFusion** | default | copilot-cli | 1.0.101 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3527 | 218.9 s |
+| Claude Opus 5.5 | default | copilot-cli | 1.0.91 | 52 / 56 | 92.86% | 3 | 92.11% | $0.4792 | 180.8 s |
+| **HydraFusion** | default | copilot-cli | 1.0.95 | 51 / 56 | 91.07% | 0 | 91.07% | $0.3186 | 302.9 s |
+| **HydraFusion** | default | copilot-cli | 1.0.102 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3341 | 266.9 s |
+| Gemini 3.8 Flash | default | copilot-cli | 1.0.95 | 50 / 56 | 89.29% | 3 | 88.54% | $0.8911 | 801.5 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.102 | 50 / 56 | 89.29% | 4 | 88.29% | $0.0152 | 258.3 s |
+| Claude Opus 5.5 | default | copilot-cli | 1.0.95 | 49 / 56 | 87.50% | 5 | 86.25% | $0.5310 | 215.9 s |
+| Claude Opus 5 | default | copilot-cli | 1.0.91 | 48 / 56 | 85.71% | 2 | 85.21% | $1.0990 | 230.7 s |
+| Claude Opus 5.5 | default | copilot-cli | 1.0.102 | 48 / 56 | 85.71% | 4 | 84.71% | $0.4785 | 214.5 s |
+| MAI Code 1.1 Flash | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 5 | 80.89% | $0.0770 | 275.1 s |
+| GPT-5.6 Luna | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 6 | 80.64% | $0.0231 | 190.6 s |
+| GPT-5.6 Terra | default | copilot-cli | 1.0.96 | 44 / 56 | 78.57% | 2 | 78.07% | $0.2463 | 141.5 s |
 
 PASS@1 is the trial-level pass rate. P2P errors count trial patches that failed
-at least one pre-existing test. Average cost divides known cost by cost-bearing
+at least one pre-existing test. Score is `passes / trials - (p2p_errors * 0.0025)`,
+displayed as a percentage: each P2P error subtracts 0.25 percentage points.
+It is separate from PASS@1 and the Enterprise Score audit metric, is not
+clamped at zero, and is null for empty arms.
+
+Average cost divides known cost by cost-bearing
 logical trials; all rows in this table have 56/56 cost coverage. Average agent
 time uses actual agent-command durations, summed across whole-trial retries,
 and excludes preparation, evidence-copy, and verifier time. Equal K makes this

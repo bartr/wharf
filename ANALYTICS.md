@@ -40,6 +40,15 @@ wharf analytics manifest --data-directory data
 `--output` can place the manifest elsewhere. Without it, Wharf writes
 `data/manifest.json`.
 
+The manifest's regression-adjusted `score` is
+`passes / trials - (p2p_errors * 0.0025)`: each trial with a measured P2P
+regression subtracts 0.25 percentage points, regardless of how many tests it
+broke. The denominator includes every retained logical trial, including
+unscored failures. Store the score as a fraction and display it as a
+percentage; do not clamp negative values. An empty arm has a null score.
+This score is separate from PASS@1 and does not change DeepSWE reporting or
+the Enterprise Score audit metric.
+
 ## The metric: PASS@1
 
 ### Non-HVE cost comparison graph

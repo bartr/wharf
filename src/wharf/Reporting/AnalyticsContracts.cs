@@ -44,8 +44,17 @@ public sealed record AnalyticsTrial(
 public sealed record DataManifestEntry(
     [property: JsonPropertyName("arm")] string Arm,
     [property: JsonPropertyName("bytes_jsonl")] long BytesJsonl,
+    [property: JsonPropertyName("cli")] string? Cli,
+    [property: JsonPropertyName("cli_version")] string? CliVersion,
+    [property: JsonPropertyName("effort")] string? Effort,
+    [property: JsonPropertyName("model")] string? Model,
+    [property: JsonPropertyName("passes")] int Passes,
+    [property: JsonPropertyName("p2p_errors")] int P2PErrors,
+    [property: JsonPropertyName("score")] decimal? Score,
     [property: JsonPropertyName("scored")] int Scored,
     [property: JsonPropertyName("tasks")] int Tasks,
+    [property: JsonPropertyName("cost_per_trial_usd")] decimal? CostPerTrialUsd,
+    [property: JsonPropertyName("average_agent_seconds")] double? AverageAgentSeconds,
     [property: JsonPropertyName("total_cost_usd")] decimal? TotalCostUsd,
     [property: JsonPropertyName("trials")] int Trials,
     [property: JsonPropertyName("with_cost")] int WithCost);

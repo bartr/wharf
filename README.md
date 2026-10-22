@@ -122,6 +122,21 @@ To rebuild the manifest after exporting:
 wharf analytics manifest --data-directory data
 ```
 
+Each manifest entry includes the arm's model, effort, CLI and CLI version,
+passing trial count, P2P error count, cost per costed trial, and average
+agent-command time. It also retains trial/task totals, scored count, total
+cost, cost coverage, and JSONL byte size. `passes` counts trials with
+`reward > 0`; `p2p_errors` counts trials where the retained regression tests
+have fewer passes than tests; cost per trial excludes rows without cost; and
+average agent time averages rows with agent duration evidence. A JSONL file
+must contain a single consistent model, effort, CLI, and CLI version.
+
+The manifest also includes `score = passes / trials - (p2p_errors * 0.0025)`.
+Each P2P error subtracts 0.25 percentage points from the trial pass rate.
+The score is stored as a fraction, displayed as a percentage, and is not
+clamped at zero. Empty arms have a null score. This regression-adjusted score
+is separate from PASS@1.
+
 Export separate jobs to separate files when they must remain independently
 auditable. Merge only when the comparison contract defines them as one arm.
 
