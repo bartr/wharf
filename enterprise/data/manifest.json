@@ -306,6 +306,24 @@
     "with_cost": 56
   },
   {
+    "arm": "copilot-hydrafusion-default-1.0.104",
+    "bytes_jsonl": 37103,
+    "cli": "copilot-cli",
+    "cli_version": "1.0.104",
+    "effort": "default",
+    "model": "hydrafusion",
+    "passes": 51,
+    "p2p_errors": 3,
+    "score": 0.9032142857142857142857142857,
+    "scored": 56,
+    "tasks": 14,
+    "cost_per_trial_usd": 0.4028,
+    "average_agent_seconds": 196.7,
+    "total_cost_usd": 22.55,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
     "arm": "copilot-hydrafusion-default-1.0.95",
     "bytes_jsonl": 37846,
     "cli": "copilot-cli",
