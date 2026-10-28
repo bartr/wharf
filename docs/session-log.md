@@ -1005,3 +1005,33 @@ to origin, and record the tag URL without changing runtime code.
 * Framing quality, 1 to 5: 2
 * Drift, yes or no: yes
 * Close complete, yes or no: no, tag intentionally pending
+
+## Release session: 1.1.0, 2026-10-28
+
+* Start: 2026-10-28 11:49 CDT.
+* Goal: release the accumulated post-1.0 changes as 1.1.0 with versioned
+  release notes, automated qualification, Docker-backed smoke, and a pushed
+  release tag.
+* Out of scope: new runtime features, new benchmark campaigns, host mutation,
+  and changes to existing benchmark evidence.
+* Failure condition: publish a tag with an incorrect binary version, failed
+  qualification, or undocumented CLI/default changes.
+* Fit check: proceed; reuse the inspected post-1.0 commit history and existing
+  qualification commands. The release cut is metadata, documentation,
+  validation, commit, and tag, not additional implementation.
+* Drift: yes, bounded to a release-blocking package correction. Executing the
+  extracted Debian package found that the apphost's DLL and dependencies
+  were missing despite checksum/metadata checks passing.
+* Validation: 246/246 Release tests; 2/2 focused packaging tests; formatting,
+  Release/Debug builds, executable package, checksum, SBOM, secret scan,
+  read-only dry-run, and Docker .NET smoke passed. The smoke used HydraFusion,
+  CLI 1.0.105, and K=1/N=1/P=1; reward 1, F2P/P2P 1/1 each.
+* Evidence: `.github/tracking/2026-10-28-release-1.1.0-{research,plan,changes,review}.md`
+  and `jobs/release-1.1.0/`. The incomplete original package is retained.
+* Repository memory: reaffirmed failed-run recording before cleanup; added
+  executable-package qualification guidance to repository instructions.
+* Framing quality: 4/5.
+* Close: qualification complete; publication follows the release commit.
+* Next session: preserve failed-run evidence and use explicit model/effort
+  choices when comparing versions. No new benchmark or multi-host
+  qualification is implied by this release.

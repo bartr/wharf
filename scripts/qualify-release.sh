@@ -23,6 +23,13 @@ if git grep -nE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|sk-
 fi
 
 PATH="${HOME}/.dotnet:${PATH}" "$ROOT/scripts/package-wharf.sh" "$VERSION" "$WORK/package" >/dev/null
+dpkg-deb --extract "$WORK/package/wharf_${VERSION}_amd64.deb" "$WORK/extracted"
+PACKAGED_VERSION="$("$WORK/extracted/usr/bin/wharf" --version)"
+if [[ "$PACKAGED_VERSION" != "$VERSION" ]]; then
+  echo "packaged executable version mismatch: expected $VERSION, got $PACKAGED_VERSION" >&2
+  exit 1
+fi
+echo "packaged-executable=$PACKAGED_VERSION"
 (
   cd "$WORK/package"
   sha256sum -c SHA256SUMS

@@ -250,3 +250,10 @@ fraction, display it as a percentage, and leave negative values unclamped;
 empty arms have a null score. Keep score separate from PASS@1 and the
 Enterprise Score audit metric. Do not mix enterprise runs
 into DeepSWE analytics or rebuild the DeepSWE manifest for enterprise changes.
+
+Release packages must include the complete .NET publish output, not just the
+apphost executable. Qualification must extract the Debian package and execute
+its `usr/bin/wharf --version`, checking the requested version. Checksum, SBOM,
+and package metadata checks alone do not prove the packaged program can run.
+Retain failed package/run evidence and record the failure under
+`.github/tracking/` before replacing or deleting it.

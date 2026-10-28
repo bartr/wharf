@@ -1,6 +1,6 @@
-# Wharf 1.0.0
+# Wharf 1.1.0
 
-Wharf 1.0.0 is the first MVP release of the customer-controlled benchmark
+Wharf 1.1.0 builds on the first MVP release of the customer-controlled benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
@@ -16,21 +16,27 @@ Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
 
-The release is qualified by retained local summaries in `data/` and the
-corresponding Wharf and DeepSWE reference job directories maintained with the
-benchmark evidence. The final acceptance record is in
-[`docs/release-qualification.md`](docs/release-qualification.md).
+See [1.1.0 release notes](docs/RELEASE-NOTES-1.1.0.md) for migration details,
+including the removed double-dash concurrency flags and changed defaults.
+Qualification records are in
+[`docs/release-qualification.md`](docs/release-qualification.md). Historical
+benchmark summaries and their retained job directories remain separate
+evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
 ## Release highlights
 
 * Real non-dry-run benchmark execution through the integrated Wharf path.
 * Container-backed smoke validation and mountless agent/verifier execution.
-* Two unattended HydraFusion benchmark runs, including overnight execution
-  where applicable.
+* Correct container CLI version resolution, HydraFusion and provider-selected
+  effort defaults, and model/effort short options.
+* Expanded DeepSWE and enterprise benchmark evidence, with the enterprise
+  dataset retaining 24 K=4 arms and 1,344 logical trials.
 * Durable patches, logs, trajectories, verifier evidence, retries, timing,
   usage, cost, and recovery state.
 * Planned-denominator PASS@1, separate task accuracy, and portable JSONL
   analytics with manifest validation.
+* Richer analytics manifests with run identity, cost/time summaries, and a
+  separately labeled regression-adjusted score.
 
 ## Data Analytics Repro Guide
 

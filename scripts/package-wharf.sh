@@ -18,7 +18,7 @@ mkdir -p "$PACKAGE_ROOT/DEBIAN" "$PACKAGE_ROOT/usr/bin" "$PACKAGE_ROOT/usr/lib/w
 
 dotnet publish "$ROOT/src/wharf/wharf.csproj" --configuration Release --no-restore \
   -p:WharfVersion="$VERSION" --output "$WORK/publish" >/dev/null
-cp "$WORK/publish/wharf" "$PACKAGE_ROOT/usr/lib/wharf/wharf"
+cp -a "$WORK/publish/." "$PACKAGE_ROOT/usr/lib/wharf/"
 chmod 0755 "$PACKAGE_ROOT/usr/lib/wharf/wharf"
 ln -s ../lib/wharf/wharf "$PACKAGE_ROOT/usr/bin/wharf"
 cp "$ROOT/scripts/wharf-bootstrap.sh" "$PACKAGE_ROOT/usr/share/wharf/bootstrap.sh"

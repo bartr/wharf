@@ -1,4 +1,44 @@
-# Wharf 1.0.0 release qualification
+# Wharf release qualification
+
+## 1.1.0 checkpoint, 2026-10-28
+
+Release candidate: branch `1.1.0`, based on `8b099f9`, with version metadata
+and a packaging correction. All long-running checks ran in the foreground
+of tmux session `wharf-release-1-1-0` on z01.
+
+| Gate | Evidence | Status |
+| --- | --- | --- |
+| Formatting | `dotnet format wharf.slnx --verify-no-changes` | PASS |
+| Release build | `scripts/qualify-release.sh 1.1.0` | PASS |
+| Full Release tests | 246 passed, zero failed/skipped; 26.5 s | PASS |
+| Focused packaging regression | 2 passed; extracted package executable reports the requested version | PASS |
+| Secret-pattern scan | `scripts/qualify-release.sh 1.1.0` | PASS |
+| Debian package/checksum/SBOM | Retained under `jobs/release-1.1.0/package/` | PASS |
+| Packaged executable | Extracted package runs and reports `1.1.0` | PASS |
+| Docker-backed .NET smoke | HydraFusion, Copilot CLI 1.0.105, K=1/N=1/P=1; reward 1, F2P 1/1, P2P 1/1 | PASS |
+| Debug wrapper | Debug build and `./wharf --version` report `1.1.0` | PASS |
+| Read-only dry-run | New concurrency flags and defaults render without creating an output directory | PASS |
+| Package signature | No signing key configured; `SIGNING.txt` explicitly labels the package unsigned | NOT CONFIGURED |
+
+Smoke evidence is retained under
+`jobs/release-1.1.0/smoke/copilot-hydrafusion-default-1.0.105/smoke-1/`.
+Its patch is 330 bytes, agent-command duration 23.748 seconds, and measured
+cost 7.19 credits ($0.0719). No trial or verifier retries were required.
+Docker had no running containers after validation.
+
+An initial .NET smoke command used the default Go task root and exited 2
+before execution. More importantly, running the original extracted package
+revealed exit 154 from a missing `wharf.dll`, despite metadata/checksum gates
+passing. The package now includes the complete publish payload, with an
+executable regression test and qualification gate. Failed package evidence
+is retained separately under `jobs/release-1.1.0/package-incomplete/`.
+See the [changes record](../.github/tracking/2026-10-28-release-1.1.0-changes.md)
+and [review](../.github/tracking/2026-10-28-release-1.1.0-review.md).
+
+Historical benchmark results retain their original provenance; this
+checkpoint is not a new 113-task campaign or multi-host qualification.
+
+## Historical 1.0.0 qualification
 
 ## Ownership
 

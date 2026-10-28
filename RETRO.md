@@ -1,4 +1,4 @@
-# Wharf development, testing, and operations summary through 1.0.1
+# Wharf development, testing, and operations summary through 1.1.0
 
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
@@ -14,7 +14,9 @@ execution platform. Across 25 versioned development increments, the project
 moved from a CLI foundation to a deterministic, recoverable,
 evidence-preserving DeepSWE and Copilot execution platform. The subsequent
 `1.0.1` branch work corrected CLI version resolution, made provider-default
-effort the default, and extended the retained benchmark comparisons.
+effort the default, and extended the retained benchmark comparisons. Release
+1.1.0 brings those changes together with updated CLI conventions, richer
+analytics manifests, and an executable-package qualification gate.
 
 * The system now has explicit boundaries for configuration, Harbor task
   loading, host checks, image preparation, Copilot execution, agent isolation,
@@ -360,6 +362,22 @@ default (`215c685`), adopted single-dash concurrency flags with model and
 effort aliases (`de47b92`), and added run metadata plus a regression-adjusted
 score to the analytics manifest (`7d1cdbf`).
 
+### Release 1.1.0
+
+The accumulated post-1.0 work is released as 1.1.0; the intervening 1.0.1
+branch was not tagged. Release notes explicitly call out removed double-dash
+concurrency flags and changed model/effort defaults. Fresh qualification
+passed 246/246 Release tests, formatting, builds, and Docker-backed .NET smoke
+with HydraFusion and Copilot CLI 1.0.105.
+
+Executing the extracted Debian package caught a defect that checksum and
+metadata checks had missed: only the .NET apphost was packaged, leaving its
+DLL and runtime files absent. The package now includes the full publish
+output, and both regression tests and qualification execute the extracted
+artifact and check its version. The failed artifact and failure record were
+retained before replacement. See the
+[1.1.0 qualification](docs/release-qualification.md#110-checkpoint-2026-10-28).
+
 ## Operating at scale after 1.0.0
 
 ### Preparation concurrency is the stability control
@@ -540,6 +558,11 @@ evidence rather than inference.
 Append one bullet at the close of every Wharf implementation session. Record
 what was surprising and what should be done differently in the next session.
 
+- Release 1.1.0: A package can pass checksum, SBOM, and version-metadata checks
+  yet be impossible to execute. Validate the extracted deliverable, not just
+  its packaging structure. Retain failed artifacts and record the failure
+  before replacing them; the missing-DLL discovery immediately demonstrated
+  the value of the failed-run documentation lesson.
 - Session 20 (`0.20.0`): Release qualification must separate repeatable
   source-level gates from infrastructure evidence. Name ownership explicitly,
   fail automated checks loudly, and never convert unavailable signatures or
