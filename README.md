@@ -16,6 +16,14 @@ Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
 
+Wharf has been used to evaluate HydraFusion through successive Copilot CLI
+releases as it prepares to ship. On 2026-10-28, Microsoft announced the
+[Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
+the GitHub-built multi-model harness behind HydraFusion that Microsoft is
+standardizing on and offering through Microsoft Foundry. See the
+[retrospective](RETRO.md#microsoft-copilot-harness-announcement) for the
+retained HydraFusion evidence and its implications.
+
 See [1.1.0 release notes](docs/RELEASE-NOTES-1.1.0.md) for migration details,
 including the removed double-dash concurrency flags and changed defaults.
 Qualification records are in

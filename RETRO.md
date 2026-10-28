@@ -502,6 +502,46 @@ with the GitHub team; its VP said he "wants to be our new best friend."
 Several joint customer engagements are being planned, but none had started
 at this review.
 
+### Microsoft Copilot harness announcement
+
+On 2026-10-28, Microsoft announced the
+[Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
+the GitHub-built, multi-model agent harness that Microsoft has adopted
+company-wide. It powers Copilot Code, Copilot Studio, the GitHub Copilot app,
+the CLI, VS Code, and more, and is now available to developers and enterprise
+customers through
+[Microsoft Foundry](https://devblogs.microsoft.com/foundry/microsoft-copilot-harness-in-foundry)
+and the [Copilot SDK](https://github.com/github/copilot-sdk). The
+announcement credits the same GitHub engineers behind
+[HydraFusion multi-model orchestration](https://github.blog/ai-and-ml/github-copilot/project-hydrafusion-frontier-quality-via-multi-model-orchestration/)
+and says those technologies are only possible because GitHub built its own
+harness. It positions routing work to "the right model or models based on the
+task" as a reason not to build and evaluate a private harness or model router.
+
+Wharf has been evaluating HydraFusion as it prepares to ship. The announcement
+raises the importance of that work:
+
+* **The evaluated surface now has a much wider reach.** Wharf tests HydraFusion
+  through the Copilot CLI. That CLI runs on the harness Microsoft is now
+  standardizing on and offering to customers, so findings about it are relevant
+  far beyond one developer tool.
+* **Customers are being asked to trust routing they do not control.** The
+  announcement invites customers to rely on Microsoft to select models. Wharf
+  provides independent, customer-controlled evidence on whether that delegation
+  holds up in score, regression safety, cost, and time.
+* **Harness improvements need version-level checks.** Microsoft says harness
+  improvements benefit every surface it touches. Wharf's per-CLI-release
+  HydraFusion series is the mechanism for checking that claim and for detecting
+  regressions, such as the increase in P2P-error trials from 0-1 to 2-3 across
+  later versions, before customers do.
+* **Enterprise .NET evidence complements GitHub's benchmarks.** GitHub
+  publishes harness results on [benchmarks.github.com](https://benchmarks.github.com).
+  The 14-task C# enterprise suite and the 113-task DeepSWE suite add
+  customer-style workloads with retained, auditable evidence.
+
+These implications are this project's assessment, not claims from the
+announcement. The announcement does not cite Wharf or its results.
+
 ## Testing methodology
 
 Testing evolved from package-level tests into layered boundary and operational
