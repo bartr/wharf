@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Verified 2026-10-26 from twenty-three completed `all-1` runs. Each arm contains 14
+Verified 2026-10-27 from twenty-four completed `all-1` runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
@@ -23,6 +23,7 @@ All runs use default effort and the Copilot CLI.
 | **HydraFusion** | default | copilot-cli | 1.0.100 | 53 / 56 | 94.64% | 1 | 94.39% | $0.2932 | 272.0 s |
 | **HydraFusion** | default | copilot-cli | 1.0.97 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3416 | 316.4 s |
 | **HydraFusion** | default | copilot-cli | 1.0.101 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3527 | 218.9 s |
+| **HydraFusion** | default | copilot-cli | 1.0.105 | 52 / 56 | 92.86% | 2 | 92.36% | $0.2681 | 188.7 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.91 | 52 / 56 | 92.86% | 3 | 92.11% | $0.4792 | 180.8 s |
 | **HydraFusion** | default | copilot-cli | 1.0.95 | 51 / 56 | 91.07% | 0 | 91.07% | $0.3186 | 302.9 s |
 | **HydraFusion** | default | copilot-cli | 1.0.102 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3341 | 266.9 s |
@@ -63,6 +64,7 @@ the task-weighted, K-normalized mean as well.
 | HydraFusion 1.0.100 | 56 / 56 | $0.2932 | 272.0 s |
 | HydraFusion 1.0.97 | 56 / 56 | $0.3416 | 316.4 s |
 | HydraFusion 1.0.101 | 56 / 56 | $0.3527 | 218.9 s |
+| HydraFusion 1.0.105 | 56 / 56 | $0.2681 | 188.7 s |
 | Claude Opus 5.5 1.0.91 | 56 / 56 | $0.4792 | 180.8 s |
 | HydraFusion 1.0.95 | 56 / 56 | $0.3186 | 302.9 s |
 | HydraFusion 1.0.102 | 56 / 56 | $0.3341 | 266.9 s |
@@ -83,12 +85,12 @@ exported trial.
 
 ## Data coverage
 
-* Exported arms: 23
-* Exported logical trials: 1288
+* Exported arms: 24
+* Exported logical trials: 1344
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 1288 / 1288 trials
-* Agent and trial duration measurements: 1288 / 1288 trials
+* Functional and regression measurements: 1344 / 1344 trials
+* Agent and trial duration measurements: 1344 / 1344 trials
 * Trials with an exception category: 0
 
 The empty Gemini `all-2` directory is excluded.
