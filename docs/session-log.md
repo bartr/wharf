@@ -1031,7 +1031,11 @@ to origin, and record the tag URL without changing runtime code.
 * Repository memory: reaffirmed failed-run recording before cleanup; added
   executable-package qualification guidance to repository instructions.
 * Framing quality: 4/5.
-* Close: qualification complete; publication follows the release commit.
+* End: 2026-10-28 11:57 CDT.
+* Close complete: yes. Release commit `789294f` and annotated tag `1.1.0`
+  were pushed atomically; the remote peeled tag and branch identities were
+  verified. This closure record follows as a documentation-only commit.
+  No hosted GitHub Release was created because GitHub CLI is unauthenticated.
 * Next session: preserve failed-run evidence and use explicit model/effort
   choices when comparing versions. No new benchmark or multi-host
   qualification is implied by this release.
