@@ -1,4 +1,4 @@
-# Wharf development and testing summary through 1.0.1
+# Wharf development, testing, and operations summary through 1.0.1
 
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
@@ -50,12 +50,24 @@ effort the default, and extended the retained benchmark comparisons.
 
 The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
 unattended K=4 benchmark runs are retained in the repository, with some runs
-spanning an overnight window. Through the `1.0.1` branch checkpoint, the
-enterprise dataset contains 22 arms and 1232 logical trials with complete
-score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`; the
-`1.0.1` branch checkpoint is `5cc3dac`, with no `1.0.1` tag present at this
-review. Post-v1 repair/replay, hosted operations, additional agent products,
-and larger scale profiles remain outside the delivered scope.
+spanning an overnight window. Through the `1.0.1` branch at `e6fe024`, the
+enterprise dataset contains 24 arms and 1344 logical trials with complete
+score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`, and
+no `1.0.1` tag is present at this review. Post-v1 repair/replay, hosted
+operations, additional agent products, and multi-host distributed execution
+remain outside the delivered scope. Single-host concurrency is different:
+post-1.0 operation has exercised `N=32 P=12` as the z01 operating setting,
+enterprise runs at `N=64 P=16`, and `N` up to about 2.5 times the processor
+count, as described in
+[Operating at scale after 1.0.0](#operating-at-scale-after-100). These are
+operator-validated settings, not formally qualified scale profiles with
+published host-sizing recommendations.
+
+Since 1.0.0, sustained production use has become its own evidence stream. The
+operating sections below cover the cold-run preparation-concurrency lessons
+that made `P` essential, the 14-task .NET enterprise benchmark built with
+Wharf, and a ten-version HydraFusion CLI series that made the team an early,
+credible HydraFusion tester.
 
 ## Development approach
 
@@ -248,9 +260,11 @@ build, formatting verification, and Docker-backed smoke with Copilot CLI
 1.0.96. The old `1.0.0` tag was removed, and its replacement points to
 `1ab71c4`, with `54c887b` as its validated runtime ancestor.
 
-The release is intentionally bounded. Repair and replay workflows, hosted
-dashboards, alternate agent products, distributed orchestration, and larger
-post-v1 scale profiles remain future work.
+The release was intentionally bounded. At the 1.0.0 close, repair and replay
+workflows, hosted dashboards, alternate agent products, distributed
+orchestration, and larger post-v1 scale profiles were future work. Post-1.0
+operation has since exercised larger single-host concurrency settings; see
+[Operating at scale after 1.0.0](#operating-at-scale-after-100).
 
 ### Post-1.0 hardening and benchmark reporting: 1.0.1
 
@@ -340,6 +354,135 @@ evidence is unavailable. Missing costs are never imputed, including from
 batch-level bills. The [DeepSWE analytics notes](ANALYTICS.md) and
 [enterprise summary](enterprise/data/summary.md) retain the detailed metric
 definitions and coverage.
+
+Later `1.0.1` branch work made HydraFusion with model-selected effort the
+default (`215c685`), adopted single-dash concurrency flags with model and
+effort aliases (`de47b92`), and added run metadata plus a regression-adjusted
+score to the analytics manifest (`7d1cdbf`).
+
+## Operating at scale after 1.0.0
+
+### Preparation concurrency is the stability control
+
+Before preparation had its own gate, large runs failed with Docker write
+errors that terminated the entire run, often close to an hour in. Cold runs
+were the worst case because every task needed image pulls, derived-image
+builds, CLI payload setup, and workspace creation at the same time, but warm
+runs could also fail. The operating conclusion is that trial concurrency
+(`N`) and preparation concurrency (`P`) are different resources: `N` is mostly
+bounded by CPU and memory while agents run, whereas `P` protects the Docker
+daemon, storage driver, and disk from bursts of preparation I/O.
+
+On the 16-core z01 host, the operating setting is `N=32 P=12`. The limit is a
+combination of processor and disk pressure. A higher `P` is possible on warm
+runs, but saves only about a minute there, so the cold-run value is used for
+every run rather than trading a small warm-run gain for the risk of losing
+hours of benchmark work. Operators have also run `N` up to about 2.5 times the
+processor count; the CPU stays pegged for hours, yet Wharf completes without
+throwing errors.
+
+Retained preparation-gate telemetry shows the cost of this safety margin is
+seconds, not hours:
+
+| Runs | Setting | Peak active / queued | Median wait | Worst wait |
+| --- | --- | ---: | ---: | ---: |
+| DeepSWE HydraFusion 1.0.98, 113 tasks, K=4, 918 acquisitions, 6.0 h | `N=32 P=12` | 12 / 20 | 0 s | 30 s |
+| Enterprise HydraFusion 1.0.98, 1.0.101, 1.0.103-1.0.105, 112 acquisitions each | `N=32 P=12` | 12 / 20 | 0 s | 27 s |
+| Enterprise runs at `N=64 P=16`, 112 acquisitions each | `N=64 P=16` | 16 / 40 | 0 s | 45 s |
+
+The gate reached capacity and built a queue in every measured run, which is
+what it is for: it absorbs the burst instead of passing it to Docker. The
+enterprise runs contain only 56 trials, so `N=64` cannot exceed 56 concurrent
+trials there. The retained telemetry measures queueing; the earlier Docker
+write-error failures are operator observations from runs before the shared
+gate and are not reconstructed from these logs.
+
+### Failed runs need durable records before cleanup
+
+A failed benchmark run is still an experiment with useful results. In
+practice, failed job directories were often deleted because the run had
+failed, removing the only detailed evidence of what happened. That left
+later analysis dependent on operator recollection. When preparing this
+retrospective, the LLM had to ask about the importance of `P` because the
+failed-run evidence that would have explained the decision was no longer
+available.
+
+For future runs, record the run information and results in
+[`.github/tracking/`](.github/tracking/) before deleting a failed job
+directory. The record should include:
+
+* Run identity, date, source commit, Wharf and Copilot CLI versions, model,
+  dataset/task revision, effective configuration, and `K`, `N`, and `P`.
+* Host and resource details, cold/warm image-cache state, elapsed time,
+  completed and failed trial counts, and available cost coverage.
+* The observed failure, exact errors, relevant log excerpts and resource or
+  preparation-gate telemetry, and any evidence retained elsewhere.
+* The diagnosis, clearly separating observations from hypotheses, the change
+  made, and the outcome of any follow-up run.
+
+Keep the record secret-free and preserve the minimal supporting evidence
+needed to substantiate its conclusions. A summary does not replace raw
+evidence required for scoring or audit; identify anything deleted or missing
+explicitly. This makes failed runs durable engineering knowledge rather than
+discarded work, gives future LLM sessions better evidence, and avoids having
+to reconstruct decisions such as preparation-concurrency limits from memory.
+
+### Enterprise benchmark: .NET coverage at a fraction of the cost
+
+The project used Wharf's own release history to build `fe-labs/enterprise-1.0`,
+a 14-task C# benchmark under `enterprise/tasks/`. Each task reconstructs a
+real Wharf release boundary, including the scheduler, recovery, verifier,
+Copilot adapter, image preparation, packaging, and reporting, from a pinned
+base commit. Agents run without network access under a 60-minute timeout, and
+separate verifiers apply the retained patch in a fresh environment.
+
+The suite fills two gaps in DeepSWE:
+
+* It adds .NET and enterprise-style service coverage that the 113-task
+  DeepSWE suite does not provide.
+* It is much cheaper and faster to repeat. A K=4 enterprise arm is 56 trials;
+  the latest HydraFusion arm cost $15.01 and completed in about 9.5 minutes of
+  run time. The comparable DeepSWE HydraFusion 1.0.98 K=4 arm was 452 trials,
+  cost $546.71, and took about 6 hours.
+
+Building the suite was its own engineering effort. Reflection and API-shape
+checks were replaced with executable contract tests, pass-to-pass regression
+checks were kept separate, and every baseline and reference patch was
+validated before results were exported. The two suites remain separate
+datasets with separate manifests; their pass rates are not interchangeable.
+The enterprise suite is a fast regression and comparison signal, while
+DeepSWE remains the broader, more expensive benchmark.
+
+### HydraFusion CLI series
+
+The low cost of the enterprise suite made it practical to test each new
+Copilot CLI release with HydraFusion as it shipped. Wharf has produced ten
+enterprise HydraFusion arms, 560 logical trials at a total cost of $192.38,
+plus three DeepSWE HydraFusion arms.
+
+| CLI | Passes | PASS@1 | P2P errors | Cost / trial | Agent time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1.0.95 | 51/56 | 91.07% | 0 | $0.3186 | 302.9 s |
+| 1.0.96 | 54/56 | 96.43% | 1 | $0.3197 | 272.5 s |
+| 1.0.97 | 52/56 | 92.86% | 1 | $0.3416 | 316.4 s |
+| 1.0.98 | 54/56 | 96.43% | 0 | $0.4116 | 234.8 s |
+| 1.0.100 | 53/56 | 94.64% | 1 | $0.2932 | 272.0 s |
+| 1.0.101 | 52/56 | 92.86% | 1 | $0.3527 | 218.9 s |
+| 1.0.102 | 51/56 | 91.07% | 2 | $0.3341 | 266.9 s |
+| 1.0.103 | 51/56 | 91.07% | 2 | $0.3930 | 229.4 s |
+| 1.0.104 | 51/56 | 91.07% | 3 | $0.4028 | 196.7 s |
+| 1.0.105 | 52/56 | 92.86% | 2 | $0.2681 | 188.7 s |
+
+PASS@1 stayed between 91.07% and 96.43%. Mean agent time fell from roughly
+300 seconds on early versions to 189 seconds on 1.0.105, and 1.0.105 had the
+lowest cost per trial in the series. These are observed version-to-version
+comparisons rather than controlled causal tests, because model behavior and
+service conditions can also change between runs.
+
+This sustained, evidence-backed testing gave the team immediate credibility
+with the GitHub team; its VP said he "wants to be our new best friend."
+Several joint customer engagements are being planned, but none had started
+at this review.
 
 ## Testing methodology
 
@@ -521,3 +664,10 @@ what was surprising and what should be done differently in the next session.
   exports, distinguish unknown measurements from zero, round only at
   presentation, and do not attribute benchmark deltas to a CLI change without
   a controlled comparison.
+- Post-1.0 operations (`1.0.1`): The failures that matter most at scale
+  appeared only in long, cold, real runs, close to an hour in, and lost the
+  whole run. Size preparation concurrency for the cold case and use it for
+  every run; the measured cost is under a minute of queueing, while the
+  avoided risk is hours of lost benchmark work. A cheap, purpose-built suite
+  turned version-by-version testing from an occasional event into a routine
+  that produced credible external evidence.
