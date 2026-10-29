@@ -228,6 +228,24 @@ Docker-backed verifier-capture suite, passing focused ECR-child,
 role-prefix, and capture tests, a real retained verifier rerun, formatting,
 whitespace, cleanup, and image-preservation checks.
 
+#### Operator observation: challenge confident infrastructure advice
+
+Early in development, the LLM proposed sharing Docker volumes between the
+host and containers. The operator questioned the approach, but the LLM
+continued to recommend it. In later runs, many upstream task images ran as
+root, and the shared-volume workflow encountered repeated permission
+problems. After Wharf moved to Docker-managed images and explicit artifact
+transfer with `docker cp`, the operator observed that the permission errors
+disappeared and caching improved substantially.
+
+This is an operator account, not a result reconstructed from retained
+telemetry. The record does not establish which individual change caused the
+caching improvement, nor does the operator know exactly what prompted the
+initial concern. The useful lesson is that the concern was worth turning
+into a test: a plausible, confidently defended recommendation still needs
+to be evaluated against the actual users, images, ownership model, and
+workload.
+
 ### Release 1.0.0
 
 Wharf 1.0.0 closes the MVP qualification arc. The release accepts the
