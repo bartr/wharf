@@ -50,6 +50,9 @@ evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
 This file documents how to reproduce the benchmark comparisons from `data/*.jsonl` with the same metric definitions used in this repo.
 
+Recurring enterprise results intended for public charts follow the
+[published benchmark methodology](docs/published-benchmarks.md).
+
 ## Current benchmark results
 
 Non-HVE runs, sorted by PASS@1 descending, then P2P errors ascending, then
