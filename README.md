@@ -31,6 +31,15 @@ Qualification records are in
 benchmark summaries and their retained job directories remain separate
 evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
+## Frontier Engineering case study
+
+Wharf remains the benchmark runner and source of its development and operating
+evidence. The derived training material is maintained in
+[fe-core](https://github.com/frontier-engineering/fe-core):
+the [Wharf knowledge pack](https://github.com/frontier-engineering/fe-core/blob/main/docs/knowledge/README.md)
+and [draft train-the-trainer plan](https://github.com/frontier-engineering/fe-core/blob/main/docs/ttt-facilitator-plan.md).
+Wharf is a workshop example, not part of the offering.
+
 ## Release highlights
 
 * Real non-dry-run benchmark execution through the integrated Wharf path.
