@@ -53,6 +53,10 @@ Facilitators can use this pack as a template. A team that follows the
 method on its own work produces its own evidence, and that evidence can
 become its own lessons, failure labs, and assessments.
 
+The draft [train-the-trainer plan](../ttt-facilitator-plan.md) applies this
+approach to a familiar URL-shortener exercise across discovery and
+specification, implementation, and operations.
+
 ## How this extends the method
 
 The method normally produces software plus tracking evidence. This pack adds a
