@@ -126,6 +126,15 @@
     "with_cost": 445
   },
   {
+    "arm": "copilot-gpt-6-astra-default-1.0.105",
+    "bytes_jsonl": 317507,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 1829.93,
+    "trials": 452,
+    "with_cost": 450
+  },
+  {
     "arm": "copilot-gpt-6-astra-max-1.0.91",
     "bytes_jsonl": 339024,
     "scored": 452,
