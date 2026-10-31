@@ -144,6 +144,15 @@
     "with_cost": 447
   },
   {
+    "arm": "copilot-gpt-6-luna-default-1.0.105",
+    "bytes_jsonl": 315771,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 39.91,
+    "trials": 452,
+    "with_cost": 449
+  },
+  {
     "arm": "copilot-gpt-6-luna-max-1.0.91",
     "bytes_jsonl": 339371,
     "scored": 452,
