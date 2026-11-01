@@ -63,7 +63,7 @@ public sealed class RunServiceTests
             RunService.ResolveCredential(new SecretSettings());
 
         Assert.Equal(CopilotCredentialSourceKind.File, source.Kind);
-        Assert.Equal("~/.secrets/copilot_a", source.Reference);
+        Assert.Equal("~/.wharf/copilot", source.Reference);
         Assert.Null(value);
     }
 

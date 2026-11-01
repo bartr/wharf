@@ -1184,7 +1184,7 @@ public sealed class RunService
         return configuredCredential is null
             ? (new CopilotCredentialSource(
                 CopilotCredentialSourceKind.File,
-                "~/.secrets/copilot_a"), null)
+                "~/.wharf/copilot"), null)
             : (new CopilotCredentialSource(
                 CopilotCredentialSourceKind.Environment,
                 "GH_TOKEN"), configuredCredential);
