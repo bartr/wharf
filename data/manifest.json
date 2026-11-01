@@ -162,6 +162,15 @@
     "with_cost": 452
   },
   {
+    "arm": "copilot-gpt-6.1-sol-default-1.0.105",
+    "bytes_jsonl": 317161,
+    "scored": 452,
+    "tasks": 113,
+    "total_cost_usd": 286.76,
+    "trials": 452,
+    "with_cost": 448
+  },
+  {
     "arm": "copilot-hydrafusion-default-1.0.105",
     "bytes_jsonl": 317229,
     "scored": 452,
