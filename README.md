@@ -16,6 +16,11 @@ Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
 
+When no run credential is configured, Wharf reads the Copilot token from
+`~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
+location; Wharf no longer reads the old path. Configured credentials still
+override the local file. A missing or empty token file fails explicitly.
+
 Wharf has been used to evaluate HydraFusion through successive Copilot CLI
 releases as it prepares to ship. On 2026-10-28, Microsoft announced the
 [Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
