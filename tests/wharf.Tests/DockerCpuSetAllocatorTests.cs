@@ -1,5 +1,6 @@
 using Wharf.Agent;
 using Wharf.Docker;
+using Wharf.Run;
 
 namespace Wharf.Tests;
 
@@ -125,5 +126,32 @@ public sealed class DockerCpuSetAllocatorTests
             throw new InvalidOperationException("legacy runs must not probe"));
 
         Assert.Null(await allocator.AllocateAsync("prepared-image", null, 0, CancellationToken.None));
+    }
+
+    [Theory]
+    [InlineData("smoke", 1, 1, 1)]
+    [InlineData("all", 1, 1, 4)]
+    [InlineData("smoke", 2, 4, 4)]
+    [InlineData("all", 1, 4, 1)]
+    [InlineData("all", 2, 4, 1)]
+    public async Task ExemptRunsDoNotProbeDockerOrAllocateACpuSet(
+        string prefix, int taskCount, int k, int n)
+    {
+        using var allocator = new DockerCpuSetAllocator((_, _) =>
+            throw new InvalidOperationException("exempt runs must not probe Docker"));
+        int? limit = RunService.ResolveContainerCpuLimit(4, taskCount, k, n, prefix);
+
+        Assert.Null(await allocator.AllocateAsync(
+            "prepared-image", limit, 0, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ConcurrentAttemptsOfOneTaskStillAllocateACpuSet()
+    {
+        using var allocator = new DockerCpuSetAllocator((_, _) => Task.FromResult("0-15"));
+        int? limit = RunService.ResolveContainerCpuLimit(8, 1, 4, 4, "all");
+
+        Assert.Equal("0,1,2,3,4,5,6,7", await allocator.AllocateAsync(
+            "prepared-image", limit, 0, CancellationToken.None));
     }
 }

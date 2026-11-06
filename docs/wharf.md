@@ -52,9 +52,17 @@ Configure a positive integer through `wharf run --container-cpus 8`,
 flag, environment, manifest, then default. Dry-run renders the configured
 limit without contacting Docker or creating resources.
 
-Wharf discovers usable CPU IDs once per run through a short-lived, networkless
-probe container using an already prepared agent image, inside the preparation
-gate. This reads the Docker host's actual allowed CPU list rather than assuming
+Smoke tests, runs with N=1, and runs with only one logical trial do not constrain
+agent or verifier CPUs, even with an explicit CPU limit. They also skip CPU
+discovery. A single selected task with K>1 and N>1 still uses the configured CPU
+limit because its attempts can execute concurrently. Resume uses the original
+retained task selection and K, with the effective N; a concurrent run does not
+become exempt just because only one trial remains.
+
+For constrained runs, Wharf discovers usable CPU IDs once per run through a
+short-lived, networkless probe container using an already prepared agent image,
+inside the preparation gate. This reads the Docker host's actual allowed CPU
+list rather than assuming
 the CLI host and Docker host are the same or that CPU IDs are contiguous.
 The probe is explicitly removed, including on cancellation or failure.
 

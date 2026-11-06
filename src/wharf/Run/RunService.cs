@@ -93,6 +93,13 @@ public sealed class RunService
         if (tasks.Count == 0)
             throw new RunException($"run task directory contains no task.toml files: {resolvedRoot}");
 
+        int? containerCpuLimit = ResolveContainerCpuLimit(
+            configuration.ContainerCpus,
+            tasks.Count,
+            configuration.K,
+            configuration.N,
+            attemptPrefix,
+            resume?.RunDirectory);
         IReadOnlyList<TaskAttempt> scheduledAttempts = resume is null
             ? TaskSelector.OrderAttemptsForAdmission(
                 TaskSelector.ExpandAttempts(tasks, configuration.K),
@@ -336,11 +343,11 @@ public sealed class RunService
 
                             string? cpuSet = await cpuAllocator.AllocateAsync(
                                 image,
-                                configuration.ContainerCpus,
+                                containerCpuLimit,
                                 item.index,
                                 preparationCancellationToken);
                             logger.Info(
-                                $"{prefix} container-cpus={configuration.ContainerCpus?.ToString() ?? "unrestricted"} " +
+                                $"{prefix} container-cpus={containerCpuLimit?.ToString() ?? "unrestricted"} " +
                                 $"cpu-set={cpuSet ?? "unrestricted"}");
                             var request = new AgentExecutionRequest(
                                 task.TaskId,
@@ -1232,6 +1239,22 @@ public sealed class RunService
 
     internal static string BuildPromptArgument(string prompt) =>
         $"--prompt={prompt}";
+
+    internal static int? ResolveContainerCpuLimit(
+        int? configuredLimit,
+        int taskCount,
+        int k,
+        int n,
+        string attemptPrefix,
+        string? resumeDirectory = null)
+    {
+        int selectedTaskCount = resumeDirectory is null
+            ? taskCount
+            : RetainedRunMetadataStore.Read(resumeDirectory)?.Tasks.Count ?? taskCount;
+        return attemptPrefix == "smoke" || n == 1 || (selectedTaskCount == 1 && k == 1)
+            ? null
+            : configuredLimit;
+    }
 
     internal static bool ShouldRunVerifier(string? patch) =>
         !string.IsNullOrWhiteSpace(patch);

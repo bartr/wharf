@@ -22,6 +22,8 @@ or manifest `containerCpus`; flag, environment, manifest, then default take
 precedence. If Docker has no more usable CPUs than the configured limit, Wharf
 omits the affinity restriction. See [container CPU policy](docs/wharf.md#container-cpu-policy)
 for allocation, resume, and runtime-discovery details.
+Smoke tests, runs with N=1, and runs with only one logical trial are unrestricted.
+A single task with K>1 and N>1 still uses the configured CPU limit.
 
 When no run credential is configured, Wharf reads the Copilot token from
 `~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
