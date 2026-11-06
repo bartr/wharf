@@ -25,6 +25,13 @@ for allocation, resume, and runtime-discovery details.
 Smoke tests, runs with N=1, and runs with only one logical trial are unrestricted.
 A single task with K>1 and N>1 still uses the configured CPU limit.
 
+For agent-free infrastructure comparisons, use `wharf run --no-op` to measure
+container preparation and lifecycle without grading, or `wharf run --oracle`
+to execute each task's existing `solution/solve.sh` and grade its output in a
+fresh verifier workspace. Combining `--no-op --oracle` runs both stages in each
+logical trial, without doubling K. These modes never invoke Copilot and retain
+separate baseline jobs and timing summaries. See [baseline runs](docs/wharf.md#agent-free-baseline-runs).
+
 When no run credential is configured, Wharf reads the Copilot token from
 `~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
 location; Wharf no longer reads the old path. Configured credentials still

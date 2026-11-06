@@ -13,7 +13,8 @@ public sealed record VerifierRequest(
     string? Image = null,
     string? EvidenceDirectory = null,
     string? ArtifactsDirectory = null,
-    string? CpuSet = null)
+    string? CpuSet = null,
+    bool AllowEmptyPatch = false)
 {
     public void Validate()
     {

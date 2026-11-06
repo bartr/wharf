@@ -20,7 +20,9 @@ public sealed record RunManifest(
     [property: JsonPropertyName("retainWorkspaces")] bool? RetainWorkspaces = null,
     [property: JsonPropertyName("resourcePolicy")] string? ResourcePolicy = null,
     [property: JsonPropertyName("credentials")] SecretSettings? Credentials = null,
-    [property: JsonPropertyName("containerCpus")] int? ContainerCpus = null);
+    [property: JsonPropertyName("containerCpus")] int? ContainerCpus = null,
+    [property: JsonPropertyName("noOp")] bool? NoOp = null,
+    [property: JsonPropertyName("oracle")] bool? Oracle = null);
 
 public sealed record PhaseTimeouts(
     [property: JsonPropertyName("setupSeconds")] int? SetupSeconds = null,
@@ -64,7 +66,9 @@ public sealed record RunConfiguration(
     string ResourcePolicy,
     SecretSettings Credentials,
     bool ShortestFirst = false,
-    int? ContainerCpus = null);
+    int? ContainerCpus = null,
+    bool NoOp = false,
+    bool Oracle = false);
 
 public sealed record RunConfigurationOverrides(
     int? K = null,
@@ -77,7 +81,9 @@ public sealed record RunConfigurationOverrides(
     bool? RetainWorkspaces = null,
     bool? ShortestFirst = null,
     string? CliVersion = null,
-    int? ContainerCpus = null);
+    int? ContainerCpus = null,
+    bool? NoOp = null,
+    bool? Oracle = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -215,7 +221,9 @@ public static class RunConfigurationResolver
             manifest.ResourcePolicy ?? "default",
             credentials,
             overrides.ShortestFirst ?? false,
-            containerCpus);
+            containerCpus,
+            overrides.NoOp ?? manifest.NoOp ?? false,
+            overrides.Oracle ?? manifest.Oracle ?? false);
     }
 
     private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name) =>

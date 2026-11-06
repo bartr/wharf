@@ -42,7 +42,7 @@ public sealed class PristineVerifierService
         CancellationToken cancellationToken = default)
     {
         request.Validate();
-        if (string.IsNullOrWhiteSpace(patch))
+        if (string.IsNullOrWhiteSpace(patch) && !request.AllowEmptyPatch)
         {
             throw new VerifierExecutionException("retained patch must not be empty");
         }
@@ -61,7 +61,8 @@ public sealed class PristineVerifierService
                     "pristine workspace reused the agent workspace");
             }
 
-            await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(patch))
+                await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
             return new PreparedVerifierRun(
                 request,
                 patch,

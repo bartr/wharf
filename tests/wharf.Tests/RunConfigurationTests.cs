@@ -5,6 +5,28 @@ namespace Wharf.Tests;
 
 public sealed class RunConfigurationTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void BaselineModesAreRetainedAndRendered(bool noOp, bool oracle)
+    {
+        var manifest = new RunManifest(NoOp: noOp, Oracle: oracle);
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            manifest, new RunConfigurationOverrides(), new Dictionary<string, string?>());
+        Assert.Equal(noOp, configuration.NoOp);
+        Assert.Equal(oracle, configuration.Oracle);
+        using JsonDocument document = JsonDocument.Parse(RunConfigurationRenderer.Render(configuration, "json"));
+        Assert.Equal(noOp, document.RootElement.GetProperty("noOp").GetBoolean());
+        Assert.Equal(oracle, document.RootElement.GetProperty("oracle").GetBoolean());
+        RunConfiguration overridden = RunConfigurationResolver.Resolve(
+            manifest, new RunConfigurationOverrides(NoOp: !noOp, Oracle: !oracle),
+            new Dictionary<string, string?>());
+        Assert.Equal(!noOp, overridden.NoOp);
+        Assert.Equal(!oracle, overridden.Oracle);
+    }
+
     [Fact]
     public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
     {

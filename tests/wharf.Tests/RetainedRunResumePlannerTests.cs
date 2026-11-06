@@ -8,6 +8,19 @@ namespace Wharf.Tests;
 
 public sealed class RetainedRunResumePlannerTests : IDisposable
 {
+    [Fact]
+    public void BaselineResumeRestoresModeWithoutRequiringACopilotJobName()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 2, selectedTaskCount: 1, noOp: true);
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(fixture.RunDirectory);
+        Assert.True(plan.Configuration.NoOp);
+        Assert.False(plan.Configuration.Oracle);
+        Assert.Equal(2, plan.Attempts.Count);
+        Assert.Equal("test-model", plan.Model);
+        Assert.Equal("1.0.95", plan.CliVersion);
+        Assert.Equal(3, plan.Configuration.ContainerCpus);
+    }
+
     private static string FixtureRoot =>
         Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../fixtures/harbor"));
 
@@ -231,11 +244,12 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
     private RetainedRunFixture CreateRun(
         int k,
         string effort = "max",
-        int? selectedTaskCount = null)
+        int? selectedTaskCount = null,
+        bool noOp = false)
     {
         string runDirectory = Path.Combine(
             temporaryRoot,
-            $"copilot-test-model-{effort}-1.0.95",
+            noOp ? "baseline-no-op" : $"copilot-test-model-{effort}-1.0.95",
             "all-1");
         Directory.CreateDirectory(runDirectory);
         IReadOnlyList<HarborTask> loadedTasks =
@@ -261,7 +275,8 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             true,
             "default",
             new SecretSettings(Token: "should-not-persist"),
-            ContainerCpus: 3);
+            ContainerCpus: 3,
+            NoOp: noOp);
         WriteJson(
             Path.Combine(runDirectory, "run.jsonl"),
             new

@@ -44,6 +44,55 @@ enterprise benchmarks from Harbor task definitions.
 
 ## Post-MVP execution and scale requirements
 
+### Agent-free baseline runs
+
+Use the normal task selection, K/N/P, timeout, retention, and CPU-affinity
+options with these opt-in `wharf run` modes:
+
+```bash
+wharf run --tasks enterprise/tasks --no-op -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --oracle -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
+```
+
+- `--no-op` prepares a task image without Copilot, creates and starts a
+  container, prepares its workspace, executes a no-op, retains evidence, and
+  removes the container and its task-derived image. No verifier runs.
+- `--oracle` executes the task's existing `solution/solve.sh` in a trusted
+  container, retains a binary patch including committed and new files, and
+  grades that patch in a separate pristine verifier workspace/container.
+  Solution files never enter an AI agent or the pristine grading workspace.
+- With both flags, the no-op runs first, followed by the oracle and grading
+  stages in the same logical trial. Fourteen tasks at K=10 still means 140
+  trials, not 280. Baseline preparation uses P, execution uses N, and neither
+  no-op/oracle commands nor grading hold a preparation permit.
+
+Neither mode resolves a Copilot version or credentials, installs the Copilot
+payload, or invokes an AI agent. Model, effort, and CLI selections do not
+execute in baseline mode. Oracle scripts are trusted task code, run as root
+inside their isolated container, and must already exist for every selected
+task; missing scripts fail before output directories are created. No-op
+execution uses UID 1000:1000, the same memory/PID limits and bridge network as
+agent containers, and optional CPU affinity. Images are still prepared from
+the task environment, so these baselines do not measure Copilot payload
+installation.
+
+Manifests accept `"noOp": true` and `"oracle": true`. Flags override manifest
+settings. `--dry-run` renders the mode without Docker, credential access, or
+output creation. Job parents are `baseline-no-op`, `baseline-oracle`, or
+`baseline-no-op-oracle`. Retained configuration preserves the mode on resume;
+oracle resume also checks a digest of the complete reference solution directory.
+
+Each trial retains versioned baseline command results and stdout/stderr under
+`baseline/`, the oracle patch under `artifacts/`, normal verifier evidence when
+graded, and an atomic terminal `result.json`. `baseline-summary.json` retains
+trial timings, command durations, outcomes, and known zero AI cost/agent time.
+No-op-only completion is explicitly ungraded, not a passing model trial.
+Baseline results are excluded from model-score analytics exports; compare
+their timing summaries separately. Verifier timeout/infrastructure retries
+reuse the exact oracle patch with fresh verifier preparation and retained
+retry evidence. Baseline command/preparation failures remain terminal failures.
+
 ### Container CPU policy
 
 New runs default to unrestricted CPUs per agent and verifier container.

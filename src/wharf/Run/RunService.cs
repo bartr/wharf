@@ -93,6 +93,13 @@ public sealed class RunService
         if (tasks.Count == 0)
             throw new RunException($"run task directory contains no task.toml files: {resolvedRoot}");
 
+        if (configuration.NoOp || configuration.Oracle)
+        {
+            return new BaselineRunService(imagePreparer).Execute(
+                resolvedRoot, outputDirectory, configuration, logger, tasks,
+                attemptPrefix, cancellationToken, resume);
+        }
+
         int? containerCpuLimit = ResolveContainerCpuLimit(
             configuration.ContainerCpus,
             tasks.Count,
@@ -1039,13 +1046,13 @@ public sealed class RunService
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-    private static string ResolveVerifierSource(HarborTask task)
+    internal static string ResolveVerifierSource(HarborTask task)
     {
         string appDirectory = Path.Combine(task.RootPath, "environment", "app");
         return Directory.Exists(appDirectory) ? appDirectory : task.RootPath;
     }
 
-    private static string VerifierCommandFor(string language) =>
+    internal static string VerifierCommandFor(string language) =>
         language.Trim().ToLowerInvariant() switch
         {
             "go" => "go test ./...",
@@ -1054,7 +1061,7 @@ public sealed class RunService
             _ => "true"
         };
 
-    private static async Task<string?> PrepareVerifierImageAsync(
+    internal static async Task<string?> PrepareVerifierImageAsync(
         HarborTask task,
         string trialDirectory,
         string runId,
@@ -1216,7 +1223,7 @@ public sealed class RunService
         double defaultSeconds) =>
         configuredSeconds ?? taskSeconds ?? defaultSeconds;
 
-    private static string CreateAttemptDirectory(string jobDirectory, string prefix)
+    internal static string CreateAttemptDirectory(string jobDirectory, string prefix)
     {
         for (int attempt = 1; ; attempt++)
         {
@@ -1278,7 +1285,7 @@ public sealed class RunService
                 .Order(StringComparer.Ordinal)
         ];
 
-    private static void CleanupVerifierImage(
+    internal static void CleanupVerifierImage(
         string image,
         WharfLogger logger,
         string prefix)

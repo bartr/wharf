@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Wharf.Configuration;
 using Wharf.Tasks;
+using Wharf.Run;
 
 namespace Wharf.Recovery;
 
@@ -51,9 +52,14 @@ public sealed class RetainedRunResumePlanner
         if (!File.Exists(logPath))
             throw new RecoveryException($"resume run log does not exist: {logPath}");
 
-        Match arm = ArmPattern.Match(
-            Directory.GetParent(resolvedRun)?.Name ?? string.Empty);
-        if (!arm.Success)
+        RetainedRunMetadata? retainedMetadata =
+            RetainedRunMetadataStore.Read(resolvedRun);
+        bool baseline = retainedMetadata?.Configuration is { NoOp: true } or { Oracle: true };
+        string parentName = Directory.GetParent(resolvedRun)?.Name ?? string.Empty;
+        Match arm = ArmPattern.Match(parentName);
+        if (baseline && parentName != BaselineRunService.BuildJobDirectoryName(retainedMetadata!.Configuration))
+            throw new RecoveryException("baseline resume directory does not match the retained execution mode");
+        if (!arm.Success && !baseline)
         {
             throw new RecoveryException(
                 "resume run parent must use copilot-<model>-<effort>-<version>");
@@ -68,8 +74,6 @@ public sealed class RetainedRunResumePlanner
             metadata,
             "p",
             "preparation concurrency");
-        RetainedRunMetadata? retainedMetadata =
-            RetainedRunMetadataStore.Read(resolvedRun);
         int retainedTaskConcurrency = retainedMetadata?.Configuration.N ??
             loggedTaskConcurrency;
         int retainedPreparationConcurrency = retainedMetadata?.Configuration.P ??
@@ -105,7 +109,7 @@ public sealed class RetainedRunResumePlanner
                 retainedMetadata.Configuration.K != k ||
                 retainedMetadata.Configuration.N != loggedTaskConcurrency ||
                 retainedMetadata.Configuration.P != loggedPreparationConcurrency ||
-                !string.Equals(
+                (!baseline && (!string.Equals(
                     retainedMetadata.Configuration.Model,
                     arm.Groups["model"].Value,
                     StringComparison.Ordinal) ||
@@ -116,7 +120,7 @@ public sealed class RetainedRunResumePlanner
                 !string.Equals(
                     retainedMetadata.Configuration.CliVersion,
                     arm.Groups["version"].Value,
-                    StringComparison.Ordinal) ||
+                    StringComparison.Ordinal))) ||
                 retainedMetadata.Configuration.ShortestFirst !=
                     (metadata.Groups["order"].Value == "shortest-first"))
             {
@@ -145,6 +149,17 @@ public sealed class RetainedRunResumePlanner
                         $"retained={identity.SourceChecksum} current={task.SourceChecksum}");
                 }
 
+                if (retainedMetadata.Configuration.Oracle)
+                {
+                    string solution = Path.Combine(task.RootPath, "solution");
+                    if (!File.Exists(Path.Combine(solution, "solve.sh")) ||
+                        retainedMetadata.OracleSolutions is null ||
+                        !retainedMetadata.OracleSolutions.TryGetValue(task.TaskId, out string? checksum) ||
+                        !string.Equals(checksum, BaselineRunService.SolutionChecksum(solution), StringComparison.Ordinal))
+                    {
+                        throw new RecoveryException($"oracle solution checksum mismatch for {task.TaskId}");
+                    }
+                }
                 return task;
             }).ToArray();
         }
@@ -211,9 +226,9 @@ public sealed class RetainedRunResumePlanner
             k,
             taskConcurrency,
             preparationConcurrency,
-            arm.Groups["model"].Value,
-            arm.Groups["effort"].Value,
-            arm.Groups["version"].Value,
+            configuration.Model,
+            configuration.Effort,
+            configuration.CliVersion,
             shortestFirst,
             TaskSelector.OrderAttemptsForAdmission(
                     attempts.Select(item => item.Attempt).ToArray(),

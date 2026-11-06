@@ -10,6 +10,20 @@ namespace Wharf.Tests;
 
 public sealed class WharfAppTests
 {
+    [Theory]
+    [InlineData("--no-op")]
+    [InlineData("--oracle")]
+    public void RunAcceptsBaselineFlagsWithoutChangingDryRun(string flag)
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(command => command.Name == "run");
+        Option<bool> option = Assert.IsType<Option<bool>>(
+            command.Options.Single(option => option.Name == flag));
+        var result = root.Parse(["run", flag, "--dry-run"]);
+        Assert.Empty(result.Errors);
+        Assert.True(result.GetValue(option));
+    }
+
     [Fact]
     public void RunAcceptsContainerCpuOption()
     {
