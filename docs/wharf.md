@@ -84,6 +84,21 @@ host-topology API. Software reading `/proc/cpuinfo` or using host-wide CPU count
 can still see all host CPUs. Wharf does not add a CPU-time quota or blanket
 runtime-specific thread-pool environment overrides.
 
+For resource evidence on an existing local cgroup-v2 Docker run, launch
+`python3 scripts/monitor-wharf-run.py --run-directory <all-N> --run-id <id> --pid <wharf-pid>`
+in a named tmux session, with the command in the foreground. The run ID is the
+eight-character execution identity in the run's agent/verifier image tags.
+The read-only sampler writes host CPU/load/memory/pressure and container
+CPU-time/memory/peak/PID evidence under the run's `performance/` directory every
+five seconds. Container PID counts include threads. Only ownership-labeled
+containers whose image identity matches that run are sampled.
+The sampler stops when the benchmark process exits, records missing metrics
+and sampling errors explicitly, and never modifies benchmark resources.
+Starting after launch is marked as a late capture; pre-launch collection is
+not supported, and earlier samples cannot be recovered. The output directory
+must not already exist. These samples supplement, not replace, retained stage
+timing and scoring evidence.
+
 ### Derived-image workflow
 
 The MVP may install the requested Copilot CLI inside each temporary agent
