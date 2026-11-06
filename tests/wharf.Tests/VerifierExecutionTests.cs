@@ -17,11 +17,14 @@ public sealed class VerifierExecutionTests
         var service = new PristineVerifierService(factory, applier, runner);
 
         TrialResult result = await service.VerifyAsync(
-            Request(source.Path, agent.Path),
+            Request(source.Path, agent.Path) with { CpuSet = "0,1,2,3" },
             "diff --git a/file b/file",
             evidence.Path);
 
         Assert.Equal("passed", result.Status);
+        Assert.Equal("0,1,2,3", result.CpuSet);
+        Assert.Contains("\"cpuSet\":\"0,1,2,3\"",
+            File.ReadAllText(Path.Combine(evidence.Path, "trial-result.json")));
         Assert.NotEqual(agent.Path, result.WorkspaceDirectory);
         Assert.Equal("diff --git a/file b/file", applier.Patch);
         Assert.True(File.Exists(Path.Combine(evidence.Path, "trial-result.json")));
@@ -281,6 +284,7 @@ public sealed class VerifierExecutionTests
         AssertArgumentsContain(arguments, "--name", "task-verifier");
         AssertArgumentsContain(arguments, "--memory", "8g");
         Assert.DoesNotContain("--memory-swap", arguments);
+        Assert.DoesNotContain("--cpuset-cpus", arguments);
         Assert.DoesNotContain("--mount", arguments);
         Assert.DoesNotContain("--volume", arguments);
         Assert.DoesNotContain("-v", arguments);
@@ -302,6 +306,24 @@ public sealed class VerifierExecutionTests
             argument => argument.Contains(
                 "/logs/verifier/check.stdout.log",
                 StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AppliesCpuAffinityWhenCreatingVerifierContainer()
+    {
+        using TemporaryDirectory source = new();
+        using TemporaryDirectory agent = new();
+        VerifierRequest request = Request(source.Path, agent.Path) with
+        {
+            Image = "verifier:1",
+            CpuSet = "8,9,10,11,12,13,14,15"
+        };
+
+        IReadOnlyList<string> arguments = DockerVerifierRunner.BuildArguments(
+            request, request.Commands.Single(), "task-verifier");
+
+        AssertArgumentsContain(arguments, "--cpuset-cpus", request.CpuSet);
+        Assert.DoesNotContain("--cpus", arguments);
     }
 
     [Theory]

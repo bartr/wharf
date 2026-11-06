@@ -10,6 +10,33 @@ namespace Wharf.Tests;
 
 public sealed class WharfAppTests
 {
+    [Fact]
+    public void RunAcceptsContainerCpuOption()
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(command => command.Name == "run");
+        Option<int?> option = Assert.IsType<Option<int?>>(
+            command.Options.Single(option => option.Name == "--container-cpus"));
+
+        var result = root.Parse(["run", "--container-cpus", "12", "--dry-run"]);
+
+        Assert.Empty(result.Errors);
+        Assert.Equal(12, result.GetValue(option));
+    }
+
+    [Fact]
+    public async Task InvalidContainerCpuLimitFailsBeforeCreatingRunOutput()
+    {
+        string output = $"wharf-invalid-cpu-{Guid.NewGuid():N}";
+
+        int exit = await WharfApp.RunAsync([
+            "run", "--container-cpus", "0", "--output-directory", output
+        ]);
+
+        Assert.Equal(2, exit);
+        Assert.False(Directory.Exists(output));
+    }
+
     [Theory]
     [InlineData(false, "--model", "-m", "custom-model")]
     [InlineData(false, "--effort", "-e", "high")]

@@ -19,7 +19,8 @@ public sealed record RunManifest(
     [property: JsonPropertyName("retentionDays")] int? RetentionDays = null,
     [property: JsonPropertyName("retainWorkspaces")] bool? RetainWorkspaces = null,
     [property: JsonPropertyName("resourcePolicy")] string? ResourcePolicy = null,
-    [property: JsonPropertyName("credentials")] SecretSettings? Credentials = null);
+    [property: JsonPropertyName("credentials")] SecretSettings? Credentials = null,
+    [property: JsonPropertyName("containerCpus")] int? ContainerCpus = null);
 
 public sealed record PhaseTimeouts(
     [property: JsonPropertyName("setupSeconds")] int? SetupSeconds = null,
@@ -62,7 +63,8 @@ public sealed record RunConfiguration(
     bool RetainWorkspaces,
     string ResourcePolicy,
     SecretSettings Credentials,
-    bool ShortestFirst = false);
+    bool ShortestFirst = false,
+    int? ContainerCpus = null);
 
 public sealed record RunConfigurationOverrides(
     int? K = null,
@@ -74,7 +76,8 @@ public sealed record RunConfigurationOverrides(
     string? Effort = null,
     bool? RetainWorkspaces = null,
     bool? ShortestFirst = null,
-    string? CliVersion = null);
+    string? CliVersion = null,
+    int? ContainerCpus = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -131,6 +134,7 @@ public static class RunConfigurationResolver
     public const string DefaultCopilotCli = "copilot";
     public const string DefaultCopilotModel = "hydrafusion";
     public const string DefaultCopilotVersion = "latest";
+    public const int DefaultContainerCpus = 8;
 
     public static string ResolveEffectiveEffort(string model, string effort) =>
         model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase) &&
@@ -157,6 +161,12 @@ public static class RunConfigurationResolver
         int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
         int p = PickInt(overrides.P, EnvironmentValue("WHARF_P"), manifest.P, 4, "P");
+        int containerCpus = PickInt(
+            overrides.ContainerCpus,
+            environment.GetValueOrDefault("WHARF_CONTAINER_CPUS"),
+            manifest.ContainerCpus,
+            DefaultContainerCpus,
+            "containerCpus");
         p = Math.Min(p, n);
         string format = Pick(
             overrides.OutputFormat,
@@ -206,7 +216,8 @@ public static class RunConfigurationResolver
             retainWorkspaces,
             manifest.ResourcePolicy ?? "default",
             credentials,
-            overrides.ShortestFirst ?? false);
+            overrides.ShortestFirst ?? false,
+            containerCpus);
     }
 
     private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name)
@@ -263,6 +274,8 @@ public static class RunConfigurationValidator
         RequirePositive(configuration.K, "K");
         RequirePositive(configuration.N, "N");
         RequirePositive(configuration.P, "P");
+        if (configuration.ContainerCpus is { } containerCpus)
+            RequirePositive(containerCpus, "containerCpus");
         ValidateTimeout(configuration.Timeouts.SetupSeconds, "setupSeconds");
         ValidateTimeout(configuration.Timeouts.AgentSeconds, "agentSeconds");
         ValidateTimeout(configuration.Timeouts.VerifierSeconds, "verifierSeconds");

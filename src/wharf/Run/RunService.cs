@@ -161,6 +161,7 @@ public sealed class RunService
         using var preparationGate = new PreparationGate(
             configuration.P,
             logger.PreparationGateChanged);
+        using var cpuAllocator = new DockerCpuSetAllocator();
         Parallel.ForEachAsync(
             scheduledAttempts.Select((attempt, index) => (attempt, index)),
             new ParallelOptions
@@ -333,6 +334,14 @@ public sealed class RunService
                                 return null;
                             }
 
+                            string? cpuSet = await cpuAllocator.AllocateAsync(
+                                image,
+                                configuration.ContainerCpus,
+                                item.index,
+                                preparationCancellationToken);
+                            logger.Info(
+                                $"{prefix} container-cpus={configuration.ContainerCpus?.ToString() ?? "unrestricted"} " +
+                                $"cpu-set={cpuSet ?? "unrestricted"}");
                             var request = new AgentExecutionRequest(
                                 task.TaskId,
                                 image,
@@ -351,7 +360,8 @@ public sealed class RunService
                                     configuration.Timeouts.AgentSeconds,
                                     task.AgentTimeoutSeconds,
                                     5400)),
-                                RetainWorkspace: configuration.RetainWorkspaces);
+                                RetainWorkspace: configuration.RetainWorkspaces,
+                                CpuSet: cpuSet);
                             logger.Info($"{prefix} status=preparing-workspace");
                             await workspacePreparer.PrepareAsync(
                                 request,
@@ -621,7 +631,8 @@ public sealed class RunService
                                                         [],
                                                         verifierImage,
                                                         verifierDirectory,
-                                                        artifactsDirectory);
+                                                        artifactsDirectory,
+                                                        CpuSet: verifierImage is null ? null : agentRequest?.CpuSet);
                                                     PreparedVerifierRun prepared =
                                                         await verifierService.PrepareAsync(
                                                             verifierRequest,
@@ -769,6 +780,8 @@ public sealed class RunService
                     taskManifest = Path.Combine(task.RootPath, "task.toml"),
                     datasetManifest,
                     agentImage = image,
+                    containerCpus = configuration.ContainerCpus,
+                    cpuSet = agentRequest?.CpuSet,
                     agentWorkspace = Directory.Exists(workspaceDirectory)
                         ? workspaceDirectory
                         : null,

@@ -44,6 +44,40 @@ enterprise benchmarks from Harbor task definitions.
 
 ## Post-MVP execution and scale requirements
 
+### Container CPU policy
+
+New runs default to eight logical CPUs per agent and verifier container.
+Configure a positive integer through `wharf run --container-cpus 8`,
+`WHARF_CONTAINER_CPUS=8`, or manifest `"containerCpus": 8`. Precedence is
+flag, environment, manifest, then default. Dry-run renders the configured
+limit without contacting Docker or creating resources.
+
+Wharf discovers usable CPU IDs once per run through a short-lived, networkless
+probe container using an already prepared agent image, inside the preparation
+gate. This reads the Docker host's actual allowed CPU list rather than assuming
+the CLI host and Docker host are the same or that CPU IDs are contiguous.
+The probe is explicitly removed, including on cancellation or failure.
+
+When available CPUs exceed the limit, agent and verifier containers receive
+`--cpuset-cpus` at creation. Deterministic rotating CPU sets spread logical
+trials across the available CPUs; sets may overlap and are not exclusive
+reservations. A logical trial and its retries use the same set. When available
+CPUs are at or below the configured limit, no affinity option is emitted.
+The limit is independent of N and P, and does not restrict Docker image builds
+or host-process verification.
+
+Retained run configuration preserves the requested limit on resume. Older
+retained runs without `containerCpus` remain unrestricted rather than silently
+adopting the new default. Actual CPU sets are retained in the lifecycle log,
+agent and verifier summaries, and final logical-trial result.
+
+CPU affinity limits execution and affinity-aware CPU discovery, not every
+host-topology API. Software reading `/proc/cpuinfo` or using host-wide CPU counts
+can still see all host CPUs. Wharf does not add a CPU-time quota or blanket
+runtime-specific thread-pool environment overrides.
+
+### Derived-image workflow
+
 The MVP may install the requested Copilot CLI inside each temporary agent
 container and reuse the task's configured environment image. After MVP,
 `wharf build` must support the Harbor-compatible derived-image workflow:

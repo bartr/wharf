@@ -181,6 +181,10 @@ public static class CommandTree
         var k = new Option<int?>("-k") { Description = "Attempts per task." };
         var n = new Option<int?>("-n") { Description = "Task concurrency." };
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency." };
+        var containerCpus = new Option<int?>("--container-cpus")
+        {
+            Description = "Logical CPUs per agent/verifier container (default: 8). No affinity restriction when available CPUs are at or below this limit."
+        };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
@@ -223,6 +227,7 @@ public static class CommandTree
         command.Options.Add(k);
         command.Options.Add(n);
         command.Options.Add(p);
+        command.Options.Add(containerCpus);
         command.Options.Add(outputFormat);
         command.Options.Add(outputDirectory);
         command.Options.Add(logFile);
@@ -249,6 +254,7 @@ public static class CommandTree
                             K: parseResult.GetValue(k),
                             N: parseResult.GetValue(n),
                             P: parseResult.GetValue(p),
+                            ContainerCpus: parseResult.GetValue(containerCpus),
                             OutputFormat: parseResult.GetValue(outputFormat),
                             OutputDirectory: parseResult.GetValue(outputDirectory),
                             Model: parseResult.GetValue(model),
@@ -264,6 +270,7 @@ public static class CommandTree
                             ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
                             ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
                             ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
+                            ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                             ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
                             ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
                             ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
@@ -346,6 +353,7 @@ public static class CommandTree
                         K: parseResult.GetValue(k),
                         N: parseResult.GetValue(n),
                         P: parseResult.GetValue(p),
+                        ContainerCpus: parseResult.GetValue(containerCpus),
                         OutputFormat: parseResult.GetValue(outputFormat),
                         OutputDirectory: parseResult.GetValue(outputDirectory),
                         Model: parseResult.GetValue(model),
@@ -415,7 +423,8 @@ public static class CommandTree
                 Console.WriteLine(
                     $"resume completed={plan.CompletedCount} pending={plan.Attempts.Count} " +
                     $"K={plan.K} N={plan.N} P={plan.P} model={plan.Model} " +
-                    $"effort={plan.Effort} cli={plan.CliVersion}");
+                    $"effort={plan.Effort} cli={plan.CliVersion} " +
+                    $"container-cpus={plan.Configuration.ContainerCpus?.ToString() ?? "unrestricted"}");
                 if (parseResult.GetValue(dryRun) || plan.Attempts.Count == 0)
                 {
                     foreach (RetainedResumeAttempt attempt in plan.Attempts)
@@ -894,7 +903,8 @@ public static class CommandTree
                         $"complete task={result.TaskId} result={result.Status} output={result.OutputDirectory}");
                 return result.ExitCode;
             }
-            catch (SmokeException exception)
+            catch (Exception exception) when (
+                exception is SmokeException or RunConfigurationException)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;

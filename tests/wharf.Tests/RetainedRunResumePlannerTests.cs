@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Wharf.Configuration;
 using Wharf.Recovery;
 using Wharf.Tasks;
@@ -142,8 +143,24 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal(321, plan.Configuration.Timeouts.AgentSeconds);
         Assert.Equal(3, plan.Configuration.Retries.MaxAttempts);
         Assert.True(plan.Configuration.RetainWorkspaces);
+        Assert.Equal(3, plan.Configuration.ContainerCpus);
         Assert.DoesNotContain("should-not-persist", metadata);
         Assert.Null(plan.Configuration.Credentials.Token);
+    }
+
+    [Fact]
+    public void GivenLegacyMetadataWithoutCpuPolicy_WhenPlanning_RemainsUnrestricted()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1);
+        string path = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
+        JsonNode metadata = JsonNode.Parse(File.ReadAllText(path))!;
+        Assert.True(metadata["configuration"]!.AsObject().Remove("containerCpus"));
+        File.WriteAllText(path, metadata.ToJsonString());
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory, FixtureRoot);
+
+        Assert.Null(plan.Configuration.ContainerCpus);
     }
 
     [Fact]
@@ -243,7 +260,8 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             30,
             true,
             "default",
-            new SecretSettings(Token: "should-not-persist"));
+            new SecretSettings(Token: "should-not-persist"),
+            ContainerCpus: 3);
         WriteJson(
             Path.Combine(runDirectory, "run.jsonl"),
             new

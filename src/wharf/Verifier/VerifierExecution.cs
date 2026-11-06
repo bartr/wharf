@@ -119,7 +119,8 @@ public sealed class PristineVerifierService
                 workspace,
                 results,
                 Path.Combine(evidenceDirectory, "patch.diff"),
-                metrics);
+                metrics,
+                request.CpuSet);
             File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), prepared.Patch);
             AtomicFile.Replace(
                 Path.Combine(evidenceDirectory, "trial-result.json"),
@@ -517,6 +518,7 @@ public sealed class DockerVerifierRunner : IVerifierRunner
         [
             "--network", request.Network,
             "--memory", "8g",
+            .. request.CpuSet is null ? Array.Empty<string>() : new[] { "--cpuset-cpus", request.CpuSet },
             "--entrypoint", "/bin/bash",
             request.Image,
             "-lc",

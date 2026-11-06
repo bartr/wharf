@@ -77,10 +77,13 @@ public sealed class SmokeService
                 ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                 ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                 ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                 ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
                 ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
                 ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
             });
+        if (configuration.ContainerCpus is <= 0)
+            throw new SmokeException("containerCpus must be positive");
         RunResult result = runService.Execute(
             resolvedTaskRoot,
             resolvedOutput,

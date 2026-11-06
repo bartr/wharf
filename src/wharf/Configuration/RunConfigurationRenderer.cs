@@ -15,6 +15,7 @@ public static class RunConfigurationRenderer
     {
         RunConfigurationView view = new(
             configuration.P,
+            configuration.ContainerCpus,
             configuration.CliVersion,
             configuration.Effort,
             configuration.K,
@@ -44,6 +45,7 @@ public static class RunConfigurationRenderer
         List<string> lines =
         [
             $"p\t{view.P}",
+            $"containerCpus\t{view.ContainerCpus}",
             $"cliVersion\t{view.CliVersion}",
             $"effort\t{view.Effort}",
             $"k\t{view.K}",
@@ -71,6 +73,7 @@ public static class RunConfigurationRenderer
 
     private sealed record RunConfigurationView(
         [property: JsonPropertyName("p")] int P,
+        [property: JsonPropertyName("containerCpus")] int? ContainerCpus,
         [property: JsonPropertyName("cliVersion")] string CliVersion,
         [property: JsonPropertyName("effort")] string Effort,
         [property: JsonPropertyName("k")] int K,
