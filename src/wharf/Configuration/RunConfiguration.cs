@@ -134,7 +134,6 @@ public static class RunConfigurationResolver
     public const string DefaultCopilotCli = "copilot";
     public const string DefaultCopilotModel = "hydrafusion";
     public const string DefaultCopilotVersion = "latest";
-    public const int DefaultContainerCpus = 8;
 
     public static string ResolveEffectiveEffort(string model, string effort) =>
         model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase) &&
@@ -161,11 +160,10 @@ public static class RunConfigurationResolver
         int k = PickInt(overrides.K, EnvironmentValue("WHARF_K"), manifest.K, 1, "K");
         int n = PickInt(overrides.N, EnvironmentValue("WHARF_N"), manifest.N, 4, "N");
         int p = PickInt(overrides.P, EnvironmentValue("WHARF_P"), manifest.P, 4, "P");
-        int containerCpus = PickInt(
+        int? containerCpus = PickOptionalInt(
             overrides.ContainerCpus,
             environment.GetValueOrDefault("WHARF_CONTAINER_CPUS"),
             manifest.ContainerCpus,
-            DefaultContainerCpus,
             "containerCpus");
         p = Math.Min(p, n);
         string format = Pick(
@@ -220,9 +218,14 @@ public static class RunConfigurationResolver
             containerCpus);
     }
 
-    private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name)
+    private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name) =>
+        PickOptionalInt(flag, environment, manifest, name) ?? fallback;
+
+    private static int? PickOptionalInt(int? flag, string? environment, int? manifest, string name)
     {
-        string? value = flag?.ToString() ?? environment ?? manifest?.ToString() ?? fallback.ToString();
+        string? value = flag?.ToString() ?? environment ?? manifest?.ToString();
+        if (value is null)
+            return null;
         if (!int.TryParse(value, out int result))
         {
             throw new RunConfigurationException($"{name} must be an integer");

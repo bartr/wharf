@@ -16,9 +16,9 @@ Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
 
-Agent and verifier containers default to eight logical CPUs using Docker CPU
-affinity. Configure the limit with `--container-cpus`, `WHARF_CONTAINER_CPUS`,
-or manifest `containerCpus`; flag, environment, manifest, then default take
+Agent and verifier containers default to unrestricted CPUs. Opt into Docker CPU
+affinity with `--container-cpus 8`, `WHARF_CONTAINER_CPUS=8`,
+or manifest `"containerCpus": 8`; flag, environment, manifest, then default take
 precedence. If Docker has no more usable CPUs than the configured limit, Wharf
 omits the affinity restriction. See [container CPU policy](docs/wharf.md#container-cpu-policy)
 for allocation, resume, and runtime-discovery details.

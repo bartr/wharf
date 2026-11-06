@@ -46,11 +46,13 @@ enterprise benchmarks from Harbor task definitions.
 
 ### Container CPU policy
 
-New runs default to eight logical CPUs per agent and verifier container.
-Configure a positive integer through `wharf run --container-cpus 8`,
+New runs default to unrestricted CPUs per agent and verifier container.
+Opt into a positive logical CPU limit through `wharf run --container-cpus 8`,
 `WHARF_CONTAINER_CPUS=8`, or manifest `"containerCpus": 8`. Precedence is
 flag, environment, manifest, then default. Dry-run renders the configured
-limit without contacting Docker or creating resources.
+limit without contacting Docker or creating resources. When no limit is
+configured, text output reports `unrestricted` and JSON retains `containerCpus`
+as null. Unrestricted runs skip CPU discovery.
 
 Smoke tests, runs with N=1, and runs with only one logical trial do not constrain
 agent or verifier CPUs, even with an explicit CPU limit. They also skip CPU
@@ -74,10 +76,11 @@ CPUs are at or below the configured limit, no affinity option is emitted.
 The limit is independent of N and P, and does not restrict Docker image builds
 or host-process verification.
 
-Retained run configuration preserves the requested limit on resume. Older
-retained runs without `containerCpus` remain unrestricted rather than silently
-adopting the new default. Actual CPU sets are retained in the lifecycle log,
-agent and verifier summaries, and final logical-trial result.
+Retained run configuration preserves the requested limit on resume, including
+limits retained by runs created with the former eight-CPU default. Retained
+runs without `containerCpus` remain unrestricted. Actual CPU sets are retained
+in the lifecycle log, agent and verifier summaries, and final logical-trial
+result.
 
 CPU affinity limits execution and affinity-aware CPU discovery, not every
 host-topology API. Software reading `/proc/cpuinfo` or using host-wide CPU counts

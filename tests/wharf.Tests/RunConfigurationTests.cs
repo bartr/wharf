@@ -92,16 +92,16 @@ public sealed class RunConfigurationTests
         Assert.Equal(1, result.Retries.MaxAttempts);
         Assert.False(result.RetainWorkspaces);
         Assert.False(result.ShortestFirst);
-        Assert.Equal(8, result.ContainerCpus);
+        Assert.Null(result.ContainerCpus);
     }
 
     [Theory]
     [InlineData(2, "4", 6, 2)]
     [InlineData(null, "4", 6, 4)]
     [InlineData(null, null, 6, 6)]
-    [InlineData(null, null, null, 8)]
+    [InlineData(null, null, null, null)]
     public void ContainerCpusUsesFlagEnvironmentManifestDefaultPrecedence(
-        int? flag, string? environment, int? manifest, int expected)
+        int? flag, string? environment, int? manifest, int? expected)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
             new RunManifest(ContainerCpus: manifest),
@@ -127,6 +127,8 @@ public sealed class RunConfigurationTests
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData("unlimited")]
     [InlineData("zero")]
     [InlineData("1.5")]
     public void RejectsNonIntegerContainerCpuEnvironmentValues(string value)
@@ -162,6 +164,19 @@ public sealed class RunConfigurationTests
 
         Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
         Assert.Contains("containerCpus\t12", text);
+    }
+
+    [Fact]
+    public void RendersUnrestrictedCpuDefaultInBothDryRunFormats()
+    {
+        string json = DryRunService.Execute(null, new RunConfigurationOverrides(),
+            "json", new Dictionary<string, string?>());
+        string text = DryRunService.Execute(null, new RunConfigurationOverrides(),
+            "text", new Dictionary<string, string?>());
+        using JsonDocument document = JsonDocument.Parse(json);
+
+        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("containerCpus").ValueKind);
+        Assert.Contains("containerCpus\tunrestricted", text);
     }
 
     [Fact]

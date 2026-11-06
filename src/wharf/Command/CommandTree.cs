@@ -183,7 +183,7 @@ public static class CommandTree
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency." };
         var containerCpus = new Option<int?>("--container-cpus")
         {
-            Description = "Logical CPUs per agent/verifier container (default: 8). No affinity restriction when available CPUs are at or below this limit."
+            Description = "Optional logical CPU limit per agent/verifier container (default: unrestricted). No affinity restriction when available CPUs are at or below this limit."
         };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };

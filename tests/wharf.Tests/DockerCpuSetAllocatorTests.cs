@@ -1,4 +1,5 @@
 using Wharf.Agent;
+using Wharf.Configuration;
 using Wharf.Docker;
 using Wharf.Run;
 
@@ -12,6 +13,9 @@ public sealed class DockerCpuSetAllocatorTests
     [InlineData(8, 8)]
     [InlineData(8, 12)]
     [InlineData(4, 4)]
+    [InlineData(40, 40)]
+    [InlineData(40, 64)]
+    [InlineData(64, int.MaxValue)]
     public void OmitsAffinityWhenAvailableCpusDoNotExceedLimit(int available, int limit)
     {
         Assert.Null(DockerCpuSetAllocator.SelectCpuSet(
@@ -120,12 +124,26 @@ public sealed class DockerCpuSetAllocatorTests
     }
 
     [Fact]
-    public async Task LegacyUnrestrictedPolicyDoesNotProbeDocker()
+    public async Task UnrestrictedPolicyDoesNotProbeDocker()
     {
         using var allocator = new DockerCpuSetAllocator((_, _) =>
-            throw new InvalidOperationException("legacy runs must not probe"));
+            throw new InvalidOperationException("unrestricted runs must not probe"));
 
         Assert.Null(await allocator.AllocateAsync("prepared-image", null, 0, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task DefaultConcurrentRunDoesNotProbeDocker()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            null, new RunConfigurationOverrides(), new Dictionary<string, string?>());
+        int? limit = RunService.ResolveContainerCpuLimit(
+            configuration.ContainerCpus, 14, 10, 80, "all");
+        using var allocator = new DockerCpuSetAllocator((_, _) =>
+            throw new InvalidOperationException("default runs must not probe Docker"));
+
+        Assert.Null(await allocator.AllocateAsync(
+            "prepared-image", limit, 0, CancellationToken.None));
     }
 
     [Theory]

@@ -45,7 +45,7 @@ public static class RunConfigurationRenderer
         List<string> lines =
         [
             $"p\t{view.P}",
-            $"containerCpus\t{view.ContainerCpus}",
+            $"containerCpus\t{view.ContainerCpus?.ToString() ?? "unrestricted"}",
             $"cliVersion\t{view.CliVersion}",
             $"effort\t{view.Effort}",
             $"k\t{view.K}",

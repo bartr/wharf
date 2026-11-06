@@ -46,7 +46,8 @@ public sealed class RunServiceTests
                 .Take(selectedTaskCount).ToArray();
             Assert.Equal(selectedTaskCount, selectedTasks.Length);
             RunConfiguration configuration = RunConfigurationResolver.Resolve(
-                null, new RunConfigurationOverrides(K: k, N: n), new Dictionary<string, string?>());
+                null, new RunConfigurationOverrides(K: k, N: n, ContainerCpus: 8),
+                new Dictionary<string, string?>());
             RetainedRunMetadataStore.Write(runDirectory, taskRoot, configuration, selectedTasks);
 
             Assert.Equal(expected, RunService.ResolveContainerCpuLimit(
