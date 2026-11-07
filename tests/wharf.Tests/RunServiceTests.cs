@@ -1,11 +1,64 @@
 using Wharf.Run;
 using Wharf.Configuration;
 using Wharf.Copilot;
+using Wharf.Recovery;
+using Wharf.Tasks;
 
 namespace Wharf.Tests;
 
 public sealed class RunServiceTests
 {
+    [Theory]
+    [InlineData(8, 1, 1, 4, "all", null)]
+    [InlineData(4, 1, 1, 4, "all", null)]
+    [InlineData(8, 1, 4, 4, "all", 8)]
+    [InlineData(4, 1, 4, 4, "all", 4)]
+    [InlineData(8, 1, 4, 1, "all", null)]
+    [InlineData(8, 2, 1, 1, "all", null)]
+    [InlineData(4, 2, 4, 1, "all", null)]
+    [InlineData(8, 1, 1, 1, "smoke", null)]
+    [InlineData(4, 2, 4, 4, "smoke", null)]
+    [InlineData(8, 2, 1, 4, "all", 8)]
+    [InlineData(4, 2, 1, 4, "all", 4)]
+    [InlineData(null, 2, 4, 4, "all", null)]
+    public void CpuLimitsFollowTrialConcurrencyRatherThanDistinctTaskCount(
+        int? configuredLimit, int taskCount, int k, int n, string attemptPrefix, int? expected)
+    {
+        Assert.Equal(expected, RunService.ResolveContainerCpuLimit(
+            configuredLimit, taskCount, k, n, attemptPrefix));
+    }
+
+    [Theory]
+    [InlineData(1, 1, 4, null)]
+    [InlineData(1, 4, 4, 8)]
+    [InlineData(2, 1, 4, 8)]
+    [InlineData(2, 4, 1, null)]
+    public void ResumeUsesOriginalTaskSelectionRatherThanRemainingTaskCount(
+        int selectedTaskCount, int k, int n, int? expected)
+    {
+        string taskRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../fixtures/harbor"));
+        string runDirectory = Path.Combine(Path.GetTempPath(), $"wharf-cpu-policy-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(runDirectory);
+        try
+        {
+            HarborTask[] selectedTasks = new HarborTaskLoader().Load(taskRoot)
+                .Take(selectedTaskCount).ToArray();
+            Assert.Equal(selectedTaskCount, selectedTasks.Length);
+            RunConfiguration configuration = RunConfigurationResolver.Resolve(
+                null, new RunConfigurationOverrides(K: k, N: n, ContainerCpus: 8),
+                new Dictionary<string, string?>());
+            RetainedRunMetadataStore.Write(runDirectory, taskRoot, configuration, selectedTasks);
+
+            Assert.Equal(expected, RunService.ResolveContainerCpuLimit(
+                configuration.ContainerCpus, 1, k, n, "all", runDirectory));
+        }
+        finally
+        {
+            Directory.Delete(runDirectory, recursive: true);
+        }
+    }
+
     [Fact]
     public void GivenHydraFusion_WhenBuildingJobDirectoryName_UsesDefaultEffort()
     {

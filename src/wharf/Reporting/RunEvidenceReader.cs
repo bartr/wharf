@@ -13,6 +13,18 @@ public sealed class RunEvidenceReader
     {
         Validate(runDirectory, options);
         string fullRunDirectory = Path.GetFullPath(runDirectory);
+        string retainedPlan = Path.Combine(fullRunDirectory, "run-plan.json");
+        if (File.Exists(retainedPlan))
+        {
+            using JsonDocument plan = ReadJson(retainedPlan);
+            if (plan.RootElement.TryGetProperty("configuration", out JsonElement configuration) &&
+                ((configuration.TryGetProperty("noOp", out JsonElement noOp) && noOp.ValueKind == JsonValueKind.True) ||
+                 (configuration.TryGetProperty("oracle", out JsonElement oracle) && oracle.ValueKind == JsonValueKind.True)))
+            {
+                throw new AnalyticsEvidenceException(
+                    "baseline runs are not model-score analytics; use their baseline-summary.json timing and grading evidence");
+            }
+        }
         IReadOnlyDictionary<string, HarborTask> tasks = LoadTasks(fullRunDirectory);
         IReadOnlyList<StageEvidence> stages = ReadStages(
             Path.Combine(fullRunDirectory, "run.jsonl"));

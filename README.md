@@ -1,6 +1,6 @@
-# Wharf 1.1.0
+# Wharf 1.2.0
 
-Wharf 1.1.0 builds on the first MVP release of the customer-controlled benchmark
+Wharf 1.2.0 builds on the first MVP release of the customer-controlled benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
@@ -15,6 +15,22 @@ Use `--effort` (`-e`) to configure effort. Both aliases are also available for
 Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
+
+Agent and verifier containers default to unrestricted CPUs. Opt into Docker CPU
+affinity with `--container-cpus 8`, `WHARF_CONTAINER_CPUS=8`,
+or manifest `"containerCpus": 8`; flag, environment, manifest, then default take
+precedence. If Docker has no more usable CPUs than the configured limit, Wharf
+omits the affinity restriction. See [container CPU policy](docs/wharf.md#container-cpu-policy)
+for allocation, resume, and runtime-discovery details.
+Smoke tests, runs with N=1, and runs with only one logical trial are unrestricted.
+A single task with K>1 and N>1 still uses the configured CPU limit.
+
+For agent-free infrastructure comparisons, use `wharf run --no-op` to measure
+container preparation and lifecycle without grading, or `wharf run --oracle`
+to execute each task's existing `solution/solve.sh` and grade its output in a
+fresh verifier workspace. Combining `--no-op --oracle` runs both stages in each
+logical trial, without doubling K. These modes never invoke Copilot and retain
+separate baseline jobs and timing summaries. See [baseline runs](docs/wharf.md#agent-free-baseline-runs).
 
 When no run credential is configured, Wharf reads the Copilot token from
 `~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Wharf.Configuration;
 using Wharf.Recovery;
 using Wharf.Tasks;
@@ -7,6 +8,19 @@ namespace Wharf.Tests;
 
 public sealed class RetainedRunResumePlannerTests : IDisposable
 {
+    [Fact]
+    public void BaselineResumeRestoresModeWithoutRequiringACopilotJobName()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 2, selectedTaskCount: 1, noOp: true);
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(fixture.RunDirectory);
+        Assert.True(plan.Configuration.NoOp);
+        Assert.False(plan.Configuration.Oracle);
+        Assert.Equal(2, plan.Attempts.Count);
+        Assert.Equal("test-model", plan.Model);
+        Assert.Equal("1.0.95", plan.CliVersion);
+        Assert.Equal(3, plan.Configuration.ContainerCpus);
+    }
+
     private static string FixtureRoot =>
         Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../fixtures/harbor"));
 
@@ -142,8 +156,24 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal(321, plan.Configuration.Timeouts.AgentSeconds);
         Assert.Equal(3, plan.Configuration.Retries.MaxAttempts);
         Assert.True(plan.Configuration.RetainWorkspaces);
+        Assert.Equal(3, plan.Configuration.ContainerCpus);
         Assert.DoesNotContain("should-not-persist", metadata);
         Assert.Null(plan.Configuration.Credentials.Token);
+    }
+
+    [Fact]
+    public void GivenLegacyMetadataWithoutCpuPolicy_WhenPlanning_RemainsUnrestricted()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1);
+        string path = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
+        JsonNode metadata = JsonNode.Parse(File.ReadAllText(path))!;
+        Assert.True(metadata["configuration"]!.AsObject().Remove("containerCpus"));
+        File.WriteAllText(path, metadata.ToJsonString());
+
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
+            fixture.RunDirectory, FixtureRoot);
+
+        Assert.Null(plan.Configuration.ContainerCpus);
     }
 
     [Fact]
@@ -214,11 +244,12 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
     private RetainedRunFixture CreateRun(
         int k,
         string effort = "max",
-        int? selectedTaskCount = null)
+        int? selectedTaskCount = null,
+        bool noOp = false)
     {
         string runDirectory = Path.Combine(
             temporaryRoot,
-            $"copilot-test-model-{effort}-1.0.95",
+            noOp ? "baseline-no-op" : $"copilot-test-model-{effort}-1.0.95",
             "all-1");
         Directory.CreateDirectory(runDirectory);
         IReadOnlyList<HarborTask> loadedTasks =
@@ -243,7 +274,9 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             30,
             true,
             "default",
-            new SecretSettings(Token: "should-not-persist"));
+            new SecretSettings(Token: "should-not-persist"),
+            ContainerCpus: 3,
+            NoOp: noOp);
         WriteJson(
             Path.Combine(runDirectory, "run.jsonl"),
             new

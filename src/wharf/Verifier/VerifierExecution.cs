@@ -42,7 +42,7 @@ public sealed class PristineVerifierService
         CancellationToken cancellationToken = default)
     {
         request.Validate();
-        if (string.IsNullOrWhiteSpace(patch))
+        if (string.IsNullOrWhiteSpace(patch) && !request.AllowEmptyPatch)
         {
             throw new VerifierExecutionException("retained patch must not be empty");
         }
@@ -61,7 +61,8 @@ public sealed class PristineVerifierService
                     "pristine workspace reused the agent workspace");
             }
 
-            await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(patch))
+                await patchApplier.ApplyAsync(workspace, patch, cancellationToken);
             return new PreparedVerifierRun(
                 request,
                 patch,
@@ -119,7 +120,8 @@ public sealed class PristineVerifierService
                 workspace,
                 results,
                 Path.Combine(evidenceDirectory, "patch.diff"),
-                metrics);
+                metrics,
+                request.CpuSet);
             File.WriteAllText(Path.Combine(evidenceDirectory, "patch.diff"), prepared.Patch);
             AtomicFile.Replace(
                 Path.Combine(evidenceDirectory, "trial-result.json"),
@@ -517,6 +519,7 @@ public sealed class DockerVerifierRunner : IVerifierRunner
         [
             "--network", request.Network,
             "--memory", "8g",
+            .. request.CpuSet is null ? Array.Empty<string>() : new[] { "--cpuset-cpus", request.CpuSet },
             "--entrypoint", "/bin/bash",
             request.Image,
             "-lc",

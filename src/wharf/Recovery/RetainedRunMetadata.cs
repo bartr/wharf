@@ -2,6 +2,7 @@ using System.Text.Json;
 using Wharf.Configuration;
 using Wharf.State;
 using Wharf.Tasks;
+using Wharf.Run;
 
 namespace Wharf.Recovery;
 
@@ -13,7 +14,8 @@ internal sealed record RetainedRunMetadata(
     string SchemaVersion,
     string TaskRoot,
     RunConfiguration Configuration,
-    IReadOnlyList<RetainedTaskIdentity> Tasks);
+    IReadOnlyList<RetainedTaskIdentity> Tasks,
+    IReadOnlyDictionary<string, string>? OracleSolutions = null);
 
 internal static class RetainedRunMetadataStore
 {
@@ -33,7 +35,12 @@ internal static class RetainedRunMetadataStore
             tasks.Select(task => new RetainedTaskIdentity(
                     task.TaskId,
                     task.SourceChecksum))
-                .ToArray());
+                .ToArray(),
+            configuration.Oracle
+                ? tasks.ToDictionary(task => task.TaskId,
+                    task => BaselineRunService.SolutionChecksum(Path.Combine(task.RootPath, "solution")),
+                    StringComparer.Ordinal)
+                : null);
         AtomicFile.Replace(
             Path.Combine(runDirectory, FileName),
             JsonSerializer.Serialize(metadata, StateJson.Options));

@@ -5,6 +5,28 @@ namespace Wharf.Tests;
 
 public sealed class RunConfigurationTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void BaselineModesAreRetainedAndRendered(bool noOp, bool oracle)
+    {
+        var manifest = new RunManifest(NoOp: noOp, Oracle: oracle);
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            manifest, new RunConfigurationOverrides(), new Dictionary<string, string?>());
+        Assert.Equal(noOp, configuration.NoOp);
+        Assert.Equal(oracle, configuration.Oracle);
+        using JsonDocument document = JsonDocument.Parse(RunConfigurationRenderer.Render(configuration, "json"));
+        Assert.Equal(noOp, document.RootElement.GetProperty("noOp").GetBoolean());
+        Assert.Equal(oracle, document.RootElement.GetProperty("oracle").GetBoolean());
+        RunConfiguration overridden = RunConfigurationResolver.Resolve(
+            manifest, new RunConfigurationOverrides(NoOp: !noOp, Oracle: !oracle),
+            new Dictionary<string, string?>());
+        Assert.Equal(!noOp, overridden.NoOp);
+        Assert.Equal(!oracle, overridden.Oracle);
+    }
+
     [Fact]
     public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
     {
@@ -92,6 +114,106 @@ public sealed class RunConfigurationTests
         Assert.Equal(1, result.Retries.MaxAttempts);
         Assert.False(result.RetainWorkspaces);
         Assert.False(result.ShortestFirst);
+        Assert.Null(result.ContainerCpus);
+    }
+
+    [Theory]
+    [InlineData(2, "4", 6, 2)]
+    [InlineData(null, "4", 6, 4)]
+    [InlineData(null, null, 6, 6)]
+    [InlineData(null, null, null, null)]
+    public void ContainerCpusUsesFlagEnvironmentManifestDefaultPrecedence(
+        int? flag, string? environment, int? manifest, int? expected)
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(ContainerCpus: manifest),
+            new RunConfigurationOverrides(ContainerCpus: flag),
+            new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = environment });
+
+        Assert.Equal(expected, configuration.ContainerCpus);
+        RunConfigurationValidator.Validate(null, configuration);
+    }
+
+    [Fact]
+    public void ContainerCpuEnvironmentUsesOnlyTheDocumentedWharfName()
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            null, new RunConfigurationOverrides(),
+            new Dictionary<string, string?>
+            {
+                ["CONTAINER_CPUS"] = "2",
+                ["WHARF_CONTAINER_CPUS"] = "4"
+            });
+
+        Assert.Equal(4, configuration.ContainerCpus);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("unlimited")]
+    [InlineData("zero")]
+    [InlineData("1.5")]
+    public void RejectsNonIntegerContainerCpuEnvironmentValues(string value)
+    {
+        Assert.Throws<RunConfigurationException>(() => RunConfigurationResolver.Resolve(
+            null, new RunConfigurationOverrides(),
+            new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = value }));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void RejectsNonPositiveContainerCpuLimits(int limit)
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(ContainerCpus: limit),
+            new RunConfigurationOverrides(),
+            new Dictionary<string, string?>());
+
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
+            RunConfigurationValidator.Validate(null, configuration));
+        Assert.Contains("containerCpus", exception.Message);
+    }
+
+    [Fact]
+    public void RendersCpuLimitInBothDryRunFormats()
+    {
+        string json = DryRunService.Execute(null, new RunConfigurationOverrides(ContainerCpus: 12),
+            "json", new Dictionary<string, string?>());
+        string text = DryRunService.Execute(null, new RunConfigurationOverrides(ContainerCpus: 12),
+            "text", new Dictionary<string, string?>());
+        using JsonDocument document = JsonDocument.Parse(json);
+
+        Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
+        Assert.Contains("containerCpus\t12", text);
+    }
+
+    [Fact]
+    public void RendersUnrestrictedCpuDefaultInBothDryRunFormats()
+    {
+        string json = DryRunService.Execute(null, new RunConfigurationOverrides(),
+            "json", new Dictionary<string, string?>());
+        string text = DryRunService.Execute(null, new RunConfigurationOverrides(),
+            "text", new Dictionary<string, string?>());
+        using JsonDocument document = JsonDocument.Parse(json);
+
+        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("containerCpus").ValueKind);
+        Assert.Contains("containerCpus\tunrestricted", text);
+    }
+
+    [Fact]
+    public void StrictManifestAcceptsContainerCpuLimit()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"wharf-cpu-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{"schemaVersion":"1.0","containerCpus":12}""");
+        try
+        {
+            Assert.Equal(12, RunManifestLoader.Load(path).ContainerCpus);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [Fact]

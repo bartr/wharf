@@ -190,6 +190,11 @@ public static class ProgressService
                     HasGraderResult = isRetry
                         ? false
                         : record.HasGraderResult || currentStatus == "verifier-complete",
+                    GradingSkipped = isRetry
+                        ? false
+                        : record.GradingSkipped ||
+                            (currentStatus == "verifier-skipped" &&
+                             log.Message.Contains("reason=no-op", StringComparison.Ordinal)),
                     Result = isRetry ? null : record.Result,
                     ErrorType = isRetry ? null : record.ErrorType
                 };
@@ -273,7 +278,7 @@ public static class ProgressService
                 group => ToGroup(group.Where(record => record.Terminal)),
                 EqualityComparer<int>.Default);
         List<ProgressRecord> missingGraders = terminal
-            .Where(record => !record.HasGraderResult)
+            .Where(record => !record.HasGraderResult && !record.GradingSkipped)
             .ToList();
         IReadOnlyDictionary<string, int> missingGraderTypes = missingGraders
             .GroupBy(
@@ -332,7 +337,8 @@ public static class ProgressService
                 string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
                 record.HasGraderResult &&
-                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count()),
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+                terminal.Count(record => !record.GradingSkipped)),
             groups,
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum(),
@@ -355,6 +361,8 @@ public static class ProgressService
 
     private static bool IsAgent(string? status) =>
         status is "running-agent" or
+            "running-no-op" or
+            "running-oracle" or
             "agent-infrastructure-retry" or
             "agent-complete";
 
@@ -377,6 +385,10 @@ public static class ProgressService
 
     private static string? StageForStatus(string? status)
     {
+        if (status is "running-no-op")
+            return "no-op";
+        if (status is "running-oracle")
+            return "oracle";
         if (IsBuilding(status))
             return "building";
         if (IsAgent(status))
@@ -417,7 +429,8 @@ public static class ProgressService
                 string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
             Percentage(completed.Count(record =>
                 record.HasGraderResult &&
-                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)), terminal.Count),
+                string.Equals(record.Result, "passed", StringComparison.OrdinalIgnoreCase)),
+                terminal.Count(record => !record.GradingSkipped)),
             costs.Count == 0 ? null : costs.Average(),
             costs.Count == 0 ? null : costs.Sum());
     }
@@ -467,7 +480,8 @@ public static class ProgressService
         bool Failed = false,
         string? ErrorType = null,
         string? Stage = null,
-        DateTimeOffset? StageStartedAt = null);
+        DateTimeOffset? StageStartedAt = null,
+        bool GradingSkipped = false);
 
     private sealed record PreparationQueueRecord(
         string Key,

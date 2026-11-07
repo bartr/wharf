@@ -44,6 +44,115 @@ enterprise benchmarks from Harbor task definitions.
 
 ## Post-MVP execution and scale requirements
 
+### Agent-free baseline runs
+
+Use the normal task selection, K/N/P, timeout, retention, and CPU-affinity
+options with these opt-in `wharf run` modes:
+
+```bash
+wharf run --tasks enterprise/tasks --no-op -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --oracle -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
+```
+
+- `--no-op` prepares a task image without Copilot, creates and starts a
+  container, prepares its workspace, executes a no-op, retains evidence, and
+  removes the container and its task-derived image. No verifier runs.
+- `--oracle` executes the task's existing `solution/solve.sh` in a trusted
+  container, retains a binary patch including committed and new files, and
+  grades that patch in a separate pristine verifier workspace/container.
+  Solution files never enter an AI agent or the pristine grading workspace.
+- With both flags, the no-op runs first, followed by the oracle and grading
+  stages in the same logical trial. Fourteen tasks at K=10 still means 140
+  trials, not 280. Baseline preparation uses P, execution uses N, and neither
+  no-op/oracle commands nor grading hold a preparation permit.
+
+Neither mode resolves a Copilot version or credentials, installs the Copilot
+payload, or invokes an AI agent. Model, effort, and CLI selections do not
+execute in baseline mode. Oracle scripts are trusted task code, run as root
+inside their isolated container, and must already exist for every selected
+task; missing scripts fail before output directories are created. No-op
+execution uses UID 1000:1000, the same memory/PID limits and bridge network as
+agent containers, and optional CPU affinity. Images are still prepared from
+the task environment, so these baselines do not measure Copilot payload
+installation.
+
+Manifests accept `"noOp": true` and `"oracle": true`. Flags override manifest
+settings. `--dry-run` renders the mode without Docker, credential access, or
+output creation. Job parents are `baseline-no-op`, `baseline-oracle`, or
+`baseline-no-op-oracle`. Retained configuration preserves the mode on resume;
+oracle resume also checks a digest of the complete reference solution directory.
+
+Each trial retains versioned baseline command results and stdout/stderr under
+`baseline/`, the oracle patch under `artifacts/`, normal verifier evidence when
+graded, and an atomic terminal `result.json`. `baseline-summary.json` retains
+trial timings, command durations, outcomes, and known zero AI cost/agent time.
+No-op-only completion is explicitly ungraded, not a passing model trial.
+Baseline results are excluded from model-score analytics exports; compare
+their timing summaries separately. Verifier timeout/infrastructure retries
+reuse the exact oracle patch with fresh verifier preparation and retained
+retry evidence. Baseline command/preparation failures remain terminal failures.
+
+### Container CPU policy
+
+New runs default to unrestricted CPUs per agent and verifier container.
+Opt into a positive logical CPU limit through `wharf run --container-cpus 8`,
+`WHARF_CONTAINER_CPUS=8`, or manifest `"containerCpus": 8`. Precedence is
+flag, environment, manifest, then default. Dry-run renders the configured
+limit without contacting Docker or creating resources. When no limit is
+configured, text output reports `unrestricted` and JSON retains `containerCpus`
+as null. Unrestricted runs skip CPU discovery.
+
+Smoke tests, runs with N=1, and runs with only one logical trial do not constrain
+agent or verifier CPUs, even with an explicit CPU limit. They also skip CPU
+discovery. A single selected task with K>1 and N>1 still uses the configured CPU
+limit because its attempts can execute concurrently. Resume uses the original
+retained task selection and K, with the effective N; a concurrent run does not
+become exempt just because only one trial remains.
+
+For constrained runs, Wharf discovers usable CPU IDs once per run through a
+short-lived, networkless probe container using an already prepared agent image,
+inside the preparation gate. This reads the Docker host's actual allowed CPU
+list rather than assuming
+the CLI host and Docker host are the same or that CPU IDs are contiguous.
+The probe is explicitly removed, including on cancellation or failure.
+
+When available CPUs exceed the limit, agent and verifier containers receive
+`--cpuset-cpus` at creation. Deterministic rotating CPU sets spread logical
+trials across the available CPUs; sets may overlap and are not exclusive
+reservations. A logical trial and its retries use the same set. When available
+CPUs are at or below the configured limit, no affinity option is emitted.
+The limit is independent of N and P, and does not restrict Docker image builds
+or host-process verification.
+
+Retained run configuration preserves the requested limit on resume, including
+limits retained by runs created with the former eight-CPU default. Retained
+runs without `containerCpus` remain unrestricted. Actual CPU sets are retained
+in the lifecycle log, agent and verifier summaries, and final logical-trial
+result.
+
+CPU affinity limits execution and affinity-aware CPU discovery, not every
+host-topology API. Software reading `/proc/cpuinfo` or using host-wide CPU counts
+can still see all host CPUs. Wharf does not add a CPU-time quota or blanket
+runtime-specific thread-pool environment overrides.
+
+For resource evidence on an existing local cgroup-v2 Docker run, launch
+`python3 scripts/monitor-wharf-run.py --run-directory <all-N> --run-id <id> --pid <wharf-pid>`
+in a named tmux session, with the command in the foreground. The run ID is the
+eight-character execution identity in the run's agent/verifier image tags.
+The read-only sampler writes host CPU/load/memory/pressure and container
+CPU-time/memory/peak/PID evidence under the run's `performance/` directory every
+five seconds. Container PID counts include threads. Only ownership-labeled
+containers whose image identity matches that run are sampled.
+The sampler stops when the benchmark process exits, records missing metrics
+and sampling errors explicitly, and never modifies benchmark resources.
+Starting after launch is marked as a late capture; pre-launch collection is
+not supported, and earlier samples cannot be recovered. The output directory
+must not already exist. These samples supplement, not replace, retained stage
+timing and scoring evidence.
+
+### Derived-image workflow
+
 The MVP may install the requested Copilot CLI inside each temporary agent
 container and reuse the task's configured environment image. After MVP,
 `wharf build` must support the Harbor-compatible derived-image workflow:

@@ -177,10 +177,22 @@ public static class CommandTree
         var command = new CliCommand("run", "Execute or preview a configured evaluation run.");
         var manifest = new Option<string?>("--manifest") { Description = "Path to a JSON run manifest." };
         var dryRun = new Option<bool>("--dry-run") { Description = "Validate and print a side-effect-free plan." };
+        var noOp = new Option<bool>("--no-op")
+        {
+            Description = "Run a no-op container lifecycle instead of the AI agent; skip grading unless --oracle is also specified."
+        };
+        var oracle = new Option<bool>("--oracle")
+        {
+            Description = "Execute the task's solution/solve.sh and grade its patch in a pristine verifier workspace, without the AI agent."
+        };
         dryRun.Aliases.Add("-d");
         var k = new Option<int?>("-k") { Description = "Attempts per task." };
         var n = new Option<int?>("-n") { Description = "Task concurrency." };
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency." };
+        var containerCpus = new Option<int?>("--container-cpus")
+        {
+            Description = "Optional logical CPU limit per agent/verifier container (default: unrestricted). No affinity restriction when available CPUs are at or below this limit."
+        };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
@@ -220,9 +232,12 @@ public static class CommandTree
         verbose.Aliases.Add("-v");
         command.Options.Add(manifest);
         command.Options.Add(dryRun);
+        command.Options.Add(noOp);
+        command.Options.Add(oracle);
         command.Options.Add(k);
         command.Options.Add(n);
         command.Options.Add(p);
+        command.Options.Add(containerCpus);
         command.Options.Add(outputFormat);
         command.Options.Add(outputDirectory);
         command.Options.Add(logFile);
@@ -249,13 +264,16 @@ public static class CommandTree
                             K: parseResult.GetValue(k),
                             N: parseResult.GetValue(n),
                             P: parseResult.GetValue(p),
+                            ContainerCpus: parseResult.GetValue(containerCpus),
                             OutputFormat: parseResult.GetValue(outputFormat),
                             OutputDirectory: parseResult.GetValue(outputDirectory),
                             Model: parseResult.GetValue(model),
                             Effort: parseResult.GetValue(effort),
                             CliVersion: parseResult.GetValue(cliVersion),
                             RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
-                            ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null),
+                            ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
+                            NoOp: parseResult.GetValue(noOp) ? true : null,
+                            Oracle: parseResult.GetValue(oracle) ? true : null),
                         new Dictionary<string, string?>
                         {
                             ["K"] = Environment.GetEnvironmentVariable("K"),
@@ -264,6 +282,7 @@ public static class CommandTree
                             ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
                             ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
                             ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
+                            ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                             ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
                             ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
                             ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
@@ -312,7 +331,8 @@ public static class CommandTree
                         selectedTasks,
                         cancellationToken: cancellationToken);
                     Console.WriteLine(
-                        $"complete runs={result.TaskCount} result=execution-pending " +
+                        $"complete runs={(runConfiguration.NoOp || runConfiguration.Oracle ? result.TaskCount * runConfiguration.K : result.TaskCount)} " +
+                        $"result={(runConfiguration.NoOp || runConfiguration.Oracle ? result.Status : "execution-pending")} " +
                         $"output={result.OutputDirectory} log={logger.JsonlPath}");
                     return ExitCode.Success.Value;
                 }
@@ -346,13 +366,16 @@ public static class CommandTree
                         K: parseResult.GetValue(k),
                         N: parseResult.GetValue(n),
                         P: parseResult.GetValue(p),
+                        ContainerCpus: parseResult.GetValue(containerCpus),
                         OutputFormat: parseResult.GetValue(outputFormat),
                         OutputDirectory: parseResult.GetValue(outputDirectory),
                         Model: parseResult.GetValue(model),
                         Effort: parseResult.GetValue(effort),
                         CliVersion: parseResult.GetValue(cliVersion),
                         RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
-                        ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null),
+                        ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
+                        NoOp: parseResult.GetValue(noOp) ? true : null,
+                        Oracle: parseResult.GetValue(oracle) ? true : null),
                     parseResult.GetValue(outputFormat));
                 Console.WriteLine(rendered);
                 return ExitCode.Success.Value;
@@ -415,7 +438,8 @@ public static class CommandTree
                 Console.WriteLine(
                     $"resume completed={plan.CompletedCount} pending={plan.Attempts.Count} " +
                     $"K={plan.K} N={plan.N} P={plan.P} model={plan.Model} " +
-                    $"effort={plan.Effort} cli={plan.CliVersion}");
+                    $"effort={plan.Effort} cli={plan.CliVersion} " +
+                    $"container-cpus={plan.Configuration.ContainerCpus?.ToString() ?? "unrestricted"}");
                 if (parseResult.GetValue(dryRun) || plan.Attempts.Count == 0)
                 {
                     foreach (RetainedResumeAttempt attempt in plan.Attempts)
@@ -894,7 +918,8 @@ public static class CommandTree
                         $"complete task={result.TaskId} result={result.Status} output={result.OutputDirectory}");
                 return result.ExitCode;
             }
-            catch (SmokeException exception)
+            catch (Exception exception) when (
+                exception is SmokeException or RunConfigurationException)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;

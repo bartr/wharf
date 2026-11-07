@@ -93,6 +93,20 @@ public sealed class RunService
         if (tasks.Count == 0)
             throw new RunException($"run task directory contains no task.toml files: {resolvedRoot}");
 
+        if (configuration.NoOp || configuration.Oracle)
+        {
+            return new BaselineRunService(imagePreparer).Execute(
+                resolvedRoot, outputDirectory, configuration, logger, tasks,
+                attemptPrefix, cancellationToken, resume);
+        }
+
+        int? containerCpuLimit = ResolveContainerCpuLimit(
+            configuration.ContainerCpus,
+            tasks.Count,
+            configuration.K,
+            configuration.N,
+            attemptPrefix,
+            resume?.RunDirectory);
         IReadOnlyList<TaskAttempt> scheduledAttempts = resume is null
             ? TaskSelector.OrderAttemptsForAdmission(
                 TaskSelector.ExpandAttempts(tasks, configuration.K),
@@ -161,6 +175,7 @@ public sealed class RunService
         using var preparationGate = new PreparationGate(
             configuration.P,
             logger.PreparationGateChanged);
+        using var cpuAllocator = new DockerCpuSetAllocator();
         Parallel.ForEachAsync(
             scheduledAttempts.Select((attempt, index) => (attempt, index)),
             new ParallelOptions
@@ -333,6 +348,14 @@ public sealed class RunService
                                 return null;
                             }
 
+                            string? cpuSet = await cpuAllocator.AllocateAsync(
+                                image,
+                                containerCpuLimit,
+                                item.index,
+                                preparationCancellationToken);
+                            logger.Info(
+                                $"{prefix} container-cpus={containerCpuLimit?.ToString() ?? "unrestricted"} " +
+                                $"cpu-set={cpuSet ?? "unrestricted"}");
                             var request = new AgentExecutionRequest(
                                 task.TaskId,
                                 image,
@@ -351,7 +374,8 @@ public sealed class RunService
                                     configuration.Timeouts.AgentSeconds,
                                     task.AgentTimeoutSeconds,
                                     5400)),
-                                RetainWorkspace: configuration.RetainWorkspaces);
+                                RetainWorkspace: configuration.RetainWorkspaces,
+                                CpuSet: cpuSet);
                             logger.Info($"{prefix} status=preparing-workspace");
                             await workspacePreparer.PrepareAsync(
                                 request,
@@ -621,7 +645,8 @@ public sealed class RunService
                                                         [],
                                                         verifierImage,
                                                         verifierDirectory,
-                                                        artifactsDirectory);
+                                                        artifactsDirectory,
+                                                        CpuSet: verifierImage is null ? null : agentRequest?.CpuSet);
                                                     PreparedVerifierRun prepared =
                                                         await verifierService.PrepareAsync(
                                                             verifierRequest,
@@ -769,6 +794,8 @@ public sealed class RunService
                     taskManifest = Path.Combine(task.RootPath, "task.toml"),
                     datasetManifest,
                     agentImage = image,
+                    containerCpus = configuration.ContainerCpus,
+                    cpuSet = agentRequest?.CpuSet,
                     agentWorkspace = Directory.Exists(workspaceDirectory)
                         ? workspaceDirectory
                         : null,
@@ -1019,13 +1046,13 @@ public sealed class RunService
             .Order(StringComparer.Ordinal)
             .ToArray();
 
-    private static string ResolveVerifierSource(HarborTask task)
+    internal static string ResolveVerifierSource(HarborTask task)
     {
         string appDirectory = Path.Combine(task.RootPath, "environment", "app");
         return Directory.Exists(appDirectory) ? appDirectory : task.RootPath;
     }
 
-    private static string VerifierCommandFor(string language) =>
+    internal static string VerifierCommandFor(string language) =>
         language.Trim().ToLowerInvariant() switch
         {
             "go" => "go test ./...",
@@ -1034,7 +1061,7 @@ public sealed class RunService
             _ => "true"
         };
 
-    private static async Task<string?> PrepareVerifierImageAsync(
+    internal static async Task<string?> PrepareVerifierImageAsync(
         HarborTask task,
         string trialDirectory,
         string runId,
@@ -1196,7 +1223,7 @@ public sealed class RunService
         double defaultSeconds) =>
         configuredSeconds ?? taskSeconds ?? defaultSeconds;
 
-    private static string CreateAttemptDirectory(string jobDirectory, string prefix)
+    internal static string CreateAttemptDirectory(string jobDirectory, string prefix)
     {
         for (int attempt = 1; ; attempt++)
         {
@@ -1220,6 +1247,22 @@ public sealed class RunService
     internal static string BuildPromptArgument(string prompt) =>
         $"--prompt={prompt}";
 
+    internal static int? ResolveContainerCpuLimit(
+        int? configuredLimit,
+        int taskCount,
+        int k,
+        int n,
+        string attemptPrefix,
+        string? resumeDirectory = null)
+    {
+        int selectedTaskCount = resumeDirectory is null
+            ? taskCount
+            : RetainedRunMetadataStore.Read(resumeDirectory)?.Tasks.Count ?? taskCount;
+        return attemptPrefix == "smoke" || n == 1 || (selectedTaskCount == 1 && k == 1)
+            ? null
+            : configuredLimit;
+    }
+
     internal static bool ShouldRunVerifier(string? patch) =>
         !string.IsNullOrWhiteSpace(patch);
 
@@ -1242,7 +1285,7 @@ public sealed class RunService
                 .Order(StringComparer.Ordinal)
         ];
 
-    private static void CleanupVerifierImage(
+    internal static void CleanupVerifierImage(
         string image,
         WharfLogger logger,
         string prefix)

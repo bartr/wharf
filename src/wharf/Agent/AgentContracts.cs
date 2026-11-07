@@ -13,7 +13,8 @@ public sealed record AgentExecutionRequest(
     string? ContainerName = null,
     TimeSpan? Timeout = null,
     bool RetainWorkspace = false,
-    string? EvidenceDirectory = null)
+    string? EvidenceDirectory = null,
+    string? CpuSet = null)
 {
     public void Validate()
     {
@@ -124,7 +125,8 @@ public sealed record AgentEvidenceSummary(
     string TrajectoryPath,
     AgentUsage? Usage = null,
     string? ErrorType = null,
-    string? Error = null);
+    string? Error = null,
+    string? CpuSet = null);
 
 public sealed record AgentExecutionOutcome(
     AgentEvidenceSummary Summary,

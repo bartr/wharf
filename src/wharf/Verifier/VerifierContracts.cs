@@ -12,7 +12,9 @@ public sealed record VerifierRequest(
     IReadOnlyList<string> CredentialEnvironmentVariables,
     string? Image = null,
     string? EvidenceDirectory = null,
-    string? ArtifactsDirectory = null)
+    string? ArtifactsDirectory = null,
+    string? CpuSet = null,
+    bool AllowEmptyPatch = false)
 {
     public void Validate()
     {
@@ -86,7 +88,8 @@ public sealed record TrialResult(
     string WorkspaceDirectory,
     IReadOnlyList<VerifierCommandResult> Commands,
     string PatchApplied,
-    VerifierMetrics? Metrics = null);
+    VerifierMetrics? Metrics = null,
+    string? CpuSet = null);
 
 public sealed record VerifierMetrics(
     int PassAt,
