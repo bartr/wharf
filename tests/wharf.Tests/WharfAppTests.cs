@@ -81,7 +81,7 @@ public sealed class WharfAppTests
     [InlineData("run", "-k")]
     [InlineData("run", "-n")]
     [InlineData("run", "-p")]
-    [InlineData("build", "-p")]
+    [InlineData("prebuild", "-p")]
     [InlineData("resume", "-n")]
     [InlineData("resume", "-p")]
     public void ConcurrencyOptionsUseSingleDash(string commandName, string optionName)
@@ -99,13 +99,13 @@ public sealed class WharfAppTests
     }
 
     [Fact]
-    public void BuildAcceptsExactCliVersion()
+    public void PrebuildAcceptsExactCliVersion()
     {
         RootCommand root = CommandTree.Create(new WharfConfiguration());
-        var command = root.Subcommands.Single(command => command.Name == "build");
+        var command = root.Subcommands.Single(command => command.Name == "prebuild");
         Option<string> option = Assert.IsType<Option<string>>(
             command.Options.Single(option => option.Name == "--cli-version"));
-        var result = root.Parse(["build", "-p", "12", "--cli-version", "1.0.107"]);
+        var result = root.Parse(["prebuild", "-p", "12", "--cli-version", "1.0.107"]);
         Assert.Empty(result.Errors);
         Assert.Equal("1.0.107", result.GetValue(option));
     }
@@ -113,10 +113,19 @@ public sealed class WharfAppTests
     [Theory]
     [InlineData("0")]
     [InlineData("-1")]
-    public async Task InvalidBuildConcurrencyFailsBeforeImagePreparation(string value)
+    public async Task InvalidPrebuildConcurrencyFailsBeforeImagePreparation(string value)
     {
-        int exit = await WharfApp.RunAsync(["build", "-p", value]);
+        int exit = await WharfApp.RunAsync(["prebuild", "-p", value]);
         Assert.Equal(2, exit);
+    }
+
+    [Fact]
+    public void PrebuildReplacesBuildAndDoesNotAcceptTrialConcurrency()
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        Assert.DoesNotContain(root.Subcommands, command => command.Name == "build");
+        Assert.NotEmpty(root.Parse(["build"]).Errors);
+        Assert.NotEmpty(root.Parse(["prebuild", "-n", "4"]).Errors);
     }
 
     [Fact]

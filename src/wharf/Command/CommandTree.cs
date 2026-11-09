@@ -68,7 +68,7 @@ public static class CommandTree
 
         root.Subcommands.Add(CreateVersionCommand());
         root.Subcommands.Add(CreateCompletionCommand());
-        root.Subcommands.Add(CreateBuildCommand(() => configuration, cancellationToken));
+        root.Subcommands.Add(CreatePrebuildCommand(() => configuration, cancellationToken));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
         root.Subcommands.Add(CreateResumeCommand(configuration, cancellationToken));
         root.Subcommands.Add(CreateProgressCommand());
@@ -120,10 +120,10 @@ public static class CommandTree
         return command;
     }
 
-    private static CliCommand CreateBuildCommand(
+    private static CliCommand CreatePrebuildCommand(
         Func<WharfConfiguration> getConfiguration, CancellationToken cancellationToken)
     {
-        var command = new CliCommand("build", "Pre-build task images and retain Docker build cache.");
+        var command = new CliCommand("prebuild", "Warm task, Copilot, agent and verifier image caches before running benchmarks.");
         var tasks = new Option<string>("--tasks")
         {
             Description = "Directory containing the dataset.toml or task.toml directories.",
@@ -153,7 +153,7 @@ public static class CommandTree
                 using WharfLogger logger = WharfLogger.Create(configuration);
                 string? taskRoot = parseResult.GetValue(tasks);
                 if (string.IsNullOrWhiteSpace(taskRoot))
-                    throw new BuildException("build task directory is required");
+                    throw new BuildException("prebuild task directory is required");
                 RunConfiguration buildConfiguration = RunConfigurationResolver.Resolve(
                     null,
                     new RunConfigurationOverrides(
@@ -195,7 +195,7 @@ public static class CommandTree
             catch (Exception exception) when (
                 exception is VerifierExecutionException or IOException or OperationCanceledException)
             {
-                Console.Error.WriteLine($"build failed: {exception.Message}");
+                Console.Error.WriteLine($"prebuild failed: {exception.Message}");
                 return ExitCode.InternalFailure.Value;
             }
         });

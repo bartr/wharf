@@ -46,11 +46,11 @@ public sealed class BuildService
             throw new BuildException("P must be positive");
         string resolvedRoot = Path.GetFullPath(taskRoot);
         if (!Directory.Exists(resolvedRoot))
-            throw new BuildException($"build task directory does not exist: {resolvedRoot}");
+            throw new BuildException($"prebuild task directory does not exist: {resolvedRoot}");
 
         IReadOnlyList<HarborTask> tasks = taskLoader.Load(resolvedRoot);
         if (tasks.Count == 0)
-            throw new BuildException($"build task directory contains no task.toml files: {resolvedRoot}");
+            throw new BuildException($"prebuild task directory contains no task.toml files: {resolvedRoot}");
 
         string cliVersion = copilot.ResolveVersionAsync(
             requestedCliVersion, cancellationToken).GetAwaiter().GetResult();
@@ -64,7 +64,7 @@ public sealed class BuildService
         int verifierPreparedCount = 0;
         try
         {
-            logger.Info($"build tasks={tasks.Count} preparation-concurrency={preparationConcurrency} cli-version={cliVersion}");
+            logger.Info($"prebuild tasks={tasks.Count} preparation-concurrency={preparationConcurrency} cli-version={cliVersion}");
             Parallel.ForEachAsync(
                 tasks,
                 new ParallelOptions
@@ -82,18 +82,18 @@ public sealed class BuildService
                     Exception? taskError = null;
                     try
                     {
-                        logger.Info($"build task={task.TaskId} status=preparing-image image={image}");
+                        logger.Info($"prebuild task={task.TaskId} status=preparing-image image={image}");
                         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
                         timeout.CancelAfter(TimeSpan.FromSeconds(
                             RunService.ResolveTimeoutSeconds(null, task.AgentBuildTimeoutSeconds, 1800)));
                         agentImage = await imagePreparer.PrepareAsync(
                             task, Path.Combine(evidenceDirectory, "agent"), image,
-                            message => logger.Info($"build task={task.TaskId} status={message}"),
+                            message => logger.Info($"prebuild task={task.TaskId} status={message}"),
                             timeout.Token, cliVersion);
                         if (!string.Equals(agentImage, image, StringComparison.Ordinal))
                         {
                             agentImage = null;
-                            throw new BuildException($"build task {task.TaskId} returned an unexpected child image");
+                            throw new BuildException($"prebuild task {task.TaskId} returned an unexpected child image");
                         }
                         Directory.CreateDirectory(Path.Combine(evidenceDirectory, "verifier"));
                         verifierImage = await prepareVerifier(
@@ -103,7 +103,7 @@ public sealed class BuildService
                                 StringComparison.Ordinal))
                         {
                             verifierImage = null;
-                            throw new BuildException($"build task {task.TaskId} returned an unexpected verifier child image");
+                            throw new BuildException($"prebuild task {task.TaskId} returned an unexpected verifier child image");
                         }
                         if (verifierImage is not null)
                             Interlocked.Increment(ref verifierPreparedCount);
@@ -114,7 +114,7 @@ public sealed class BuildService
                             BuildException or IOException or OperationCanceledException)
                     {
                         taskError = exception;
-                        logger.Info($"build task={task.TaskId} status=failed error={exception.Message}",
+                        logger.Info($"prebuild task={task.TaskId} status=failed error={exception.Message}",
                             exception.Message, "BuildPreparation");
                         throw;
                     }
@@ -129,19 +129,19 @@ public sealed class BuildService
                             {
                                 using var cleanupTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
                                 await imagePreparer.RemoveImageAsync(child, cleanupTimeout.Token);
-                                logger.Info($"build task={task.TaskId} status=image-removed image={child}");
+                                logger.Info($"prebuild task={task.TaskId} status=image-removed image={child}");
                             }
                             catch (Exception exception) when (
                                 exception is AgentImageException or IOException or OperationCanceledException)
                             {
                                 cleanupErrors.Add($"{child}: {exception.Message}");
-                                logger.Info($"build task={task.TaskId} status=cleanup-failed image={child} error={exception.Message}",
+                                logger.Info($"prebuild task={task.TaskId} status=cleanup-failed image={child} error={exception.Message}",
                                     exception.Message, "BuildCleanup");
                             }
                         }
                         if (cleanupErrors.Count > 0)
                             throw new BuildException(
-                                $"build cleanup failed: {string.Join("; ", cleanupErrors)}" +
+                                $"prebuild cleanup failed: {string.Join("; ", cleanupErrors)}" +
                                 (taskError is null ? "" : $"; preparation error: {taskError.Message}"));
                     }
                     Interlocked.Increment(ref builtCount);
@@ -162,7 +162,7 @@ public sealed class BuildService
         HarborTask task, string directory, string identity,
         WharfLogger logger, CancellationToken cancellationToken) =>
         RunService.PrepareVerifierImageAsync(
-            task, directory, identity, logger, $"build task={task.TaskId}",
+            task, directory, identity, logger, $"prebuild task={task.TaskId}",
             RunService.ResolveTimeoutSeconds(null, task.VerifierBuildTimeoutSeconds, 1800),
             cancellationToken);
 }

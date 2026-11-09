@@ -44,12 +44,24 @@ enterprise benchmarks from Harbor task definitions.
 
 ## Post-MVP execution and scale requirements
 
+### Required machine warm-up
+
+Always run `wharf prebuild` before the first `wharf run` on each machine,
+including agent-free baseline runs. This warms the machine's Docker caches
+before image preparation can compete with running trials for host resources.
+Prebuild once for the required tasks and exact CLI version; do not repeat it
+before every run while those caches remain available. See the
+[derived-image workflow](#derived-image-workflow) for commands, cache
+invalidation conditions, and the distinction between image warm-up and
+runtime workspace caches.
+
 ### Agent-free baseline runs
 
 Use the normal task selection, K/N/P, timeout, retention, and CPU-affinity
 options with these opt-in `wharf run` modes:
 
 ```bash
+wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
 wharf run --tasks enterprise/tasks --no-op -k 10 -n 80 -p 12
 wharf run --tasks enterprise/tasks --oracle -k 10 -n 80 -p 12
 wharf run --tasks enterprise/tasks --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
@@ -153,21 +165,31 @@ timing and scoring evidence.
 
 ### Derived-image workflow
 
-Warm the image caches before a high-concurrency run:
+**Required before the first run on each machine:** warm the image caches
+for the selected tasks and the exact CLI version that the run will use.
 
 ```bash
-wharf build --tasks enterprise/tasks -p 12 --cli-version 1.0.107
+wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
 wharf run --tasks enterprise/tasks -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
 
-`build -p` limits the number of tasks preparing images concurrently. Each task
+Run prebuild once per machine's Docker cache, not once per benchmark run.
+Repeat warm-up only when the required cache entries change or are absent:
+new or changed tasks, a different CLI version or base image, or cache
+removal/pruning. Changing N, K, P, model, or reasoning effort alone does not
+invalidate these caches. Each new machine/Docker host needs its own warm-up;
+caches on another host do not warm it. If using `latest`, resolve and pin
+the same exact CLI version for prebuild and run so an intervening release
+does not cause an unexpected cold start.
+
+`prebuild -p` limits the number of tasks preparing images concurrently. Each task
 prepares its agent and verifier images sequentially, so their combined build
-concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, then 4; build
+concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, then 4; prebuild
 has no N cap. `--p` is not accepted. CLI selection is `--cli-version`,
 `WHARF_CLI_VERSION`, then `latest`, resolved once to an exact version without
-reading credentials. Pin the same version for build and run.
+reading credentials. Pin the same version for prebuild and run.
 
-Build uses the same persistent task-environment, version/platform-specific
+Prebuild uses the same persistent task-environment, version/platform-specific
 Copilot payload, and composed agent image caches as a normal run. It also
 builds each available verifier Dockerfile to warm Docker's build cache.
 Only uniquely named build child images are removed; configured parent/ECR
@@ -181,7 +203,7 @@ workspace caches created only when agent or grader commands execute.
 
 The MVP may install the requested Copilot CLI inside each temporary agent
 container and reuse the task's configured environment image. After MVP,
-`wharf build` must support the Harbor-compatible derived-image workflow:
+`wharf prebuild` must support the Harbor-compatible derived-image workflow:
 
 - Build a local, version-pinned agent image from each task environment image.
 - Install the requested Copilot CLI and its runtime dependencies in the
