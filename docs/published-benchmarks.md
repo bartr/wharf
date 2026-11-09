@@ -21,6 +21,19 @@ Each point is one completed enterprise arm: 14 C# tasks with K=4 attempts,
 for 56 logical trials. Runs use the Copilot CLI with default effort unless a
 chart says otherwise.
 
+## Machine preparation
+
+Always run `wharf prebuild` before the first benchmark run on each machine.
+Warm the selected task set with the same exact Copilot CLI version used by
+the arm, then reuse that machine's caches for subsequent runs. Prebuild is a
+one-time warm-up for those cache entries, not a step before every arm.
+Warm again for new/changed tasks, CLI versions or base images, or after
+cache removal. See the [cache warm-up workflow](wharf.md#derived-image-workflow).
+
+Recurring published arms should start with these image caches warm.
+Deliberate cold-start experiments must be labeled separately, and retained
+historical cold runs must not be relabeled as warm runs.
+
 ## Chart views
 
 The site presents three separate views of the same retained trials. Each

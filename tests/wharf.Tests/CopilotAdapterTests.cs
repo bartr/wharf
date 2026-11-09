@@ -5,6 +5,18 @@ namespace Wharf.Tests;
 
 public sealed class CopilotAdapterTests
 {
+    [Theory]
+    [InlineData("1.2.3", "1.2.3", 0)]
+    [InlineData("latest", "1.2.4", 1)]
+    public async Task ResolvesVersionWithoutCredentialOrInvocation(
+        string requested, string expected, int calls)
+    {
+        var probe = new FakeProbe("1.2.4");
+        var adapter = new CopilotAdapter(probe);
+        Assert.Equal(expected, await adapter.ResolveVersionAsync(requested));
+        Assert.Equal(calls, probe.CallCount);
+    }
+
     [Fact]
     public async Task RecordsExactVersionAndNormalizedEffort()
     {

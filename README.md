@@ -1,9 +1,34 @@
-# Wharf 1.2.0
+# Wharf 1.3.0
 
-Wharf 1.2.0 builds on the first MVP release of the customer-controlled benchmark
+Wharf 1.3.0 builds on the first MVP release of the customer-controlled benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
+
+## Required one-time machine warm-up
+
+**Always run `wharf prebuild` before the first `wharf run` on each machine.**
+Warm the selected tasks with the same exact Copilot CLI version used by the run:
+
+```bash
+wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
+wharf run --tasks enterprise/tasks -n 32 -p 12 -k 4 --cli-version 1.0.107
+```
+
+This is a one-time preparation step for that machine's Docker cache, not a
+step to repeat before every run. Subsequent runs reuse the task-environment,
+Copilot payload, composed agent images, and verifier Docker build cache.
+Warm again when adding or changing tasks, changing the CLI version or base
+images, or after removing the required cached images/build layers. Changing
+N, K, P, model, or reasoning effort alone does not require another prebuild.
+
+Prebuild defaults to P=4 and has no N option. It does not execute agents or
+graders. See [cache warm-up](docs/wharf.md#derived-image-workflow) for details.
+
+In 1.3.0, `wharf prebuild` replaces `wharf build`; the old command is no
+longer accepted. Update existing warm-up scripts to use `prebuild`.
+
+## Run configuration
 
 New runs default to `hydrafusion` with no explicit reasoning effort, leaving
 effort selection to the model. Configure a different model with `--model` (`-m`),

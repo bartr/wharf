@@ -15,6 +15,7 @@ using Wharf.Qualification;
 using Wharf.Recovery;
 using Wharf.Tasks;
 using Wharf.Versioning;
+using Wharf.Verifier;
 using CliCommand = System.CommandLine.Command;
 
 namespace Wharf.Command;
@@ -67,7 +68,7 @@ public static class CommandTree
 
         root.Subcommands.Add(CreateVersionCommand());
         root.Subcommands.Add(CreateCompletionCommand());
-        root.Subcommands.Add(CreateBuildCommand(() => configuration));
+        root.Subcommands.Add(CreatePrebuildCommand(() => configuration, cancellationToken));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
         root.Subcommands.Add(CreateResumeCommand(configuration, cancellationToken));
         root.Subcommands.Add(CreateProgressCommand());
@@ -119,9 +120,10 @@ public static class CommandTree
         return command;
     }
 
-    private static CliCommand CreateBuildCommand(Func<WharfConfiguration> getConfiguration)
+    private static CliCommand CreatePrebuildCommand(
+        Func<WharfConfiguration> getConfiguration, CancellationToken cancellationToken)
     {
-        var command = new CliCommand("build", "Pre-build task images and retain Docker build cache.");
+        var command = new CliCommand("prebuild", "Warm task, Copilot, agent and verifier image caches before running benchmarks.");
         var tasks = new Option<string>("--tasks")
         {
             Description = "Directory containing the dataset.toml or task.toml directories.",
@@ -129,8 +131,15 @@ public static class CommandTree
         };
         var verbose = new Option<bool>("--verbose") { Description = "Show image preparation details." };
         verbose.Aliases.Add("-v");
+        var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency (default: 4)." };
+        var cliVersion = new Option<string>("--cli-version")
+        {
+            Description = "Exact Copilot CLI version to warm, or latest."
+        };
         command.Options.Add(tasks);
         command.Options.Add(verbose);
+        command.Options.Add(p);
+        command.Options.Add(cliVersion);
         command.SetAction(parseResult =>
         {
             try
@@ -144,14 +153,26 @@ public static class CommandTree
                 using WharfLogger logger = WharfLogger.Create(configuration);
                 string? taskRoot = parseResult.GetValue(tasks);
                 if (string.IsNullOrWhiteSpace(taskRoot))
-                    throw new BuildException("build task directory is required");
+                    throw new BuildException("prebuild task directory is required");
+                RunConfiguration buildConfiguration = RunConfigurationResolver.Resolve(
+                    null,
+                    new RunConfigurationOverrides(
+                        N: int.MaxValue, P: parseResult.GetValue(p),
+                        CliVersion: parseResult.GetValue(cliVersion)),
+                    new Dictionary<string, string?>
+                    {
+                        ["P"] = Environment.GetEnvironmentVariable("P"),
+                        ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
+                        ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION")
+                    });
                 BuildResult result = new BuildService(
                     imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
                     taskRoot,
-                    logger);
+                    logger, buildConfiguration.P, buildConfiguration.CliVersion, cancellationToken);
                 Console.WriteLine(
                     $"complete tasks={result.TaskCount} prepared={result.PreparedCount} " +
-                    $"built={result.BuiltCount} " +
+                    $"built={result.BuiltCount} verifier-prepared={result.VerifierPreparedCount} " +
+                    $"preparation-concurrency={result.PreparationConcurrency} cli-version={result.CliVersion} " +
                     $"cache=retained output=none");
                 return ExitCode.Success.Value;
             }
@@ -163,6 +184,18 @@ public static class CommandTree
             catch (AgentImageException exception)
             {
                 Console.Error.WriteLine(exception.Message);
+                return ExitCode.InternalFailure.Value;
+            }
+            catch (Exception exception) when (
+                exception is RunConfigurationException or CopilotAdapterException or HarborTaskException)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            catch (Exception exception) when (
+                exception is VerifierExecutionException or IOException or OperationCanceledException)
+            {
+                Console.Error.WriteLine($"prebuild failed: {exception.Message}");
                 return ExitCode.InternalFailure.Value;
             }
         });
