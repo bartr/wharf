@@ -6,7 +6,7 @@ git pull
 
 # build wharf
 dotnet build
-cp -R $HOME/wharf/src/wharf/bin/Debug/net10.0/* /tmp
+cp -R $HOME/wharf/src/wharf/bin/Debug/net10.0/* ~/bin
 
 # smoke test
-/tmp/wharf smoke
+wharf smoke
