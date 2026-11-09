@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Verified 2026-11-09 from thirty-one completed runs. Each arm contains 14
+Verified 2026-11-09 from thirty-five completed runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
@@ -13,6 +13,8 @@ All runs use default effort and the Copilot CLI.
 
 | Model | Effort | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|
+| GPT-6.1 Sol | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2011 | 243.4 s |
+| GPT-6 Astra | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2170 | 246.4 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.102 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2351 | 254.9 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.105 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2298 | 224.8 s |
 | **HydraFusion** | default | copilot-cli | 1.0.108 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2802 | 347.9 s |
@@ -21,6 +23,7 @@ All runs use default effort and the Copilot CLI.
 | **HydraFusion** | default | copilot-cli | 1.0.98 | 54 / 56 | 96.43% | 0 | 96.43% | $0.4116 | 234.8 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.105 | 54 / 56 | 96.43% | 0 | 96.43% | $1.3178 | 174.0 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 0 | 96.43% | $1.3180 | 252.5 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.108 | 54 / 56 | 96.43% | 1 | 96.18% | $0.0165 | 211.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.96 | 54 / 56 | 96.43% | 1 | 96.18% | $0.3197 | 272.5 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
@@ -39,6 +42,7 @@ All runs use default effort and the Copilot CLI.
 | GPT-6 Luna | default | copilot-cli | 1.0.102 | 50 / 56 | 89.29% | 4 | 88.29% | $0.0152 | 258.3 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.95 | 49 / 56 | 87.50% | 5 | 86.25% | $0.5310 | 215.9 s |
 | Claude Opus 5 | default | copilot-cli | 1.0.91 | 48 / 56 | 85.71% | 2 | 85.21% | $1.0990 | 230.7 s |
+| Claude Opus 5.5 | default | copilot-cli | 1.0.108 | 48 / 56 | 85.71% | 3 | 84.96% | $0.4987 | 148.9 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.105 | 48 / 56 | 85.71% | 4 | 84.71% | $0.0156 | 197.1 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.102 | 48 / 56 | 85.71% | 4 | 84.71% | $0.4785 | 214.5 s |
 | MAI Code 1.1 Flash | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 5 | 80.89% | $0.0770 | 275.1 s |
@@ -61,6 +65,8 @@ the task-weighted, K-normalized mean as well.
 
 | Model | Cost coverage | Cost per costed trial | Mean agent time |
 |---|---:|---:|---:|
+| GPT-6.1 Sol 1.0.108 | 56 / 56 | $0.2011 | 243.4 s |
+| GPT-6 Astra 1.0.108 | 56 / 56 | $1.2170 | 246.4 s |
 | GPT-6 Astra 1.0.102 | 56 / 56 | $1.2351 | 254.9 s |
 | GPT-6.1 Sol 1.0.105 | 56 / 56 | $0.2298 | 224.8 s |
 | HydraFusion 1.0.108 | 56 / 56 | $0.2802 | 347.9 s |
@@ -69,6 +75,7 @@ the task-weighted, K-normalized mean as well.
 | HydraFusion 1.0.98 | 56 / 56 | $0.4116 | 234.8 s |
 | GPT-6 Astra 1.0.105 | 56 / 56 | $1.3178 | 174.0 s |
 | GPT-6 Astra 1.0.95 | 56 / 56 | $1.3180 | 252.5 s |
+| GPT-6 Luna 1.0.108 | 56 / 56 | $0.0165 | 211.3 s |
 | HydraFusion 1.0.96 | 56 / 56 | $0.3197 | 272.5 s |
 | GPT-6 Luna 1.0.95 | 56 / 56 | $0.0158 | 257.5 s |
 | GPT-6.1 Sol 1.0.95 | 56 / 56 | $0.2200 | 283.7 s |
@@ -87,6 +94,7 @@ the task-weighted, K-normalized mean as well.
 | GPT-6 Luna 1.0.102 | 56 / 56 | $0.0152 | 258.3 s |
 | Claude Opus 5.5 1.0.95 | 56 / 56 | $0.5310 | 215.9 s |
 | Claude Opus 5 1.0.91 | 56 / 56 | $1.0990 | 230.7 s |
+| Claude Opus 5.5 1.0.108 | 56 / 56 | $0.4987 | 148.9 s |
 | GPT-6 Luna 1.0.105 | 56 / 56 | $0.0156 | 197.1 s |
 | Claude Opus 5.5 1.0.102 | 56 / 56 | $0.4785 | 214.5 s |
 | MAI Code 1.1 Flash 1.0.95 | 56 / 56 | $0.0770 | 275.1 s |
@@ -97,7 +105,23 @@ Cost uses the retained Copilot AI Credit evidence at one cent per credit.
 No costs were imputed. Agent and trial duration evidence is present for every
 exported trial.
 
-## Latest CLI 1.0.108 run
+## Latest CLI 1.0.108 runs
+
+Five completed CLI 1.0.108 arms are retained, totaling 280 logical trials.
+The newly added sources are:
+
+* [Claude Opus 5.5](../jobs/copilot-claude-opus-5.5-default-1.0.108/all-1)
+* [GPT-6 Astra](../jobs/copilot-gpt-6-astra-default-1.0.108/all-1)
+* [GPT-6 Luna](../jobs/copilot-gpt-6-luna-default-1.0.108/all-1)
+* [GPT-6.1 Sol](../jobs/copilot-gpt-6.1-sol-default-1.0.108/all-1)
+
+All five arms use K=4, N=32, default effort, and unrestricted container CPUs.
+Opus uses P=16; the other four use P=24. The three newly added GPT arms
+requested `latest`; retained image-cache metadata confirms effective CLI
+1.0.108 for every trial. Cost, functional/regression test counts, and agent
+and full-trial durations are present for all 280 trials.
+
+### HydraFusion
 
 Source: [`copilot-hydrafusion-default-1.0.108/all-1`](../jobs/copilot-hydrafusion-default-1.0.108/all-1).
 This completed arm used K=4, N=32, P=24, and unrestricted container CPUs.
@@ -119,12 +143,12 @@ no arm-level cold/warm cache classification is inferred from the score.
 
 ## Data coverage
 
-* Exported arms: 31
-* Exported logical trials: 1736
+* Exported arms: 35
+* Exported logical trials: 1960
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 1736 / 1736 trials
-* Agent and trial duration measurements: 1736 / 1736 trials
+* Functional and regression measurements: 1960 / 1960 trials
+* Agent and trial duration measurements: 1960 / 1960 trials
 * Trials with an exception category: 0
 
 Only completed `all-1` runs are included.
