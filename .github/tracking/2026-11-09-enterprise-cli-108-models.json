@@ -1,0 +1,124 @@
+{
+  "request": "Update enterprise/data and summary.md with the newly copied CLI 1.0.108 runs.",
+  "research": {
+    "reused": "The existing CLI 1.0.108 HydraFusion export establishes the canonical export, metric definitions, manifest and raw-evidence validation workflow.",
+    "evidence": [
+      ".github/tracking/2026-11-09-enterprise-cli-108.json:24",
+      "enterprise/data/summary.md:8",
+      "src/wharf/Command/CommandTree.cs:750",
+      "docs/published-benchmarks.md:124"
+    ],
+    "new_sources": [
+      {
+        "arm": "copilot-claude-opus-5.5-default-1.0.108",
+        "job": "all-1",
+        "requested_cli_version": "1.0.108",
+        "p": 16
+      },
+      {
+        "arm": "copilot-gpt-6-astra-default-1.0.108",
+        "job": "all-1",
+        "requested_cli_version": "latest",
+        "p": 24
+      },
+      {
+        "arm": "copilot-gpt-6-luna-default-1.0.108",
+        "job": "all-1",
+        "requested_cli_version": "latest",
+        "p": 24
+      },
+      {
+        "arm": "copilot-gpt-6.1-sol-default-1.0.108",
+        "job": "all-1",
+        "requested_cli_version": "latest",
+        "p": 24
+      }
+    ],
+    "shared_configuration": {
+      "effective_cli_version": "1.0.108",
+      "effort": "default",
+      "k": 4,
+      "n": 32,
+      "container_cpus": null
+    },
+    "effective_version_evidence": "All 280 retained trials across five CLI 108 arms have agent/agent-image-cache.json recording copilotVersion=1.0.108.",
+    "new_logical_trials": 224,
+    "tasks_per_arm": 14
+  },
+  "plan": [
+    "Export the four new completed all-1 runs with the canonical Wharf analytics exporter and explicit effective CLI version.",
+    "Rebuild only enterprise/data/manifest.json from retained JSONL exports.",
+    "Validate all five CLI 108 arms against raw evidence, including the already exported HydraFusion arm.",
+    "Validate all manifest entries and refresh both ranked summary tables, coverage totals and latest CLI 108 section.",
+    "Preserve existing exports, raw jobs and DeepSWE data; do not restore removed experiments or commit/push without a request."
+  ],
+  "review": {
+    "status": "passed",
+    "new_exports": [
+      {
+        "arm": "copilot-claude-opus-5.5-default-1.0.108",
+        "sha256": "3c775d9ab45245b56d5395c5fac6abbfc24ab224158a6c84bab0f2335eaa716b",
+        "trials": 56,
+        "passes": 48,
+        "tasks_solved": 14,
+        "p2p_errors": 3,
+        "known_cost_usd": 27.9253,
+        "mean_agent_seconds": 148.85601785714286,
+        "mean_trial_seconds": 196.68625
+      },
+      {
+        "arm": "copilot-gpt-6-astra-default-1.0.108",
+        "sha256": "0dd09b7bbe186e9a4238675de38fc9d5a69a84ca4f1c4b86e3066464ecbd9fe3",
+        "trials": 56,
+        "passes": 56,
+        "tasks_solved": 14,
+        "p2p_errors": 0,
+        "known_cost_usd": 68.1517,
+        "mean_agent_seconds": 246.3547142857143,
+        "mean_trial_seconds": 314.3211964285714
+      },
+      {
+        "arm": "copilot-gpt-6-luna-default-1.0.108",
+        "sha256": "c31de05981c31e3a3027c0ccb37ee5b8c41a7f235712fbf47075467e8ba67e69",
+        "trials": 56,
+        "passes": 54,
+        "tasks_solved": 14,
+        "p2p_errors": 1,
+        "known_cost_usd": 0.9246,
+        "mean_agent_seconds": 211.29680357142857,
+        "mean_trial_seconds": 278.8792142857143
+      },
+      {
+        "arm": "copilot-gpt-6.1-sol-default-1.0.108",
+        "sha256": "176f522ac8a077f3bf4b5358ae69ee1e601f13928493ff37ff3a4e930628e9cf",
+        "trials": 56,
+        "passes": 56,
+        "tasks_solved": 14,
+        "p2p_errors": 0,
+        "known_cost_usd": 11.2596,
+        "mean_agent_seconds": 243.40701785714286,
+        "mean_trial_seconds": 314.1605892857143
+      }
+    ],
+    "manifest": "enterprise/data/manifest.json",
+    "summary": "enterprise/data/summary.md",
+    "dataset_arms": 35,
+    "dataset_trials": 1960,
+    "raw_cli_108_trials_validated": 280,
+    "new_trial_measurement_coverage": "224/224",
+    "whole_trial_retries": 0,
+    "verifier_retries": 0,
+    "exception_categories": 0,
+    "validation": [
+      "All 280 CLI 108 rows matched raw task identities/checksums, logical results, grader counts, patch sizes, cost evidence and actual command durations.",
+      "Effective CLI 1.0.108 matched retained image-cache metadata for every trial, including the three runs requesting latest.",
+      "Trial durations matched preparation-start through final-cleanup spans within 1 ms; retry counters were zero.",
+      "All 35 exported arms retained 14 tasks at K=4 with unique logical identities and complete test/cost/duration coverage.",
+      "Credits converted to USD using exact decimal arithmetic at one cent per credit; no costs were imputed.",
+      "Every manifest entry matched JSONL size, trial/task counts, passes, P2P errors, score, cost and timing aggregates.",
+      "Both summary tables matched all 35 manifest entries and their prescribed sorting.",
+      "The existing HydraFusion CLI 108 export retained SHA-256 c9d02055b100924878710acfabf8e965012448fa241dc06eb52f956673ad4aec.",
+      "git diff --check passed; existing exports, raw jobs and DeepSWE data were unchanged."
+    ]
+  }
+}

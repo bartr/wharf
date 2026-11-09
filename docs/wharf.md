@@ -324,13 +324,13 @@ container and reuse the task's configured environment image. After MVP,
 - a hosted control plane
 - a hosted dashboard
 - licensing or task redistribution automation
-- support for Linux distributions other than the documented Ubuntu LTS release
+- support for Linux distributions other than Ubuntu 24.04 or newer
 - byte-for-byte reproduction of another benchmark runner's internal implementation
 
 ## Supported platform
 
-- Support Ubuntu 24.04 LTS on amd64 as the primary host platform.
-- Support Ubuntu 24.04 LTS on WSL2 as a validated lower-throughput host.
+- Support Ubuntu 24.04 or newer on amd64 as the primary host platform.
+- Support Ubuntu 24.04 or newer on WSL2 as a lower-throughput host.
 - Defer native Windows workers and native PowerShell execution.
 - Deliver Wharf as a versioned, signed `.deb` plus an official bootstrap script.
 - Treat a host provisioned by the official bootstrap script as the supported unit.

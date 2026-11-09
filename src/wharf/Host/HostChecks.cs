@@ -54,17 +54,35 @@ public sealed class HostCheckService(IEnumerable<IHostProbe> probes)
     }
 }
 
-public sealed class PlatformProbe : IHostProbe
+public sealed class PlatformProbe(
+    Func<string>? readOsRelease = null,
+    Architecture? architecture = null) : IHostProbe
 {
     public HostCheck Check(HostCheckOptions options)
     {
-        string release = File.Exists("/etc/os-release") ? File.ReadAllText("/etc/os-release") : string.Empty;
-        bool ubuntu = release.Contains("ID=ubuntu", StringComparison.OrdinalIgnoreCase) &&
-            release.Contains("VERSION_ID=\"24.04\"", StringComparison.Ordinal);
-        bool amd64 = RuntimeInformation.OSArchitecture == Architecture.X64;
+        string release = readOsRelease is not null ? readOsRelease() :
+            File.Exists("/etc/os-release") ? File.ReadAllText("/etc/os-release") : string.Empty;
+        string? id = null;
+        string? versionId = null;
+        foreach (string line in release.Split('\n'))
+        {
+            string[] entry = line.Split('=', 2);
+            if (entry.Length != 2)
+                continue;
+            string value = entry[1].Trim().Trim('"', '\'');
+            switch (entry[0].Trim())
+            {
+                case "ID": id = value; break;
+                case "VERSION_ID": versionId = value; break;
+            }
+        }
+
+        bool ubuntu = string.Equals(id, "ubuntu", StringComparison.OrdinalIgnoreCase) &&
+            Version.TryParse(versionId, out Version? version) && version >= new Version(24, 4);
+        bool amd64 = (architecture ?? RuntimeInformation.OSArchitecture) == Architecture.X64;
         bool supported = ubuntu && amd64;
         (bool wsl, string wslSource) = IsWsl();
-        string detail = $"ubuntu24.04={ubuntu}; amd64={amd64}; wsl={wsl} ({wslSource})";
+        string detail = $"ubuntu24.04+={ubuntu}; amd64={amd64}; wsl={wsl} ({wslSource})";
         return new HostCheck("platform", supported, true, detail);
     }
 
