@@ -1,0 +1,77 @@
+{
+  "request": "Add the latest completed HydraFusion CLI 1.0.108 enterprise run and update the summary.",
+  "research": {
+    "source": "enterprise/jobs/copilot-hydrafusion-default-1.0.108/all-1",
+    "reused": "The CLI 1.0.107 export and validation established the canonical analytics workflow and metric definitions.",
+    "evidence": [
+      "enterprise/jobs/copilot-hydrafusion-default-1.0.108/all-1/run-plan.json:1",
+      "enterprise/data/summary.md:8",
+      ".github/tracking/2026-11-08-enterprise-cli-107.json:26",
+      "docs/published-benchmarks.md:124"
+    ],
+    "configuration": {
+      "model": "hydrafusion",
+      "effort": "default",
+      "cli_version": "1.0.108",
+      "k": 4,
+      "n": 32,
+      "p": 24,
+      "container_cpus": null
+    },
+    "logical_trials": 56,
+    "tasks": 14
+  },
+  "plan": [
+    "Export only the completed all-1 run using the canonical Wharf analytics exporter.",
+    "Rebuild the enterprise manifest from all retained enterprise JSONL exports.",
+    "Validate logical identity, checksums, K depth, reward/test counts, cost conversion, patch sizes, exceptions, retry accounting and durations against raw evidence.",
+    "Update both summary tables, the latest-run section and dataset coverage totals; retain the stated sorting and score definitions.",
+    "Preserve raw jobs and existing exports, keep DeepSWE separate, and do not restore previously removed experiments."
+  ],
+  "review": {
+    "status": "passed",
+    "export": "enterprise/data/copilot-hydrafusion-default-1.0.108.jsonl",
+    "export_sha256": "c9d02055b100924878710acfabf8e965012448fa241dc06eb52f956673ad4aec",
+    "manifest": "enterprise/data/manifest.json",
+    "comparison": "enterprise/data/summary.md",
+    "metrics": {
+      "trials": 56,
+      "tasks": 14,
+      "passes": 55,
+      "pass_at_1_percent": 98.21428571428571,
+      "tasks_solved": 14,
+      "p2p_errors": 0,
+      "known_cost_usd": 15.6924,
+      "cost_per_costed_trial_usd": 0.2802214285714286,
+      "mean_agent_seconds": 347.85575,
+      "mean_trial_seconds": 376.1747321428571,
+      "cost_coverage": "56/56",
+      "duration_coverage": "56/56",
+      "functional_and_regression_coverage": "56/56",
+      "whole_trial_retries": 0,
+      "verifier_retries": 0,
+      "exception_categories": 0
+    },
+    "reward_zero_trials": [
+      {
+        "trial": "wharf-scheduler__49a01b53__attempt-2",
+        "f2p_passed": 2,
+        "f2p_total": 3,
+        "p2p_passed": 1,
+        "p2p_total": 1
+      }
+    ],
+    "dataset_arms": 31,
+    "dataset_trials": 1736,
+    "validation": [
+      "All 56 exported rows matched retained logical results, task identities/checksums, K depth, reward and raw grader test counts.",
+      "Credits and USD conversion matched raw agent usage and trial totals using exact decimal arithmetic.",
+      "Agent durations matched actual command duration; trial durations matched preparation-start through final-cleanup spans within 1 ms.",
+      "Patch sizes, absent exceptions and zero retry counts matched retained evidence.",
+      "All 31 retained arms had 14 tasks at K=4, unique logical-trial identities and complete test/cost/duration coverage.",
+      "Every manifest entry matched JSONL size, trial/task counts, passes, P2P errors, score, cost and agent-time aggregates.",
+      "Both summary tables matched all 31 manifest entries and their prescribed sorting.",
+      "git diff --check passed; raw jobs, existing exports and DeepSWE data were unchanged."
+    ]
+  }
+}
