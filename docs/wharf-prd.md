@@ -67,7 +67,7 @@ V1 does not include:
 - Multi-node orchestration.
 - A hosted control plane or dashboard.
 - Licensing or task-redistribution automation.
-- Linux distributions other than Ubuntu 24.04 LTS.
+- Linux distributions other than Ubuntu 24.04 or newer.
 - Byte-for-byte reproduction of another benchmark runner's internals.
 - Claude Code or Codex adapters; these arrive in v1.1.
 - Automated repair and replay; these follow stable v1 execution and reporting.
@@ -253,7 +253,7 @@ may report completion or a blocked run; durable status files are mandatory.
 
 ## 8. Deployment
 
-- Supported hosts are Ubuntu 24.04 LTS amd64 and Ubuntu 24.04 LTS on WSL2.
+- Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
 - The supported unit is a host provisioned by the official idempotent bootstrap.
 - Wharf is delivered as a versioned, signed `.deb`.
 - Cloud-init, on-premises, and WSL entry points invoke the same installer.

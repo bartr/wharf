@@ -5,6 +5,10 @@ execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
 
+Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
+`wharf check` verifies the host platform, Docker capabilities, and capacity;
+newer Ubuntu releases do not require `--allow-unsupported-host`.
+
 ## Required one-time machine warm-up
 
 **Always run `wharf prebuild` before the first `wharf run` on each machine.**
