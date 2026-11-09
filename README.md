@@ -32,6 +32,13 @@ fresh verifier workspace. Combining `--no-op --oracle` runs both stages in each
 logical trial, without doubling K. These modes never invoke Copilot and retain
 separate baseline jobs and timing summaries. See [baseline runs](docs/wharf.md#agent-free-baseline-runs).
 
+For high-concurrency runs, warm reusable images first with
+`wharf build --tasks enterprise/tasks -p 12 --cli-version 1.0.107`.
+Build defaults to P=4 and retains task-environment, Copilot payload, composed
+agent caches, and verifier Docker build cache. Pin the same CLI version for
+build and run. Build does not execute agents or graders; see
+[cache warm-up](docs/wharf.md#derived-image-workflow).
+
 When no run credential is configured, Wharf reads the Copilot token from
 `~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
 location; Wharf no longer reads the old path. Configured credentials still

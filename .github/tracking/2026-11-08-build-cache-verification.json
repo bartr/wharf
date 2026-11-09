@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "1.0",
+  "subject": "wharf build cache warm-up",
+  "requirements": {
+    "preparationConcurrency": "Add -p; precedence flag, P, WHARF_P, default 4; no run N cap.",
+    "cacheReuse": "Warm the same persistent agent caches and verifier Docker build layers used by run.",
+    "safety": "Wait for the active benchmark to finish before building/testing; preserve parent and persistent cache images."
+  },
+  "findings": [
+    "The previous build path omitted copilotVersion and therefore skipped persistent task-environment, CLI-payload, and composed agent caches.",
+    "The previous build path did not prepare verifier Dockerfiles.",
+    "For an ECR-backed task, the previous build path passed the parent image tag as the requested child tag."
+  ],
+  "implementation": [
+    "Share CopilotAdapter version resolution without credential or invocation preparation.",
+    "Add build -p and --cli-version, matching run configuration precedence where applicable.",
+    "Bound combined agent/verifier preparation by the build task concurrency limit.",
+    "Use the existing agent preparer and verifier image builder; create and remove uniquely named build children.",
+    "Retain persistent agent caches, configured parents, and verifier Docker build cache.",
+    "Propagate cancellation and failures explicitly; attempt cleanup of both children even when one removal fails."
+  ],
+  "validation": {
+    "benchmarkPidWaitedFor": 3614363,
+    "managedContainersAlsoWaitedFor": true,
+    "firstValidationStartedAt": "2026-11-08T23:10:20-06:00",
+    "releaseBuild": "passed",
+    "formatVerification": "passed",
+    "gitDiffCheck": "passed",
+    "focusedTestsAccepted": 148,
+    "testExecution": "147 passed on the initial run. An ECR test fixture incorrectly placed task.toml at the collection root; after fixing its layout, the targeted test passed.",
+    "dockerTaskCoverage": 14,
+    "pinnedCopilotVersion": "1.0.107",
+    "normalAgentPreparationAfterBuild": {
+      "taskEnvironmentCacheHits": 14,
+      "cliPayloadCacheHits": 14,
+      "composedAgentCacheHits": 14
+    },
+    "normalVerifierBuildsAfterBuild": {
+      "cachedLayerReuseVerified": 14
+    },
+    "ecrParentIdentityPreserved": true,
+    "actualCliInvocation": "wharf build --tasks enterprise/tasks -p 12 --cli-version 1.0.107",
+    "actualCliResult": {
+      "prepared": 14,
+      "verifierPrepared": 14,
+      "preparationConcurrency": 12,
+      "temporaryChildImagesRemaining": 0
+    },
+    "aiAgentsExecuted": 0,
+    "gradersExecuted": 0
+  },
+  "limits": [
+    "Image cache warm-up does not precompile an unknown agent patch or populate workspace caches created only by agent/grader execution.",
+    "Use the same exact CLI version for build and run; latest can change between invocations.",
+    "Verifier reuse relies on Docker build cache; this change does not introduce a persistent verifier cache-image contract."
+  ],
+  "sources": [
+    "src/wharf/Build/BuildService.cs",
+    "src/wharf/Command/CommandTree.cs",
+    "src/wharf/Copilot/CopilotContracts.cs",
+    "tests/wharf.Tests/BuildServiceTests.cs",
+    "tests/wharf.Tests/DockerAgentImagePreparerTests.cs"
+  ]
+}

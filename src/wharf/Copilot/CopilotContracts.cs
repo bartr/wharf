@@ -88,19 +88,23 @@ public sealed partial class CopilotAdapter
             : executable;
     }
 
+    public async Task<string> ResolveVersionAsync(
+        string requestedVersion,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(requestedVersion))
+            throw new CopilotAdapterException("requested Copilot CLI version is required");
+        return requestedVersion.Equals("latest", StringComparison.OrdinalIgnoreCase)
+            ? NormalizeVersion((await probe.GetVersionAsync(cancellationToken)).Value, "published")
+            : NormalizeVersion(requestedVersion, "requested");
+    }
+
     public async Task<CopilotInvocation> PrepareAsync(
         CopilotAdapterOptions options,
         CancellationToken cancellationToken = default)
     {
         ValidateOptions(options);
-        bool resolveLatest = options.RequestedVersion.Equals(
-            "latest",
-            StringComparison.OrdinalIgnoreCase);
-        string requestedVersion = resolveLatest
-            ? NormalizeVersion(
-                (await probe.GetVersionAsync(cancellationToken)).Value,
-                "published")
-            : NormalizeVersion(options.RequestedVersion, "requested");
+        string requestedVersion = await ResolveVersionAsync(options.RequestedVersion, cancellationToken);
         string effectiveVersion = requestedVersion;
 
         string normalizedFrontierEffort = NormalizeFrontierEffort(options.FrontierEffort);

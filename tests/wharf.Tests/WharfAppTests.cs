@@ -81,6 +81,7 @@ public sealed class WharfAppTests
     [InlineData("run", "-k")]
     [InlineData("run", "-n")]
     [InlineData("run", "-p")]
+    [InlineData("build", "-p")]
     [InlineData("resume", "-n")]
     [InlineData("resume", "-p")]
     public void ConcurrencyOptionsUseSingleDash(string commandName, string optionName)
@@ -95,6 +96,27 @@ public sealed class WharfAppTests
         Assert.Empty(result.Errors);
         Assert.Equal(3, result.GetValue(option));
         Assert.NotEmpty(root.Parse([commandName, "-" + optionName, "3"]).Errors);
+    }
+
+    [Fact]
+    public void BuildAcceptsExactCliVersion()
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(command => command.Name == "build");
+        Option<string> option = Assert.IsType<Option<string>>(
+            command.Options.Single(option => option.Name == "--cli-version"));
+        var result = root.Parse(["build", "-p", "12", "--cli-version", "1.0.107"]);
+        Assert.Empty(result.Errors);
+        Assert.Equal("1.0.107", result.GetValue(option));
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public async Task InvalidBuildConcurrencyFailsBeforeImagePreparation(string value)
+    {
+        int exit = await WharfApp.RunAsync(["build", "-p", value]);
+        Assert.Equal(2, exit);
     }
 
     [Fact]

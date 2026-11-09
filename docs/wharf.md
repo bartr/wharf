@@ -153,6 +153,32 @@ timing and scoring evidence.
 
 ### Derived-image workflow
 
+Warm the image caches before a high-concurrency run:
+
+```bash
+wharf build --tasks enterprise/tasks -p 12 --cli-version 1.0.107
+wharf run --tasks enterprise/tasks -n 32 -p 12 -k 4 --cli-version 1.0.107
+```
+
+`build -p` limits the number of tasks preparing images concurrently. Each task
+prepares its agent and verifier images sequentially, so their combined build
+concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, then 4; build
+has no N cap. `--p` is not accepted. CLI selection is `--cli-version`,
+`WHARF_CLI_VERSION`, then `latest`, resolved once to an exact version without
+reading credentials. Pin the same version for build and run.
+
+Build uses the same persistent task-environment, version/platform-specific
+Copilot payload, and composed agent image caches as a normal run. It also
+builds each available verifier Dockerfile to warm Docker's build cache.
+Only uniquely named build child images are removed; configured parent/ECR
+images and persistent caches are retained. No AI agent, grader, task solution,
+or run output is created. Cancellation stops active preparation and removes
+successfully prepared children before returning an error.
+
+This warms image layers, including dependencies installed by task/verifier
+Dockerfiles. It cannot precompile an unknown agent patch or warm transient
+workspace caches created only when agent or grader commands execute.
+
 The MVP may install the requested Copilot CLI inside each temporary agent
 container and reuse the task's configured environment image. After MVP,
 `wharf build` must support the Harbor-compatible derived-image workflow:
