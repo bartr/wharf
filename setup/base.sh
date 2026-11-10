@@ -26,14 +26,10 @@ fi
 
 apt-get update
 
+apt-get install -y git curl wget nano gpg apt-utils dialog ca-certificates
 apt-get install -y ripgrep shellcheck fd-find tree bat ncdu shfmt jq tmux htop sysstat lsof
-apt-get install -y gpg wget
-apt-get install -y apt-utils dialog ca-certificates software-properties-common
-apt-get install -y libssl-dev libffi-dev build-essential cifs-utils gnupg pass
-apt-get install -y curl git nano zsh
+apt-get install -y libssl-dev libffi-dev build-essential gnupg pass software-properties-common
 apt-get install -y zip unzip httpie dnsutils dotnet-sdk-10.0
-
-#apt-get upgrade -y -o Dpkg::Options::="--force-confold"
 
 # add Docker repo
 install -m 0755 -d /etc/apt/keyrings
