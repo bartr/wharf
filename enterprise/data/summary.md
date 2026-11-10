@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Results
 
-Verified 2026-11-09 from thirty-five completed runs. Each arm contains 14
+Verified 2026-11-10 from thirty-seven completed runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
@@ -17,7 +17,9 @@ All runs use default effort and the Copilot CLI.
 | GPT-6 Astra | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2170 | 246.4 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.102 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2351 | 254.9 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.105 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2298 | 224.8 s |
+| **HydraFusion** | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2409 | 349.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.108 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2802 | 347.9 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2045 | 242.2 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.102 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2307 | 333.9 s |
 | **HydraFusion** | default | copilot-cli | 1.0.107 | 54 / 56 | 96.43% | 0 | 96.43% | $0.2661 | 331.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.98 | 54 / 56 | 96.43% | 0 | 96.43% | $0.4116 | 234.8 s |
@@ -69,7 +71,9 @@ the task-weighted, K-normalized mean as well.
 | GPT-6 Astra 1.0.108 | 56 / 56 | $1.2170 | 246.4 s |
 | GPT-6 Astra 1.0.102 | 56 / 56 | $1.2351 | 254.9 s |
 | GPT-6.1 Sol 1.0.105 | 56 / 56 | $0.2298 | 224.8 s |
+| HydraFusion 1.0.109 | 56 / 56 | $0.2409 | 349.3 s |
 | HydraFusion 1.0.108 | 56 / 56 | $0.2802 | 347.9 s |
+| GPT-6.1 Sol 1.0.109 | 56 / 56 | $0.2045 | 242.2 s |
 | GPT-6.1 Sol 1.0.102 | 56 / 56 | $0.2307 | 333.9 s |
 | HydraFusion 1.0.107 | 56 / 56 | $0.2661 | 331.5 s |
 | HydraFusion 1.0.98 | 56 / 56 | $0.4116 | 234.8 s |
@@ -105,7 +109,65 @@ Cost uses the retained Copilot AI Credit evidence at one cent per credit.
 No costs were imputed. Agent and trial duration evidence is present for every
 exported trial.
 
-## Latest CLI 1.0.108 runs
+## Latest CLI 1.0.109 comparison
+
+Sources: [HydraFusion](../jobs/copilot-hydrafusion-default-1.0.109/all-1)
+and [GPT-6.1 Sol](../jobs/copilot-gpt-6.1-sol-default-1.0.109/all-1).
+Both completed runs use identical task IDs/checksums and retained configuration
+apart from model: K=4, N=40, P=24, default effort, and unrestricted container
+CPUs. Retained image-cache metadata confirms effective CLI 1.0.109 for all
+112 trials. These are sequential runs, not replicated model comparisons;
+host load and cache conditions are not controlled by matching configuration.
+
+| Metric | HydraFusion | GPT-6.1 Sol |
+|---|---:|---:|
+| Passes / logical trials | 55 / 56 | 55 / 56 |
+| PASS@1 | 98.21% | 98.21% |
+| P2P errors | 0 | 1 |
+| Score | 98.21% | 97.96% |
+| Tasks solved on any retained attempt | 14 / 14 | 14 / 14 |
+| Cost coverage | 56 / 56 | 56 / 56 |
+| Total known cost | $13.4927 | $11.4526 |
+| Cost per costed trial | $0.2409 | $0.2045 |
+| Mean agent time | 349.3 s | 242.2 s |
+| Median agent time | 256.4 s | 227.1 s |
+| Agent p90 | 595.1 s | 372.4 s |
+| Agent p95 | 757.7 s | 429.9 s |
+| Maximum agent time | 1258.1 s | 517.0 s |
+| Agent commands over 10 minutes | 5 / 56 | 0 / 56 |
+| Agent commands over 15 minutes | 3 / 56 | 0 / 56 |
+| Run elapsed through final cleanup | 24m 23.8s | 13m 37.6s |
+| Time to finish first 50 of 56 trials | 12m 55.6s | 8m 19.5s |
+| Remaining time for final six trials | 11m 28.2s | 5m 18.1s |
+
+HydraFusion has a substantially heavier observed tail: its median agent time
+is only 12.9% higher, but p95 is 76.2% higher and the maximum is 2.43 times
+Sol's. Mean agent time is 44.2% higher, cost per costed trial is 17.8% higher,
+and run elapsed is 79.0% higher (10m 46.2s longer).
+
+The three longest HydraFusion agent commands are `wharf-verifier` attempt 3
+(1258.1 s), `wharf-verifier` attempt 4 (1161.6 s), and `wharf-audit` attempt 2
+(941.6 s). All three passed. Sol's longest is `wharf-verifier` attempt 4
+(517.0 s). Across four attempts, HydraFusion's mean agent time is 814.1 s
+for `wharf-verifier` versus Sol's 425.1 s; `wharf-audit` is 605.7 s versus
+275.0 s, and `wharf-smoke` is 577.5 s versus 199.8 s. The tail is therefore
+visible in retained agent-command durations, not just preparation or verifier
+overhead. In these task names, `wharf-verifier` denotes the task being solved,
+not the verification phase.
+
+The reward-zero trials are HydraFusion `wharf-operations` attempt 1
+(2/3 functional tests, 1/1 regression tests) and Sol `wharf-smoke` attempt 4
+(0/3 functional tests, 0/1 regression tests). Neither run has whole-trial
+retries, verifier retries, or exception categories; all trials remain in the
+denominator.
+
+Timing percentiles use linear interpolation over the 56 actual agent-command
+durations. Run elapsed spans the retained run-start timestamp to final cleanup;
+the final-six interval starts when the 50th cleanup completes and includes
+any remaining scheduling, preparation, agent execution, verification, and
+cleanup. It is not a pure agent-time measure or an average trial duration.
+
+## CLI 1.0.108 runs
 
 Five completed CLI 1.0.108 arms are retained, totaling 280 logical trials.
 The newly added sources are:
@@ -134,7 +196,6 @@ regressing any pre-existing tests.
 * P2P errors: **0**
 * Known cost: **$15.6924** across 56 / 56 trials; **$0.2802 per costed trial**
 * Mean actual agent-command time: **347.9 s**
-* Mean full trial, from preparation start through final cleanup: **376.2 s**
 * Whole-trial retries, verifier retries, and exception categories: **0**
 
 These timings describe this retained run, not a controlled CLI-version or
@@ -143,12 +204,12 @@ no arm-level cold/warm cache classification is inferred from the score.
 
 ## Data coverage
 
-* Exported arms: 35
-* Exported logical trials: 1960
+* Exported arms: 37
+* Exported logical trials: 2072
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 1960 / 1960 trials
-* Agent and trial duration measurements: 1960 / 1960 trials
+* Functional and regression measurements: 2072 / 2072 trials
+* Agent and trial duration measurements: 2072 / 2072 trials
 * Trials with an exception category: 0
 
 Only completed `all-1` runs are included.
