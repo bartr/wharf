@@ -372,7 +372,7 @@ sorted by PASS@1, P2P errors, and cost, and added a reproducible
 plotted; Muse is identified without an X coordinate because per-trial cost
 evidence is unavailable. Missing costs are never imputed, including from
 batch-level bills. The [DeepSWE analytics notes](ANALYTICS.md) and
-[enterprise summary](../enterprise/data/summary.md) retain the detailed metric
+[enterprise summary](../enterprise/README.md) retain the detailed metric
 definitions and coverage.
 
 Later `1.0.1` branch work made HydraFusion with model-selected effort the

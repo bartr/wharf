@@ -1,0 +1,34 @@
+{
+  "status": "complete",
+  "scope": "Make the enterprise benchmark summary and charts easier to browse on GitHub without changing analytics data.",
+  "research": [
+    "enterprise/data/summary.md:8,21,30 embeds three sibling SVGs; lines 104-105 link to retained jobs relative to data/.",
+    "scripts/plot-enterprise-pass-at-1.py:15 selects the SVG output location; line 193 currently discovers JSONL inputs through the output directory.",
+    ".github/copilot-instructions.md:248, README.md:49, docs/published-benchmarks.md:150, and docs/RETRO.md:375 reference the old summary location.",
+    "Historical tracking records describe paths at the time of those changes and should remain unchanged."
+  ],
+  "plan": [
+    "Move the summary to enterprise/README.md and the three SVGs to enterprise/doc/; adjust image and retained-job links.",
+    "Separate the chart generator's enterprise/data input directory from its enterprise/doc output directory, creating the output directory when needed.",
+    "Update current documentation and contributor instructions with the new summary/chart locations and regeneration command.",
+    "Run the chart generator, verify byte-identical SVG output and unchanged analytics inputs, check moved Markdown links and stale active references, and run git diff --check."
+  ],
+  "changes": [
+    "Moved the benchmark summary to enterprise/README.md and all three SVGs to enterprise/doc/; corrected image and retained-job relative links.",
+    "Decoupled JSONL input discovery from chart output and added output-directory creation after input validation.",
+    "Updated current summary links and contributor instructions; retained historical tracking records unchanged."
+  ],
+  "validation": [
+    "Executed the chart generator successfully: all three charts contain 31 selected runs across five models.",
+    "All three regenerated SVGs are byte-identical to their original committed versions and parse as XML.",
+    "Executed the generator with a nonexistent temporary output directory and confirmed that it creates the directory and reproduces all three SVGs exactly.",
+    "All five relative links in enterprise/README.md resolve; no active documentation or script references enterprise/data/summary.md.",
+    "JSONL exports and manifest are unchanged; enterprise/data contains none of the moved SVGs or summary.",
+    "git diff --check passes. No .NET runtime code changed, so no .NET build or benchmark was run.",
+    "The first fresh-directory validation used the wrong primary output filename; corrected the validation harness and reran successfully. No implementation change was needed."
+  ],
+  "review": {
+    "outcome": "accepted",
+    "follow_ups": []
+  }
+}

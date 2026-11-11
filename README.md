@@ -46,7 +46,7 @@ wharf smoke
 
 See the [Harbor test process](docs/Harbor.md),
 [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
-[enterprise summary](enterprise/data/summary.md). The datasets remain separate.
+[enterprise summary](enterprise/README.md). The datasets remain separate.
 
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
 `wharf check` verifies the host platform, Docker capabilities, and capacity;

@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Passing trials by CLI revision
 
-![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](pass-at-1-by-cli-revision.svg)
+![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](doc/pass-at-1-by-cli-revision.svg)
 
 The graph includes HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and
 Claude Opus 5.5. Each point is one completed 56-trial arm. The X axis starts at
@@ -18,7 +18,7 @@ mean these are descriptive comparisons, not isolated CLI-version effects.
 
 ## Cost per test by CLI revision
 
-![Mean USD cost per costed trial by Copilot CLI revision](cost-per-trial-by-cli-revision.svg)
+![Mean USD cost per costed trial by Copilot CLI revision](doc/cost-per-trial-by-cli-revision.svg)
 
 Cost/test is total retained USD cost divided by costed logical trials, not cost
 per passing trial. All plotted arms have 56/56 cost coverage; missing costs are
@@ -27,7 +27,7 @@ passing-trials graph.
 
 ## p90 agent duration by CLI revision
 
-![p90 agent-command duration in minutes and seconds by Copilot CLI revision](agent-duration-by-cli-revision.svg)
+![p90 agent-command duration in minutes and seconds by Copilot CLI revision](doc/agent-duration-by-cli-revision.svg)
 
 Duration is the 90th percentile of the 56 actual agent-command durations per
 arm, calculated using linear interpolation, with Y-axis labels in `m:ss`.
@@ -36,8 +36,9 @@ preparation, evidence copying, and verifier time. All plotted arms have 56/56
 duration coverage. Models, revision range, and comparison caveats match the
 other graphs.
 
-Regenerate all three graphs from the JSONL exports with
-`python3 scripts/plot-enterprise-pass-at-1.py` from the repository root.
+Regenerate all three graphs in `enterprise/doc/` from the JSONL exports in
+`enterprise/data/` with `python3 scripts/plot-enterprise-pass-at-1.py` from the
+repository root. Keep this README aligned with `data/manifest.json`.
 
 ## Results
 
@@ -101,8 +102,8 @@ the task-weighted, K-normalized mean as well.
 
 ## Latest CLI 1.0.109 comparison
 
-Sources: [HydraFusion](../jobs/copilot-hydrafusion-default-1.0.109/all-1)
-and [GPT-6.1 Sol](../jobs/copilot-gpt-6.1-sol-default-1.0.109/all-1).
+Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.109/all-1)
+and [GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.109/all-1).
 Both completed runs use identical task IDs/checksums and retained configuration
 apart from model: K=4, N=40, P=24, default effort, and unrestricted container
 CPUs. Retained image-cache metadata confirms effective CLI 1.0.109 for all

@@ -245,7 +245,7 @@ rebuild `enterprise/data/manifest.json` with `wharf analytics manifest
 --data-directory enterprise/data`. Each manifest arm records model, effort,
 CLI, CLI version, passes, P2P errors, score, cost per costed trial, and average agent
 time, alongside trial/task totals and cost coverage. Keep
-`enterprise/data/summary.md` aligned with the manifest, displaying model,
+`enterprise/README.md` aligned with the manifest, displaying model,
 effort, CLI, CLI version, passes and PASS@1, P2P errors, score, cost per trial, and
 average agent time. PASS@1 is passing trials divided by all retained logical
 trials. Do not track average cost per task or mean trial time in enterprise
@@ -258,6 +258,11 @@ fraction, display it as a percentage, and leave negative values unclamped;
 empty arms have a null score. Keep score separate from PASS@1 and the
 Enterprise Score audit metric. Do not mix enterprise runs
 into DeepSWE analytics or rebuild the DeepSWE manifest for enterprise changes.
+
+Keep enterprise SVG charts in `enterprise/doc/`, not `enterprise/data/`.
+Regenerate them from the JSONL exports with
+`python3 scripts/plot-enterprise-pass-at-1.py` from the repository root, and
+link them from `enterprise/README.md` using `doc/`-relative paths.
 
 Release packages must include the complete .NET publish output, not just the
 apphost executable. Qualification must extract the Debian package and execute

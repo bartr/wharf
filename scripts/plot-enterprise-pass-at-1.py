@@ -12,7 +12,8 @@ from statistics import quantiles
 
 
 ROOT = Path(__file__).resolve().parent.parent
-OUTPUT = ROOT / "enterprise" / "data" / "pass-at-1-by-cli-revision.svg"
+DATA = ROOT / "enterprise" / "data"
+OUTPUT = ROOT / "enterprise" / "doc" / "pass-at-1-by-cli-revision.svg"
 STYLES = {
     "hydrafusion": ("HydraFusion", "#d55e00", "circle", 6),
     "gpt-6.1-sol": ("GPT-6.1 Sol", "#0072b2", "triangle", 6),
@@ -190,7 +191,7 @@ def plot(records, output, key, title, axis_label, ticks, format_tick, format_val
 
 
 def main():
-    records = [summarize(path) for path in sorted(OUTPUT.parent.glob("*.jsonl"))]
+    records = [summarize(path) for path in sorted(DATA.glob("*.jsonl"))]
     records = [
         row for row in records if row["model"] in STYLES and row["revision"] >= 95
     ]
@@ -207,6 +208,7 @@ def main():
     cost_step = Decimal("0.20")
     cost_steps = max(1, ceil(max(row["cost_per_trial"] for row in records) / cost_step))
     duration_upper = max(60, ceil(max(row["agent_p90_seconds"] for row in records) / 60) * 60)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     plot(
         records, OUTPUT, "passes",
         "Enterprise passing trials by Copilot CLI revision", "Passing trials (out of 56)",
