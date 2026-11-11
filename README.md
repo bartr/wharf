@@ -1,6 +1,6 @@
-# Wharf 1.4.0
+# Wharf 1.5.0
 
-Wharf 1.4.0 builds on the first MVP release of the customer-controlled benchmark
+Wharf 1.5.0 builds on the first MVP release of the customer-controlled benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
