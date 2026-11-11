@@ -15,9 +15,9 @@ public sealed class DockerAgentImagePreparerTests
     private const string TaskId = "aiomonitor-task-snapshots-diff";
 
     [Fact]
-    public async Task BuildWarmupIsReusedByAgentAndVerifierPreparationAcrossAllEnterpriseTasks()
+    public async Task BuildWarmupIsReusedByAgentAndVerifierPreparationAcrossAllWharfSWETasks()
     {
-        string taskRoot = Path.Combine(FindRepositoryRoot(), "enterprise", "tasks");
+        string taskRoot = Path.Combine(FindRepositoryRoot(), "wharf-swe", "tasks");
         IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(taskRoot);
         Assert.Equal(14, tasks.Count);
         using var logger = WharfLogger.Create(new WharfConfiguration { Quiet = true });

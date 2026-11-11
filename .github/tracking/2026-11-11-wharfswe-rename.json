@@ -1,0 +1,42 @@
+{
+  "status": "complete",
+  "scope": "Rename enterprise/ to wharf-swe/ and use WharfSWE as the suite reference name.",
+  "research": [
+    "README.md:24,32,49 and docs/Harbor.md:247 document suite paths and examples.",
+    "scripts/plot-enterprise-pass-at-1.py:15-16 discovers analytics inputs and writes charts using the suite directory; chart titles also name the suite.",
+    "tests/wharf.Tests/DockerAgentImagePreparerTests.cs:18-20 has the only runtime test path referring to enterprise/.",
+    "enterprise/tasks/dataset.toml:6 retains the published fe-labs/enterprise-1.0 identity; task payloads and published identities must not change.",
+    ".gitignore:3 ignores jobs/ independently of suite name. The existing ignored enterprise/jobs/ evidence can move with the directory without being committed.",
+    "Enterprise Score is an independent metric, implemented in src/wharf/Audit and documented in docs/ANALYTICS.md; it must not be renamed with the suite.",
+    "No active Wharf jobs or tmux sessions were found before relocation. The referenced ../RUN_MONITORING.md is absent on this host."
+  ],
+  "plan": [
+    "Move the entire suite directory, including ignored retained jobs, without changing task payloads or analytics rows.",
+    "Rename the plotting script to plot-wharf-swe-pass-at-1.py, update input/output paths and chart labels, and regenerate charts.",
+    "Update current documentation, examples, contributor instructions, and the test path/name; preserve Enterprise Score, historical tracking/session records, and published dataset identity.",
+    "Validate renamed CLI task discovery with read-only dry-run, unchanged task/data blobs, chart regeneration, current references and Markdown links, and focused tests in a named tmux session."
+  ],
+  "changes": [
+    "Moved enterprise/ to wharf-swe/, including ignored retained jobs; published dataset identity and all task/data contents are unchanged.",
+    "Renamed the plotting script to scripts/plot-wharf-swe-pass-at-1.py and regenerated charts with WharfSWE titles and descriptions.",
+    "Updated current documentation, command examples, links, contributor instructions, and the Docker warm-cache test path/name.",
+    "Added a HarborTaskTests regression that loads the real renamed suite, checks its 14 schema-1.3 tasks, and expands K=4 to 56 logical trials.",
+    "Documented the former suite name and preserved historical session/tracking records and the separate Enterprise Score metric."
+  ],
+  "validation": [
+    "All 1785 tracked files outside the suite README and three charts match their original Git blob hashes, including task payloads, JSONL exports, and manifest.",
+    "All three regenerated SVGs differ only in suite labels; chart data and geometry are unchanged.",
+    "Read-only run --dry-run works from wharf-swe/ using default suite paths.",
+    "Rebuilt the manifest into a temporary directory: 37 arms and 2072 trials, exactly matching the retained manifest.",
+    "Validated nine suite-relative Markdown links and the renamed retrospective heading anchor.",
+    "No obsolete enterprise directory paths or plotting script references remain in current docs, instructions, scripts, or tests.",
+    "Focused HarborTaskTests, AnalyticsExporterTests, and RunConfigurationTests passed: 52/52. Test execution built both projects successfully.",
+    "Formatting verification for both changed C# test files and git diff --check passed.",
+    "Tests and formatting ran in named tmux session wharfswe-rename-20261111; no benchmark or Docker image preparation was executed.",
+    "Retained jobs moved successfully and remain ignored by Git. Temporary manifest validation files were removed."
+  ],
+  "review": {
+    "outcome": "accepted",
+    "follow_ups": []
+  }
+}

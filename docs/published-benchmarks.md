@@ -1,12 +1,12 @@
 ---
 title: Published benchmark methodology
-description: How recurring Wharf enterprise benchmark results are produced, charted, and audited for public display
+description: How recurring WharfSWE benchmark results are produced, charted, and audited for public display
 ---
 
 # Published benchmark methodology
 
-Wharf runs recurring enterprise benchmarks with results published as charts in
-the [enterprise summary](../enterprise/README.md). This page defines what each
+Wharf runs recurring WharfSWE benchmarks with results published as charts in
+the [WharfSWE summary](../wharf-swe/README.md). This page defines what each
 chart measures, how points are produced, and what evidence backs them, so the
 published series can be audited and explained.
 
@@ -17,7 +17,7 @@ published series can be audited and explained.
 | HydraFusion | Daily | Track routing quality, regressions, cost, and time across Copilot CLI releases |
 | Claude Opus and OpenAI models | Weekly | Fixed-model reference points for comparison with HydraFusion |
 
-Each point is one completed enterprise arm: 14 C# tasks with K=4 attempts,
+Each point is one completed WharfSWE arm: 14 C# tasks with K=4 attempts,
 for 56 logical trials. Runs use the Copilot CLI with default effort unless a
 chart says otherwise.
 
@@ -99,7 +99,7 @@ usually noise, not a regression or an improvement.
 A point compares cleanly with another only when these match:
 
 * Wharf version
-* Enterprise task revision and task checksums
+* WharfSWE task revision and task checksums
 * K depth and planned trial count
 * Host class and preparation settings
 * Copilot CLI version, or an explicit annotation that the CLI changed
@@ -111,8 +111,8 @@ configuration whenever they appear on the same chart.
 
 ## Scope and labeling
 
-* Label every chart as the 14-task C# enterprise benchmark.
-* Do not combine enterprise results with the 113-task DeepSWE benchmark.
+* Label every chart as the 14-task C# WharfSWE benchmark.
+* Do not combine WharfSWE results with the 113-task DeepSWE benchmark.
   Publish them as separate series, and never average their pass rates.
 * State that the results measure these tasks under this harness, not overall
   model capability.
@@ -125,7 +125,7 @@ Every published point must trace to retained evidence:
    per logical trial. Infrastructure and verifier retries remain nested
    evidence and never become additional trials.
 2. Rebuild the manifest with
-   `./wharf analytics manifest --data-directory enterprise/data`.
+   `./wharf analytics manifest --data-directory wharf-swe/data`.
 3. Validate row count, unique logical-trial identity, task coverage, K depth,
    reward totals, P2P counts, cost conversion, and duration coverage before
    publishing.
@@ -147,6 +147,6 @@ benchmark results.
 ## Related documentation
 
 * [README analytics rules](../README.md#1-canonical-analytics-rules)
-* [Enterprise benchmark summary](../enterprise/README.md)
-* [Enterprise benchmark in the retrospective](RETRO.md#enterprise-benchmark-net-coverage-at-a-fraction-of-the-cost)
+* [WharfSWE benchmark summary](../wharf-swe/README.md)
+* [WharfSWE benchmark in the retrospective](RETRO.md#wharfswe-benchmark-net-coverage-at-a-fraction-of-the-cost)
 * [HydraFusion CLI series](RETRO.md#hydrafusion-cli-series)

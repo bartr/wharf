@@ -47,7 +47,7 @@ Manifest generation requires one CLI version per arm. The retained
 `2.1.220`, `2.1.221`, and `2.1.222`, so the strict Wharf builder currently
 rejects a full DeepSWE index rebuild. This predates the directory relocation.
 Preserve the existing manifest and trial evidence; do not rewrite versions or
-drop trials to bypass validation. Enterprise manifest rebuilding is unaffected.
+drop trials to bypass validation. WharfSWE manifest rebuilding is unaffected.
 
 The manifest's regression-adjusted `score` is
 `passes / trials - (p2p_errors * 0.0025)`: each trial with a measured P2P

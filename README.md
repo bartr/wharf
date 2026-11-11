@@ -10,7 +10,7 @@ execution environments, and automated verification of the resulting code.
 ## Repository layout
 
 Start each standalone example from the repository root, not from `docs/`.
-The examples then change into the selected suite directory. Enterprise is the
+The examples then change into the selected suite directory. WharfSWE is the
 default example because its smaller suite is faster and cheaper to run.
 
 | Location | Contents |
@@ -21,7 +21,7 @@ default example because its smaller suite is faster and cheaper to run.
 | `deep-swe/smoke-tasks/` | Small local smoke fixtures |
 | `deep-swe/jobs/` | Retained DeepSWE runs and release qualification evidence |
 | `deep-swe/data/` | Portable DeepSWE exports and manifest |
-| `enterprise/` | Separate C# tasks, jobs, exports, and comparison graphs |
+| `wharf-swe/` | Separate C# tasks, jobs, exports, and comparison graphs |
 | `reference/` | Published baseline evidence and its helper scripts |
 | `scripts/` | Packaging, validation, monitoring, and plotting tools |
 
@@ -29,7 +29,7 @@ Wharf defaults to `tasks`, `smoke-tasks`, `jobs`, and `data` under the current
 directory, so there is no need to specify task or output directories:
 
 ```bash
-cd enterprise
+cd wharf-swe
 wharf smoke
 wharf prebuild -p 16
 wharf run -n 32 -p 12 -k 4
@@ -46,7 +46,7 @@ wharf smoke
 
 See the [Harbor test process](docs/Harbor.md),
 [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
-[enterprise summary](enterprise/README.md). The datasets remain separate.
+[WharfSWE summary](wharf-swe/README.md). The datasets remain separate.
 
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
 `wharf check` verifies the host platform, Docker capabilities, and capacity;
@@ -58,7 +58,7 @@ newer Ubuntu releases do not require `--allow-unsupported-host`.
 Warm the selected tasks with the same exact Copilot CLI version used by the run:
 
 ```bash
-cd enterprise
+cd wharf-swe
 wharf prebuild -p 12 --cli-version 1.0.107
 wharf run -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
@@ -126,7 +126,7 @@ evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
 This file documents how to reproduce the benchmark comparisons from `deep-swe/data/*.jsonl` with the same metric definitions used in this repo.
 
-Recurring enterprise results intended for public charts follow the
+Recurring WharfSWE results intended for public charts follow the
 [published benchmark methodology](docs/published-benchmarks.md).
 
 ## 1) Canonical analytics rules
@@ -160,11 +160,11 @@ Current export format, relative to the selected suite directory:
 - index file is `data/manifest.json`
 - manifest size key is `bytes_jsonl`
 
-Export each retained Wharf run directly. This example uses Enterprise; use
+Export each retained Wharf run directly. This example uses WharfSWE; use
 `cd deep-swe` instead for a DeepSWE run:
 
 ```bash
-cd enterprise
+cd wharf-swe
 wharf analytics export \
   --run-directory jobs/<arm>/<job> \
   --output data/<arm>.jsonl \
@@ -182,7 +182,7 @@ infrastructure retries remain nested evidence and do not add rows.
 To rebuild the manifest after exporting:
 
 ```bash
-cd enterprise
+cd wharf-swe
 wharf analytics manifest
 ```
 
@@ -217,11 +217,11 @@ Important:
 
 ## 4) Reporting-only manifest rebuild (no jobs required)
 
-Use this command to rebuild `enterprise/data/manifest.json` strictly from
-`enterprise/data/*.jsonl`, without reading retained jobs:
+Use this command to rebuild `wharf-swe/data/manifest.json` strictly from
+`wharf-swe/data/*.jsonl`, without reading retained jobs:
 
 ```bash
-cd enterprise
+cd wharf-swe
 wharf analytics manifest
 ```
 
@@ -232,7 +232,7 @@ before rebuilding the retained DeepSWE index.
 
 ## 5) Reproduce the comparison (copy/paste)
 
-This historical comparison uses the DeepSWE exports, not Enterprise. Start
+This historical comparison uses the DeepSWE exports, not WharfSWE. Start
 from the repository root:
 
 ```bash

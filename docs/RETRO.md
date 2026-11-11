@@ -53,13 +53,13 @@ analytics manifests, and an executable-package qualification gate.
 The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
 unattended K=4 benchmark runs are retained in the repository, with some runs
 spanning an overnight window. Through the `1.0.1` branch at `e6fe024`, the
-enterprise dataset contains 24 arms and 1344 logical trials with complete
+WharfSWE dataset contains 24 arms and 1344 logical trials with complete
 score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`, and
 no `1.0.1` tag is present at this review. Post-v1 repair/replay, hosted
 operations, additional agent products, and multi-host distributed execution
 remain outside the delivered scope. Single-host concurrency is different:
 post-1.0 operation has exercised `N=32 P=12` as the z01 operating setting,
-enterprise runs at `N=64 P=16`, and `N` up to about 2.5 times the processor
+WharfSWE runs at `N=64 P=16`, and `N` up to about 2.5 times the processor
 count, as described in
 [Operating at scale after 1.0.0](#operating-at-scale-after-100). These are
 operator-validated settings, not formally qualified scale profiles with
@@ -67,7 +67,7 @@ published host-sizing recommendations.
 
 Since 1.0.0, sustained production use has become its own evidence stream. The
 operating sections below cover the cold-run preparation-concurrency lessons
-that made `P` essential, the 14-task .NET enterprise benchmark built with
+that made `P` essential, the 14-task .NET WharfSWE benchmark built with
 Wharf, and a ten-version HydraFusion CLI series that made the team an early,
 credible HydraFusion tester.
 
@@ -254,10 +254,10 @@ benchmark evidence. The two HydraFusion benchmark exports are preserved in
 `deep-swe/data/`, while the complete Wharf and DeepSWE reference job directories remain
 available on the execution host for audit and replay.
 
-The final `0.25.0` release-candidate work strengthened the enterprise task
+The final `0.25.0` release-candidate work strengthened the WharfSWE task
 evaluators, added provider-default effort handling, normalized HydraFusion
-identity, added `--cli-version` and `WHARF_CLI_VERSION`, and raised enterprise
-agent timeouts to 60 minutes. At the 1.0.0 close, portable enterprise analytics
+identity, added `--cli-version` and `WHARF_CLI_VERSION`, and raised WharfSWE
+agent timeouts to 60 minutes. At the 1.0.0 close, portable WharfSWE analytics
 retained 10 K=4 arms and 560 fully scored, fully costed logical trials.
 
 The pre-tag code review found and fixed configuration and recovery gaps that
@@ -326,7 +326,7 @@ that an omitted setting reproduces an older maximum-effort run.
 
 The new HydraFusion CLI 1.0.98 exports remain separate from both historical
 HydraFusion runs and the other benchmark suite. The canonical DeepSWE suite
-uses 113 tasks at K=4 for these runs; the enterprise suite uses 14 tasks at
+uses 113 tasks at K=4 for these runs; the WharfSWE suite uses 14 tasks at
 K=4. Their pass rates are not interchangeable.
 
 | Dataset / HydraFusion CLI batch | Passes / planned | PASS@1 | P2P errors | Cost / costed trial | Agent time / attempt |
@@ -334,14 +334,14 @@ K=4. Their pass rates are not interchangeable.
 | DeepSWE 1.0.95 All-1 | 311/452 | 68.81% | 36 | $1.2074 | 1424 s |
 | DeepSWE 1.0.95 All-2 | 317/452 | 70.13% | 32 | $1.1726 | 1466 s |
 | DeepSWE 1.0.98 All-1 | 318/452 | 70.35% | 28 | $1.2149 | 1069 s |
-| Enterprise 1.0.95 All-1 | 51/56 | 91.07% | 0 | $0.3186 | 303 s |
-| Enterprise 1.0.98 All-1 | 54/56 | 96.43% | 0 | $0.4116 | 235 s |
-| Enterprise 1.0.96 All-1 | 54/56 | 96.43% | 1 | $0.3197 | 273 s |
-| Enterprise 1.0.97 All-1 | 52/56 | 92.86% | 1 | $0.3416 | 316 s |
-| Enterprise 1.0.100 All-1 | 53/56 | 94.64% | 1 | $0.2932 | 272 s |
-| Enterprise 1.0.101 All-1 | 52/56 | 92.86% | 1 | $0.3527 | 219 s |
-| Enterprise 1.0.102 All-1 | 51/56 | 91.07% | 2 | $0.3341 | 267 s |
-| Enterprise 1.0.103 All-1 | 51/56 | 91.07% | 2 | $0.3930 | 229 s |
+| WharfSWE 1.0.95 All-1 | 51/56 | 91.07% | 0 | $0.3186 | 303 s |
+| WharfSWE 1.0.98 All-1 | 54/56 | 96.43% | 0 | $0.4116 | 235 s |
+| WharfSWE 1.0.96 All-1 | 54/56 | 96.43% | 1 | $0.3197 | 273 s |
+| WharfSWE 1.0.97 All-1 | 52/56 | 92.86% | 1 | $0.3416 | 316 s |
+| WharfSWE 1.0.100 All-1 | 53/56 | 94.64% | 1 | $0.2932 | 272 s |
+| WharfSWE 1.0.101 All-1 | 52/56 | 92.86% | 1 | $0.3527 | 219 s |
+| WharfSWE 1.0.102 All-1 | 51/56 | 91.07% | 2 | $0.3341 | 267 s |
+| WharfSWE 1.0.103 All-1 | 51/56 | 91.07% | 2 | $0.3930 | 229 s |
 
 P2P errors count trials with at least one measured pre-existing-test failure,
 not individual failing tests. Agent time is the task-weighted mean retained
@@ -352,14 +352,14 @@ DeepSWE All-2 retains 449 rows but keeps its planned 452-trial denominator.
 The new DeepSWE export retains all 452 logical trials, with costs for
 450/452 (99.56%) and complete duration coverage. Its known cost is $546.7052;
 three whole-trial retries and seven verifier-only retries remain nested
-evidence rather than additional rows. All eight enterprise HydraFusion arms
+evidence rather than additional rows. All eight WharfSWE HydraFusion arms
 have complete score, test, cost, and timing evidence, with no exception
-categories. The later enterprise arms, CLI 1.0.96 through 1.0.103, range from
+categories. The later WharfSWE arms, CLI 1.0.96 through 1.0.103, range from
 91.07% to 96.43% PASS@1; the latest 1.0.103 run matches 1.0.102 at 51/56
 with two P2P-error trials, at higher cost and lower agent time.
 
 The latest DeepSWE run adds one pass over All-2 while reducing observed
-agent time and measured P2P-error trials. The enterprise run adds three
+agent time and measured P2P-error trials. The WharfSWE run adds three
 passes with no P2P errors, lower agent time, and higher average cost.
 These are observed comparisons, not an isolated causal test of CLI version.
 Historical HydraFusion filenames keep their legacy `max` label; the new
@@ -372,7 +372,7 @@ sorted by PASS@1, P2P errors, and cost, and added a reproducible
 plotted; Muse is identified without an X coordinate because per-trial cost
 evidence is unavailable. Missing costs are never imputed, including from
 batch-level bills. The [DeepSWE analytics notes](ANALYTICS.md) and
-[enterprise summary](../enterprise/README.md) retain the detailed metric
+[WharfSWE summary](../wharf-swe/README.md) retain the detailed metric
 definitions and coverage.
 
 Later `1.0.1` branch work made HydraFusion with model-selected effort the
@@ -423,12 +423,12 @@ seconds, not hours:
 | Runs | Setting | Peak active / queued | Median wait | Worst wait |
 | --- | --- | ---: | ---: | ---: |
 | DeepSWE HydraFusion 1.0.98, 113 tasks, K=4, 918 acquisitions, 6.0 h | `N=32 P=12` | 12 / 20 | 0 s | 30 s |
-| Enterprise HydraFusion 1.0.98, 1.0.101, 1.0.103-1.0.105, 112 acquisitions each | `N=32 P=12` | 12 / 20 | 0 s | 27 s |
-| Enterprise runs at `N=64 P=16`, 112 acquisitions each | `N=64 P=16` | 16 / 40 | 0 s | 45 s |
+| WharfSWE HydraFusion 1.0.98, 1.0.101, 1.0.103-1.0.105, 112 acquisitions each | `N=32 P=12` | 12 / 20 | 0 s | 27 s |
+| WharfSWE runs at `N=64 P=16`, 112 acquisitions each | `N=64 P=16` | 16 / 40 | 0 s | 45 s |
 
 The gate reached capacity and built a queue in every measured run, which is
 what it is for: it absorbs the burst instead of passing it to Docker. The
-enterprise runs contain only 56 trials, so `N=64` cannot exceed 56 concurrent
+WharfSWE runs contain only 56 trials, so `N=64` cannot exceed 56 concurrent
 trials there. The retained telemetry measures queueing; the earlier Docker
 write-error failures are operator observations from runs before the shared
 gate and are not reconstructed from these logs.
@@ -463,10 +463,10 @@ explicitly. This makes failed runs durable engineering knowledge rather than
 discarded work, gives future LLM sessions better evidence, and avoids having
 to reconstruct decisions such as preparation-concurrency limits from memory.
 
-### Enterprise benchmark: .NET coverage at a fraction of the cost
+### WharfSWE benchmark: .NET coverage at a fraction of the cost
 
 The project used Wharf's own release history to build `fe-labs/enterprise-1.0`,
-a 14-task C# benchmark under `enterprise/tasks/`. Each task reconstructs a
+a 14-task C# benchmark under `wharf-swe/tasks/`. Each task reconstructs a
 real Wharf release boundary, including the scheduler, recovery, verifier,
 Copilot adapter, image preparation, packaging, and reporting, from a pinned
 base commit. Agents run without network access under a 60-minute timeout, and
@@ -476,7 +476,7 @@ The suite fills two gaps in DeepSWE:
 
 * It adds .NET and enterprise-style service coverage that the 113-task
   DeepSWE suite does not provide.
-* It is much cheaper and faster to repeat. A K=4 enterprise arm is 56 trials;
+* It is much cheaper and faster to repeat. A K=4 WharfSWE arm is 56 trials;
   the latest HydraFusion arm cost $15.01 and completed in about 9.5 minutes of
   run time. The comparable DeepSWE HydraFusion 1.0.98 K=4 arm was 452 trials,
   cost $546.71, and took about 6 hours.
@@ -486,14 +486,14 @@ checks were replaced with executable contract tests, pass-to-pass regression
 checks were kept separate, and every baseline and reference patch was
 validated before results were exported. The two suites remain separate
 datasets with separate manifests; their pass rates are not interchangeable.
-The enterprise suite is a fast regression and comparison signal, while
+The WharfSWE suite is a fast regression and comparison signal, while
 DeepSWE remains the broader, more expensive benchmark.
 
 ### HydraFusion CLI series
 
-The low cost of the enterprise suite made it practical to test each new
+The low cost of the WharfSWE suite made it practical to test each new
 Copilot CLI release with HydraFusion as it shipped. Wharf has produced ten
-enterprise HydraFusion arms, 560 logical trials at a total cost of $192.38,
+WharfSWE HydraFusion arms, 560 logical trials at a total cost of $192.38,
 plus three DeepSWE HydraFusion arms.
 
 | CLI | Passes | PASS@1 | P2P errors | Cost / trial | Agent time |
@@ -552,9 +552,9 @@ raises the importance of that work:
   HydraFusion series is the mechanism for checking that claim and for detecting
   regressions, such as the increase in P2P-error trials from 0-1 to 2-3 across
   later versions, before customers do.
-* **Enterprise .NET evidence complements GitHub's benchmarks.** GitHub
+* **WharfSWE .NET evidence complements GitHub's benchmarks.** GitHub
   publishes harness results on [benchmarks.github.com](https://benchmarks.github.com).
-  The 14-task C# enterprise suite and the 113-task DeepSWE suite add
+  The 14-task C# WharfSWE suite and the 113-task DeepSWE suite add
   customer-style workloads with retained, auditable evidence.
 
 These implications are this project's assessment, not claims from the
@@ -629,7 +629,7 @@ what was surprising and what should be done differently in the next session.
   when project configuration has higher precedence. Keep package-manager homes
   outside project trees, retain hard resource limits as containment, and use
   isolated task reruns to qualify the root-cause fix before another full run.
-- Session 25 (`0.25.0`): Turning Wharf into 14 enterprise DeepSWE tasks made
+- Session 25 (`0.25.0`): Turning Wharf into 14 WharfSWE tasks made
   evaluator quality part of benchmark correctness. Reflection and API-shape
   checks could reward implementations that echoed prompt details without
   proving behavior, so replace them with executable contract tests and keep
@@ -741,7 +741,7 @@ what was surprising and what should be done differently in the next session.
   aliases at their authoritative source, keep exact versions deterministic,
   and validate the installed image payload. Reporting also needs explicit
   dataset, effort, cost-coverage, and denominator contracts: similarly named
-  DeepSWE and enterprise runs are not interchangeable. Preserve separate
+  DeepSWE and WharfSWE runs are not interchangeable. Preserve separate
   exports, distinguish unknown measurements from zero, round only at
   presentation, and do not attribute benchmark deltas to a CLI change without
   a controlled comparison.

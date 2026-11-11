@@ -8,6 +8,22 @@ public sealed class HarborTaskTests
         Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../fixtures/harbor"));
 
     [Fact]
+    public void LoadsWharfSWESuiteFromRenamedRepositoryDirectory()
+    {
+        string taskRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../wharf-swe/tasks"));
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(taskRoot);
+
+        Assert.Equal(14, tasks.Count);
+        Assert.All(tasks, task =>
+        {
+            Assert.StartsWith("wharf-", task.TaskId);
+            Assert.Equal("1.3", task.SchemaVersion);
+        });
+        Assert.Equal(56, TaskSelector.ExpandAttempts(tasks, 4).Count);
+    }
+
+    [Fact]
     public void LoadsSanitizedHarborFixturesAndComputesChecksums()
     {
         IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);

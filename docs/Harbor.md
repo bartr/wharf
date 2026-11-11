@@ -207,7 +207,7 @@ PASS@K.
 
 **Task accuracy is separate:** a task is solved if any retained trial for it
 has `reward > 0`. "Passed at least once" must not be labeled PASS@1.
-The [enterprise regression-adjusted score](published-benchmarks.md) is another
+The [WharfSWE regression-adjusted score](published-benchmarks.md) is another
 separately labeled metric, not Harbor's universal scoring rule.
 
 ## 6. Running the process with Wharf
@@ -244,7 +244,7 @@ Keep the suites separate:
 | Suite | Tasks | Retained jobs | Exported analytics |
 |---|---|---|---|
 | DeepSWE | `deep-swe/tasks` | `deep-swe/jobs` | `deep-swe/data` |
-| Enterprise | `enterprise/tasks` | `enterprise/jobs` | `enterprise/data` |
+| WharfSWE | `wharf-swe/tasks` | `wharf-swe/jobs` | `wharf-swe/data` |
 
 See the [Wharf run guide](wharf.md) for configuration, cancellation, recovery,
 resource policies, and retained-workspace options.

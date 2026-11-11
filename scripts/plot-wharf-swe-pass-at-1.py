@@ -12,8 +12,8 @@ from statistics import quantiles
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "enterprise" / "data"
-OUTPUT = ROOT / "enterprise" / "docs" / "pass-at-1-by-cli-revision.svg"
+DATA = ROOT / "wharf-swe" / "data"
+OUTPUT = ROOT / "wharf-swe" / "docs" / "pass-at-1-by-cli-revision.svg"
 STYLES = {
     "hydrafusion": ("HydraFusion", "#d55e00", "circle", 6),
     "gpt-6.1-sol": ("GPT-6.1 Sol", "#0072b2", "triangle", 6),
@@ -111,7 +111,7 @@ def plot(records, output, key, title, axis_label, ticks, format_tick, format_val
         '<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="730" '
         'viewBox="0 0 1100 730" role="img" aria-labelledby="title description">',
         f'<title id="title">{escape(title)}</title>',
-        '<desc id="description">Selected enterprise models, with one point per completed '
+        '<desc id="description">Selected WharfSWE models, with one point per completed '
         f'56-trial arm. X is the revision of CLI 1.0.x; Y shows {escape(axis_label)}. '
         f'The X axis starts at revision 95. Y axis: {escape(format_tick(lower))} '
         f'to {escape(format_tick(upper))}. '
@@ -196,7 +196,7 @@ def main():
         row for row in records if row["model"] in STYLES and row["revision"] >= 95
     ]
     if not records:
-        raise ValueError("No enterprise JSONL exports match the selected chart models")
+        raise ValueError("No WharfSWE JSONL exports match the selected chart models")
     identities = {(row["model"], row["revision"]) for row in records}
     if len(identities) != len(records):
         raise ValueError("Multiple arms share a model and CLI revision")
@@ -211,18 +211,18 @@ def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     plot(
         records, OUTPUT, "passes",
-        "Enterprise passing trials by Copilot CLI revision", "Passing trials (out of 56)",
+        "WharfSWE passing trials by Copilot CLI revision", "Passing trials (out of 56)",
         list(range(lower, upper + 1)), str, str,
     )
     plot(
         records, OUTPUT.with_name("cost-per-trial-by-cli-revision.svg"), "cost_per_trial",
-        "Enterprise cost per test by Copilot CLI revision", "USD per costed trial",
+        "WharfSWE cost per test by Copilot CLI revision", "USD per costed trial",
         [cost_step * step for step in range(cost_steps + 1)],
         lambda value: f"${value:.2f}", lambda value: f"${value:.4f}",
     )
     plot(
         records, OUTPUT.with_name("agent-duration-by-cli-revision.svg"), "agent_p90_seconds",
-        "Enterprise p90 agent duration by Copilot CLI revision", "p90 agent time (m:ss)",
+        "WharfSWE p90 agent duration by Copilot CLI revision", "p90 agent time (m:ss)",
         list(range(0, duration_upper + 1, 60)), format_duration, format_duration,
     )
 

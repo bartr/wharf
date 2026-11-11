@@ -47,9 +47,9 @@ validation evidence survive context resets.
 
 DeepSWE tasks, smoke fixtures, raw jobs, and exports live under
 `deep-swe/tasks/`, `deep-swe/smoke-tasks/`, `deep-swe/jobs/`, and
-`deep-swe/data/`. Enterprise tasks, jobs, and exports remain under `enterprise/`.
-Run repository examples from the repository root with explicit suite paths;
-generic CLI defaults are not repository-layout defaults. Do not rewrite pinned
+`deep-swe/data/`. WharfSWE tasks, jobs, and exports remain under `wharf-swe/`.
+Start repository examples at the repository root, then `cd wharf-swe` (or
+`cd deep-swe`) and use the CLI's default suite paths. Do not rewrite pinned
 task payloads, task checksums, or retained run evidence when updating paths.
 
 Session 2 established strict `1.0` JSON run manifests and an explicit
@@ -239,16 +239,16 @@ workspaces must be deleted after verification and preparation failures, and
 external host-verifier cancellation must kill and reap the complete process
 tree.
 
-Keep enterprise analytics in `enterprise/data/` separate from the 113-task
-DeepSWE controlled benchmark dataset. After exporting enterprise trials,
-rebuild `enterprise/data/manifest.json` with `wharf analytics manifest
---data-directory enterprise/data`. Each manifest arm records model, effort,
+Keep WharfSWE analytics in `wharf-swe/data/` separate from the 113-task
+DeepSWE controlled benchmark dataset. After exporting WharfSWE trials,
+rebuild `wharf-swe/data/manifest.json` with `wharf analytics manifest
+--data-directory wharf-swe/data`. Each manifest arm records model, effort,
 CLI, CLI version, passes, P2P errors, score, cost per costed trial, and average agent
 time, alongside trial/task totals and cost coverage. Keep
-`enterprise/README.md` aligned with the manifest, displaying model,
+`wharf-swe/README.md` aligned with the manifest, displaying model,
 effort, CLI, CLI version, passes and PASS@1, P2P errors, score, cost per trial, and
 average agent time. PASS@1 is passing trials divided by all retained logical
-trials. Do not track average cost per task or mean trial time in enterprise
+trials. Do not track average cost per task or mean trial time in WharfSWE
 manifests or comparison summaries; retain the underlying per-trial evidence.
 Cost per trial excludes trials without retained cost evidence; average
 agent time uses retained agent-command durations. Compute
@@ -256,13 +256,13 @@ agent time uses retained agent-command durations. Compute
 points per trial with a P2P error, not per failed test. Store score as a
 fraction, display it as a percentage, and leave negative values unclamped;
 empty arms have a null score. Keep score separate from PASS@1 and the
-Enterprise Score audit metric. Do not mix enterprise runs
-into DeepSWE analytics or rebuild the DeepSWE manifest for enterprise changes.
+Enterprise Score audit metric. Do not mix WharfSWE runs
+into DeepSWE analytics or rebuild the DeepSWE manifest for WharfSWE changes.
 
-Keep enterprise SVG charts in `enterprise/docs/`, not `enterprise/data/`.
+Keep WharfSWE SVG charts in `wharf-swe/docs/`, not `wharf-swe/data/`.
 Regenerate them from the JSONL exports with
-`python3 scripts/plot-enterprise-pass-at-1.py` from the repository root, and
-link them from `enterprise/README.md` using `docs/`-relative paths.
+`python3 scripts/plot-wharf-swe-pass-at-1.py` from the repository root, and
+link them from `wharf-swe/README.md` using `docs/`-relative paths.
 
 Release packages must include the complete .NET publish output, not just the
 apphost executable. Qualification must extract the Debian package and execute

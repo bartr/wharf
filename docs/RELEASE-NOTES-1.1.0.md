@@ -20,7 +20,7 @@ This release includes intentional compatibility changes:
 For example:
 
 ```bash
-wharf run --tasks enterprise/tasks -k 4 -n 32 -p 12 \
+wharf run --tasks wharf-swe/tasks -k 4 -n 32 -p 12 \
   --model hydrafusion --effort default
 ```
 
@@ -48,8 +48,8 @@ files before publication.
   task-equal Enterprise Score.
 * Average cost per task and mean trial time are no longer manifest summaries;
   per-trial timing evidence remains in JSONL exports.
-* The enterprise C# dataset now contains 24 K=4 arms, 14 tasks per arm, and
-  1,344 logical trials. DeepSWE and enterprise comparisons remain separate.
+* The WharfSWE C# dataset now contains 24 K=4 arms, 14 tasks per arm, and
+  1,344 logical trials. DeepSWE and WharfSWE comparisons remain separate.
 * The retrospective records cold-run preparation-pressure lessons and the
   need to record failed-run evidence before deleting job directories.
 * A reproducible PASS@1-versus-cost plotting script accompanies the retained

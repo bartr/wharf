@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="730" viewBox="0 0 1100 730" role="img" aria-labelledby="title description">
-<title id="title">Enterprise passing trials by Copilot CLI revision</title>
-<desc id="description">Selected enterprise models, with one point per completed 56-trial arm. X is the revision of CLI 1.0.x; Y shows Passing trials (out of 56). The X axis starts at revision 95. Y axis: 48 to 56. Lines join observed runs only.</desc>
+<title id="title">WharfSWE passing trials by Copilot CLI revision</title>
+<desc id="description">Selected WharfSWE models, with one point per completed 56-trial arm. X is the revision of CLI 1.0.x; Y shows Passing trials (out of 56). The X axis starts at revision 95. Y axis: 48 to 56. Lines join observed runs only.</desc>
 <rect width="1100" height="730" fill="white"/>
 <g font-family="sans-serif" fill="#222222">
-<text x="550" y="34" text-anchor="middle" font-size="24" font-weight="bold">Enterprise passing trials by Copilot CLI revision</text>
+<text x="550" y="34" text-anchor="middle" font-size="24" font-weight="bold">WharfSWE passing trials by Copilot CLI revision</text>
 <text x="550" y="60" text-anchor="middle" font-size="14">Selected models | 14 tasks x 4 attempts per run | Y axis: 48-56</text>
 <path d="M95 480.00H1035" stroke="#dddddd"/>
 <text x="80" y="485.00" text-anchor="end" font-size="14">48</text>

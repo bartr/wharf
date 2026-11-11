@@ -39,7 +39,7 @@ enterprise benchmarks from Harbor task definitions.
 - automated repair and replay are the next phase after v1 execution parity and reporting are stable
 - v1.1 adds Claude Code and Codex adapters
 - The canonical Wharf implementation is .NET; the DeepSWE suite remains the
-  initial task provider and future enterprise suites are added through the same
+  initial task provider and future WharfSWE suites are added through the same
   provider boundaries
 
 ## Post-MVP execution and scale requirements
@@ -61,10 +61,10 @@ Use the normal task selection, K/N/P, timeout, retention, and CPU-affinity
 options with these opt-in `wharf run` modes:
 
 ```bash
-wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --no-op -k 10 -n 80 -p 12
-wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --oracle -k 10 -n 80 -p 12
-wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
+wharf prebuild --tasks wharf-swe/tasks -p 12 --cli-version 1.0.107
+wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --no-op -k 10 -n 80 -p 12
+wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --oracle -k 10 -n 80 -p 12
+wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
 ```
 
 - `--no-op` prepares a task image without Copilot, creates and starts a
@@ -169,8 +169,8 @@ timing and scoring evidence.
 for the selected tasks and the exact CLI version that the run will use.
 
 ```bash
-wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks --output-directory enterprise/jobs \
+wharf prebuild --tasks wharf-swe/tasks -p 12 --cli-version 1.0.107
+wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs \
   -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
 
@@ -447,7 +447,7 @@ container and reuse the task's configured environment image. After MVP,
 - Run the DeepSWE suite as the initial task provider.
 - Support single tasks, full datasets, and custom task datasets.
 - Add enterprise Java and .NET task suites after the DeepSWE path is stable.
-- Keep task-provider boundaries general enough for private enterprise suites.
+- Keep task-provider boundaries general enough for private WharfSWE suites.
 - Use Docker as the initial execution backend.
 - Keep a worker interface that does not prevent future non-Docker backends.
 - keep scheduler and worker boundaries explicit without implementing distributed coordination in v1

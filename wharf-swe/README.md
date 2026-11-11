@@ -1,7 +1,17 @@
 ---
-title: Enterprise task benchmark summary
-description: K=4 results for completed enterprise task model runs
+title: WharfSWE task benchmark summary
+description: K=4 results for completed WharfSWE task model runs
 ---
+
+# WharfSWE
+
+WharfSWE is a 14-task C# software-engineering benchmark built from Wharf's own
+development history. The Wharf CLI runs this suite separately from DeepSWE.
+At K=4, each arm contains 56 logical trials.
+
+The suite was previously stored under `enterprise/`. Published dataset identity
+`fe-labs/enterprise-1.0`, task contents, and retained run evidence remain unchanged;
+historical records may still use the previous name and paths.
 
 ## Passing trials by CLI revision
 
@@ -36,8 +46,8 @@ preparation, evidence copying, and verifier time. All plotted arms have 56/56
 duration coverage. Models, revision range, and comparison caveats match the
 other graphs.
 
-Regenerate all three graphs in `enterprise/docs/` from the JSONL exports in
-`enterprise/data/` with `python3 scripts/plot-enterprise-pass-at-1.py` from the
+Regenerate all three graphs in `wharf-swe/docs/` from the JSONL exports in
+`wharf-swe/data/` with `python3 scripts/plot-wharf-swe-pass-at-1.py` from the
 repository root. Keep this README aligned with `data/manifest.json`.
 
 ## Results
