@@ -28,27 +28,27 @@ run log.
 * Docker reported 78 active Wharf-owned agent or verifier containers at the
   same observation time.
 * The retained log has an explicit resume boundary at
-  [`run.jsonl`](/home/bartr/wharf/jobs/copilot-claude-opus-5.5-max-1.0.95/all-1/run.jsonl:14832).
+  [`run.jsonl`](../../deep-swe/jobs/copilot-claude-opus-5.5-max-1.0.95/all-1/run.jsonl#L14832).
   The boundary declares `runs=78`.
 * Resumed execution intentionally appends a `resume plan` record to the
   original log in
-  [`RunService.Execute`](/home/bartr/wharf/src/wharf/Run/RunService.cs:139).
+  [`RunService.Execute`](../../src/wharf/Run/RunService.cs#L139).
 * The progress reader keys lifecycle records by run ordinal and shortened task
   name in
-  [`ProgressService.Read`](/home/bartr/wharf/src/wharf/Run/ProgressService.cs:136).
+  [`ProgressService.Read`](../../src/wharf/Run/ProgressService.cs#L136).
   Resume restarts run ordinals at 1 for its selected subset, so current records
   do not reconcile with the original nonterminal records.
 * Active occupancy includes every nonterminal record left in the dictionary in
-  [`ProgressService.Read`](/home/bartr/wharf/src/wharf/Run/ProgressService.cs:229).
+  [`ProgressService.Read`](../../src/wharf/Run/ProgressService.cs#L229).
   Nothing retires stale occupancy when a resume boundary is encountered.
 * Full task names are also indexed by run ordinal in
-  [`ProgressService.Read`](/home/bartr/wharf/src/wharf/Run/ProgressService.cs:129).
+  [`ProgressService.Read`](../../src/wharf/Run/ProgressService.cs#L129).
   Reused ordinals can therefore associate stale names with current activity
   until a new structured stage event replaces them.
 * Existing progress tests cover lifecycle stages, preparation queues, retries,
   and full-name recovery, but do not cover an append-only log containing a
   resume boundary in
-  [`ProgressServiceTests`](/home/bartr/wharf/tests/wharf.Tests/ProgressServiceTests.cs:1).
+  [`ProgressServiceTests`](../../tests/wharf.Tests/ProgressServiceTests.cs#L1).
 
 ## Root cause
 

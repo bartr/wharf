@@ -57,7 +57,7 @@ def load_artifact():
 def languages():
     """Language lives in the task definitions, not in the trials artifact."""
     out = {}
-    tasks = os.path.join(ROOT, "tasks")
+    tasks = os.path.join(ROOT, "deep-swe", "tasks")
     for name in os.listdir(tasks):
         toml = os.path.join(tasks, name, "task.toml")
         if not os.path.exists(toml):

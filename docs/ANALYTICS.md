@@ -17,8 +17,8 @@ denominator. JSONL row count and score coverage remain separate diagnostics.
 
 ```bash
 wharf analytics export \
-  --run-directory jobs/<arm>/<job> \
-  --output data/<arm>.jsonl \
+  --run-directory deep-swe/jobs/<arm>/<job> \
+  --output deep-swe/data/<arm>.jsonl \
   --arm <arm> \
   --agent copilot-cli \
   --agent-version <version> \
@@ -31,14 +31,23 @@ The exporter preserves terminal failures and missing measurements. An explicit
 unknown terminal cost remains null even if partial agent telemetry exists.
 This keeps cost coverage separate from score coverage.
 
-Rebuild the portable index without reading `jobs/`:
+Rebuild the portable index without reading `deep-swe/jobs/`:
 
 ```bash
-wharf analytics manifest --data-directory data
+wharf analytics manifest --data-directory deep-swe/data
 ```
 
 `--output` can place the manifest elsewhere. Without it, Wharf writes
-`data/manifest.json`.
+`deep-swe/data/manifest.json`.
+
+### Historical manifest compatibility
+
+Manifest generation requires one CLI version per arm. The retained
+`cc-claude-opus-5-max-2.1.220.jsonl` arm contains trials reporting CLI versions
+`2.1.220`, `2.1.221`, and `2.1.222`, so the strict Wharf builder currently
+rejects a full DeepSWE index rebuild. This predates the directory relocation.
+Preserve the existing manifest and trial evidence; do not rewrite versions or
+drop trials to bypass validation. Enterprise manifest rebuilding is unaffected.
 
 The manifest's regression-adjusted `score` is
 `passes / trials - (p2p_errors * 0.0025)`: each trial with a measured P2P
@@ -53,11 +62,11 @@ the Enterprise Score audit metric.
 
 ### Non-HVE cost comparison graph
 
-![PASS@1 versus average cost per task attempt](docs/pass-at-1-vs-cost.png)
+![PASS@1 versus average cost per task attempt](pass-at-1-vs-cost.png)
 
-The [SVG](docs/pass-at-1-vs-cost.svg) and
-[summary CSV](docs/pass-at-1-vs-cost.csv) include all non-HVE JSONL arms in
-`data/`. Each costed run is a separate point. X is known cost divided by
+The [SVG](pass-at-1-vs-cost.svg) and
+[summary CSV](pass-at-1-vs-cost.csv) include all non-HVE JSONL arms in
+`deep-swe/data/`. Each costed run is a separate point. X is known cost divided by
 costed retained trials, not aggregate cost per unique task. Missing costs
 are not imputed; Muse is listed without a plotted X coordinate because its
 per-trial costs are all null. PASS@1 uses the planned K times 113 denominator,
@@ -82,7 +91,7 @@ against `reference/deepswe_v1_1_opus5_max_costs.json`, which carries per-trial `
 outcomes for `claude-opus-5 [max]` — a configuration whose published figure is `74% ± 4%`:
 
 ```bash
-python3 scripts/verify_pass_at_1.py
+python3 reference/verify_pass_at_1.py
 ```
 
 | candidate | value |
@@ -181,7 +190,7 @@ appear in training corpora. It is a canary, not an instruction.
 ## Reproducing the score
 
 ```bash
-python3 scripts/tally_all.py jobs/<arm> reference/deepswe_v1_1_<arm>.tsv
+python3 scripts/tally_all.py deep-swe/jobs/<arm> reference/deepswe_v1_1_<arm>.tsv
 ```
 
 This is the only scorer. It walks the arm directory, finds every `<task-id>__<hash>` trial at
@@ -195,7 +204,7 @@ The **task-matched expectation** weights each task's dashboard pass rate by the 
 trials the arm actually ran. Quote that delta for any partial or unevenly sampled arm; the
 plain per-language delta silently mixes in task-mix differences.
 
-Expected result for `jobs/copilot-opus-5-xhigh reference/deepswe_v1_1_opus5_xhigh.tsv`:
+Expected result for `deep-swe/jobs/copilot-opus-5-xhigh reference/deepswe_v1_1_opus5_xhigh.tsv`:
 
 ```
 graded trials                  : 452   (2 scored 0 for verifier timeout)
@@ -287,7 +296,7 @@ That is regression to the mean, not a finding.
 
 ## How a cell is scored
 
-A cell is `jobs/<arm>/<job-name>/<task-id>__<hash>/`, where `<arm>` groups runs by harness,
+A cell is `deep-swe/jobs/<arm>/<job-name>/<task-id>__<hash>/`, where `<arm>` groups runs by harness,
 model and effort (`copilot-opus-5-xhigh`, `cc-opus-5-xhigh`, ...). It counts as **graded**
 only when `verifier/reward.json` exists *and* `artifacts/model.patch` is non-empty; an empty
 patch means the diff was never captured, so nothing was actually judged.
@@ -439,7 +448,7 @@ Do not describe this as a task-level replication. Meta did not publish the
 rows needed for a paired comparison, its Opus denominator is unverified here,
 and GitHub's post supports the evaluation design but does not report these
 DeepSWE configurations. See
-[reference/github_copilot_agentic_harness_methodology.md](reference/github_copilot_agentic_harness_methodology.md)
+[reference/github_copilot_agentic_harness_methodology.md](../reference/github_copilot_agentic_harness_methodology.md)
 for the GitHub terminology and methodology source.
 
 ### Harness and model efficiency findings
@@ -524,7 +533,7 @@ them or divide an incomplete total by all 452 trials.
 ### Direct Terra K=5 comparison with Meta
 
 The requested same-K Terra comparison is already complete in
-`data/copilot-gpt-5.6-terra-max.jsonl`. It contains exactly five trials for
+`deep-swe/data/copilot-gpt-5.6-terra-max.jsonl`. It contains exactly five trials for
 each of 113 tasks: 376/565 passes, or 66.5487%. Every row records
 `gpt-5.6-terra` and Copilot CLI 1.0.77.
 
@@ -576,9 +585,9 @@ particular routed model. Cost comparisons are also omitted: 27 trial rows lack
 cost values, making the arm total incomplete.
 
 HydraFusion is available in three retained benchmark exports:
-[`copilot-hydrafusion-max-1.0.95.jsonl`](data/copilot-hydrafusion-max-1.0.95.jsonl),
-[`copilot-hydrafusion-max-1.0.95-all-2.jsonl`](data/copilot-hydrafusion-max-1.0.95-all-2.jsonl),
-and [`copilot-hydrafusion-default-1.0.98.jsonl`](data/copilot-hydrafusion-default-1.0.98.jsonl).
+[`copilot-hydrafusion-max-1.0.95.jsonl`](../deep-swe/data/copilot-hydrafusion-max-1.0.95.jsonl),
+[`copilot-hydrafusion-max-1.0.95-all-2.jsonl`](../deep-swe/data/copilot-hydrafusion-max-1.0.95-all-2.jsonl),
+and [`copilot-hydrafusion-default-1.0.98.jsonl`](../deep-swe/data/copilot-hydrafusion-default-1.0.98.jsonl).
 Report the runs separately from the existing Auto arm rather than overwriting
 this baseline.
 
@@ -609,7 +618,7 @@ comparisons, not an isolated causal test of CLI version.
 
 ### Local xhigh K=5 result (2026-08-10)
 
-`data/muse-spark-1.2-contributor-xhigh.jsonl` contains `all-1` through
+`deep-swe/data/muse-spark-1.2-contributor-xhigh.jsonl` contains `all-1` through
 `all-5`: 565 trial rows, exactly five for each of the 113 tasks. With a pass
 defined strictly as `reward == 1`, the result is 338/565 = 59.82%. Attempts
 without a numeric verifier reward remain in the denominator as zeros.
@@ -697,7 +706,7 @@ concurrent tasks. Use one key per task when per-task cost is required.
   supported.
 2. Before inference, record the key's dashboard input, cached-input, output, and
   cost counters. Do not assume a new key starts at zero.
-3. Follow [RUN_MONITORING.md](RUN_MONITORING.md) to start or attach a named
+3. Follow [RUN_MONITORING.md](../../deep-swe/RUN_MONITORING.md) to start or attach a named
   tmux session. Run the legacy DeepSWE runner in the foreground without redirecting or piping its
   output so humans can monitor the pane.
 4. Export the key only in that shell. For a disposable key in zsh, avoid shell
@@ -726,7 +735,7 @@ concurrent tasks. Use one key per task when per-task cost is required.
 
 ### Audited five-language xhigh run
 
-`jobs/muse-spark-1.2-contributor-xhigh/five-language-low-4of4-1` ran one task per
+`deep-swe/jobs/muse-spark-1.2-contributor-xhigh/five-language-low-4of4-1` ran one task per
 language with `muse-spark-1.2-contributor` at `xhigh`. Each task had passed 4/4
 in the Claude Opus 5 low-effort reference arm. The five trials ran concurrently.
 
@@ -842,7 +851,7 @@ The legacy DeepSWE runner does not populate `agent_result.cost_usd` for Copilot 
 authoritative usage value is preserved in each trial's session event stream:
 
 ```
-jobs/<arm>/<batch>/<task>__<hash>/agent/sessions/session-state/<session-id>/events.jsonl
+deep-swe/jobs/<arm>/<batch>/<task>__<hash>/agent/sessions/session-state/<session-id>/events.jsonl
 ```
 
 Use the final `session.shutdown` event and read `data.totalNanoAiu`. The units map as
@@ -860,7 +869,7 @@ per trial. This command reports coverage, credits, total dollars, and average do
 trial for an arm:
 
 ```bash
-arm=jobs/copilot-gpt-5.6-sol-xhigh
+arm=deep-swe/jobs/copilot-gpt-5.6-sol-xhigh
 find "$arm" -name events.jsonl -print0 |
   while IFS= read -r -d '' file; do
     jq -r 'select(.type == "session.shutdown") | .data.totalNanoAiu' "$file" | tail -1
@@ -915,7 +924,7 @@ $557.10 while producing four fewer passes.
 ./scripts/audit_runs.py
 ```
 
-Exits non-zero only when a trial needs a human. See [MAINTENANCE.md](MAINTENANCE.md) for
+Exits non-zero only when a trial needs a human. See [MAINTENANCE.md](../../deep-swe/MAINTENANCE.md) for
 the verdict table. A zero score is a screen, not a verdict: a compile error, a broken
 environment, and a genuine failure all land there.
 
@@ -937,11 +946,11 @@ regresses `helm-array-merge-strategies`.
 An arm is not necessarily measuring the model its name claims. `--model` sets only the
 main session, so built-in subagents run whatever model the CLI picks (2.8% of messages in
 the opus arm, ~25% in the sol pilot), and the opus arm spans three CLI versions. Both are
-documented, with detection commands and the planned fix, in [CONFOUNDS.md](CONFOUNDS.md).
+documented, with detection commands and the planned fix, in [CONFOUNDS.md](../../deep-swe/CONFOUNDS.md).
 
 ## Where the evidence lives
 
-`jobs/` is gitignored — 2.1 GB of raw trial output that exists only locally. It is the
+`deep-swe/jobs/` is gitignored — 2.1 GB of raw trial output that exists only locally. It is the
 campaign's only primary evidence, so it is archived to the Windows drive:
 
 ```bash

@@ -189,10 +189,21 @@ public sealed class DockerAgentImagePreparerTests
     }
 
     [Fact]
+    public void LoadsRelocatedDeepSweTasks()
+    {
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader()
+            .Load(Path.Combine(FindRepositoryRoot(), "deep-swe", "tasks"));
+
+        Assert.Equal(113, tasks.Count);
+        Assert.Contains(tasks, task => task.TaskId == TaskId);
+    }
+
+    [Fact]
     public void ReadsConfiguredEcrBaseWithoutLocalSubstitution()
     {
         string dockerfile = Path.Combine(
             FindRepositoryRoot(),
+            "deep-swe",
             "smoke-tasks",
             "smoke-go",
             "environment",
@@ -219,7 +230,7 @@ public sealed class DockerAgentImagePreparerTests
     {
         string repositoryRoot = FindRepositoryRoot();
         HarborTask task = new HarborTaskLoader()
-            .Load(Path.Combine(repositoryRoot, "tasks"))
+            .Load(Path.Combine(repositoryRoot, "deep-swe", "tasks"))
             .Single(task => task.TaskId == TaskId);
         string image = $"agent-{TaskId}__image-smoke-{Guid.NewGuid():N}:latest";
         string evidenceDirectory = Path.Combine(
@@ -323,6 +334,7 @@ public sealed class DockerAgentImagePreparerTests
         while (directory is not null &&
                !Directory.Exists(Path.Combine(
                    directory.FullName,
+                   "deep-swe",
                    "tasks",
                    TaskId)))
         {

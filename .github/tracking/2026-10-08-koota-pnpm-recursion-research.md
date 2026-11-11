@@ -12,7 +12,7 @@ the `koota-entity-snapshot-rollback` agent to recursively launch
 
 - The task selects the prebuilt image
   `public.ecr.aws/d3j8x8q7/swe-bench-202605:kh71b98xenay7p45357036xq5x82tcdf-v1.1`
-  (`tasks/koota-entity-snapshot-rollback/task.toml:28`).
+  (`deep-swe/tasks/koota-entity-snapshot-rollback/task.toml:28`).
 - Wharf checks and returns a configured prebuilt image without rewriting its
   Dockerfile or deriving another image
   (`src/wharf/Image/DockerAgentImagePreparer.cs:35-52`).
@@ -33,9 +33,9 @@ The Wharf image-build path is therefore not the cause of this failure.
   directory below the project being operated on
   (`src/wharf/Agent/AgentExecution.cs:321`).
 - Koota explicitly sets `manage-package-manager-versions: true`
-  (`jobs/copilot-gpt-5.6-luna-max-latest/all-2/koota-entity-snapshot-rollback__4b5db92a/workspace/pnpm-workspace.yaml:23`)
+  (`deep-swe/jobs/copilot-gpt-5.6-luna-max-latest/all-2/koota-entity-snapshot-rollback__4b5db92a/workspace/pnpm-workspace.yaml:23`)
   and requests pnpm 10.28.1
-  (`jobs/copilot-gpt-5.6-luna-max-latest/all-2/koota-entity-snapshot-rollback__4b5db92a/workspace/package.json:24`).
+  (`deep-swe/jobs/copilot-gpt-5.6-luna-max-latest/all-2/koota-entity-snapshot-rollback__4b5db92a/workspace/package.json:24`).
 - Wharf sets
   `NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false`
   (`src/wharf/Agent/AgentExecution.cs:323`), but an in-container probe showed

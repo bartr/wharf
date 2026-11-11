@@ -1027,7 +1027,7 @@ to origin, and record the tag URL without changing runtime code.
   read-only dry-run, and Docker .NET smoke passed. The smoke used HydraFusion,
   CLI 1.0.105, and K=1/N=1/P=1; reward 1, F2P/P2P 1/1 each.
 * Evidence: `.github/tracking/2026-10-28-release-1.1.0-{research,plan,changes,review}.md`
-  and `jobs/release-1.1.0/`. The incomplete original package is retained.
+  and `deep-swe/jobs/release-1.1.0/`. The incomplete original package is retained.
 * Repository memory: reaffirmed failed-run recording before cleanup; added
   executable-package qualification guidance to repository instructions.
 * Framing quality: 4/5.

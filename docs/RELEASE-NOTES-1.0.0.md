@@ -20,14 +20,14 @@ execution platform.
 
 ## Qualification
 
-The 1.0.0 acceptance matrix is closed using retained summaries in `data/` and
+The 1.0.0 acceptance matrix is closed using retained summaries in `deep-swe/data/` and
 the corresponding Wharf and DeepSWE reference job directories on the execution host.
 Benchmark runs were unattended, with overnight execution where applicable.
 The qualification record preserves run configuration, timing, retries,
 recovery, cost, score coverage, and completed-trial accounting.
 
 See [release-qualification.md](release-qualification.md) for the acceptance
-matrix and [../RESULTS.md](../RESULTS.md) for benchmark results.
+matrix and [../RESULTS.md](RESULTS.md) for benchmark results.
 
 ## Scope boundary
 

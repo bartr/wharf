@@ -22,7 +22,7 @@ cp -a "$WORK/publish/." "$PACKAGE_ROOT/usr/lib/wharf/"
 chmod 0755 "$PACKAGE_ROOT/usr/lib/wharf/wharf"
 ln -s ../lib/wharf/wharf "$PACKAGE_ROOT/usr/bin/wharf"
 cp "$ROOT/scripts/wharf-bootstrap.sh" "$PACKAGE_ROOT/usr/share/wharf/bootstrap.sh"
-cp "$ROOT/README.md" "$PACKAGE_ROOT/usr/share/doc/wharf/README.md"
+cp "$ROOT/docs/README.md" "$PACKAGE_ROOT/usr/share/doc/wharf/README.md"
 cat > "$PACKAGE_ROOT/DEBIAN/control" <<EOF
 Package: wharf
 Version: $VERSION

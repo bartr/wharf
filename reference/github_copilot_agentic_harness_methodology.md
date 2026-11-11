@@ -35,7 +35,7 @@ DeepSWE-specific data terms remain unchanged:
 - An **arm** is a repository-local grouping of trials for an agent-model
   configuration and its fixed settings.
 - **PASS@1** is reported according to the benchmark-specific aggregation
-  documented in [../ANALYTICS.md](../ANALYTICS.md), not inferred from the
+  documented in [../ANALYTICS.md](../docs/ANALYTICS.md), not inferred from the
   GitHub post.
 
 Use **task resolution rate** in prose about whether work is completed. Retain

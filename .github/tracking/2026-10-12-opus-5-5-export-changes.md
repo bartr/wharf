@@ -3,7 +3,7 @@
 ## Completed
 
 - Exported 452 logical trials from the retained `all-1` job to
-  `data/copilot-claude-opus-5.5-max-1.0.91.jsonl`.
+  `deep-swe/data/copilot-claude-opus-5.5-max-1.0.91.jsonl`.
 - Copied the identical portable export to
   `../deep-swe/data/copilot-claude-opus-5.5-max-1.0.91.jsonl`.
 - Rebuilt both reporting manifests from their respective JSONL directories.

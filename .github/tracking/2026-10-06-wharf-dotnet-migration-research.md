@@ -92,7 +92,7 @@ Use built-in .NET facilities first:
    history.
 4. Remove only Wharf Go production/test files, `go.mod`, `go.sum`, and the Go
    validation script. Preserve unrelated benchmark Go fixtures under
-   `smoke-tasks/`.
+   `deep-swe/smoke-tasks/`.
 5. Recreate session 1 as the .NET CLI foundation and tag the replacement
    `0.1.0` only after its own tests and close ritual pass.
 

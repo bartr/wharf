@@ -17,6 +17,9 @@ public sealed class PackagingScriptTests
             await RunAsync("bash", Path.Combine(root, "scripts/package-wharf.sh"), version, output);
             await RunAsync("dpkg-deb", "--extract",
                 Path.Combine(output, $"wharf_{version}_amd64.deb"), extracted);
+            Assert.Equal(
+                File.ReadAllText(Path.Combine(root, "docs", "README.md")),
+                File.ReadAllText(Path.Combine(extracted, "usr/share/doc/wharf/README.md")));
 
             string packagedVersion = await RunAsync(
                 Path.Combine(extracted, "usr/bin/wharf"), "--version");

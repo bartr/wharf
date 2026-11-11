@@ -2,15 +2,15 @@
 
 1. [x] Export the retained `all-1` job with the canonical legacy analytics
    exporter.
-   - Sources: `jobs/copilot-claude-opus-5.5-max-1.0.91/all-1`,
+   - Sources: `deep-swe/jobs/copilot-claude-opus-5.5-max-1.0.91/all-1`,
      `../deep-swe/scripts/export_analytics.py`.
    - Targets:
-     `data/copilot-claude-opus-5.5-max-1.0.91.jsonl` and the matching file in
+     `deep-swe/data/copilot-claude-opus-5.5-max-1.0.91.jsonl` and the matching file in
      `../deep-swe/data/`.
    - Exit criteria: both files contain the same 452 logical-trial rows.
 
 2. [x] Rebuild both analytics manifests.
-   - Targets: `data/manifest.json`, `../deep-swe/data/manifest.json`.
+   - Targets: `deep-swe/data/manifest.json`, `../deep-swe/data/manifest.json`.
    - Exit criteria: each manifest contains an entry matching its generated
      JSONL's row count, task count, cost coverage, known cost, and byte size.
 
@@ -23,12 +23,12 @@
      rows with retained cost.
 
 4. [x] Update the root README ranking.
-   - Target: `README.md`, current benchmark results table.
+   - Target: `docs/README.md`, current benchmark results table.
    - Exit criteria: add the measured Opus 5.5 1.0.91 result and renumber the
      table in descending PASS@1 order without changing metric definitions.
 
 5. [x] Review the generated data and documentation against the research and
    plan.
-   - Targets: both JSONL exports, both manifests, `README.md`.
+   - Targets: both JSONL exports, both manifests, `docs/README.md`.
    - Exit criteria: independent validation reports no contract mismatch and
      the deleted Luna job remains absent.

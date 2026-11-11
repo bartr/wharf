@@ -11,7 +11,7 @@ root README ranking. The deleted incomplete Luna job is out of scope.
 1. The retained Opus run has 452 `result.json` files, which is the expected
    K=4 depth across 113 tasks. Its results use the legacy Harbor schema with
    `task_name`, `agent_info`, `agent_result`, `verifier_result`, and phase
-   timestamps (`jobs/copilot-claude-opus-5.5-max-1.0.91/all-1/.../result.json`).
+   timestamps (`deep-swe/jobs/copilot-claude-opus-5.5-max-1.0.91/all-1/.../result.json`).
 2. The legacy DeepSWE exporter is designed for this exact schema. It discovers
    `*__/result.json` trial directories, emits one row per trial, and retains
    reward, functional/regression counts, checksum, language, patch size,
@@ -21,11 +21,11 @@ root README ranking. The deleted incomplete Luna job is out of scope.
    events when `cost.json` is absent, converting nano-AIU to credits and USD
    (`../deep-swe/scripts/export_analytics.py:56-112`).
 4. The Wharf-native exporter expects Wharf run evidence and is documented for
-   retained Wharf runs (`README.md:81-113`). Using it on a legacy Harbor job
+   retained Wharf runs (`docs/README.md:81-113`). Using it on a legacy Harbor job
    would mix evidence contracts unnecessarily.
 5. The README ranking defines PASS@1 as passing attempts divided by the fixed
    planned attempt universe and defines Cost/test over costed trials only
-   (`README.md:28-35`, `README.md:53-57`).
+   (`docs/README.md:28-35`, `docs/README.md:53-57`).
 6. The reporting manifest is rebuilt strictly from JSONL files and records
    trials, tasks, scored rows, rows with cost, total known cost, and file size
    (`../deep-swe/scripts/build_data_manifest.py:18-64`).

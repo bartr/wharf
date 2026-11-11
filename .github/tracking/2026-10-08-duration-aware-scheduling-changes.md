@@ -7,7 +7,7 @@
 - Imported evidence: 452 completed Pier agent execution intervals covering 113
   tasks and four attempts per task.
 - Aggregation: median agent execution duration in seconds.
-- Output: `tasks/agent-duration-estimates.json`, schema `1.1`.
+- Output: `deep-swe/tasks/agent-duration-estimates.json`, schema `1.1`.
 
 The checked-in importer validates complete task coverage, rejects non-positive
 durations and unknown tasks, verifies language against each task manifest, and

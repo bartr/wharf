@@ -13,8 +13,8 @@ agent-container safeguards should be added before another N=32 run.
   `pnpm add pnpm@10.19.0` processes. This was a TypeScript trial, not a Rust
   compile.
 - The task declares `"packageManager": "pnpm@10.19.0"` and has no lifecycle
-  script that invokes `pnpm add pnpm` (`jobs/copilot-gpt-5.6-luna-max-latest/all-1/arktype-json-schema-refs-dependencies__ba8e700d/workspace/package.json:13`,
-  `jobs/copilot-gpt-5.6-luna-max-latest/all-1/arktype-json-schema-refs-dependencies__ba8e700d/workspace/package.json:115`).
+  script that invokes `pnpm add pnpm` (`deep-swe/jobs/copilot-gpt-5.6-luna-max-latest/all-1/arktype-json-schema-refs-dependencies__ba8e700d/workspace/package.json:13`,
+  `deep-swe/jobs/copilot-gpt-5.6-luna-max-latest/all-1/arktype-json-schema-refs-dependencies__ba8e700d/workspace/package.json:115`).
 - The task image already contains pnpm 10.19.0. With its normal root home,
   `pnpm config get manage-package-manager-versions` returns `false`.
 - Wharf changes `HOME` to `/workspace/.home` for the agent

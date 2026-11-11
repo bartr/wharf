@@ -62,9 +62,9 @@ options with these opt-in `wharf run` modes:
 
 ```bash
 wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks --no-op -k 10 -n 80 -p 12
-wharf run --tasks enterprise/tasks --oracle -k 10 -n 80 -p 12
-wharf run --tasks enterprise/tasks --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
+wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --no-op -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --oracle -k 10 -n 80 -p 12
+wharf run --tasks enterprise/tasks --output-directory enterprise/jobs --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
 ```
 
 - `--no-op` prepares a task image without Copilot, creates and starts a
@@ -170,7 +170,8 @@ for the selected tasks and the exact CLI version that the run will use.
 
 ```bash
 wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks -n 32 -p 12 -k 4 --cli-version 1.0.107
+wharf run --tasks enterprise/tasks --output-directory enterprise/jobs \
+  -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
 
 Run prebuild once per machine's Docker cache, not once per benchmark run.

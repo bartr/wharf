@@ -25,7 +25,7 @@ description: Evidence and recommendation for model-aware smoke paths and effecti
   `copilot-gpt-5.6-luna-max-latest` after a HydraFusion run.
 * The completed smoke run used Copilot CLI `1.0.91`, as recorded in its
   retained CLI log
-  (`jobs/copilot-hydrafusion-max-latest/smoke-1/smoke-go__1d817027/agent/copilot-logs/process-1791644717820-61.log:1060`).
+  (`deep-swe/jobs/copilot-hydrafusion-max-latest/smoke-1/smoke-go__1d817027/agent/copilot-logs/process-1791644717820-61.log:1060`).
 * The agent patch is retained identically at `agent/patch.diff`,
   `artifacts/model.patch`, and `verifier/patch.diff`. It changes
   `greet()` from `Hello` to `Hello world!`.

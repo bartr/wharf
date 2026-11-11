@@ -163,7 +163,7 @@ public sealed class WharfAppTests
             int exitCode = await WharfApp.RunAsync([
                 "run",
                 "-v",
-                "--tasks", Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
+                "--tasks", Path.Combine(FindRepositoryRoot(), "deep-swe", "smoke-tasks"),
                 "--output-directory", relativeOutput
             ]);
 
@@ -228,7 +228,7 @@ public sealed class WharfAppTests
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null &&
-               !Directory.Exists(Path.Combine(directory.FullName, "smoke-tasks")))
+               !Directory.Exists(Path.Combine(directory.FullName, "deep-swe", "smoke-tasks")))
             directory = directory.Parent;
         return directory?.FullName ?? throw new DirectoryNotFoundException("repository root not found");
     }
