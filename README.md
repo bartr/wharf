@@ -122,68 +122,12 @@ Qualification records are in
 benchmark summaries and their retained job directories remain separate
 evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
-## Frontier Engineering case study
-
-Wharf remains the benchmark runner and source of its development and operating
-evidence. The derived training material is maintained in
-[fe-core](https://github.com/frontier-engineering/fe-core):
-the [Wharf knowledge pack](https://github.com/frontier-engineering/fe-core/blob/main/docs/knowledge/README.md)
-and [draft train-the-trainer plan](https://github.com/frontier-engineering/fe-core/blob/main/docs/ttt-facilitator-plan.md).
-Wharf is a workshop example, not part of the offering.
-
-## Release highlights
-
-* Real non-dry-run benchmark execution through the integrated Wharf path.
-* Container-backed smoke validation and mountless agent/verifier execution.
-* Correct container CLI version resolution, HydraFusion and provider-selected
-  effort defaults, and model/effort short options.
-* Expanded DeepSWE and enterprise benchmark evidence, with the enterprise
-  dataset retaining 24 K=4 arms and 1,344 logical trials.
-* Durable patches, logs, trajectories, verifier evidence, retries, timing,
-  usage, cost, and recovery state.
-* Planned-denominator PASS@1, separate task accuracy, and portable JSONL
-  analytics with manifest validation.
-* Richer analytics manifests with run identity, cost/time summaries, and a
-  separately labeled regression-adjusted score.
-
 ## Data Analytics Repro Guide
 
 This file documents how to reproduce the benchmark comparisons from `deep-swe/data/*.jsonl` with the same metric definitions used in this repo.
 
 Recurring enterprise results intended for public charts follow the
 [published benchmark methodology](docs/published-benchmarks.md).
-
-## Current benchmark results
-
-Non-HVE runs, sorted by PASS@1 descending, then P2P errors ascending, then
-cost ascending.
-PASS@1 uses the fixed planned attempt universe; Passes shows passing/planned
-trials. P2P Errors counts retained trials with at least one measured
-regression-test failure, not individual failing tests. Unmeasured P2P results
-are unknown, not confirmed regression-free trials. Cost/task means cost per
-costed task attempt: known cost divided by costed trials, with no imputation.
-The Cost column uses this definition. Agent Time is the task-weighted mean
-per-attempt agent-command duration, rounded to whole seconds; it excludes
-preparation and verification.
-
-| Model | Passes | PASS@1 | P2P Errors | Cost | Agent Time |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Copilot GPT-5.6 Luna Max 1.0.77 | 335/452 | 74.12% | 17 | $0.3711 | 1511 s |
-| Copilot Gemini 3.8 Flash High 1.0.91 | 335/452 | 74.12% | 20 | $2.7897 | 1879 s |
-| Copilot Claude Opus 5 Max 1.0.77 | 322/452 | 71.24% | 20 | $5.6623 | 2146 s |
-| Copilot GPT-6 Astra Max 1.0.91 | 321/452 | 71.02% | 43 | $8.4274 | 1619 s |
-| Copilot Claude Opus 5.5 Max 1.0.95 | 320/452 | 70.80% | 22 | $11.9774 | 3765 s |
-| **HydraFusion 1.0.98 All-1** | **318/452** | **70.35%** | **28** | **$1.2149** | **1069 s** |
-| **HydraFusion 1.0.95 All-2** | **317/452** | **70.13%** | **32** | **$1.1726** | **1466 s** |
-| Copilot GPT-5.6 Luna Max 1.0.91 | 316/452 | 69.91% | 21 | $0.3670 | 1614 s |
-| Copilot GPT-5.6 Sol XHigh 1.0.77 | 315/452 | 69.69% | 23 | $8.4366 | 1823 s |
-| **HydraFusion 1.0.95 All-1** | **311/452** | **68.81%** | **36** | **$1.2074** | **1424 s** |
-| Copilot Claude Opus 5.5 Max 1.0.91 | 309/452 | 68.36% | 27 | $11.4134 | 3452 s |
-| Copilot GPT-5.6 Terra Max 1.0.77 | 376/565 | 66.55% | 37 | $4.2576 | 1677 s |
-| Claude Code Opus 5 Max 2.1.220 | 291/452 | 64.38% | 21 | $13.4885 | 1873 s |
-| Copilot GPT-6 Luna Max 1.0.91 | 276/452 | 61.06% | 36 | $0.1759 | 1417 s |
-| Muse Spark 1.2 Contributor XHigh 0.1.0 | 338/565 | 59.82% | 44 | N/A | 1185 s |
-| Copilot Auto Max 1.0.77 | 209/565 | 36.99% | 48 | $1.6234 | 1308 s |
 
 ## 1) Canonical analytics rules
 

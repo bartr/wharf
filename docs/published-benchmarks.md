@@ -5,10 +5,10 @@ description: How recurring Wharf enterprise benchmark results are produced, char
 
 # Published benchmark methodology
 
-Frontier Engineering uses Wharf to run recurring enterprise benchmarks and
-plans to publish the results as charts, most likely on fe-labs.ai. This page
-defines what each chart measures, how points are produced, and what evidence
-backs them, so the published series can be audited and explained.
+Wharf runs recurring enterprise benchmarks with results published as charts in
+the [enterprise summary](../enterprise/README.md). This page defines what each
+chart measures, how points are produced, and what evidence backs them, so the
+published series can be audited and explained.
 
 ## Cadence and arms
 
