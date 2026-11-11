@@ -57,14 +57,14 @@ runtime workspace caches.
 
 ### Agent-free baseline runs
 
-Use the normal task selection, K/N/P, timeout, retention, and CPU-affinity
+Use the normal task selection, K/N/P, timeout, and retention
 options with these opt-in `wharf run` modes:
 
 ```bash
 wharf prebuild --tasks wharf-swe/tasks -p 12 --cli-version 1.0.107
 wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --no-op -k 10 -n 80 -p 12
 wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --oracle -k 10 -n 80 -p 12
-wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --no-op --oracle -k 10 -n 80 -p 12 --container-cpus 8
+wharf run --tasks wharf-swe/tasks --output-directory wharf-swe/jobs --no-op --oracle -k 10 -n 80 -p 12
 ```
 
 - `--no-op` prepares a task image without Copilot, creates and starts a
@@ -85,7 +85,7 @@ execute in baseline mode. Oracle scripts are trusted task code, run as root
 inside their isolated container, and must already exist for every selected
 task; missing scripts fail before output directories are created. No-op
 execution uses UID 1000:1000, the same memory/PID limits and bridge network as
-agent containers, and optional CPU affinity. Images are still prepared from
+agent containers. Images are still prepared from
 the task environment, so these baselines do not measure Copilot payload
 installation.
 
@@ -105,48 +105,7 @@ their timing summaries separately. Verifier timeout/infrastructure retries
 reuse the exact oracle patch with fresh verifier preparation and retained
 retry evidence. Baseline command/preparation failures remain terminal failures.
 
-### Container CPU policy
-
-New runs default to unrestricted CPUs per agent and verifier container.
-Opt into a positive logical CPU limit through `wharf run --container-cpus 8`,
-`WHARF_CONTAINER_CPUS=8`, or manifest `"containerCpus": 8`. Precedence is
-flag, environment, manifest, then default. Dry-run renders the configured
-limit without contacting Docker or creating resources. When no limit is
-configured, text output reports `unrestricted` and JSON retains `containerCpus`
-as null. Unrestricted runs skip CPU discovery.
-
-Smoke tests, runs with N=1, and runs with only one logical trial do not constrain
-agent or verifier CPUs, even with an explicit CPU limit. They also skip CPU
-discovery. A single selected task with K>1 and N>1 still uses the configured CPU
-limit because its attempts can execute concurrently. Resume uses the original
-retained task selection and K, with the effective N; a concurrent run does not
-become exempt just because only one trial remains.
-
-For constrained runs, Wharf discovers usable CPU IDs once per run through a
-short-lived, networkless probe container using an already prepared agent image,
-inside the preparation gate. This reads the Docker host's actual allowed CPU
-list rather than assuming
-the CLI host and Docker host are the same or that CPU IDs are contiguous.
-The probe is explicitly removed, including on cancellation or failure.
-
-When available CPUs exceed the limit, agent and verifier containers receive
-`--cpuset-cpus` at creation. Deterministic rotating CPU sets spread logical
-trials across the available CPUs; sets may overlap and are not exclusive
-reservations. A logical trial and its retries use the same set. When available
-CPUs are at or below the configured limit, no affinity option is emitted.
-The limit is independent of N and P, and does not restrict Docker image builds
-or host-process verification.
-
-Retained run configuration preserves the requested limit on resume, including
-limits retained by runs created with the former eight-CPU default. Retained
-runs without `containerCpus` remain unrestricted. Actual CPU sets are retained
-in the lifecycle log, agent and verifier summaries, and final logical-trial
-result.
-
-CPU affinity limits execution and affinity-aware CPU discovery, not every
-host-topology API. Software reading `/proc/cpuinfo` or using host-wide CPU counts
-can still see all host CPUs. Wharf does not add a CPU-time quota or blanket
-runtime-specific thread-pool environment overrides.
+### Resource monitoring
 
 For resource evidence on an existing local cgroup-v2 Docker run, launch
 `python3 scripts/monitor-wharf-run.py --run-directory <all-N> --run-id <id> --pid <wharf-pid>`

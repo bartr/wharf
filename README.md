@@ -1,6 +1,6 @@
 # Wharf 1.5.0
 
-Wharf 1.5.0 builds on the first MVP release of the customer-controlled benchmark
+Wharf 1.5.0 builds on the MVP release of the DeepSWE/Harbor benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics. It runs
@@ -49,8 +49,7 @@ See the [Harbor test process](docs/Harbor.md),
 [WharfSWE summary](wharf-swe/README.md). The datasets remain separate.
 
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
-`wharf check` verifies the host platform, Docker capabilities, and capacity;
-newer Ubuntu releases do not require `--allow-unsupported-host`.
+`wharf check` verifies the host platform, Docker capabilities, and capacity.
 
 ## Required one-time machine warm-up
 
@@ -59,8 +58,8 @@ Warm the selected tasks with the same exact Copilot CLI version used by the run:
 
 ```bash
 cd wharf-swe
-wharf prebuild -p 12 --cli-version 1.0.107
-wharf run -n 32 -p 12 -k 4 --cli-version 1.0.107
+wharf prebuild -p 12 --cli-version 1.0.109
+wharf run -n 32 -p 12 -k 4 --cli-version 1.0.109
 ```
 
 This is a one-time preparation step for that machine's Docker cache, not a
@@ -85,15 +84,6 @@ Use `--effort` (`-e`) to configure effort. Both aliases are also available for
 Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
 For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
 The double-dash forms `--k`, `--n`, and `--p` are not accepted.
-
-Agent and verifier containers default to unrestricted CPUs. Opt into Docker CPU
-affinity with `--container-cpus 8`, `WHARF_CONTAINER_CPUS=8`,
-or manifest `"containerCpus": 8`; flag, environment, manifest, then default take
-precedence. If Docker has no more usable CPUs than the configured limit, Wharf
-omits the affinity restriction. See [container CPU policy](docs/wharf.md#container-cpu-policy)
-for allocation, resume, and runtime-discovery details.
-Smoke tests, runs with N=1, and runs with only one logical trial are unrestricted.
-A single task with K>1 and N>1 still uses the configured CPU limit.
 
 For agent-free infrastructure comparisons, use `wharf run --no-op` to measure
 container preparation and lifecycle without grading, or `wharf run --oracle`

@@ -46,8 +46,8 @@ repository root. Keep this README aligned with `data/manifest.json`.
 Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.109/all-1)
 and [GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.109/all-1).
 Both completed runs use identical task IDs/checksums and retained configuration
-apart from model: K=4, N=40, P=24, default effort, and unrestricted container
-CPUs. Retained image-cache metadata confirms effective CLI 1.0.109 for all
+apart from model: K=4, N=40, P=24, and default effort.
+Retained image-cache metadata confirms effective CLI 1.0.109 for all
 112 trials. These are sequential runs, not replicated model comparisons;
 host load and cache conditions are not controlled by matching configuration.
 
