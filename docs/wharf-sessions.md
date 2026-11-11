@@ -777,9 +777,9 @@ Target tag: `0.22.0`
   agent contracts.
 - Keep HydraFusion secrets and provider-specific behavior behind the adapter.
 - Status: complete. Two HydraFusion benchmark exports are retained in
-  `data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
+  `deep-swe/data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
 - Status: complete. Two HydraFusion benchmark exports are retained in
-  `data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
+  `deep-swe/data/`: `all-1` with 452 trials and `all-2` with 449 retained trials.
 
 ## Session 23: real smoke path
 

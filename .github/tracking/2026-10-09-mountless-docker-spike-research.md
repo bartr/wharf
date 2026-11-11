@@ -34,8 +34,8 @@
 - The verifier image contains its own pristine `/app` and hidden `/tests`.
   It receives only `/logs/artifacts/model.patch` as input and writes grading
   evidence under `/logs/verifier`; the smoke fixture documents that contract
-  (`smoke-tasks/smoke-go/tests/Dockerfile:7`,
-  `smoke-tasks/smoke-go/tests/test.sh:6`).
+  (`deep-swe/smoke-tasks/smoke-go/tests/Dockerfile:7`,
+  `deep-swe/smoke-tasks/smoke-go/tests/test.sh:6`).
 - `DockerVerifierRunner` bind-mounts the host verifier evidence and artifacts
   directories, then uses `docker run --rm`
   (`src/wharf/Verifier/VerifierExecution.cs:344`).

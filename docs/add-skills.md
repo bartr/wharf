@@ -73,7 +73,8 @@ for Copilot execution and any configuration discovery/probes. Ensure the
 trial user (`1000:1000`) can read the artifacts. Do not modify host user
 configuration or `/workspace`, `/app`, `/tests`, or verifier inputs.
 
-For a simple nudge, use the reference text in [nudge.md](../nudge.md) as
+For a simple nudge, use the reference text in
+[nudge instructions](../nudge/copilot-instructions.md) as
 `copilot-instructions.md`. This is native always-on guidance, not the old
 Pier task-preface mechanism; benchmark it as a distinct intervention.
 

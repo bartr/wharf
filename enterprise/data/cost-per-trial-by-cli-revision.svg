@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="730" viewBox="0 0 1100 730" role="img" aria-labelledby="title description">
+<title id="title">Enterprise cost per test by Copilot CLI revision</title>
+<desc id="description">Selected enterprise models, with one point per completed 56-trial arm. X is the revision of CLI 1.0.x; Y shows USD per costed trial. The X axis starts at revision 95. Y axis: $0.00 to $1.40. Lines join observed runs only.</desc>
+<rect width="1100" height="730" fill="white"/>
+<g font-family="sans-serif" fill="#222222">
+<text x="550" y="34" text-anchor="middle" font-size="24" font-weight="bold">Enterprise cost per test by Copilot CLI revision</text>
+<text x="550" y="60" text-anchor="middle" font-size="14">Selected models | 14 tasks x 4 attempts per run | Y axis: $0.00-$1.40</text>
+<path d="M95 480.00H1035" stroke="#dddddd"/>
+<text x="80" y="485.00" text-anchor="end" font-size="14">$0.00</text>
+<path d="M95 425.71H1035" stroke="#dddddd"/>
+<text x="80" y="430.71" text-anchor="end" font-size="14">$0.20</text>
+<path d="M95 371.43H1035" stroke="#dddddd"/>
+<text x="80" y="376.43" text-anchor="end" font-size="14">$0.40</text>
+<path d="M95 317.14H1035" stroke="#dddddd"/>
+<text x="80" y="322.14" text-anchor="end" font-size="14">$0.60</text>
+<path d="M95 262.86H1035" stroke="#dddddd"/>
+<text x="80" y="267.86" text-anchor="end" font-size="14">$0.80</text>
+<path d="M95 208.57H1035" stroke="#dddddd"/>
+<text x="80" y="213.57" text-anchor="end" font-size="14">$1.00</text>
+<path d="M95 154.29H1035" stroke="#dddddd"/>
+<text x="80" y="159.29" text-anchor="end" font-size="14">$1.20</text>
+<path d="M95 100.00H1035" stroke="#dddddd"/>
+<text x="80" y="105.00" text-anchor="end" font-size="14">$1.40</text>
+<path d="M95.00 100V480" stroke="#eeeeee"/>
+<text x="95.00" y="504" text-anchor="middle" font-size="13">95</text>
+<path d="M162.14 100V480" stroke="#eeeeee"/>
+<text x="162.14" y="504" text-anchor="middle" font-size="13">96</text>
+<path d="M229.29 100V480" stroke="#eeeeee"/>
+<text x="229.29" y="504" text-anchor="middle" font-size="13">97</text>
+<path d="M296.43 100V480" stroke="#eeeeee"/>
+<text x="296.43" y="504" text-anchor="middle" font-size="13">98</text>
+<path d="M430.71 100V480" stroke="#eeeeee"/>
+<text x="430.71" y="504" text-anchor="middle" font-size="13">100</text>
+<path d="M497.86 100V480" stroke="#eeeeee"/>
+<text x="497.86" y="504" text-anchor="middle" font-size="13">101</text>
+<path d="M565.00 100V480" stroke="#eeeeee"/>
+<text x="565.00" y="504" text-anchor="middle" font-size="13">102</text>
+<path d="M632.14 100V480" stroke="#eeeeee"/>
+<text x="632.14" y="504" text-anchor="middle" font-size="13">103</text>
+<path d="M699.29 100V480" stroke="#eeeeee"/>
+<text x="699.29" y="504" text-anchor="middle" font-size="13">104</text>
+<path d="M766.43 100V480" stroke="#eeeeee"/>
+<text x="766.43" y="504" text-anchor="middle" font-size="13">105</text>
+<path d="M833.57 100V480" stroke="#eeeeee"/>
+<text x="833.57" y="504" text-anchor="middle" font-size="13">106</text>
+<path d="M900.71 100V480" stroke="#eeeeee"/>
+<text x="900.71" y="504" text-anchor="middle" font-size="13">107</text>
+<path d="M967.86 100V480" stroke="#eeeeee"/>
+<text x="967.86" y="504" text-anchor="middle" font-size="13">108</text>
+<path d="M1035.00 100V480" stroke="#eeeeee"/>
+<text x="1035.00" y="504" text-anchor="middle" font-size="13">109</text>
+<path d="M95 95V480H1040" fill="none" stroke="#777777"/>
+<text x="565" y="535" text-anchor="middle" font-size="16">Copilot CLI revision (1.0.x)</text>
+<text transform="translate(30 290) rotate(-90)" text-anchor="middle" font-size="16">USD per costed trial</text>
+<polyline data-model="hydrafusion" points="95.00,393.53 162.14,393.21 229.29,387.29 296.43,368.28 430.71,400.40 497.86,384.27 565.00,389.31 632.14,373.33 699.29,370.68 766.43,407.23 833.57,401.43 900.71,407.77 967.86,403.94 1035.00,414.60" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6.1-sol" points="95.00,420.30 565.00,417.37 766.43,417.63 967.86,425.43 1035.00,424.49" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-astra" points="95.00,122.26 565.00,144.75 766.43,122.32 967.86,149.67" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-luna" points="95.00,475.70 565.00,475.88 766.43,475.77 967.86,475.52" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="claude-opus-5.5" points="95.00,335.86 565.00,350.12 766.43,335.62 967.86,344.65" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="cost_per_trial" data-value="0.4785071428571428571428571429" data-costed-trials="56" transform="translate(565.00 350.12)">
+<title>Claude Opus 5.5 | CLI 1.0.102 | USD per costed trial: $0.4785 | 48/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="cost_per_trial" data-value="0.5319410714285714285714285714" data-costed-trials="56" transform="translate(766.43 335.62)">
+<title>Claude Opus 5.5 | CLI 1.0.105 | USD per costed trial: $0.5319 | 52/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.108" data-revision="108" data-passes="48" data-trials="56" data-metric="cost_per_trial" data-value="0.4986660714285714285714285714" data-costed-trials="56" transform="translate(967.86 344.65)">
+<title>Claude Opus 5.5 | CLI 1.0.108 | USD per costed trial: $0.4987 | 48/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.95" data-revision="95" data-passes="49" data-trials="56" data-metric="cost_per_trial" data-value="0.5310375" data-costed-trials="56" transform="translate(95.00 335.86)">
+<title>Claude Opus 5.5 | CLI 1.0.95 | USD per costed trial: $0.5310 | 49/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.102" data-revision="102" data-passes="56" data-trials="56" data-metric="cost_per_trial" data-value="1.2351375" data-costed-trials="56" transform="translate(565.00 144.75)">
+<title>GPT-6 Astra | CLI 1.0.102 | USD per costed trial: $1.2351 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.105" data-revision="105" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="1.317773214285714285714285714" data-costed-trials="56" transform="translate(766.43 122.32)">
+<title>GPT-6 Astra | CLI 1.0.105 | USD per costed trial: $1.3178 | 54/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="cost_per_trial" data-value="1.216994642857142857142857143" data-costed-trials="56" transform="translate(967.86 149.67)">
+<title>GPT-6 Astra | CLI 1.0.108 | USD per costed trial: $1.2170 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="1.317982142857142857142857143" data-costed-trials="56" transform="translate(95.00 122.26)">
+<title>GPT-6 Astra | CLI 1.0.95 | USD per costed trial: $1.3180 | 54/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.102" data-revision="102" data-passes="50" data-trials="56" data-metric="cost_per_trial" data-value="0.015175" data-costed-trials="56" transform="translate(565.00 475.88)">
+<title>GPT-6 Luna | CLI 1.0.102 | USD per costed trial: $0.0152 | 50/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.105" data-revision="105" data-passes="48" data-trials="56" data-metric="cost_per_trial" data-value="0.01559642857142857142857142857" data-costed-trials="56" transform="translate(766.43 475.77)">
+<title>GPT-6 Luna | CLI 1.0.105 | USD per costed trial: $0.0156 | 48/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.108" data-revision="108" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.01651071428571428571428571429" data-costed-trials="56" transform="translate(967.86 475.52)">
+<title>GPT-6 Luna | CLI 1.0.108 | USD per costed trial: $0.0165 | 54/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.01583571428571428571428571429" data-costed-trials="56" transform="translate(95.00 475.70)">
+<title>GPT-6 Luna | CLI 1.0.95 | USD per costed trial: $0.0158 | 54/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.102" data-revision="102" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="0.2307267857142857142857142857" data-costed-trials="56" transform="translate(565.00 417.37)">
+<title>GPT-6.1 Sol | CLI 1.0.102 | USD per costed trial: $0.2307 | 55/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.105" data-revision="105" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="0.2297678571428571428571428571" data-costed-trials="56" transform="translate(766.43 417.63)">
+<title>GPT-6.1 Sol | CLI 1.0.105 | USD per costed trial: $0.2298 | 55/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="cost_per_trial" data-value="0.2010642857142857142857142857" data-costed-trials="56" transform="translate(967.86 425.43)">
+<title>GPT-6.1 Sol | CLI 1.0.108 | USD per costed trial: $0.2011 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="0.2045107142857142857142857143" data-costed-trials="56" transform="translate(1035.00 424.49)">
+<title>GPT-6.1 Sol | CLI 1.0.109 | USD per costed trial: $0.2045 | 55/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.2199535714285714285714285714" data-costed-trials="56" transform="translate(95.00 420.30)">
+<title>GPT-6.1 Sol | CLI 1.0.95 | USD per costed trial: $0.2200 | 54/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.100" data-revision="100" data-passes="53" data-trials="56" data-metric="cost_per_trial" data-value="0.2932464285714285714285714286" data-costed-trials="56" transform="translate(430.71 400.40)">
+<title>HydraFusion | CLI 1.0.100 | USD per costed trial: $0.2932 | 53/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.101" data-revision="101" data-passes="52" data-trials="56" data-metric="cost_per_trial" data-value="0.3526928571428571428571428571" data-costed-trials="56" transform="translate(497.86 384.27)">
+<title>HydraFusion | CLI 1.0.101 | USD per costed trial: $0.3527 | 52/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.102" data-revision="102" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.3341375" data-costed-trials="56" transform="translate(565.00 389.31)">
+<title>HydraFusion | CLI 1.0.102 | USD per costed trial: $0.3341 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.103" data-revision="103" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.3929839285714285714285714286" data-costed-trials="56" transform="translate(632.14 373.33)">
+<title>HydraFusion | CLI 1.0.103 | USD per costed trial: $0.3930 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.104" data-revision="104" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.4027642857142857142857142857" data-costed-trials="56" transform="translate(699.29 370.68)">
+<title>HydraFusion | CLI 1.0.104 | USD per costed trial: $0.4028 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="cost_per_trial" data-value="0.2680964285714285714285714286" data-costed-trials="56" transform="translate(766.43 407.23)">
+<title>HydraFusion | CLI 1.0.105 | USD per costed trial: $0.2681 | 52/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.106" data-revision="106" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.2894535714285714285714285714" data-costed-trials="56" transform="translate(833.57 401.43)">
+<title>HydraFusion | CLI 1.0.106 | USD per costed trial: $0.2895 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.107" data-revision="107" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.2661017857142857142857142857" data-costed-trials="56" transform="translate(900.71 407.77)">
+<title>HydraFusion | CLI 1.0.107 | USD per costed trial: $0.2661 | 54/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.108" data-revision="108" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="0.2802214285714285714285714286" data-costed-trials="56" transform="translate(967.86 403.94)">
+<title>HydraFusion | CLI 1.0.108 | USD per costed trial: $0.2802 | 55/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="0.2409410714285714285714285714" data-costed-trials="56" transform="translate(1035.00 414.60)">
+<title>HydraFusion | CLI 1.0.109 | USD per costed trial: $0.2409 | 55/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.95" data-revision="95" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.3185589285714285714285714286" data-costed-trials="56" transform="translate(95.00 393.53)">
+<title>HydraFusion | CLI 1.0.95 | USD per costed trial: $0.3186 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.96" data-revision="96" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.3197428571428571428571428571" data-costed-trials="56" transform="translate(162.14 393.21)">
+<title>HydraFusion | CLI 1.0.96 | USD per costed trial: $0.3197 | 54/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.97" data-revision="97" data-passes="52" data-trials="56" data-metric="cost_per_trial" data-value="0.3415553571428571428571428571" data-costed-trials="56" transform="translate(229.29 387.29)">
+<title>HydraFusion | CLI 1.0.97 | USD per costed trial: $0.3416 | 52/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.98" data-revision="98" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="0.4116053571428571428571428571" data-costed-trials="56" transform="translate(296.43 368.28)">
+<title>HydraFusion | CLI 1.0.98 | USD per costed trial: $0.4116 | 54/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g transform="translate(105 575)"><circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/></g>
+<text x="122" y="580" font-size="14">HydraFusion</text>
+<g transform="translate(435 575)"><polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/></g>
+<text x="452" y="580" font-size="14">GPT-6.1 Sol</text>
+<g transform="translate(765 575)"><polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/></g>
+<text x="782" y="580" font-size="14">GPT-6 Astra</text>
+<g transform="translate(105 601)"><rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/></g>
+<text x="122" y="606" font-size="14">GPT-6 Luna</text>
+<g transform="translate(435 601)"><polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/></g>
+<text x="452" y="606" font-size="14">Claude Opus 5.5</text>
+<text x="95" y="696" font-size="13">Lines connect observations, not estimates for missing revisions.</text>
+<text x="95" y="717" font-size="13">Small samples and changing host/preparation settings limit causal comparisons.</text>
+</g></svg>

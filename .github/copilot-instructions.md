@@ -6,14 +6,15 @@ Always run long-running tests and benchmark jobs inside a named `tmux` session s
 they survive SSH or VS Code disconnects and can be monitored or reattached.
 Run the job in the foreground with stdout and stderr connected to the tmux pane;
 do not wrap it in shell redirection, `nohup`, backgrounding, or an outer logging
-pipeline. Follow [RUN_MONITORING.md](../RUN_MONITORING.md) for tmux lifecycle,
+pipeline. Follow [RUN_MONITORING.md](../../deep-swe/RUN_MONITORING.md) in the
+sibling DeepSWE repository for tmux lifecycle,
 read-only monitoring, and provider-specific checks.
 
 ## Scoring completed runs
 
-Use the canonical DeepSWE analytics contract in `../deep-swe/ANALYTICS.md` and
-`../deep-swe/data/README.md`. Export completed Wharf runs to
-`../deep-swe/data/<arm>.jsonl`, with one JSON object per logical trial. Do not
+Use the canonical DeepSWE analytics contract in `docs/ANALYTICS.md` and
+`README.md`. Export completed Wharf runs to
+`deep-swe/data/<arm>.jsonl`, with one JSON object per logical trial. Do not
 emit infrastructure or verifier retries as additional trials.
 
 Report DeepSWE `PASS@1` as the trial-level pass rate: passing trials divided by
@@ -34,8 +35,8 @@ costs null, report cost-evidence coverage, and do not impute missing values.
 Compute cost per costed trial from trials with retained cost evidence. Keep
 aggregate task cost and cost per pass separate from that primary metric.
 
-After exporting an arm, rebuild `../deep-swe/data/manifest.json` with
-`python3 ../deep-swe/scripts/build_data_manifest.py`. Validate row count,
+After exporting an arm, rebuild `deep-swe/data/manifest.json` with
+`wharf analytics manifest --data-directory deep-swe/data`. Validate row count,
 unique logical-trial identity, task coverage, configured K depth, reward totals,
 cost conversion, duration coverage, and the generated manifest entry before
 reporting a score.
@@ -43,6 +44,13 @@ reporting a score.
 Wharf documentation lives under `docs/`. Session RPI artifacts belong under
 `.github/tracking/`; keep those artifacts with the repository so decisions and
 validation evidence survive context resets.
+
+DeepSWE tasks, smoke fixtures, raw jobs, and exports live under
+`deep-swe/tasks/`, `deep-swe/smoke-tasks/`, `deep-swe/jobs/`, and
+`deep-swe/data/`. Enterprise tasks, jobs, and exports remain under `enterprise/`.
+Run repository examples from the repository root with explicit suite paths;
+generic CLI defaults are not repository-layout defaults. Do not rewrite pinned
+task payloads, task checksums, or retained run evidence when updating paths.
 
 Session 2 established strict `1.0` JSON run manifests and an explicit
 flag-over-environment-over-manifest-over-default precedence contract.

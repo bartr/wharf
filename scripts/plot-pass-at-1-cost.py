@@ -62,7 +62,7 @@ def label(arm):
 def main():
     records = [
         summarize(path)
-        for path in sorted((ROOT / "data").glob("*.jsonl"))
+        for path in sorted((ROOT / "deep-swe" / "data").glob("*.jsonl"))
         if "-hve-" not in path.stem
     ]
     plotted = sorted(

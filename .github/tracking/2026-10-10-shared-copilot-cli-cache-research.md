@@ -23,7 +23,7 @@ npm installation.
   (`src/wharf/Image/DockerAgentImagePreparer.cs:83`,
   `src/wharf/Image/DockerAgentImagePreparer.cs:174`).
 * The smoke fixture has no configured environment image and therefore exercises
-  the Dockerfile-backed path (`smoke-tasks/smoke-go/task.toml:33`).
+  the Dockerfile-backed path (`deep-swe/smoke-tasks/smoke-go/task.toml:33`).
 * Every agent container currently installs the effective Copilot version into
   `/workspace/.wharf-copilot` during workspace preparation
   (`src/wharf/Agent/AgentExecution.cs:812`).

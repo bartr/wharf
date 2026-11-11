@@ -18,6 +18,6 @@
    - Exit: fixture tests validate identity, metrics, retry timing, cost, and ordering.
 4. [x] Add `Reporting/DataManifestBuilder.cs`.
    - Read only `*.jsonl` exports and atomically build the canonical manifest.
-   - Exit: tests prove jobs/raw evidence is unnecessary and summaries are correct.
+   - Exit: tests prove deep-swe/jobs/raw evidence is unnecessary and summaries are correct.
 5. [x] Run only the changed-area tests and record results in the changes/review
    artifacts.

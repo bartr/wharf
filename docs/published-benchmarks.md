@@ -148,5 +148,5 @@ benchmark results.
 
 * [README analytics rules](../README.md#1-canonical-analytics-rules)
 * [Enterprise benchmark summary](../enterprise/data/summary.md)
-* [Enterprise benchmark in the retrospective](../RETRO.md#enterprise-benchmark-net-coverage-at-a-fraction-of-the-cost)
-* [HydraFusion CLI series](../RETRO.md#hydrafusion-cli-series)
+* [Enterprise benchmark in the retrospective](RETRO.md#enterprise-benchmark-net-coverage-at-a-fraction-of-the-cost)
+* [HydraFusion CLI series](RETRO.md#hydrafusion-cli-series)

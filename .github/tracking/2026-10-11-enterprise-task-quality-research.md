@@ -36,11 +36,11 @@ overstates implementation capability.
 
 The agent process completed with exit code 0 after 908,667 milliseconds, with
 no retained error type or error message
-([agent result](../../jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/result.json)).
+([agent result](../../deep-swe/jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/result.json)).
 The verifier also completed normally in 15,520 milliseconds without timing out.
 It applied the 41,830-byte patch, passed the regression test, and passed two of
 three feature tests
-([trial result](../../jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/verifier/trial-result.json)).
+([trial result](../../deep-swe/jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/verifier/trial-result.json)).
 
 Those facts rule out container startup, patch capture, patch application,
 timeout, test-runner, and baseline-regression failures.
@@ -50,18 +50,18 @@ timeout, test-runner, and baseline-regression failures.
 The instruction requires invalid retry options to be rejected explicitly, but
 does not state whether rejection must occur during construction or only when
 `Validate()` is called
-([instruction](../../enterprise-tasks/wharf-image-pull/instruction.md)).
+([instruction](../../enterprise/tasks/wharf-image-pull/instruction.md)).
 
 The model implemented both constructor-time validation and a public
 `Validate()` method. The constructor calls `Validate()` immediately
-([model patch](../../jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/patch.diff)).
+([model patch](../../deep-swe/jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/patch.diff)).
 The reference solution instead permits construction with invalid values and
 defers rejection until the caller invokes `Validate()`
-([reference solution](../../enterprise-tasks/wharf-image-pull/solution/solution.patch)).
+([reference solution](../../enterprise/tasks/wharf-image-pull/solution/solution.patch)).
 
 The hidden test constructs an invalid object outside its exception assertion,
 then expects the later reflective `Validate()` invocation to throw
-([hidden test](../../enterprise-tasks/wharf-image-pull/tests/test.patch)).
+([hidden test](../../enterprise/tasks/wharf-image-pull/tests/test.patch)).
 Constructor-time rejection therefore fails the test even though it satisfies
 the stated requirement more eagerly.
 
@@ -69,7 +69,7 @@ the stated requirement more eagerly.
 
 The model could not find a reachable historical implementation and explicitly
 reported that it was deriving the API
-([trajectory](../../jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/trajectory.jsonl)).
+([trajectory](../../deep-swe/jobs/copilot-gpt-5.6-luna-max-1.0.95/all-1/wharf-image-pull__854e3b29/agent/trajectory.jsonl)).
 It produced a 1,323-line patch versus the 588-line reference patch, which shows
 substantial overengineering. That increased compatibility risk. It still built
 the solution, passed 16 available tests, and created behavior probes for local
@@ -97,21 +97,21 @@ The test patches demonstrate the mirroring directly:
 
 * The agent evaluator reflects the exact agent types, schema version, validation
   method, and properties named in the instruction
-  ([test patch](../../enterprise-tasks/wharf-agent/tests/test.patch)).
+  ([test patch](../../enterprise/tasks/wharf-agent/tests/test.patch)).
 * The Copilot evaluator reflects the exact adapter types, three-value enum,
   validation method, exception, and invocation properties named in the
   instruction
-  ([test patch](../../enterprise-tasks/wharf-copilot/tests/test.patch)).
+  ([test patch](../../enterprise/tasks/wharf-copilot/tests/test.patch)).
 * The packaging evaluator searches for the exact paths and command fragments
   supplied by the prompt
-  ([test patch](../../enterprise-tasks/wharf-packaging/tests/test.patch)).
+  ([test patch](../../enterprise/tasks/wharf-packaging/tests/test.patch)).
 * The verifier evaluator checks the exact API and validation examples supplied
   by the prompt
-  ([test patch](../../enterprise-tasks/wharf-verifier/tests/test.patch)).
+  ([test patch](../../enterprise/tasks/wharf-verifier/tests/test.patch)).
 * The eight generic release-boundary evaluators repeat the same reflection-only
   pattern. For example, the scheduler evaluator checks the four disclosed
   scheduler names and preserved configuration types
-  ([test patch](../../enterprise-tasks/wharf-scheduler/tests/test.patch)).
+  ([test patch](../../enterprise/tasks/wharf-scheduler/tests/test.patch)).
 
 ## Recommended approach
 

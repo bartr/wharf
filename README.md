@@ -5,6 +5,35 @@ execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics.
 
+## Repository layout
+
+Run the examples from the repository root, not from `docs/`.
+
+| Location | Contents |
+|---|---|
+| `README.md` | Project overview, repository layout, and analytics reproduction guide |
+| `docs/` | Analytics methodology, results, release notes, and retrospective |
+| `deep-swe/tasks/` | Canonical 113-task DeepSWE suite and scheduling metadata |
+| `deep-swe/smoke-tasks/` | Small local smoke fixtures |
+| `deep-swe/jobs/` | Retained DeepSWE runs and release qualification evidence |
+| `deep-swe/data/` | Portable DeepSWE exports and manifest |
+| `enterprise/` | Separate C# tasks, jobs, exports, and comparison graphs |
+| `reference/` | Published baseline evidence and its helper scripts |
+| `scripts/` | Packaging, validation, monitoring, and plotting tools |
+
+Generic CLI defaults remain `tasks`, `smoke-tasks`, `jobs`, and `data` under
+the current directory. Select the repository's suite paths explicitly:
+
+```bash
+wharf prebuild --tasks deep-swe/tasks -p 12
+wharf run --tasks deep-swe/tasks --output-directory deep-swe/jobs -n 32 -p 12 -k 4
+wharf smoke --tasks deep-swe/smoke-tasks --output-directory deep-swe/jobs
+wharf analytics manifest --data-directory enterprise/data
+```
+
+See the [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
+[enterprise summary](enterprise/data/summary.md). The datasets remain separate.
+
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
 `wharf check` verifies the host platform, Docker capabilities, and capacity;
 newer Ubuntu releases do not require `--allow-unsupported-host`.
@@ -16,7 +45,8 @@ Warm the selected tasks with the same exact Copilot CLI version used by the run:
 
 ```bash
 wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks -n 32 -p 12 -k 4 --cli-version 1.0.107
+wharf run --tasks enterprise/tasks --output-directory enterprise/jobs \
+  -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
 
 This is a one-time preparation step for that machine's Docker cache, not a
@@ -71,7 +101,7 @@ releases as it prepares to ship. On 2026-10-28, Microsoft announced the
 [Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
 the GitHub-built multi-model harness behind HydraFusion that Microsoft is
 standardizing on and offering through Microsoft Foundry. See the
-[retrospective](RETRO.md#microsoft-copilot-harness-announcement) for the
+[retrospective](docs/RETRO.md#microsoft-copilot-harness-announcement) for the
 retained HydraFusion evidence and its implications.
 
 See [1.1.0 release notes](docs/RELEASE-NOTES-1.1.0.md) for migration details,
@@ -107,7 +137,7 @@ Wharf is a workshop example, not part of the offering.
 
 ## Data Analytics Repro Guide
 
-This file documents how to reproduce the benchmark comparisons from `data/*.jsonl` with the same metric definitions used in this repo.
+This file documents how to reproduce the benchmark comparisons from `deep-swe/data/*.jsonl` with the same metric definitions used in this repo.
 
 Recurring enterprise results intended for public charts follow the
 [published benchmark methodology](docs/published-benchmarks.md).
@@ -148,7 +178,7 @@ preparation and verification.
 
 Use these definitions consistently:
 
-- Row unit: one trial (`data/<arm>.jsonl` is one JSON object per trial).
+- Row unit: one trial (`deep-swe/data/<arm>.jsonl` is one JSON object per trial).
 - PASS@1: passing attempts / (`K` × 113). Missing scheduled attempts count as
   non-passes and never reduce the denominator.
 - Task solved (for accuracy): task counts as solved if **any** trial for that task has `reward > 0`.
@@ -163,24 +193,24 @@ Use these definitions consistently:
 
 This repo now treats these as separate phases:
 
-- Benchmark/export phase (needs `jobs/`): produce `data/<arm>.jsonl` from raw trial dirs.
-- Reporting phase (does NOT need `jobs/`): compute summaries from `data/*.jsonl` only.
+- Benchmark/export phase (needs `deep-swe/jobs/`): produce `deep-swe/data/<arm>.jsonl` from raw trial dirs.
+- Reporting phase (does NOT need `deep-swe/jobs/`): compute summaries from `deep-swe/data/*.jsonl` only.
 
-If you delete `jobs/` after exporting JSONL, reporting should still work.
+If you delete `deep-swe/jobs/` after exporting JSONL, reporting should still work.
 
 ## 3) Data export format and regeneration
 
 Current export format:
-- analytics files are plain `data/<arm>.jsonl` (not `.jsonl.gz`)
-- index file is `data/manifest.json`
+- analytics files are plain `deep-swe/data/<arm>.jsonl` (not `.jsonl.gz`)
+- index file is `deep-swe/data/manifest.json`
 - manifest size key is `bytes_jsonl`
 
 Export each retained Wharf run directly:
 
 ```bash
 wharf analytics export \
-  --run-directory jobs/<arm>/<job> \
-  --output data/<arm>.jsonl \
+  --run-directory deep-swe/jobs/<arm>/<job> \
+  --output deep-swe/data/<arm>.jsonl \
   --arm <arm> \
   --agent copilot-cli \
   --agent-version <version> \
@@ -195,7 +225,7 @@ infrastructure retries remain nested evidence and do not add rows.
 To rebuild the manifest after exporting:
 
 ```bash
-wharf analytics manifest --data-directory data
+wharf analytics manifest --data-directory deep-swe/data
 ```
 
 Each manifest entry includes the arm's model, effort, CLI and CLI version,
@@ -219,23 +249,26 @@ auditable. Merge only when the comparison contract defines them as one arm.
 The Muse export keeps per-trial `cost_usd` null. Its dashboard bill is the
 authoritative `$34.62` batch cost. The ranking leaves cost/task unavailable
 rather than allocating the batch bill into missing per-trial cost evidence. See
-[ANALYTICS.md](./ANALYTICS.md) for the batch accounting.
+[ANALYTICS.md](docs/ANALYTICS.md) for the batch accounting.
 
 Important:
 - `--run-directory`, `--output`, `--arm`, and `--model` are required.
 - `--agent`, `--effort`, and `--subagents` have explicit defaults.
-- `analytics export` never rewrites `data/manifest.json`; run `analytics manifest`
+- `analytics export` never rewrites `deep-swe/data/manifest.json`; run `analytics manifest`
   after all intended exports complete.
 
 ## 4) Reporting-only manifest rebuild (no jobs required)
 
-Use this command to rebuild `data/manifest.json` strictly from `data/*.jsonl`:
+Use this command to rebuild `deep-swe/data/manifest.json` strictly from `deep-swe/data/*.jsonl`:
 
 ```bash
-wharf analytics manifest --data-directory data
+wharf analytics manifest --data-directory deep-swe/data
 ```
 
-The command intentionally does not read `jobs/`.
+The command intentionally does not read `deep-swe/jobs/`. Strict identity
+validation currently rejects the historical mixed-version Claude Code arm;
+see the [analytics compatibility note](docs/ANALYTICS.md#historical-manifest-compatibility)
+before rebuilding the retained DeepSWE index.
 
 ## 5) Reproduce the comparison (copy/paste)
 
@@ -247,14 +280,14 @@ import json, collections, statistics as st
 from pathlib import Path
 
 arms=[
-  'cc-claude-opus-5-max',
-  'copilot-claude-opus-5-max',
+  'cc-claude-opus-5-max-2.1.220',
+  'copilot-claude-opus-5-max-1.0.77',
 ]
 langs=['go','python','typescript','javascript','rust']
 
 all_rows={}
 for arm in arms:
-    p=Path('data')/(arm+'.jsonl')
+    p=Path('deep-swe/data')/(arm+'.jsonl')
     all_rows[arm]=[json.loads(l) for l in p.read_text().splitlines() if l.strip()]
 
 print('BY_LANGUAGE')

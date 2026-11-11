@@ -18,7 +18,7 @@ public sealed class SmokeServiceTests
             ]);
             using WharfLogger logger = WharfLogger.Create(new());
             SmokeResult result = new SmokeService().Run(
-                Path.Combine(FindRepositoryRoot(), "smoke-tasks"),
+                Path.Combine(FindRepositoryRoot(), "deep-swe", "smoke-tasks"),
                 directory,
                 host,
                 logger);
@@ -49,7 +49,8 @@ public sealed class SmokeServiceTests
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !Directory.Exists(Path.Combine(directory.FullName, "smoke-tasks")))
+        while (directory is not null &&
+               !Directory.Exists(Path.Combine(directory.FullName, "deep-swe", "smoke-tasks")))
             directory = directory.Parent;
         return directory?.FullName ?? throw new DirectoryNotFoundException("repository root not found");
     }

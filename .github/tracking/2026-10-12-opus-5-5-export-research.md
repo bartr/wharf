@@ -11,7 +11,7 @@ root README ranking. The deleted incomplete Luna job is out of scope.
 1. The retained Opus run has 452 `result.json` files, which is the expected
    K=4 depth across 113 tasks. Its results use the legacy Harbor schema with
    `task_name`, `agent_info`, `agent_result`, `verifier_result`, and phase
-   timestamps (`jobs/copilot-claude-opus-5.5-max-1.0.91/all-1/.../result.json`).
+   timestamps (`deep-swe/jobs/copilot-claude-opus-5.5-max-1.0.91/all-1/.../result.json`).
 2. The legacy DeepSWE exporter is designed for this exact schema. It discovers
    `*__/result.json` trial directories, emits one row per trial, and retains
    reward, functional/regression counts, checksum, language, patch size,

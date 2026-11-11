@@ -251,7 +251,7 @@ workload.
 Wharf 1.0.0 closes the MVP qualification arc. The release accepts the
 retained real-run, container-backed smoke, HydraFusion, and unattended K=4
 benchmark evidence. The two HydraFusion benchmark exports are preserved in
-`data/`, while the complete Wharf and DeepSWE reference job directories remain
+`deep-swe/data/`, while the complete Wharf and DeepSWE reference job directories remain
 available on the execution host for audit and replay.
 
 The final `0.25.0` release-candidate work strengthened the enterprise task
@@ -308,7 +308,7 @@ resolved package version, and registry transport, HTTP, malformed JSON, and
 missing-version failures remain explicit rather than falling back to host
 state. Flag, environment, manifest, and default precedence is unchanged.
 
-The retained [review](.github/tracking/2026-10-15-cli-version-image-resolution-review.md)
+The retained [review](../.github/tracking/2026-10-15-cli-version-image-resolution-review.md)
 records 20/20 focused adapter/image tests, 229/229 full Release tests,
 formatting verification, and Docker-backed smoke that built the CLI 1.0.98
 payload image and passed agent and verifier execution.
@@ -367,12 +367,12 @@ exports use `default`.
 
 The reporting work rebuilt the matching manifests, updated ranked tables
 sorted by PASS@1, P2P errors, and cost, and added a reproducible
-[non-HVE PASS@1 versus cost graph](docs/pass-at-1-vs-cost.svg) with
-[portable source data](docs/pass-at-1-vs-cost.csv). Fifteen costed runs are
+[non-HVE PASS@1 versus cost graph](pass-at-1-vs-cost.svg) with
+[portable source data](pass-at-1-vs-cost.csv). Fifteen costed runs are
 plotted; Muse is identified without an X coordinate because per-trial cost
 evidence is unavailable. Missing costs are never imputed, including from
 batch-level bills. The [DeepSWE analytics notes](ANALYTICS.md) and
-[enterprise summary](enterprise/data/summary.md) retain the detailed metric
+[enterprise summary](../enterprise/data/summary.md) retain the detailed metric
 definitions and coverage.
 
 Later `1.0.1` branch work made HydraFusion with model-selected effort the
@@ -394,7 +394,7 @@ DLL and runtime files absent. The package now includes the full publish
 output, and both regression tests and qualification execute the extracted
 artifact and check its version. The failed artifact and failure record were
 retained before replacement. See the
-[1.1.0 qualification](docs/release-qualification.md#110-checkpoint-2026-10-28).
+[1.1.0 qualification](release-qualification.md#110-checkpoint-2026-10-28).
 
 ## Operating at scale after 1.0.0
 
@@ -444,7 +444,7 @@ failed-run evidence that would have explained the decision was no longer
 available.
 
 For future runs, record the run information and results in
-[`.github/tracking/`](.github/tracking/) before deleting a failed job
+[`.github/tracking/`](../.github/tracking) before deleting a failed job
 directory. The record should include:
 
 * Run identity, date, source commit, Wharf and Copilot CLI versions, model,

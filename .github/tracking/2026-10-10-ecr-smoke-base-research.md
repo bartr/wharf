@@ -10,10 +10,10 @@ ms.topic: reference
 
 * The smoke agent Dockerfile already declares
   `public.ecr.aws/x8v8d7g8/mars-base:latest`
-  (`smoke-tasks/smoke-go/environment/Dockerfile:1`).
+  (`deep-swe/smoke-tasks/smoke-go/environment/Dockerfile:1`).
 * The smoke verifier Dockerfile declares the same ECR image and already builds
   from that reference without substitution
-  (`smoke-tasks/smoke-go/tests/Dockerfile:1`,
+  (`deep-swe/smoke-tasks/smoke-go/tests/Dockerfile:1`,
   `src/wharf/Run/RunService.cs:962`).
 * Agent image preparation alone rewrites that ECR reference to
   `mars-base:latest` (`src/wharf/Image/DockerAgentImagePreparer.cs:139`,

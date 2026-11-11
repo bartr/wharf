@@ -12,9 +12,9 @@ Export and summarize completed K=4 enterprise benchmark runs under
 
 * The canonical exporter writes one row per logical trial and preserves failed
   trials, test counts, costs, timing, patch size, exception category, and task
-  checksum (`ANALYTICS.md`, lines 8-35).
+  checksum (`docs/ANALYTICS.md`, lines 8-35).
 * The portable manifest must be rebuilt from exported JSONL rather than from
-  retained jobs (`ANALYTICS.md`, lines 29-35).
+  retained jobs (`docs/ANALYTICS.md`, lines 29-35).
 * Six non-HydraFusion `all-1` runs each contain all 56 expected trial results:
   Gemini 3.8 Flash, GPT-5.6 Luna, GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol, and
   MAI Code 1.1 Flash.

@@ -24,24 +24,26 @@ if ! awk -v swap_file="$swap_file" \
   printf '%s none swap sw 0 0\n' "$swap_file" >> /etc/fstab
 fi
 
-update-alternatives --set iptables /usr/sbin/iptables-legacy
-
 apt-get update
 
-apt-get install -y ripgrep shellcheck fd-find tree bat ncdu shfmt jq tmux htop sysstat lsof gh
-apt-get install -y gpg wget
-apt-get install -y apt-utils dialog ca-certificates software-properties-common
-apt-get install -y libssl-dev libffi-dev build-essential cifs-utils gnupg pass
-apt-get install -y curl git nano zsh
+apt-get install -y git curl wget nano gpg apt-utils dialog ca-certificates
+apt-get install -y ripgrep shellcheck fd-find tree bat ncdu shfmt jq tmux htop sysstat lsof
+apt-get install -y libssl-dev libffi-dev build-essential gnupg pass software-properties-common
 apt-get install -y zip unzip httpie dnsutils dotnet-sdk-10.0
-
-#apt-get upgrade -y -o Dpkg::Options::="--force-confold"
 
 # add Docker repo
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list
+cat > /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+rm -f /etc/apt/sources.list.d/docker.list
 
 # add gh cli repo
 mkdir -p -m 755 /etc/apt/keyrings
@@ -51,7 +53,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubc
 
 apt-get update
 
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get install -y gh docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 systemctl stop docker.service docker.socket containerd.service || true
 

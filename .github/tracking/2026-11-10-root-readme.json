@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "scope": "Restore README.md to the repository root following the user's clarification; keep the other documentation and DeepSWE directory moves.",
+  "research": [
+    "docs/README.md:14,33-34 and its remaining local links assume the README lives in docs.",
+    "scripts/package-wharf.sh:25 and tests/wharf.Tests/PackagingScriptTests.cs:21 read docs/README.md.",
+    "docs/published-benchmarks.md:149 links to the README relative to docs.",
+    ".github/copilot-instructions.md:16 and six historical tracking documents cite docs/README.md."
+  ],
+  "plan": [
+    "Move the existing README without recreating or changing its benchmark content, and rebase its local links.",
+    "Update packaging, its regression assertion, incoming links, and contributor citations to the root README.",
+    "Check local links, shell syntax, whitespace, and the focused Debian extraction/version/README tests in named tmux."
+  ],
+  "validation": [
+    "README.md exists at the repository root and docs/README.md no longer exists.",
+    "Compared against the committed README: all content is unchanged except rebased local links and the repository layout table.",
+    "All 42 local Markdown links in the root README and active docs resolve.",
+    "PackagingScriptTests: 2 passed, 0 failed or skipped; Release build succeeded in named tmux session wharf-root-readme-20261110.",
+    "The extracted Debian README matches root README.md and its executable reports the requested version.",
+    "Edited C# whitespace verification, package script bash -n, and git diff --check passed."
+  ]
+}

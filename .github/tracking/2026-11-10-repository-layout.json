@@ -1,0 +1,75 @@
+{
+  "status": "complete_with_preexisting_validation_limitations",
+  "scope": "Update documentation, scripts, packaging, and repository-backed tests after the user relocated the root documentation and DeepSWE directories.",
+  "moves": {
+    "ANALYTICS.md": "docs/ANALYTICS.md",
+    "README.md": "docs/README.md",
+    "RESULTS.md": "docs/RESULTS.md",
+    "RETRO.md": "docs/RETRO.md",
+    "add-skills.md": "docs/add-skills.md",
+    "data/": "deep-swe/data/",
+    "jobs/": "deep-swe/jobs/",
+    "smoke-tasks/": "deep-swe/smoke-tasks/",
+    "tasks/": "deep-swe/tasks/"
+  },
+  "research": [
+    "scripts/package-wharf.sh:25 copied the former root README into the Debian package.",
+    "scripts/plot-pass-at-1-cost.py:65 loaded DeepSWE exports from the former root data directory.",
+    "reference/fetch_baselines.py:60 loaded task languages from the former root tasks directory.",
+    "tests/wharf.Tests/SmokeServiceTests.cs:21,52 and repository-backed app/image tests depended on the former fixture locations.",
+    "1292 relocated benchmark payloads and analytics evidence files matched their original HEAD Git blob hashes before updates."
+  ],
+  "plan": [
+    "Rebase local Markdown links and repository-root benchmark examples to the new locations.",
+    "Update packaging, plotting, baseline task-language lookup, test fixture discovery, and contributor guidance.",
+    "Preserve generic CLI defaults, immutable task payloads, and retained run/analytics values.",
+    "Validate moved-payload hashes, documentation links, offline script behavior, chart regeneration, formatting, and focused tests including actual package extraction."
+  ],
+  "validation": [
+    {
+      "check": "Focused Release build and tests, plus whitespace verification of the four edited test files",
+      "result": "passed",
+      "details": "28 tests passed, zero failed or skipped, in named tmux session wharf-layout-20261110-1930. Includes loading all 113 relocated DeepSWE tasks and building/extracting a Debian package, executing its requested version, and comparing its README to docs/README.md."
+    },
+    {
+      "check": "Relocated immutable task and analytics payloads",
+      "result": "passed",
+      "details": "1292 files match their original HEAD Git blob hashes. No task contents, checksums, retained JSONL rows, or data manifests were changed."
+    },
+    {
+      "check": "Markdown links and migration idempotence",
+      "result": "passed_with_historical_evidence_limitations",
+      "details": "All active local documentation links resolve and the migration is idempotent. Five links in two historical tracking documents now point into deep-swe/jobs but their old raw evidence is not present in this checkout; no evidence was fabricated."
+    },
+    {
+      "check": "Offline Python and shell helpers",
+      "result": "passed",
+      "details": "All maintained Python scripts compile; shell scripts pass bash -n. The baseline fetcher loads all 113 task languages from deep-swe/tasks without network access, and the reference scoring helper executes successfully."
+    },
+    {
+      "check": "Graph data and reproducibility",
+      "result": "passed_with_rendering_limitation",
+      "details": "The DeepSWE plotter summarizes all 21 non-HVE arms from deep-swe/data. Matplotlib is unavailable, so its rendering was not executed. All three dependency-free enterprise SVGs regenerate byte-for-byte unchanged."
+    },
+    {
+      "check": "Read-only CLI planning",
+      "result": "passed",
+      "details": "Dry-run plans succeed for deep-swe/tasks, deep-swe/smoke-tasks, and enterprise/tasks without creating their relative output directories. An initial absolute output path was correctly rejected by the existing relative-path contract."
+    },
+    {
+      "check": "Enterprise portable manifest",
+      "result": "passed",
+      "details": "A temporary rebuild from enterprise/data exactly matches all 37 retained entries covering 2072 logical trials; the repository manifest was not overwritten."
+    },
+    {
+      "check": "DeepSWE portable manifest",
+      "result": "blocked_by_preexisting_mixed_cli_versions",
+      "details": "The strict existing builder rejects cc-claude-opus-5-max-2.1.220.jsonl because its retained agent_version values are 2.1.220 (72 rows), 2.1.221 (152), and 2.1.222 (228). This is unrelated to relocation. Existing manifest/evidence preserved; compatibility limitation documented rather than weakening identity validation or rewriting historical values."
+    },
+    {
+      "check": "Patch whitespace",
+      "result": "passed",
+      "details": "git diff --check passes."
+    }
+  ]
+}
