@@ -3,11 +3,15 @@
 Wharf 1.5.0 builds on the first MVP release of the customer-controlled benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot agent and verifier execution, durable evidence, recovery, unattended
-benchmark operation, HydraFusion support, and reproducible analytics.
+benchmark operation, HydraFusion support, and reproducible analytics. It runs
+[Harbor-format tasks](docs/Harbor.md), which bundle task instructions,
+execution environments, and automated verification of the resulting code.
 
 ## Repository layout
 
-Run the examples from the repository root, not from `docs/`.
+Start each standalone example from the repository root, not from `docs/`.
+The examples then change into the selected suite directory. Enterprise is the
+default example because its smaller suite is faster and cheaper to run.
 
 | Location | Contents |
 |---|---|
@@ -21,17 +25,27 @@ Run the examples from the repository root, not from `docs/`.
 | `reference/` | Published baseline evidence and its helper scripts |
 | `scripts/` | Packaging, validation, monitoring, and plotting tools |
 
-Generic CLI defaults remain `tasks`, `smoke-tasks`, `jobs`, and `data` under
-the current directory. Select the repository's suite paths explicitly:
+Wharf defaults to `tasks`, `smoke-tasks`, `jobs`, and `data` under the current
+directory, so there is no need to specify task or output directories:
 
 ```bash
-wharf prebuild --tasks deep-swe/tasks -p 12
-wharf run --tasks deep-swe/tasks --output-directory deep-swe/jobs -n 32 -p 12 -k 4
-wharf smoke --tasks deep-swe/smoke-tasks --output-directory deep-swe/jobs
-wharf analytics manifest --data-directory enterprise/data
+cd enterprise
+wharf smoke
+wharf prebuild -p 16
+wharf run -n 32 -p 12 -k 4
+wharf analytics manifest
 ```
 
-See the [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
+For the full DeepSWE suite, start with `cd deep-swe` instead. Its small smoke
+fixtures can also exercise the end-to-end path before a benchmark:
+
+```bash
+cd deep-swe
+wharf smoke
+```
+
+See the [Harbor test process](docs/Harbor.md),
+[DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
 [enterprise summary](enterprise/data/summary.md). The datasets remain separate.
 
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
@@ -44,9 +58,9 @@ newer Ubuntu releases do not require `--allow-unsupported-host`.
 Warm the selected tasks with the same exact Copilot CLI version used by the run:
 
 ```bash
-wharf prebuild --tasks enterprise/tasks -p 12 --cli-version 1.0.107
-wharf run --tasks enterprise/tasks --output-directory enterprise/jobs \
-  -n 32 -p 12 -k 4 --cli-version 1.0.107
+cd enterprise
+wharf prebuild -p 12 --cli-version 1.0.107
+wharf run -n 32 -p 12 -k 4 --cli-version 1.0.107
 ```
 
 This is a one-time preparation step for that machine's Docker cache, not a
@@ -58,9 +72,6 @@ N, K, P, model, or reasoning effort alone does not require another prebuild.
 
 Prebuild defaults to P=4 and has no N option. It does not execute agents or
 graders. See [cache warm-up](docs/wharf.md#derived-image-workflow) for details.
-
-In 1.3.0, `wharf prebuild` replaces `wharf build`; the old command is no
-longer accepted. Update existing warm-up scripts to use `prebuild`.
 
 ## Run configuration
 
@@ -200,17 +211,19 @@ If you delete `deep-swe/jobs/` after exporting JSONL, reporting should still wor
 
 ## 3) Data export format and regeneration
 
-Current export format:
-- analytics files are plain `deep-swe/data/<arm>.jsonl` (not `.jsonl.gz`)
-- index file is `deep-swe/data/manifest.json`
+Current export format, relative to the selected suite directory:
+- analytics files are plain `data/<arm>.jsonl` (not `.jsonl.gz`)
+- index file is `data/manifest.json`
 - manifest size key is `bytes_jsonl`
 
-Export each retained Wharf run directly:
+Export each retained Wharf run directly. This example uses Enterprise; use
+`cd deep-swe` instead for a DeepSWE run:
 
 ```bash
+cd enterprise
 wharf analytics export \
-  --run-directory deep-swe/jobs/<arm>/<job> \
-  --output deep-swe/data/<arm>.jsonl \
+  --run-directory jobs/<arm>/<job> \
+  --output data/<arm>.jsonl \
   --arm <arm> \
   --agent copilot-cli \
   --agent-version <version> \
@@ -225,7 +238,8 @@ infrastructure retries remain nested evidence and do not add rows.
 To rebuild the manifest after exporting:
 
 ```bash
-wharf analytics manifest --data-directory deep-swe/data
+cd enterprise
+wharf analytics manifest
 ```
 
 Each manifest entry includes the arm's model, effort, CLI and CLI version,
@@ -254,27 +268,31 @@ rather than allocating the batch bill into missing per-trial cost evidence. See
 Important:
 - `--run-directory`, `--output`, `--arm`, and `--model` are required.
 - `--agent`, `--effort`, and `--subagents` have explicit defaults.
-- `analytics export` never rewrites `deep-swe/data/manifest.json`; run `analytics manifest`
+- `analytics export` never rewrites the suite's `data/manifest.json`; run `analytics manifest`
   after all intended exports complete.
 
 ## 4) Reporting-only manifest rebuild (no jobs required)
 
-Use this command to rebuild `deep-swe/data/manifest.json` strictly from `deep-swe/data/*.jsonl`:
+Use this command to rebuild `enterprise/data/manifest.json` strictly from
+`enterprise/data/*.jsonl`, without reading retained jobs:
 
 ```bash
-wharf analytics manifest --data-directory deep-swe/data
+cd enterprise
+wharf analytics manifest
 ```
 
-The command intentionally does not read `deep-swe/jobs/`. Strict identity
-validation currently rejects the historical mixed-version Claude Code arm;
+For DeepSWE, start with `cd deep-swe` and run the same command. Strict identity
+validation currently rejects its historical mixed-version Claude Code arm;
 see the [analytics compatibility note](docs/ANALYTICS.md#historical-manifest-compatibility)
 before rebuilding the retained DeepSWE index.
 
 ## 5) Reproduce the comparison (copy/paste)
 
-Run from repo root:
+This historical comparison uses the DeepSWE exports, not Enterprise. Start
+from the repository root:
 
 ```bash
+cd deep-swe
 python3 - <<'PY'
 import json, collections, statistics as st
 from pathlib import Path
@@ -287,7 +305,7 @@ langs=['go','python','typescript','javascript','rust']
 
 all_rows={}
 for arm in arms:
-    p=Path('deep-swe/data')/(arm+'.jsonl')
+    p=Path('data')/(arm+'.jsonl')
     all_rows[arm]=[json.loads(l) for l in p.read_text().splitlines() if l.strip()]
 
 print('BY_LANGUAGE')
