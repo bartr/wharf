@@ -21,11 +21,11 @@ root README ranking. The deleted incomplete Luna job is out of scope.
    events when `cost.json` is absent, converting nano-AIU to credits and USD
    (`../deep-swe/scripts/export_analytics.py:56-112`).
 4. The Wharf-native exporter expects Wharf run evidence and is documented for
-   retained Wharf runs (`docs/README.md:81-113`). Using it on a legacy Harbor job
+   retained Wharf runs (`README.md:81-113`). Using it on a legacy Harbor job
    would mix evidence contracts unnecessarily.
 5. The README ranking defines PASS@1 as passing attempts divided by the fixed
    planned attempt universe and defines Cost/test over costed trials only
-   (`docs/README.md:28-35`, `docs/README.md:53-57`).
+   (`README.md:28-35`, `README.md:53-57`).
 6. The reporting manifest is rebuilt strictly from JSONL files and records
    trials, tasks, scored rows, rows with cost, total known cost, and file size
    (`../deep-swe/scripts/build_data_manifest.py:18-64`).

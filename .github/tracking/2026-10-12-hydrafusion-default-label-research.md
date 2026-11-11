@@ -16,7 +16,7 @@
   (`tests/wharf.Tests/RunConfigurationTests.cs:59-68`,
   `tests/wharf.Tests/RunServiceTests.cs:7-29`).
 - The README labels both retained results as “HydraFusion Max”
-  (`docs/README.md:40`, `docs/README.md:43`).
+  (`README.md:40`, `README.md:43`).
 
 ## Recommendation
 

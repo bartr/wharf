@@ -11,7 +11,8 @@ Run the examples from the repository root, not from `docs/`.
 
 | Location | Contents |
 |---|---|
-| `docs/` | README, analytics methodology, results, release notes, and retrospective |
+| `README.md` | Project overview, repository layout, and analytics reproduction guide |
+| `docs/` | Analytics methodology, results, release notes, and retrospective |
 | `deep-swe/tasks/` | Canonical 113-task DeepSWE suite and scheduling metadata |
 | `deep-swe/smoke-tasks/` | Small local smoke fixtures |
 | `deep-swe/jobs/` | Retained DeepSWE runs and release qualification evidence |
@@ -30,8 +31,8 @@ wharf smoke --tasks deep-swe/smoke-tasks --output-directory deep-swe/jobs
 wharf analytics manifest --data-directory enterprise/data
 ```
 
-See the [DeepSWE results](RESULTS.md), [analytics contract](ANALYTICS.md), and
-[enterprise summary](../enterprise/data/summary.md). The datasets remain separate.
+See the [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
+[enterprise summary](enterprise/data/summary.md). The datasets remain separate.
 
 Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
 `wharf check` verifies the host platform, Docker capabilities, and capacity;
@@ -56,7 +57,7 @@ images, or after removing the required cached images/build layers. Changing
 N, K, P, model, or reasoning effort alone does not require another prebuild.
 
 Prebuild defaults to P=4 and has no N option. It does not execute agents or
-graders. See [cache warm-up](wharf.md#derived-image-workflow) for details.
+graders. See [cache warm-up](docs/wharf.md#derived-image-workflow) for details.
 
 In 1.3.0, `wharf prebuild` replaces `wharf build`; the old command is no
 longer accepted. Update existing warm-up scripts to use `prebuild`.
@@ -78,7 +79,7 @@ Agent and verifier containers default to unrestricted CPUs. Opt into Docker CPU
 affinity with `--container-cpus 8`, `WHARF_CONTAINER_CPUS=8`,
 or manifest `"containerCpus": 8`; flag, environment, manifest, then default take
 precedence. If Docker has no more usable CPUs than the configured limit, Wharf
-omits the affinity restriction. See [container CPU policy](wharf.md#container-cpu-policy)
+omits the affinity restriction. See [container CPU policy](docs/wharf.md#container-cpu-policy)
 for allocation, resume, and runtime-discovery details.
 Smoke tests, runs with N=1, and runs with only one logical trial are unrestricted.
 A single task with K>1 and N>1 still uses the configured CPU limit.
@@ -88,7 +89,7 @@ container preparation and lifecycle without grading, or `wharf run --oracle`
 to execute each task's existing `solution/solve.sh` and grade its output in a
 fresh verifier workspace. Combining `--no-op --oracle` runs both stages in each
 logical trial, without doubling K. These modes never invoke Copilot and retain
-separate baseline jobs and timing summaries. See [baseline runs](wharf.md#agent-free-baseline-runs).
+separate baseline jobs and timing summaries. See [baseline runs](docs/wharf.md#agent-free-baseline-runs).
 
 When no run credential is configured, Wharf reads the Copilot token from
 `~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
@@ -100,13 +101,13 @@ releases as it prepares to ship. On 2026-10-28, Microsoft announced the
 [Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
 the GitHub-built multi-model harness behind HydraFusion that Microsoft is
 standardizing on and offering through Microsoft Foundry. See the
-[retrospective](RETRO.md#microsoft-copilot-harness-announcement) for the
+[retrospective](docs/RETRO.md#microsoft-copilot-harness-announcement) for the
 retained HydraFusion evidence and its implications.
 
-See [1.1.0 release notes](RELEASE-NOTES-1.1.0.md) for migration details,
+See [1.1.0 release notes](docs/RELEASE-NOTES-1.1.0.md) for migration details,
 including the removed double-dash concurrency flags and changed defaults.
 Qualification records are in
-[`docs/release-qualification.md`](release-qualification.md). Historical
+[`docs/release-qualification.md`](docs/release-qualification.md). Historical
 benchmark summaries and their retained job directories remain separate
 evidence; they are not reruns of every benchmark with the 1.1.0 binary.
 
@@ -139,7 +140,7 @@ Wharf is a workshop example, not part of the offering.
 This file documents how to reproduce the benchmark comparisons from `deep-swe/data/*.jsonl` with the same metric definitions used in this repo.
 
 Recurring enterprise results intended for public charts follow the
-[published benchmark methodology](published-benchmarks.md).
+[published benchmark methodology](docs/published-benchmarks.md).
 
 ## Current benchmark results
 
@@ -248,7 +249,7 @@ auditable. Merge only when the comparison contract defines them as one arm.
 The Muse export keeps per-trial `cost_usd` null. Its dashboard bill is the
 authoritative `$34.62` batch cost. The ranking leaves cost/task unavailable
 rather than allocating the batch bill into missing per-trial cost evidence. See
-[ANALYTICS.md](ANALYTICS.md) for the batch accounting.
+[ANALYTICS.md](docs/ANALYTICS.md) for the batch accounting.
 
 Important:
 - `--run-directory`, `--output`, `--arm`, and `--model` are required.
@@ -266,7 +267,7 @@ wharf analytics manifest --data-directory deep-swe/data
 
 The command intentionally does not read `deep-swe/jobs/`. Strict identity
 validation currently rejects the historical mixed-version Claude Code arm;
-see the [analytics compatibility note](ANALYTICS.md#historical-manifest-compatibility)
+see the [analytics compatibility note](docs/ANALYTICS.md#historical-manifest-compatibility)
 before rebuilding the retained DeepSWE index.
 
 ## 5) Reproduce the comparison (copy/paste)

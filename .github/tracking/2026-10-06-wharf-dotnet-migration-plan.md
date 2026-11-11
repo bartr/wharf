@@ -34,7 +34,7 @@ Targets:
 - `docs/wharf.md`
 - `docs/wharf-prd.md`
 - `docs/wharf-sessions.md`
-- `docs/README.md`
+- `README.md`
 - `.github/copilot-instructions.md`
 - `docs/session-log.md`
 - `docs/RETRO.md`

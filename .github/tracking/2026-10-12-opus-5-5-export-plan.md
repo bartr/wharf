@@ -23,12 +23,12 @@
      rows with retained cost.
 
 4. [x] Update the root README ranking.
-   - Target: `docs/README.md`, current benchmark results table.
+   - Target: `README.md`, current benchmark results table.
    - Exit criteria: add the measured Opus 5.5 1.0.91 result and renumber the
      table in descending PASS@1 order without changing metric definitions.
 
 5. [x] Review the generated data and documentation against the research and
    plan.
-   - Targets: both JSONL exports, both manifests, `docs/README.md`.
+   - Targets: both JSONL exports, both manifests, `README.md`.
    - Exit criteria: independent validation reports no contract mismatch and
      the deleted Luna job remains absent.

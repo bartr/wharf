@@ -13,7 +13,7 @@ read-only monitoring, and provider-specific checks.
 ## Scoring completed runs
 
 Use the canonical DeepSWE analytics contract in `docs/ANALYTICS.md` and
-`docs/README.md`. Export completed Wharf runs to
+`README.md`. Export completed Wharf runs to
 `deep-swe/data/<arm>.jsonl`, with one JSON object per logical trial. Do not
 emit infrastructure or verifier retries as additional trials.
 
