@@ -259,10 +259,10 @@ empty arms have a null score. Keep score separate from PASS@1 and the
 Enterprise Score audit metric. Do not mix enterprise runs
 into DeepSWE analytics or rebuild the DeepSWE manifest for enterprise changes.
 
-Keep enterprise SVG charts in `enterprise/doc/`, not `enterprise/data/`.
+Keep enterprise SVG charts in `enterprise/docs/`, not `enterprise/data/`.
 Regenerate them from the JSONL exports with
 `python3 scripts/plot-enterprise-pass-at-1.py` from the repository root, and
-link them from `enterprise/README.md` using `doc/`-relative paths.
+link them from `enterprise/README.md` using `docs/`-relative paths.
 
 Release packages must include the complete .NET publish output, not just the
 apphost executable. Qualification must extract the Debian package and execute

@@ -13,7 +13,7 @@ from statistics import quantiles
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "enterprise" / "data"
-OUTPUT = ROOT / "enterprise" / "doc" / "pass-at-1-by-cli-revision.svg"
+OUTPUT = ROOT / "enterprise" / "docs" / "pass-at-1-by-cli-revision.svg"
 STYLES = {
     "hydrafusion": ("HydraFusion", "#d55e00", "circle", 6),
     "gpt-6.1-sol": ("GPT-6.1 Sol", "#0072b2", "triangle", 6),

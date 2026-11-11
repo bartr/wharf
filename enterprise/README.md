@@ -5,7 +5,7 @@ description: K=4 results for completed enterprise task model runs
 
 ## Passing trials by CLI revision
 
-![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](doc/pass-at-1-by-cli-revision.svg)
+![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](docs/pass-at-1-by-cli-revision.svg)
 
 The graph includes HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and
 Claude Opus 5.5. Each point is one completed 56-trial arm. The X axis starts at
@@ -18,7 +18,7 @@ mean these are descriptive comparisons, not isolated CLI-version effects.
 
 ## Cost per test by CLI revision
 
-![Mean USD cost per costed trial by Copilot CLI revision](doc/cost-per-trial-by-cli-revision.svg)
+![Mean USD cost per costed trial by Copilot CLI revision](docs/cost-per-trial-by-cli-revision.svg)
 
 Cost/test is total retained USD cost divided by costed logical trials, not cost
 per passing trial. All plotted arms have 56/56 cost coverage; missing costs are
@@ -27,7 +27,7 @@ passing-trials graph.
 
 ## p90 agent duration by CLI revision
 
-![p90 agent-command duration in minutes and seconds by Copilot CLI revision](doc/agent-duration-by-cli-revision.svg)
+![p90 agent-command duration in minutes and seconds by Copilot CLI revision](docs/agent-duration-by-cli-revision.svg)
 
 Duration is the 90th percentile of the 56 actual agent-command durations per
 arm, calculated using linear interpolation, with Y-axis labels in `m:ss`.
@@ -36,7 +36,7 @@ preparation, evidence copying, and verifier time. All plotted arms have 56/56
 duration coverage. Models, revision range, and comparison caveats match the
 other graphs.
 
-Regenerate all three graphs in `enterprise/doc/` from the JSONL exports in
+Regenerate all three graphs in `enterprise/docs/` from the JSONL exports in
 `enterprise/data/` with `python3 scripts/plot-enterprise-pass-at-1.py` from the
 repository root. Keep this README aligned with `data/manifest.json`.
 
