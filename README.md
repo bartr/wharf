@@ -7,316 +7,93 @@ benchmark operation, HydraFusion support, and reproducible analytics. It runs
 [Harbor-format tasks](docs/Harbor.md), which bundle task instructions,
 execution environments, and automated verification of the resulting code.
 
-## Repository layout
+## Running Wharf
 
-Start each standalone example from the repository root, not from `docs/`.
-The examples then change into the selected suite directory. WharfSWE is the
-default example because its smaller suite is faster and cheaper to run.
+- Tested hosts are Ubuntu 24.04 LTS
+  - Tested on bare-metal, cloud VM, and WSL2
+  - Other Linux versions / distros will work
+    - The setup scripts will likely need to be updated
 
-| Location | Contents |
-|---|---|
-| `README.md` | Project overview, repository layout, and analytics reproduction guide |
-| `docs/` | Analytics methodology, results, release notes, and retrospective |
-| `deep-swe/tasks/` | Canonical 113-task DeepSWE suite and scheduling metadata |
-| `deep-swe/smoke-tasks/` | Small local smoke fixtures |
-| `deep-swe/jobs/` | Retained DeepSWE runs and release qualification evidence |
-| `deep-swe/data/` | Portable DeepSWE exports and manifest |
-| `wharf-swe/` | Separate C# tasks, jobs, exports, and comparison graphs |
-| `reference/` | Published baseline evidence and its helper scripts |
-| `scripts/` | Packaging, validation, monitoring, and plotting tools |
+- Clone this repo
+  ```bash
+  git clone https://github.com/bartr/wharf
 
-Wharf defaults to `tasks`, `smoke-tasks`, `jobs`, and `data` under the current
-directory, so there is no need to specify task or output directories:
+  # start in the repo root
+  cd wharf
+  ```
+
+- Save GitHub Copilot PAT to `.wharf`
+  ```bash
+  mkdir -p $HOME/.wharf
+  printf %s "github_pat_for_copilot_..." > $HOME/.wharf/copilot
+
+  # set access
+  chmod 0700 $HOME/.wharf
+  chmod 0600 $HOME/.wharf/*
+  ```
+
+- Install pre-requisites
+  ```bash
+  # base.sh assumes a stock Ubunutu install - adjust as needed
+  sudo ./setup/base.sh
+
+  # ensure $HOME/bin is in your path
+  ./setup/wharf.sh
+  ```
+- Run `wharf check` to validate setup
+    ```bash
+    wharf check
+    ```
+- Run smoke test
+   ```bash
+   cd wharf-swe
+   wharf smoke
+   ```
+- Prebuild the docker image cache
+   ```bash
+   # prebuild help
+   wharf prebuild -h
+
+   # adjust -p 12 based on your disk IOPs
+   wharf prebuild -p 12
+   ```
+
+- Run a WharfSWE test
+  ```bash
+  # run help
+  wharf run -h
+
+  # adjust -n 16 based on the number of vCPUs - 2 * vCPUs is a good starting point
+  # adjust -p 12 based on IOPs
+  # adjust -k 4 based on the number of 14 test runs
+  #   DeepSWE standards are 4-5 iterations of all tests
+  wharf run -n 16 -p 12 -k 4 --model gpt-6-luna
+  ```
+
+## Running DeepSWE with Wharf
 
 ```bash
-cd wharf-swe
+# make sure you're in the repoRoot/deep-swe directory
+cd ../deep-swe
+```
+```bash
+# run smoke test
 wharf smoke
-wharf prebuild -p 16
-wharf run -n 32 -p 12 -k 4
-wharf analytics manifest
 ```
-
-For the full DeepSWE suite, start with `cd deep-swe` instead. Its small smoke
-fixtures can also exercise the end-to-end path before a benchmark:
 
 ```bash
-cd deep-swe
-wharf smoke
+# fill the docker cache (113 * 2 images to cache - it takes about 8 min)
+wharf prebuild -p 12
 ```
-
-See the [Harbor test process](docs/Harbor.md),
-[DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
-[WharfSWE summary](wharf-swe/README.md). The datasets remain separate.
-
-Supported hosts are Ubuntu 24.04 or newer on amd64, including WSL2.
-`wharf check` verifies the host platform, Docker capabilities, and capacity.
-
-## Required one-time machine warm-up
-
-**Always run `wharf prebuild` before the first `wharf run` on each machine.**
-Warm the selected tasks with the same exact Copilot CLI version used by the run:
 
 ```bash
-cd wharf-swe
-wharf prebuild -p 12 --cli-version 1.0.109
-wharf run -n 32 -p 12 -k 4 --cli-version 1.0.109
+# run the test - this takes 4-10 hours depending on -n, -k and the model
+# luna is the least expensive model
+wharf run -n 16 -k 4 -p 12 --model gpt-6-luna
 ```
 
-This is a one-time preparation step for that machine's Docker cache, not a
-step to repeat before every run. Subsequent runs reuse the task-environment,
-Copilot payload, composed agent images, and verifier Docker build cache.
-Warm again when adding or changing tasks, changing the CLI version or base
-images, or after removing the required cached images/build layers. Changing
-N, K, P, model, or reasoning effort alone does not require another prebuild.
+## References
 
-Prebuild defaults to P=4 and has no N option. It does not execute agents or
-graders. See [cache warm-up](docs/wharf.md#derived-image-workflow) for details.
-
-## Run configuration
-
-New runs default to `hydrafusion` with no explicit reasoning effort, leaving
-effort selection to the model. Configure a different model with `--model` (`-m`),
-`WHARF_MODEL`, or manifest `model`. Effort defaults to `default`, which omits
-the Copilot CLI effort argument.
-Use `--effort` (`-e`) to configure effort. Both aliases are also available for
-`wharf analytics export`.
-
-Use single-dash concurrency options: `wharf run -k 4 -n 32 -p 12`.
-For resume, use `-n` and `-p` to override retained concurrency; K remains fixed.
-The double-dash forms `--k`, `--n`, and `--p` are not accepted.
-
-For agent-free infrastructure comparisons, use `wharf run --no-op` to measure
-container preparation and lifecycle without grading, or `wharf run --oracle`
-to execute each task's existing `solution/solve.sh` and grade its output in a
-fresh verifier workspace. Combining `--no-op --oracle` runs both stages in each
-logical trial, without doubling K. These modes never invoke Copilot and retain
-separate baseline jobs and timing summaries. See [baseline runs](docs/wharf.md#agent-free-baseline-runs).
-
-When no run credential is configured, Wharf reads the Copilot token from
-`~/.wharf/copilot`. Move an existing `~/.secrets/copilot_a` token file to that
-location; Wharf no longer reads the old path. Configured credentials still
-override the local file. A missing or empty token file fails explicitly.
-
-Wharf has been used to evaluate HydraFusion through successive Copilot CLI
-releases as it prepares to ship. On 2026-10-28, Microsoft announced the
-[Microsoft Copilot harness](https://blogs.microsoft.com/blog/2026/10/28/introducing-the-microsoft-copilot-harness-unlocking-the-potential-of-truly-multi-model-agentic-work/),
-the GitHub-built multi-model harness behind HydraFusion that Microsoft is
-standardizing on and offering through Microsoft Foundry. See the
-[retrospective](docs/RETRO.md#microsoft-copilot-harness-announcement) for the
-retained HydraFusion evidence and its implications.
-
-See [1.1.0 release notes](docs/RELEASE-NOTES-1.1.0.md) for migration details,
-including the removed double-dash concurrency flags and changed defaults.
-Qualification records are in
-[`docs/release-qualification.md`](docs/release-qualification.md). Historical
-benchmark summaries and their retained job directories remain separate
-evidence; they are not reruns of every benchmark with the 1.1.0 binary.
-
-## Data Analytics Repro Guide
-
-This file documents how to reproduce the benchmark comparisons from `deep-swe/data/*.jsonl` with the same metric definitions used in this repo.
-
-Recurring WharfSWE results intended for public charts follow the
-[published benchmark methodology](docs/published-benchmarks.md).
-
-## 1) Canonical analytics rules
-
-Use these definitions consistently:
-
-- Row unit: one trial (`deep-swe/data/<arm>.jsonl` is one JSON object per trial).
-- PASS@1: passing attempts / (`K` × 113). Missing scheduled attempts count as
-  non-passes and never reduce the denominator.
-- Task solved (for accuracy): task counts as solved if **any** trial for that task has `reward > 0`.
-- Language accuracy: solved tasks / tasks seen in that language.
-- Cost per task: total `cost_usd` across that language / number of unique tasks in that language.
-- Runtime headline metric (required): **agent-only**, k-normalized per task.
-  - Per task: `task_agent_seconds = sum(agent_seconds for task) / k_task`.
-  - Summary for language/arm: average `task_agent_seconds` across tasks (unweighted by attempts).
-- Validator-inclusive wall time (`trial_seconds`) is optional supporting context, not the primary performance metric.
-
-## 2) Clean separation: benchmarking vs reporting
-
-This repo now treats these as separate phases:
-
-- Benchmark/export phase (needs `deep-swe/jobs/`): produce `deep-swe/data/<arm>.jsonl` from raw trial dirs.
-- Reporting phase (does NOT need `deep-swe/jobs/`): compute summaries from `deep-swe/data/*.jsonl` only.
-
-If you delete `deep-swe/jobs/` after exporting JSONL, reporting should still work.
-
-## 3) Data export format and regeneration
-
-Current export format, relative to the selected suite directory:
-- analytics files are plain `data/<arm>.jsonl` (not `.jsonl.gz`)
-- index file is `data/manifest.json`
-- manifest size key is `bytes_jsonl`
-
-Export each retained Wharf run directly. This example uses WharfSWE; use
-`cd deep-swe` instead for a DeepSWE run:
-
-```bash
-cd wharf-swe
-wharf analytics export \
-  --run-directory jobs/<arm>/<job> \
-  --output data/<arm>.jsonl \
-  --arm <arm> \
-  --agent copilot-cli \
-  --agent-version <version> \
-  --model <model> \
-  --effort <effort> \
-  --job <job>
-```
-
-The exporter emits one row per logical trial. Agent and verifier
-infrastructure retries remain nested evidence and do not add rows.
-
-To rebuild the manifest after exporting:
-
-```bash
-cd wharf-swe
-wharf analytics manifest
-```
-
-Each manifest entry includes the arm's model, effort, CLI and CLI version,
-passing trial count, P2P error count, cost per costed trial, and average
-agent-command time. It also retains trial/task totals, scored count, total
-cost, cost coverage, and JSONL byte size. `passes` counts trials with
-`reward > 0`; `p2p_errors` counts trials where the retained regression tests
-have fewer passes than tests; cost per trial excludes rows without cost; and
-average agent time averages rows with agent duration evidence. A JSONL file
-must contain a single consistent model, effort, CLI, and CLI version.
-
-The manifest also includes `score = passes / trials - (p2p_errors * 0.0025)`.
-Each P2P error subtracts 0.25 percentage points from the trial pass rate.
-The score is stored as a fraction, displayed as a percentage, and is not
-clamped at zero. Empty arms have a null score. This regression-adjusted score
-is separate from PASS@1.
-
-Export separate jobs to separate files when they must remain independently
-auditable. Merge only when the comparison contract defines them as one arm.
-
-The Muse export keeps per-trial `cost_usd` null. Its dashboard bill is the
-authoritative `$34.62` batch cost. The ranking leaves cost/task unavailable
-rather than allocating the batch bill into missing per-trial cost evidence. See
-[ANALYTICS.md](docs/ANALYTICS.md) for the batch accounting.
-
-Important:
-- `--run-directory`, `--output`, `--arm`, and `--model` are required.
-- `--agent`, `--effort`, and `--subagents` have explicit defaults.
-- `analytics export` never rewrites the suite's `data/manifest.json`; run `analytics manifest`
-  after all intended exports complete.
-
-## 4) Reporting-only manifest rebuild (no jobs required)
-
-Use this command to rebuild `wharf-swe/data/manifest.json` strictly from
-`wharf-swe/data/*.jsonl`, without reading retained jobs:
-
-```bash
-cd wharf-swe
-wharf analytics manifest
-```
-
-For DeepSWE, start with `cd deep-swe` and run the same command. Strict identity
-validation currently rejects its historical mixed-version Claude Code arm;
-see the [analytics compatibility note](docs/ANALYTICS.md#historical-manifest-compatibility)
-before rebuilding the retained DeepSWE index.
-
-## 5) Reproduce the comparison (copy/paste)
-
-This historical comparison uses the DeepSWE exports, not WharfSWE. Start
-from the repository root:
-
-```bash
-cd deep-swe
-python3 - <<'PY'
-import json, collections, statistics as st
-from pathlib import Path
-
-arms=[
-  'cc-claude-opus-5-max-2.1.220',
-  'copilot-claude-opus-5-max-1.0.77',
-]
-langs=['go','python','typescript','javascript','rust']
-
-all_rows={}
-for arm in arms:
-    p=Path('data')/(arm+'.jsonl')
-    all_rows[arm]=[json.loads(l) for l in p.read_text().splitlines() if l.strip()]
-
-print('BY_LANGUAGE')
-print('arm\tlanguage\ttasks\tavg_k\taccuracy_pct\tcost_per_task_usd\tagent_h_per_task_norm\tclock_h_per_task_norm')
-for arm in arms:
-    rows=all_rows[arm]
-    by_lang=collections.defaultdict(list)
-    for r in rows:
-        by_lang[r['language']].append(r)
-
-    for lang in langs:
-        rs=by_lang.get(lang,[])
-        by_task=collections.defaultdict(list)
-        for r in rs:
-            by_task[r['task_id']].append(r)
-        if not by_task:
-            print(f"{arm}\t{lang}\t0\t0\tNA\tNA\tNA\tNA")
-            continue
-
-        solved=0
-        total_cost=0.0
-        k_vals=[]
-        task_agent=[]
-        task_clock=[]
-
-        for tid, trs in by_task.items():
-            k=len(trs)
-            k_vals.append(k)
-            rewards=[t.get('reward') for t in trs if t.get('reward') is not None]
-            if rewards and max(rewards) > 0:
-                solved += 1
-            total_cost += sum((t.get('cost_usd') or 0.0) for t in trs)
-            task_agent.append(sum((t.get('agent_seconds') or 0.0) for t in trs)/k)
-            task_clock.append(sum((t.get('trial_seconds') or 0.0) for t in trs)/k)
-
-        n_tasks=len(by_task)
-        print(
-            f"{arm}\t{lang}\t{n_tasks}\t{st.mean(k_vals):.2f}\t"
-            f"{100*solved/n_tasks:.1f}\t{total_cost/n_tasks:.2f}\t"
-            f"{st.mean(task_agent)/3600:.2f}\t{st.mean(task_clock)/3600:.2f}"
-        )
-
-print('\nOVERALL')
-print('arm\ttasks\tavg_k\taccuracy_pct\tcost_per_task_usd\tagent_h_per_task_norm\tclock_h_per_task_norm')
-for arm in arms:
-    rows=all_rows[arm]
-    by_task=collections.defaultdict(list)
-    for r in rows:
-        by_task[r['task_id']].append(r)
-
-    solved=0
-    total_cost=0.0
-    k_vals=[]
-    task_agent=[]
-    task_clock=[]
-
-    for tid, trs in by_task.items():
-        k=len(trs)
-        k_vals.append(k)
-        rewards=[t.get('reward') for t in trs if t.get('reward') is not None]
-        if rewards and max(rewards) > 0:
-            solved += 1
-        total_cost += sum((t.get('cost_usd') or 0.0) for t in trs)
-        task_agent.append(sum((t.get('agent_seconds') or 0.0) for t in trs)/k)
-        task_clock.append(sum((t.get('trial_seconds') or 0.0) for t in trs)/k)
-
-    n_tasks=len(by_task)
-    print(
-        f"{arm}\t{n_tasks}\t{st.mean(k_vals):.2f}\t{100*solved/n_tasks:.1f}\t"
-        f"{total_cost/n_tasks:.2f}\t{st.mean(task_agent)/3600:.2f}\t{st.mean(task_clock)/3600:.2f}"
-    )
-PY
-```
-
-## 6) Repro gotchas
-
-- Do not compare wall/task without k-normalization; it mostly measures depth (`k`) rather than per-attempt efficiency.
-- `subagents` in these exports is boolean (`True`/`False`), not per-trial call counts.
-- JS and Rust have only 5 tasks each, so language-level percentages are higher variance.
-- Keep task universe at 113 benchmark tasks. `hello-go` and `hello-py` are harness smoke tests, not benchmark tasks.
+- [Harbor test process](docs/Harbor.md),
+- [DeepSWE results](docs/RESULTS.md), [analytics contract](docs/ANALYTICS.md), and
+- [WharfSWE summary](wharf-swe/README.md). The datasets remain separate.

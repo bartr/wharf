@@ -1,11 +1,14 @@
 #!/bin/zsh
 set -eu
 
-cd "$(dirname $0)"
-export dir=$(pwd)
+if (( EUID != 0 )); then
+  echo "Error: run this script as root or with sudo: sudo $0" >&2
+  exit 1
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
+# create the swap file if needed
 swap_file=${SWAP_FILE:-/swap.img}
 swap_size_gib=${SWAP_SIZE_GIB:-16}
 
@@ -24,8 +27,8 @@ if ! awk -v swap_file="$swap_file" \
   printf '%s none swap sw 0 0\n' "$swap_file" >> /etc/fstab
 fi
 
+# install packages
 apt-get update
-
 apt-get install -y git curl wget nano gpg apt-utils dialog ca-certificates
 apt-get install -y ripgrep shellcheck fd-find tree bat ncdu shfmt jq tmux htop sysstat lsof
 apt-get install -y libssl-dev libffi-dev build-essential gnupg pass software-properties-common
@@ -53,10 +56,12 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubc
 
 apt-get update
 
+# install Docker and GitHub CLI
 apt-get install -y gh docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 systemctl stop docker.service docker.socket containerd.service || true
 
+# handle VMs with mounted data drives
 if mountpoint -q /mnt/data; then
   docker_data_root=/mnt/data/docker
   containerd_data_root=/mnt/data/containerd
@@ -82,7 +87,7 @@ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 
-# Docker 29 uses containerd's image store for image layers and snapshots.
+# Docker uses containerd's image store for image layers and snapshots.
 cat > /etc/containerd/config.toml <<EOF
 version = 4
 disabled_plugins = ["io.containerd.grpc.v1.cri"]
@@ -94,6 +99,7 @@ install -d -m 0755 \
   /etc/systemd/system/docker.service.d \
   /etc/systemd/system/containerd.service.d
 
+# add systemd overrides for data disk if needed
 if "$use_data_disk"; then
   cat > /etc/systemd/system/docker.service.d/data-root.conf <<'EOF'
 [Unit]
@@ -110,6 +116,7 @@ else
     /etc/systemd/system/containerd.service.d/data-root.conf
 fi
 
+# reload systemd to apply any changes made to service overrides
 systemctl daemon-reload
 
 # configure inotify
