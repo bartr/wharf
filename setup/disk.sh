@@ -1,6 +1,8 @@
 #!/bin/zsh
 set -euo pipefail
 
+# this script is only used for cloud VMs that have a persistent volume for data storage
+
 mount_point=${DATA_MOUNT_POINT:-/mnt/data}
 filesystem_label=${DATA_DISK_LABEL:-data}
 minimum_size=$((1024 * 1024 * 1024))
