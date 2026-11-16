@@ -25,49 +25,55 @@
 <text x="80" y="105.00" text-anchor="end" font-size="14">56</text>
 <path d="M95.00 100V480" stroke="#eeeeee"/>
 <text x="95.00" y="504" text-anchor="middle" font-size="13">95</text>
-<path d="M162.14 100V480" stroke="#eeeeee"/>
-<text x="162.14" y="504" text-anchor="middle" font-size="13">96</text>
-<path d="M229.29 100V480" stroke="#eeeeee"/>
-<text x="229.29" y="504" text-anchor="middle" font-size="13">97</text>
-<path d="M296.43 100V480" stroke="#eeeeee"/>
-<text x="296.43" y="504" text-anchor="middle" font-size="13">98</text>
-<path d="M430.71 100V480" stroke="#eeeeee"/>
-<text x="430.71" y="504" text-anchor="middle" font-size="13">100</text>
-<path d="M497.86 100V480" stroke="#eeeeee"/>
-<text x="497.86" y="504" text-anchor="middle" font-size="13">101</text>
-<path d="M565.00 100V480" stroke="#eeeeee"/>
-<text x="565.00" y="504" text-anchor="middle" font-size="13">102</text>
-<path d="M632.14 100V480" stroke="#eeeeee"/>
-<text x="632.14" y="504" text-anchor="middle" font-size="13">103</text>
-<path d="M699.29 100V480" stroke="#eeeeee"/>
-<text x="699.29" y="504" text-anchor="middle" font-size="13">104</text>
-<path d="M766.43 100V480" stroke="#eeeeee"/>
-<text x="766.43" y="504" text-anchor="middle" font-size="13">105</text>
-<path d="M833.57 100V480" stroke="#eeeeee"/>
-<text x="833.57" y="504" text-anchor="middle" font-size="13">106</text>
-<path d="M900.71 100V480" stroke="#eeeeee"/>
-<text x="900.71" y="504" text-anchor="middle" font-size="13">107</text>
-<path d="M967.86 100V480" stroke="#eeeeee"/>
-<text x="967.86" y="504" text-anchor="middle" font-size="13">108</text>
+<path d="M150.29 100V480" stroke="#eeeeee"/>
+<text x="150.29" y="504" text-anchor="middle" font-size="13">96</text>
+<path d="M205.59 100V480" stroke="#eeeeee"/>
+<text x="205.59" y="504" text-anchor="middle" font-size="13">97</text>
+<path d="M260.88 100V480" stroke="#eeeeee"/>
+<text x="260.88" y="504" text-anchor="middle" font-size="13">98</text>
+<path d="M371.47 100V480" stroke="#eeeeee"/>
+<text x="371.47" y="504" text-anchor="middle" font-size="13">100</text>
+<path d="M426.76 100V480" stroke="#eeeeee"/>
+<text x="426.76" y="504" text-anchor="middle" font-size="13">101</text>
+<path d="M482.06 100V480" stroke="#eeeeee"/>
+<text x="482.06" y="504" text-anchor="middle" font-size="13">102</text>
+<path d="M537.35 100V480" stroke="#eeeeee"/>
+<text x="537.35" y="504" text-anchor="middle" font-size="13">103</text>
+<path d="M592.65 100V480" stroke="#eeeeee"/>
+<text x="592.65" y="504" text-anchor="middle" font-size="13">104</text>
+<path d="M647.94 100V480" stroke="#eeeeee"/>
+<text x="647.94" y="504" text-anchor="middle" font-size="13">105</text>
+<path d="M703.24 100V480" stroke="#eeeeee"/>
+<text x="703.24" y="504" text-anchor="middle" font-size="13">106</text>
+<path d="M758.53 100V480" stroke="#eeeeee"/>
+<text x="758.53" y="504" text-anchor="middle" font-size="13">107</text>
+<path d="M813.82 100V480" stroke="#eeeeee"/>
+<text x="813.82" y="504" text-anchor="middle" font-size="13">108</text>
+<path d="M869.12 100V480" stroke="#eeeeee"/>
+<text x="869.12" y="504" text-anchor="middle" font-size="13">109</text>
+<path d="M924.41 100V480" stroke="#eeeeee"/>
+<text x="924.41" y="504" text-anchor="middle" font-size="13">110</text>
+<path d="M979.71 100V480" stroke="#eeeeee"/>
+<text x="979.71" y="504" text-anchor="middle" font-size="13">111</text>
 <path d="M1035.00 100V480" stroke="#eeeeee"/>
-<text x="1035.00" y="504" text-anchor="middle" font-size="13">109</text>
+<text x="1035.00" y="504" text-anchor="middle" font-size="13">112</text>
 <path d="M95 95V480H1040" fill="none" stroke="#777777"/>
 <text x="565" y="535" text-anchor="middle" font-size="16">Copilot CLI revision (1.0.x)</text>
 <text transform="translate(30 290) rotate(-90)" text-anchor="middle" font-size="16">Passing trials (out of 56)</text>
-<polyline data-model="hydrafusion" points="95.00,337.50 162.14,195.00 229.29,290.00 296.43,195.00 430.71,242.50 497.86,290.00 565.00,337.50 632.14,337.50 699.29,337.50 766.43,290.00 833.57,337.50 900.71,195.00 967.86,147.50 1035.00,147.50" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6.1-sol" points="95.00,195.00 565.00,147.50 766.43,147.50 967.86,100.00 1035.00,147.50" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-astra" points="95.00,195.00 565.00,100.00 766.43,195.00 967.86,100.00" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-luna" points="95.00,195.00 565.00,385.00 766.43,480.00 967.86,195.00" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="claude-opus-5.5" points="95.00,432.50 565.00,480.00 766.43,290.00 967.86,480.00" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(565.00 480.00)">
+<polyline data-model="hydrafusion" points="95.00,337.50 150.29,195.00 205.59,290.00 260.88,195.00 371.47,242.50 426.76,290.00 482.06,337.50 537.35,337.50 592.65,337.50 647.94,290.00 703.24,337.50 758.53,195.00 813.82,147.50 869.12,147.50 924.41,242.50 979.71,100.00 1035.00,100.00" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6.1-sol" points="95.00,195.00 482.06,147.50 647.94,147.50 813.82,100.00 869.12,147.50 924.41,100.00 979.71,100.00 1035.00,100.00" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-astra" points="95.00,195.00 482.06,100.00 647.94,195.00 813.82,100.00" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-luna" points="95.00,195.00 482.06,385.00 647.94,480.00 813.82,195.00 869.12,385.00 924.41,337.50 979.71,337.50 1035.00,337.50" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="claude-opus-5.5" points="95.00,432.50 482.06,480.00 647.94,290.00 813.82,480.00" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(482.06 480.00)">
 <title>Claude Opus 5.5 | CLI 1.0.102 | Passing trials (out of 56): 48 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(766.43 290.00)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(647.94 290.00)">
 <title>Claude Opus 5.5 | CLI 1.0.105 | Passing trials (out of 56): 52 | 52/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.108" data-revision="108" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(967.86 480.00)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.108" data-revision="108" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(813.82 480.00)">
 <title>Claude Opus 5.5 | CLI 1.0.108 | Passing trials (out of 56): 48 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
@@ -75,15 +81,15 @@
 <title>Claude Opus 5.5 | CLI 1.0.95 | Passing trials (out of 56): 49 | 49/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.102" data-revision="102" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(565.00 100.00)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.102" data-revision="102" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(482.06 100.00)">
 <title>GPT-6 Astra | CLI 1.0.102 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.105" data-revision="105" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(766.43 195.00)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.105" data-revision="105" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(647.94 195.00)">
 <title>GPT-6 Astra | CLI 1.0.105 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(967.86 100.00)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(813.82 100.00)">
 <title>GPT-6 Astra | CLI 1.0.108 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
@@ -91,95 +97,135 @@
 <title>GPT-6 Astra | CLI 1.0.95 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.102" data-revision="102" data-passes="50" data-trials="56" data-metric="passes" data-value="50" data-costed-trials="56" transform="translate(565.00 385.00)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.102" data-revision="102" data-passes="50" data-trials="56" data-metric="passes" data-value="50" data-costed-trials="56" transform="translate(482.06 385.00)">
 <title>GPT-6 Luna | CLI 1.0.102 | Passing trials (out of 56): 50 | 50/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.105" data-revision="105" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(766.43 480.00)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.105" data-revision="105" data-passes="48" data-trials="56" data-metric="passes" data-value="48" data-costed-trials="56" transform="translate(647.94 480.00)">
 <title>GPT-6 Luna | CLI 1.0.105 | Passing trials (out of 56): 48 | 48/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.108" data-revision="108" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(967.86 195.00)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.108" data-revision="108" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(813.82 195.00)">
 <title>GPT-6 Luna | CLI 1.0.108 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.109" data-revision="109" data-passes="50" data-trials="56" data-metric="passes" data-value="50" data-costed-trials="56" transform="translate(869.12 385.00)">
+<title>GPT-6 Luna | CLI 1.0.109 | Passing trials (out of 56): 50 | 50/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.110" data-revision="110" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(924.41 337.50)">
+<title>GPT-6 Luna | CLI 1.0.110 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.111" data-revision="111" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(979.71 337.50)">
+<title>GPT-6 Luna | CLI 1.0.111 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.112" data-revision="112" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(1035.00 337.50)">
+<title>GPT-6 Luna | CLI 1.0.112 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
 <g data-arm="copilot-gpt-6-luna-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(95.00 195.00)">
 <title>GPT-6 Luna | CLI 1.0.95 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.102" data-revision="102" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(565.00 147.50)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.102" data-revision="102" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(482.06 147.50)">
 <title>GPT-6.1 Sol | CLI 1.0.102 | Passing trials (out of 56): 55 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.105" data-revision="105" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(766.43 147.50)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.105" data-revision="105" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(647.94 147.50)">
 <title>GPT-6.1 Sol | CLI 1.0.105 | Passing trials (out of 56): 55 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(967.86 100.00)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(813.82 100.00)">
 <title>GPT-6.1 Sol | CLI 1.0.108 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(1035.00 147.50)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(869.12 147.50)">
 <title>GPT-6.1 Sol | CLI 1.0.109 | Passing trials (out of 56): 55 | 55/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.110" data-revision="110" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(924.41 100.00)">
+<title>GPT-6.1 Sol | CLI 1.0.110 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(979.71 100.00)">
+<title>GPT-6.1 Sol | CLI 1.0.111 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(1035.00 100.00)">
+<title>GPT-6.1 Sol | CLI 1.0.112 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
 <g data-arm="copilot-gpt-6.1-sol-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(95.00 195.00)">
 <title>GPT-6.1 Sol | CLI 1.0.95 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.100" data-revision="100" data-passes="53" data-trials="56" data-metric="passes" data-value="53" data-costed-trials="56" transform="translate(430.71 242.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.100" data-revision="100" data-passes="53" data-trials="56" data-metric="passes" data-value="53" data-costed-trials="56" transform="translate(371.47 242.50)">
 <title>HydraFusion | CLI 1.0.100 | Passing trials (out of 56): 53 | 53/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.101" data-revision="101" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(497.86 290.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.101" data-revision="101" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(426.76 290.00)">
 <title>HydraFusion | CLI 1.0.101 | Passing trials (out of 56): 52 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.102" data-revision="102" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(565.00 337.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.102" data-revision="102" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(482.06 337.50)">
 <title>HydraFusion | CLI 1.0.102 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.103" data-revision="103" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(632.14 337.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.103" data-revision="103" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(537.35 337.50)">
 <title>HydraFusion | CLI 1.0.103 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.104" data-revision="104" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(699.29 337.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.104" data-revision="104" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(592.65 337.50)">
 <title>HydraFusion | CLI 1.0.104 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(766.43 290.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(647.94 290.00)">
 <title>HydraFusion | CLI 1.0.105 | Passing trials (out of 56): 52 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.106" data-revision="106" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(833.57 337.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.106" data-revision="106" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(703.24 337.50)">
 <title>HydraFusion | CLI 1.0.106 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.107" data-revision="107" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(900.71 195.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.107" data-revision="107" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(758.53 195.00)">
 <title>HydraFusion | CLI 1.0.107 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.108" data-revision="108" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(967.86 147.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.108" data-revision="108" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(813.82 147.50)">
 <title>HydraFusion | CLI 1.0.108 | Passing trials (out of 56): 55 | 55/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(1035.00 147.50)">
+<g data-arm="copilot-hydrafusion-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="passes" data-value="55" data-costed-trials="56" transform="translate(869.12 147.50)">
 <title>HydraFusion | CLI 1.0.109 | Passing trials (out of 56): 55 | 55/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.110" data-revision="110" data-passes="53" data-trials="56" data-metric="passes" data-value="53" data-costed-trials="56" transform="translate(924.41 242.50)">
+<title>HydraFusion | CLI 1.0.110 | Passing trials (out of 56): 53 | 53/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(979.71 100.00)">
+<title>HydraFusion | CLI 1.0.111 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="passes" data-value="56" data-costed-trials="56" transform="translate(1035.00 100.00)">
+<title>HydraFusion | CLI 1.0.112 | Passing trials (out of 56): 56 | 56/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
 <g data-arm="copilot-hydrafusion-default-1.0.95" data-revision="95" data-passes="51" data-trials="56" data-metric="passes" data-value="51" data-costed-trials="56" transform="translate(95.00 337.50)">
 <title>HydraFusion | CLI 1.0.95 | Passing trials (out of 56): 51 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.96" data-revision="96" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(162.14 195.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.96" data-revision="96" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(150.29 195.00)">
 <title>HydraFusion | CLI 1.0.96 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.97" data-revision="97" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(229.29 290.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.97" data-revision="97" data-passes="52" data-trials="56" data-metric="passes" data-value="52" data-costed-trials="56" transform="translate(205.59 290.00)">
 <title>HydraFusion | CLI 1.0.97 | Passing trials (out of 56): 52 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.98" data-revision="98" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(296.43 195.00)">
+<g data-arm="copilot-hydrafusion-default-1.0.98" data-revision="98" data-passes="54" data-trials="56" data-metric="passes" data-value="54" data-costed-trials="56" transform="translate(260.88 195.00)">
 <title>HydraFusion | CLI 1.0.98 | Passing trials (out of 56): 54 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
