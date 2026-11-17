@@ -59,7 +59,33 @@ Regenerate all three graphs in `wharf-swe/docs/` from the JSONL exports in
 `wharf-swe/data/` with `python3 scripts/plot-wharf-swe-pass-at-1.py` from the
 repository root. Keep this README aligned with `data/manifest.json`.
 
-## Latest CLI 1.0.112 comparison
+## Latest CLI 1.0.113 comparison
+
+Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.113/all-1),
+[GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.113/all-1),
+[GPT-6 Astra](jobs/copilot-gpt-6-astra-default-1.0.113/all-1),
+[GPT-6 Luna](jobs/copilot-gpt-6-luna-default-1.0.113/all-1), and
+[Claude Opus 5.5](jobs/copilot-claude-opus-5.5-default-1.0.113/all-1).
+All five completed Copilot runs use the same 14 task IDs/checksums,
+K=4, N=56, P=12, CLI 1.0.113, and default effort. These are descriptive
+observations, not replicated model comparisons or controlled CLI-version tests.
+
+| Model | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
+|---|---:|---:|---:|---:|---:|---:|
+| GPT-6.1 Sol | 56 / 56 | 100.00% | 0 | 100.00% | $0.2082 | 330.5 s |
+| GPT-6 Astra | 56 / 56 | 100.00% | 0 | 100.00% | $1.1352 | 296.5 s |
+| HydraFusion | 55 / 56 | 98.21% | 0 | 98.21% | $0.2531 | 388.5 s |
+| GPT-6 Luna | 53 / 56 | 94.64% | 1 | 94.39% | $0.0157 | 274.6 s |
+| Claude Opus 5.5 | 51 / 56 | 91.07% | 2 | 90.57% | $0.4935 | 206.6 s |
+
+All five arms have 56/56 cost and agent-duration coverage, all 14 tasks solved
+on at least one attempt, and no whole-trial retries, verifier retries, or
+exception categories. All 280 logical trials remain included. Sol and Astra
+pass every trial without measured regressions; Luna has the lowest cost per
+costed trial. Claude Opus 5.5 here runs through Copilot, not Claude Code.
+The separate Claude Code run awaiting usage-limit recovery is not exported.
+
+## Historical CLI 1.0.112 comparison
 
 Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.112/all-1),
 [GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.112/all-1), and
@@ -113,13 +139,13 @@ cleanup. It is not a pure agent-time measure or an average trial duration.
 
 ## Data coverage
 
-* Exported arms: 47
-* Exported logical trials: 2632
+* Exported arms: 52
+* Exported logical trials: 2912
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 2632 / 2632 trials
-* Agent and trial duration measurements: 2632 / 2632 trials
-* Cost evidence: 2632 / 2632 trials
+* Functional and regression measurements: 2912 / 2912 trials
+* Agent and trial duration measurements: 2912 / 2912 trials
+* Cost evidence: 2912 / 2912 trials
 * Trials with an exception category: 0
 
 Only completed `all-1` runs are included.
@@ -127,7 +153,7 @@ Infrastructure and verifier retries are not additional logical trials.
 
 ## Results
 
-Verified 2026-11-16 from forty-seven completed runs. Each arm contains 14
+Verified 2026-11-17 from fifty-two completed runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
@@ -139,12 +165,15 @@ All runs use default effort and the Copilot CLI.
 | GPT-6.1 Sol | default | copilot-cli | 1.0.110 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1934 | 199.3 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2011 | 243.4 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.111 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2020 | 196.6 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.113 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2082 | 330.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.111 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2247 | 303.1 s |
 | **HydraFusion** | default | copilot-cli | 1.0.112 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2566 | 299.4 s |
+| GPT-6 Astra | default | copilot-cli | 1.0.113 | 56 / 56 | 100.00% | 0 | 100.00% | $1.1352 | 296.5 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2170 | 246.4 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.102 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2351 | 254.9 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.105 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2298 | 224.8 s |
 | **HydraFusion** | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2409 | 349.3 s |
+| **HydraFusion** | default | copilot-cli | 1.0.113 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2531 | 388.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.108 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2802 | 347.9 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2045 | 242.2 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.102 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2307 | 333.9 s |
@@ -157,6 +186,7 @@ All runs use default effort and the Copilot CLI.
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
 | **HydraFusion** | default | copilot-cli | 1.0.110 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2324 | 296.0 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.113 | 53 / 56 | 94.64% | 1 | 94.39% | $0.0157 | 274.6 s |
 | **HydraFusion** | default | copilot-cli | 1.0.100 | 53 / 56 | 94.64% | 1 | 94.39% | $0.2932 | 272.0 s |
 | **HydraFusion** | default | copilot-cli | 1.0.97 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3416 | 316.4 s |
 | **HydraFusion** | default | copilot-cli | 1.0.101 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3527 | 218.9 s |
@@ -168,6 +198,7 @@ All runs use default effort and the Copilot CLI.
 | GPT-6 Luna | default | copilot-cli | 1.0.111 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0137 | 200.0 s |
 | **HydraFusion** | default | copilot-cli | 1.0.102 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3341 | 266.9 s |
 | **HydraFusion** | default | copilot-cli | 1.0.103 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3930 | 229.4 s |
+| Claude Opus 5.5 | default | copilot-cli | 1.0.113 | 51 / 56 | 91.07% | 2 | 90.57% | $0.4935 | 206.6 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.112 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0135 | 170.9 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.110 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0141 | 183.0 s |
 | **HydraFusion** | default | copilot-cli | 1.0.104 | 51 / 56 | 91.07% | 3 | 90.32% | $0.4028 | 196.7 s |
