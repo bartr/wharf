@@ -4,6 +4,22 @@ WharfSWE is a 14-task C# software-engineering benchmark built from Wharf's own
 development history. The Wharf CLI runs this suite separately from DeepSWE.
 At K=4, each arm contains 56 logical trials.
 
+## Task admission order
+
+Wharf automatically loads [duration estimates](tasks/agent-duration-estimates.json)
+and admits tasks longest to shortest within each K wave. Estimates use all
+168 logical trials from the checksum-matched HydraFusion, GPT-6.1 Sol, and
+GPT-6 Luna CLI 1.0.112 arms described below: 12 observations per task, including
+reward-zero trials. Agent seconds come from the retained JSONL exports;
+verifier seconds are the sum of command durations in each retained
+`verifier/trial-result.json`. Each scheduling estimate is the sum of the
+per-task median agent and median verifier seconds, rounded to milliseconds.
+Preparation and evidence-copy time are excluded.
+
+The shared schema's C# language stride is 1, so it introduces no language
+interleaving or artificial duration offsets. `--shortest-first` reverses the
+order within each wave. These estimates do not change task payloads/checksums.
+
 ## Passing trials by CLI revision
 
 ![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](docs/pass-at-1-by-cli-revision.svg)

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.2",
+  "source": "wharf-swe/jobs/copilot-{hydrafusion,gpt-6.1-sol,gpt-6-luna}-default-1.0.112/all-1; 168 logical trials; agent_seconds exports and verifier command durations",
+  "aggregation": "median",
+  "unit": "seconds",
+  "scheduling": {
+    "strategy": "language-stride",
+    "language": "csharp",
+    "firstPosition": 1,
+    "spacing": 1
+  },
+  "tasks": {
+    "wharf-agent": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 232.066,
+      "medianVerifierDurationSeconds": 13.493,
+      "schedulingDurationSeconds": 245.559
+    },
+    "wharf-audit": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 233.25,
+      "medianVerifierDurationSeconds": 13.748,
+      "schedulingDurationSeconds": 246.998
+    },
+    "wharf-copilot": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 141.372,
+      "medianVerifierDurationSeconds": 40.142,
+      "schedulingDurationSeconds": 181.514
+    },
+    "wharf-derived-image": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 195.813,
+      "medianVerifierDurationSeconds": 14.158,
+      "schedulingDurationSeconds": 209.971
+    },
+    "wharf-execution": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 133.773,
+      "medianVerifierDurationSeconds": 34.697,
+      "schedulingDurationSeconds": 168.47
+    },
+    "wharf-host-profile": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 134.776,
+      "medianVerifierDurationSeconds": 24.087,
+      "schedulingDurationSeconds": 158.863
+    },
+    "wharf-image-pull": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 263.05,
+      "medianVerifierDurationSeconds": 12.855,
+      "schedulingDurationSeconds": 275.905
+    },
+    "wharf-operations": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 149.849,
+      "medianVerifierDurationSeconds": 35.752,
+      "schedulingDurationSeconds": 185.601
+    },
+    "wharf-packaging": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 218.288,
+      "medianVerifierDurationSeconds": 16.757,
+      "schedulingDurationSeconds": 235.045
+    },
+    "wharf-recovery": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 143.432,
+      "medianVerifierDurationSeconds": 44.175,
+      "schedulingDurationSeconds": 187.607
+    },
+    "wharf-reporting": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 120.598,
+      "medianVerifierDurationSeconds": 33.83,
+      "schedulingDurationSeconds": 154.428
+    },
+    "wharf-scheduler": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 192.602,
+      "medianVerifierDurationSeconds": 16.25,
+      "schedulingDurationSeconds": 208.852
+    },
+    "wharf-smoke": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 150.89,
+      "medianVerifierDurationSeconds": 14.258,
+      "schedulingDurationSeconds": 165.148
+    },
+    "wharf-verifier": {
+      "language": "csharp",
+      "medianAgentDurationSeconds": 312.444,
+      "medianVerifierDurationSeconds": 13.752,
+      "schedulingDurationSeconds": 326.196
+    }
+  }
+}

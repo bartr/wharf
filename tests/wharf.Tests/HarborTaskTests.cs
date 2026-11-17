@@ -24,6 +24,37 @@ public sealed class HarborTaskTests
     }
 
     [Fact]
+    public void WharfSWEEstimatesScheduleLongestToShortestWithinEachKWave()
+    {
+        string taskRoot = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "../../../../../wharf-swe/tasks"));
+        IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(taskRoot);
+        Assert.All(tasks, task =>
+        {
+            Assert.True(task.EstimatedAgentDurationSeconds > 0);
+            Assert.True(task.EstimatedVerifierDurationSeconds > 0);
+            Assert.Equal(
+                task.EstimatedAgentDurationSeconds!.Value + task.EstimatedVerifierDurationSeconds!.Value,
+                task.SchedulingDurationSeconds!.Value,
+                precision: 3);
+        });
+        string[] expected = tasks
+            .OrderByDescending(task => task.EstimatedAgentDurationSeconds + task.EstimatedVerifierDurationSeconds)
+            .ThenBy(task => task.TaskId, StringComparer.Ordinal)
+            .Select(task => task.TaskId)
+            .ToArray();
+
+        IReadOnlyList<TaskAttempt> attempts = TaskSelector.OrderAttemptsForAdmission(
+            TaskSelector.ExpandAttempts(tasks, 2));
+
+        Assert.Equal(28, attempts.Count);
+        Assert.All(attempts.Take(14), attempt => Assert.Equal(1, attempt.AttemptNumber));
+        Assert.All(attempts.Skip(14), attempt => Assert.Equal(2, attempt.AttemptNumber));
+        Assert.Equal(expected, attempts.Take(14).Select(attempt => attempt.Task.TaskId));
+        Assert.Equal(expected, attempts.Skip(14).Select(attempt => attempt.Task.TaskId));
+    }
+
+    [Fact]
     public void LoadsSanitizedHarborFixturesAndComputesChecksums()
     {
         IReadOnlyList<HarborTask> tasks = new HarborTaskLoader().Load(FixtureRoot);
