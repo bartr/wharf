@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Wharf.Agent;
 
 namespace Wharf.Configuration;
 
@@ -22,7 +23,8 @@ public sealed record RunManifest(
     [property: JsonPropertyName("credentials")] SecretSettings? Credentials = null,
     [property: JsonPropertyName("containerCpus")] int? ContainerCpus = null,
     [property: JsonPropertyName("noOp")] bool? NoOp = null,
-    [property: JsonPropertyName("oracle")] bool? Oracle = null);
+    [property: JsonPropertyName("oracle")] bool? Oracle = null,
+    [property: JsonPropertyName("cli")] string? Cli = null);
 
 public sealed record PhaseTimeouts(
     [property: JsonPropertyName("setupSeconds")] int? SetupSeconds = null,
@@ -68,7 +70,8 @@ public sealed record RunConfiguration(
     bool ShortestFirst = false,
     int? ContainerCpus = null,
     bool NoOp = false,
-    bool Oracle = false);
+    bool Oracle = false,
+    string Cli = "copilot");
 
 public sealed record RunConfigurationOverrides(
     int? K = null,
@@ -83,7 +86,8 @@ public sealed record RunConfigurationOverrides(
     string? CliVersion = null,
     int? ContainerCpus = null,
     bool? NoOp = null,
-    bool? Oracle = null);
+    bool? Oracle = null,
+    string? Cli = null);
 
 public sealed class RunConfigurationException(string message) : Exception(message);
 
@@ -139,6 +143,7 @@ public static class RunConfigurationResolver
 {
     public const string DefaultCopilotCli = "copilot";
     public const string DefaultCopilotModel = "hydrafusion";
+    public const string DefaultClaudeModel = "claude-sonnet-5-5";
     public const string DefaultCopilotVersion = "latest";
 
     public static string ResolveEffectiveEffort(string model, string effort) =>
@@ -182,9 +187,14 @@ public static class RunConfigurationResolver
             EnvironmentValue("WHARF_OUTPUT_DIRECTORY"),
             manifest.Output?.Directory,
             "jobs");
-        string model = Pick(overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model, DefaultCopilotModel);
+        string cli = Pick(overrides.Cli, environment.GetValueOrDefault("WHARF_CLI"), manifest.Cli, DefaultCopilotCli);
+        _ = AgentCli.For(cli);
+        string model = Pick(
+            overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model,
+            cli == "claude" ? DefaultClaudeModel : DefaultCopilotModel);
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "default");
-        effort = ResolveEffectiveEffort(model, effort);
+        if (cli == "copilot")
+            effort = ResolveEffectiveEffort(model, effort);
         string cliVersion = Pick(
             overrides.CliVersion,
             EnvironmentValue("WHARF_CLI_VERSION"),
@@ -223,7 +233,8 @@ public static class RunConfigurationResolver
             overrides.ShortestFirst ?? false,
             containerCpus,
             overrides.NoOp ?? manifest.NoOp ?? false,
-            overrides.Oracle ?? manifest.Oracle ?? false);
+            overrides.Oracle ?? manifest.Oracle ?? false,
+            cli);
     }
 
     private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name) =>
@@ -285,6 +296,7 @@ public static class RunConfigurationValidator
         RequirePositive(configuration.K, "K");
         RequirePositive(configuration.N, "N");
         RequirePositive(configuration.P, "P");
+        _ = AgentCli.For(configuration.Cli);
         if (configuration.ContainerCpus is { } containerCpus)
             RequirePositive(containerCpus, "containerCpus");
         ValidateTimeout(configuration.Timeouts.SetupSeconds, "setupSeconds");

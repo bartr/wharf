@@ -96,6 +96,7 @@ public sealed class AgentExecutionService
             string standardError = File.ReadAllText(
                 Path.Combine(evidenceDirectory, summary.StandardErrorPath));
             if (summary.Status == "completed" ||
+                request.Invocation.Cli != "copilot" ||
                 !IsRetryableCopilotServiceFailure(standardError) ||
                 retryNumber >= maximumRetries)
             {
@@ -320,17 +321,44 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             string debugLogDirectory = Path.Combine(
                 evidenceDirectory,
                 "copilot-logs");
-            AgentUsage? usage = CopilotUsageParser.Parse(
-                standardError,
-                debugLogDirectory);
+            AgentUsage? usage;
+            int? steps = null;
+            int exitCode = agent.ExitCode;
+            if (request.Invocation.Cli == "claude")
+            {
+                usage = null;
+                try
+                {
+                    ClaudeResult? result = ClaudeUsageParser.Parse(standardOutput);
+                    usage = result?.Usage;
+                    steps = result?.Turns;
+                    if (result?.IsError == true || (result is null && exitCode == 0))
+                    {
+                        if (exitCode == 0)
+                            exitCode = 1;
+                        standardError += "\nClaude Code did not return a successful result; see trajectory.jsonl.";
+                    }
+                }
+                catch (AgentExecutionException exception)
+                {
+                    if (exitCode == 0)
+                        exitCode = 1;
+                    standardError += $"\n{exception.Message}";
+                }
+            }
+            else
+            {
+                usage = CopilotUsageParser.Parse(standardError, debugLogDirectory);
+            }
             return new AgentRunResult(
-                agent.ExitCode,
+                exitCode,
                 standardOutput,
                 standardError,
                 trajectory,
                 patch,
                 stopwatch.Elapsed,
                 Tokens: usage is null ? null : checked((int)usage.TotalTokens),
+                Steps: steps,
                 Requests: usage?.Requests,
                 Cost: usage?.AiCredits,
                 Usage: usage,
@@ -402,11 +430,17 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             arguments.Add("-e");
             arguments.Add(credentialVariable);
         }
+        foreach ((string name, string value) in request.Invocation.Environment
+                     .Where(pair => !pair.Key.StartsWith("WHARF_", StringComparison.Ordinal)))
+        {
+            arguments.Add("--env");
+            arguments.Add($"{name}={value}");
+        }
         arguments.Add(containerName);
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
         arguments.Add(
-            "export PATH=/opt/wharf/copilot/node_modules/.bin:$PATH; " +
+            $"export PATH={AgentCli.For(request.Invocation.Cli).InstallPath}/node_modules/.bin:$PATH; " +
             "cd /workspace/; " +
             "\"$@\" >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
             "status=$?; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
@@ -815,8 +849,10 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
 
     internal static IReadOnlyList<string> BuildWorkspaceSetupArguments(
         AgentExecutionRequest request,
-        string containerName) =>
-        [
+        string containerName)
+    {
+        AgentCli cli = AgentCli.For(request.Invocation.Cli);
+        return [
             "exec",
             "--user", "1000:1000",
             "--env", "HOME=/home/wharf",
@@ -825,15 +861,16 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             "/bin/bash",
             "-lc",
             "if ! command -v node >/dev/null 2>&1; then " +
-            "echo 'Cached Copilot CLI requires Node.js 22+.' >&2; exit 127; fi; " +
-            "package=/opt/wharf/copilot/node_modules/@github/copilot/package.json; " +
+            $"echo 'Cached {cli.Name} CLI requires Node.js.' >&2; exit 127; fi; " +
+            $"package={cli.InstallPath}/node_modules/{cli.Package}/package.json; " +
             "if [ ! -f \"$package\" ]; then " +
-            "echo 'Cached Copilot CLI package is missing.' >&2; exit 127; fi; " +
+            $"echo 'Cached {cli.Name} CLI package is missing.' >&2; exit 127; fi; " +
             "actual=$(node -p \"require('$package').version\") || exit 127; " +
             $"if [ \"$actual\" != \"{request.Invocation.EffectiveVersion}\" ]; then " +
-            $"echo 'Cached Copilot CLI version mismatch: expected " +
+            $"echo 'Cached {cli.Name} CLI version mismatch: expected " +
             $"{request.Invocation.EffectiveVersion}, found '\"$actual\" >&2; exit 127; fi"
         ];
+    }
 
     internal static void EnsureSuccessful(DockerProcessResult result, string stage)
     {

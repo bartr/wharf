@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Wharf.Docker;
 using Wharf.Tasks;
+using Wharf.Agent;
 
 namespace Wharf.Image;
 
@@ -27,7 +28,7 @@ public interface IAgentImagePreparer
 public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 {
     private const string CacheSchemaVersion = "1";
-    private const string CopilotInstallPath = "/opt/wharf/copilot";
+    private readonly AgentCli cli;
     private readonly ConcurrentDictionary<string, Lazy<Task<string>>> cacheBuilds =
         new(StringComparer.Ordinal);
     private readonly IImageClient images;
@@ -37,8 +38,10 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
     public DockerAgentImagePreparer(
         ImagePullCoordinator? imagePulls = null,
         IImageClient? images = null,
-        Action<string>? progress = null)
+        Action<string>? progress = null,
+        string cli = "copilot")
     {
+        this.cli = AgentCli.For(cli);
         this.images = images ?? new DockerImageClient();
         this.imagePulls = imagePulls ?? new ImagePullCoordinator(
             this.images,
@@ -202,25 +205,25 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         Action<string>? progress,
         CancellationToken cancellationToken)
     {
-        string image = BuildCopilotCacheImageName(copilotVersion);
-        string dockerfile = Path.Combine(evidenceDirectory, "Dockerfile.copilot-cache");
+        string image = BuildCopilotCacheImageName(copilotVersion, cli.Name);
+        string dockerfile = Path.Combine(evidenceDirectory, $"Dockerfile.{cli.Name}-cache");
         File.WriteAllText(
             dockerfile,
-            BuildCopilotPayloadDockerfile(installerImage, copilotVersion));
+            BuildCopilotPayloadDockerfile(installerImage, copilotVersion, cli.Name));
         CachedImageResult cached = await PreparePersistentImageAsync(
             image,
             async buildCancellationToken =>
             {
-                progress?.Invoke($"agent Copilot CLI cache building {image}");
+                progress?.Invoke($"agent {cli.Name} CLI cache building {image}");
                 ProcessResult result = await RunDockerAsync(
                     ["image", "build", "--file", dockerfile, "--tag", image, evidenceDirectory],
                     buildCancellationToken);
                 File.WriteAllText(
-                    Path.Combine(evidenceDirectory, "copilot-image-build.log"),
+                    Path.Combine(evidenceDirectory, $"{cli.Name}-image-build.log"),
                     result.StandardOutput + result.StandardError);
             },
             cancellationToken);
-        progress?.Invoke($"agent Copilot CLI {(cached.Reused ? "cache-hit" : "built")} {image}");
+        progress?.Invoke($"agent {cli.Name} CLI {(cached.Reused ? "cache-hit" : "built")} {image}");
         return cached;
     }
 
@@ -248,7 +251,8 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
                 environmentImage,
                 cliImage,
                 copilotVersion,
-                key));
+                key,
+                cli.Name));
         CachedImageResult cached = await PreparePersistentImageAsync(
             image,
             async buildCancellationToken =>
@@ -322,23 +326,26 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
 
     internal static string BuildCopilotPayloadDockerfile(
         string installerImage,
-        string copilotVersion)
+        string copilotVersion,
+        string cli = "copilot")
     {
+        AgentCli selected = AgentCli.For(cli);
+        string installPath = selected.InstallPath;
         if (string.IsNullOrWhiteSpace(installerImage))
             throw new AgentImageException("Copilot installer image is required");
         ValidateCopilotVersion(copilotVersion);
         return
             $"# syntax=docker/dockerfile:1{Environment.NewLine}" +
             $"FROM {installerImage} AS installer{Environment.NewLine}" +
-            $"RUN mkdir -p {CopilotInstallPath} \\\n" +
-            $" && npm install --prefix {CopilotInstallPath} --no-fund --no-audit " +
-            $"@github/copilot@{copilotVersion} \\\n" +
-            $" && node -e \"if (require('{CopilotInstallPath}/node_modules/@github/copilot/package.json')" +
+            $"RUN mkdir -p {installPath} \\\n" +
+            $" && npm install --prefix {installPath} --no-fund --no-audit " +
+            $"{selected.Package}@{copilotVersion} \\\n" +
+            $" && node -e \"if (require('{installPath}/node_modules/{selected.Package}/package.json')" +
             $".version !== '{copilotVersion}') process.exit(1)\"{Environment.NewLine}" +
             $"FROM scratch{Environment.NewLine}" +
-            $"COPY --link --from=installer {CopilotInstallPath} {CopilotInstallPath}{Environment.NewLine}" +
+            $"COPY --link --from=installer {installPath} {installPath}{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cache=\"true\"{Environment.NewLine}" +
-            $"LABEL com.bartr.wharf.cache-kind=\"copilot-cli\"{Environment.NewLine}" +
+            $"LABEL com.bartr.wharf.cache-kind=\"{cli}-cli\"{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cache-schema=\"{CacheSchemaVersion}\"{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cli-version=\"{copilotVersion}\"{Environment.NewLine}";
     }
@@ -347,8 +354,10 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         string environmentImage,
         string cliImage,
         string copilotVersion,
-        string cacheKey)
+        string cacheKey,
+        string cli = "copilot")
     {
+        string installPath = AgentCli.For(cli).InstallPath;
         if (string.IsNullOrWhiteSpace(environmentImage))
             throw new AgentImageException("agent environment image is required");
         if (string.IsNullOrWhiteSpace(cliImage))
@@ -360,8 +369,8 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
             $"# syntax=docker/dockerfile:1{Environment.NewLine}" +
             $"FROM {cliImage} AS cli{Environment.NewLine}" +
             $"FROM {environmentImage}{Environment.NewLine}" +
-            $"COPY --link --from=cli {CopilotInstallPath} {CopilotInstallPath}{Environment.NewLine}" +
-            $"ENV PATH=\"{CopilotInstallPath}/node_modules/.bin:${{PATH}}\"{Environment.NewLine}" +
+            $"COPY --link --from=cli {installPath} {installPath}{Environment.NewLine}" +
+            $"ENV PATH=\"{installPath}/node_modules/.bin:${{PATH}}\"{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cache=\"true\"{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cache-kind=\"agent\"{Environment.NewLine}" +
             $"LABEL com.bartr.wharf.cache-schema=\"{CacheSchemaVersion}\"{Environment.NewLine}" +
@@ -369,8 +378,9 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
             $"LABEL com.bartr.wharf.cli-version=\"{copilotVersion}\"{Environment.NewLine}";
     }
 
-    internal static string BuildCopilotCacheImageName(string copilotVersion)
+    internal static string BuildCopilotCacheImageName(string copilotVersion, string cli = "copilot")
     {
+        _ = AgentCli.For(cli);
         ValidateCopilotVersion(copilotVersion);
         string architecture = RuntimeInformation.ProcessArchitecture switch
         {
@@ -379,11 +389,11 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
             _ => RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant()
         };
         return
-            $"wharf-copilot-cli:{SanitizeTag(copilotVersion)}-linux-" +
+            $"wharf-{cli}-cli:{SanitizeTag(copilotVersion)}-linux-" +
             $"{architecture}-v{CacheSchemaVersion}";
     }
 
-    private static void WriteCacheEvidence(
+    private void WriteCacheEvidence(
         string evidenceDirectory,
         string environmentImage,
         string copilotVersion,
@@ -394,6 +404,8 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
         {
             schemaVersion = CacheSchemaVersion,
             environmentImage,
+            cli = this.cli.Name,
+            cliVersion = copilotVersion,
             copilotVersion,
             cliImage = cli.Image,
             cliOutcome = cli.Reused ? "cache-hit" : "built-or-coalesced",
@@ -440,7 +452,7 @@ public sealed class DockerAgentImagePreparer : IAgentImagePreparer
                 RegexOptions.CultureInvariant))
         {
             throw new AgentImageException(
-                $"Copilot CLI version must be an exact three-part version: {version}");
+                $"CLI version must be an exact three-part version: {version}");
         }
     }
 

@@ -19,8 +19,8 @@ public sealed record BuildResult(
 public sealed class BuildService
 {
     private readonly HarborTaskLoader taskLoader;
-    private readonly IAgentImagePreparer imagePreparer;
-    private readonly CopilotAdapter copilot;
+    private readonly IAgentImagePreparer? imagePreparer;
+    private readonly ICopilotCliProbe? cliProbe;
     private readonly Func<HarborTask, string, string, WharfLogger, CancellationToken, Task<string?>> prepareVerifier;
 
     public BuildService(
@@ -30,8 +30,8 @@ public sealed class BuildService
         Func<HarborTask, string, string, WharfLogger, CancellationToken, Task<string?>>? prepareVerifier = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
-        this.imagePreparer = imagePreparer ?? new DockerAgentImagePreparer();
-        copilot = new CopilotAdapter(cliProbe ?? new NpmRegistryCopilotCliProbe());
+        this.imagePreparer = imagePreparer;
+        this.cliProbe = cliProbe;
         this.prepareVerifier = prepareVerifier ?? PrepareVerifierAsync;
     }
 
@@ -40,8 +40,13 @@ public sealed class BuildService
         WharfLogger logger,
         int preparationConcurrency = 4,
         string requestedCliVersion = "latest",
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string cli = "copilot")
     {
+        IAgentImagePreparer imagePreparer = this.imagePreparer ??
+            new DockerAgentImagePreparer(cli: cli);
+        var adapter = new CopilotAdapter(
+            cliProbe ?? new NpmRegistryCopilotCliProbe(cli: cli), cli, cli);
         if (preparationConcurrency < 1)
             throw new BuildException("P must be positive");
         string resolvedRoot = Path.GetFullPath(taskRoot);
@@ -52,7 +57,7 @@ public sealed class BuildService
         if (tasks.Count == 0)
             throw new BuildException($"prebuild task directory contains no task.toml files: {resolvedRoot}");
 
-        string cliVersion = copilot.ResolveVersionAsync(
+        string cliVersion = adapter.ResolveVersionAsync(
             requestedCliVersion, cancellationToken).GetAwaiter().GetResult();
         cancellationToken.ThrowIfCancellationRequested();
         string evidenceRoot = Path.Combine(

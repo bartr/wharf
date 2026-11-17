@@ -9,6 +9,31 @@ namespace Wharf.Tests;
 public sealed class RetainedRunResumePlannerTests : IDisposable
 {
     [Fact]
+    public void ClaudeResumeRestoresRetainedCliAndRejectsMismatchedArm()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1, cli: "claude");
+        RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(fixture.RunDirectory);
+        Assert.Equal("claude", plan.Configuration.Cli);
+        string metadataPath = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
+        JsonNode metadata = JsonNode.Parse(File.ReadAllText(metadataPath))!;
+        metadata["configuration"]!["cli"] = "copilot";
+        File.WriteAllText(metadataPath, metadata.ToJsonString());
+        Assert.Throws<RecoveryException>(() => new RetainedRunResumePlanner().Plan(fixture.RunDirectory));
+    }
+
+    [Fact]
+    public void LegacyRunPlanWithoutCliRestoresCopilot()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1);
+        string path = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
+        JsonNode metadata = JsonNode.Parse(File.ReadAllText(path))!;
+        Assert.True(metadata["configuration"]!.AsObject().Remove("cli"));
+        File.WriteAllText(path, metadata.ToJsonString());
+        Assert.Equal("copilot",
+            new RetainedRunResumePlanner().Plan(fixture.RunDirectory).Configuration.Cli);
+    }
+
+    [Fact]
     public void BaselineResumeRestoresModeWithoutRequiringACopilotJobName()
     {
         RetainedRunFixture fixture = CreateRun(k: 2, selectedTaskCount: 1, noOp: true);
@@ -245,11 +270,12 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         int k,
         string effort = "max",
         int? selectedTaskCount = null,
-        bool noOp = false)
+        bool noOp = false,
+        string cli = "copilot")
     {
         string runDirectory = Path.Combine(
             temporaryRoot,
-            noOp ? "baseline-no-op" : $"copilot-test-model-{effort}-1.0.95",
+            noOp ? "baseline-no-op" : $"{cli}-test-model-{effort}-1.0.95",
             "all-1");
         Directory.CreateDirectory(runDirectory);
         IReadOnlyList<HarborTask> loadedTasks =
@@ -276,7 +302,8 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             "default",
             new SecretSettings(Token: "should-not-persist"),
             ContainerCpus: 3,
-            NoOp: noOp);
+            NoOp: noOp,
+            Cli: cli);
         WriteJson(
             Path.Combine(runDirectory, "run.jsonl"),
             new

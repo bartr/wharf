@@ -847,6 +847,13 @@ usage comparisons.
 
 ## Copilot credits and cost
 
+Native Claude Code runs retain `total_cost_usd` from the final stream-json
+result as `usage.costUsd` in each agent result. Analytics sums these retained
+dollar amounts across agent retries directly into `cost_usd`; Claude costs are
+never converted into Copilot credits. Missing costs remain null. Token counts
+come from cumulative result usage, and `num_turns` supplies agent steps, not
+request counts. Raw stream-json remains in `trajectory.jsonl`.
+
 The legacy DeepSWE runner does not populate `agent_result.cost_usd` for Copilot CLI trials. The
 authoritative usage value is preserved in each trial's session event stream:
 

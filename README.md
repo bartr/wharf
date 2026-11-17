@@ -2,7 +2,7 @@
 
 Wharf 1.5.0 builds on the MVP release of the DeepSWE/Harbor benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
-Copilot agent and verifier execution, durable evidence, recovery, unattended
+Copilot or Claude Code agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics. It runs
 [Harbor-format tasks](docs/Harbor.md), which bundle task instructions,
 execution environments, and automated verification of the resulting code.
@@ -69,6 +69,36 @@ execution environments, and automated verification of the resulting code.
   #   DeepSWE standards are 4-5 iterations of all tests
   wharf run -n 16 -p 12 -k 4 --model gpt-6-luna
   ```
+
+## Choosing the agent CLI
+
+Copilot remains the default. Select Claude Code with `--cli claude` on `run`,
+`prebuild`, or `smoke`. Claude defaults to Sonnet 5.5 (`claude-sonnet-5-5`);
+override it with `--model`. Explicit effort uses Claude's `--effort` flag, while `default`
+leaves effort selection to the model.
+
+Save a Claude Code OAuth token obtained with `claude setup-token` as plain text
+in `~/.wharf/claude` and restrict the file to your user with
+`chmod 0600 ~/.wharf/claude`. Wharf forwards it only to the agent execution process as
+`CLAUDE_CODE_OAUTH_TOKEN`; it is not included in images, command arguments, or
+retained configuration. Copilot continues to use `~/.wharf/copilot`.
+
+From the repository root:
+
+```bash
+cd wharf-swe
+wharf prebuild --cli claude -p 12
+wharf run --cli claude -n 16 -p 12 -k 4
+```
+
+`--cli` overrides `WHARF_CLI`, then manifest `"cli"`, then `copilot`.
+`--cli-version` selects an exact version of the chosen CLI, or resolves `latest`
+once before preparation. If `WHARF_CLI_VERSION` is pinned for Copilot, pass
+`--cli-version latest` when switching to Claude, or pin a Claude Code version.
+Caches and run directories are CLI-specific. Resume
+restores the original CLI and exact version from retained evidence.
+Use `wharf run --cli claude --dry-run` to preview without reading credentials,
+creating output, contacting a registry, or starting Docker.
 
 ## Running DeepSWE with Wharf
 

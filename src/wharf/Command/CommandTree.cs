@@ -123,7 +123,7 @@ public static class CommandTree
     private static CliCommand CreatePrebuildCommand(
         Func<WharfConfiguration> getConfiguration, CancellationToken cancellationToken)
     {
-        var command = new CliCommand("prebuild", "Warm task, Copilot, agent and verifier image caches before running benchmarks.");
+        var command = new CliCommand("prebuild", "Warm task, CLI, agent and verifier image caches before running benchmarks.");
         var tasks = new Option<string>("--tasks")
         {
             Description = "Directory containing the dataset.toml or task.toml directories.",
@@ -134,12 +134,14 @@ public static class CommandTree
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency (default: 4)." };
         var cliVersion = new Option<string>("--cli-version")
         {
-            Description = "Exact Copilot CLI version to warm, or latest."
+            Description = "Exact selected CLI version to warm, or latest."
         };
+        var cli = CreateCliOption();
         command.Options.Add(tasks);
         command.Options.Add(verbose);
         command.Options.Add(p);
         command.Options.Add(cliVersion);
+        command.Options.Add(cli);
         command.SetAction(parseResult =>
         {
             try
@@ -158,17 +160,21 @@ public static class CommandTree
                     null,
                     new RunConfigurationOverrides(
                         N: int.MaxValue, P: parseResult.GetValue(p),
-                        CliVersion: parseResult.GetValue(cliVersion)),
+                        CliVersion: parseResult.GetValue(cliVersion),
+                        Cli: parseResult.GetValue(cli)),
                     new Dictionary<string, string?>
                     {
                         ["P"] = Environment.GetEnvironmentVariable("P"),
                         ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
+                        ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION")
                     });
                 BuildResult result = new BuildService(
-                    imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
+                    imagePreparer: new DockerAgentImagePreparer(
+                        progress: message => logger.Info(message), cli: buildConfiguration.Cli)).Execute(
                     taskRoot,
-                    logger, buildConfiguration.P, buildConfiguration.CliVersion, cancellationToken);
+                    logger, buildConfiguration.P, buildConfiguration.CliVersion, cancellationToken,
+                    buildConfiguration.Cli);
                 Console.WriteLine(
                     $"complete tasks={result.TaskCount} prepared={result.PreparedCount} " +
                     $"built={result.BuiltCount} verifier-prepared={result.VerifierPreparedCount} " +
@@ -241,8 +247,9 @@ public static class CommandTree
         effort.Aliases.Add("-e");
         var cliVersion = new Option<string?>("--cli-version")
         {
-            Description = "Exact Copilot CLI version, or latest."
+            Description = "Exact selected CLI version, or latest."
         };
+        var cli = CreateCliOption();
         var retainWorkspaces = new Option<bool>("--retain-workspaces")
         {
             Description = "Retain terminal trial workspaces instead of deleting them after evidence capture."
@@ -277,6 +284,7 @@ public static class CommandTree
         command.Options.Add(model);
         command.Options.Add(effort);
         command.Options.Add(cliVersion);
+        command.Options.Add(cli);
         command.Options.Add(retainWorkspaces);
         command.Options.Add(shortestFirst);
         command.Options.Add(include);
@@ -303,6 +311,7 @@ public static class CommandTree
                             Model: parseResult.GetValue(model),
                             Effort: parseResult.GetValue(effort),
                             CliVersion: parseResult.GetValue(cliVersion),
+                            Cli: parseResult.GetValue(cli),
                             RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
                             ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
                             NoOp: parseResult.GetValue(noOp) ? true : null,
@@ -322,6 +331,7 @@ public static class CommandTree
                             ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                             ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                             ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                            ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                             ["WHARF_RETAIN_WORKSPACES"] =
                                 Environment.GetEnvironmentVariable("WHARF_RETAIN_WORKSPACES"),
                             ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
@@ -356,7 +366,8 @@ public static class CommandTree
                             Path.Combine(Directory.GetCurrentDirectory(), "run.jsonl"))
                         : WharfLogger.Create(loggerConfiguration, selectedLogFile);
                     RunResult result = new RunService(
-                        imagePreparer: new DockerAgentImagePreparer(progress: message => logger.Info(message))).Execute(
+                        imagePreparer: new DockerAgentImagePreparer(
+                            progress: message => logger.Info(message), cli: runConfiguration.Cli)).Execute(
                         taskRoot,
                         runConfiguration.OutputDirectory,
                         runConfiguration,
@@ -405,6 +416,7 @@ public static class CommandTree
                         Model: parseResult.GetValue(model),
                         Effort: parseResult.GetValue(effort),
                         CliVersion: parseResult.GetValue(cliVersion),
+                        Cli: parseResult.GetValue(cli),
                         RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
                         ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
                         NoOp: parseResult.GetValue(noOp) ? true : null,
@@ -508,7 +520,7 @@ public static class CommandTree
                     new HarborTaskLoader().Load(plan.TaskRoot);
                 RunResult result = new RunService(
                     imagePreparer: new DockerAgentImagePreparer(
-                        progress: message => logger.Info(message))).Execute(
+                        progress: message => logger.Info(message), cli: runConfiguration.Cli)).Execute(
                     plan.TaskRoot,
                     "jobs",
                     runConfiguration,
@@ -905,6 +917,7 @@ public static class CommandTree
         {
             Description = "Select a smoke task by ID or dataset name."
         };
+        var cli = CreateCliOption();
         include.Aliases.Add("-i");
         command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
@@ -914,6 +927,7 @@ public static class CommandTree
         command.Options.Add(veryVerbose);
         command.Options.Add(diagnostic);
         command.Options.Add(include);
+        command.Options.Add(cli);
         command.SetAction(parseResult =>
         {
             try
@@ -940,7 +954,8 @@ public static class CommandTree
                     output,
                     host,
                     logger,
-                    parseResult.GetValue(include));
+                    parseResult.GetValue(include),
+                    parseResult.GetValue(cli));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {
@@ -970,6 +985,11 @@ public static class CommandTree
         });
         return command;
     }
+
+    private static Option<string?> CreateCliOption() => new("--cli")
+    {
+        Description = "Agent CLI: copilot (default) or claude."
+    };
 
     private static CliCommand CreateProfileCommand()
     {

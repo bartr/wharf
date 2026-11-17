@@ -36,7 +36,8 @@ public sealed class SmokeService
         string outputDirectory,
         HostCheckReport host,
         WharfLogger logger,
-        string? include = null)
+        string? include = null,
+        string? cli = null)
     {
         if (string.IsNullOrWhiteSpace(taskRoot) || !Directory.Exists(taskRoot))
             throw new SmokeException($"smoke task directory does not exist: {taskRoot}");
@@ -70,6 +71,7 @@ public sealed class SmokeService
                 K: 1,
                 N: 1,
                 P: 1,
+                Cli: cli,
                 OutputDirectory: resolvedOutput),
             new Dictionary<string, string?>
             {
@@ -77,6 +79,7 @@ public sealed class SmokeService
                 ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                 ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                 ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                 ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                 ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
                 ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),

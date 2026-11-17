@@ -79,7 +79,7 @@ public sealed class RunEvidenceReader
                 reward.FunctionalTotal,
                 reward.RegressionPassed,
                 reward.RegressionTotal,
-                credits / 100m,
+                credits / 100m ?? SumNullable(agentEvidence.Select(evidence => evidence.Usage?.CostUsd)),
                 credits,
                 totals.Requests,
                 totals.InputTokens,

@@ -30,7 +30,7 @@ public sealed record RetainedResumePlan(
 public sealed class RetainedRunResumePlanner
 {
     private static readonly Regex ArmPattern = new(
-        @"^copilot-(?<model>.+)-(?<effort>default|low|medium|high|max)-(?<version>\d+\.\d+\.\d+)$",
+        @"^(?<cli>copilot|claude)-(?<model>.+)-(?<effort>default|low|medium|high|max)-(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)$",
         RegexOptions.CultureInvariant);
     private static readonly Regex PlanPattern = new(
         @"plan tasks=(?<tasks>\d+) attempts=(?<k>\d+) runs=(?<runs>\d+) " +
@@ -62,7 +62,7 @@ public sealed class RetainedRunResumePlanner
         if (!arm.Success && !baseline)
         {
             throw new RecoveryException(
-                "resume run parent must use copilot-<model>-<effort>-<version>");
+                "resume run parent must use <copilot|claude>-<model>-<effort>-<version>");
         }
 
         Match metadata = ReadPlanMetadata(logPath);
@@ -110,6 +110,10 @@ public sealed class RetainedRunResumePlanner
                 retainedMetadata.Configuration.N != loggedTaskConcurrency ||
                 retainedMetadata.Configuration.P != loggedPreparationConcurrency ||
                 (!baseline && (!string.Equals(
+                    retainedMetadata.Configuration.Cli,
+                    arm.Groups["cli"].Value,
+                    StringComparison.Ordinal) ||
+                !string.Equals(
                     retainedMetadata.Configuration.Model,
                     arm.Groups["model"].Value,
                     StringComparison.Ordinal) ||
@@ -210,7 +214,8 @@ public sealed class RetainedRunResumePlanner
                 false,
                 "default",
                 new SecretSettings(),
-                shortestFirst);
+                shortestFirst,
+                Cli: arm.Groups["cli"].Value);
         configuration = configuration with
         {
             K = k,

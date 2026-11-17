@@ -92,7 +92,7 @@ public sealed record AgentModelUsage(
     long CacheReadTokens,
     long CacheWriteTokens,
     long ReasoningTokens,
-    int Requests,
+    int? Requests,
     decimal RequestCost);
 
 public sealed record AgentUsage(
@@ -101,10 +101,11 @@ public sealed record AgentUsage(
     long CacheReadTokens,
     long CacheWriteTokens,
     long ReasoningTokens,
-    int Requests,
+    int? Requests,
     decimal RequestCost,
     decimal? AiCredits,
-    IReadOnlyDictionary<string, AgentModelUsage> Models)
+    IReadOnlyDictionary<string, AgentModelUsage> Models,
+    decimal? CostUsd = null)
 {
     public long TotalTokens => InputTokens + OutputTokens;
 }

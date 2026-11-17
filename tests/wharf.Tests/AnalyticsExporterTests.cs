@@ -8,6 +8,44 @@ namespace Wharf.Tests;
 public sealed class AnalyticsExporterTests
 {
     [Fact]
+    public void ExportsClaudeDollarCostsAcrossRetriesWithoutCredits()
+    {
+        string root = TestDirectory();
+        try
+        {
+            string run = Path.Combine(root, "all-1");
+            WriteMinimalTrial(run, "task-a__1", "task-a");
+            string trial = Path.Combine(run, "task-a__1");
+            foreach ((string directory, decimal cost) in new[]
+                     {
+                         (Path.Combine(trial, "agent"), 0.4m),
+                         (Path.Combine(trial, "trial-retries", "retry-1", "agent"), 0.2m)
+                     })
+            {
+                Directory.CreateDirectory(directory);
+                var usage = new AgentUsage(10, 20, 30, 0, 0, null, cost, null,
+                    new Dictionary<string, AgentModelUsage>(), CostUsd: cost);
+                var evidence = new AgentEvidenceSummary(
+                    "1.0", "task-a", "completed", 0, 1500, 30, 3, null, null,
+                    "patch.diff", "stdout.log", "stderr.log", "trajectory.jsonl", usage);
+                File.WriteAllText(Path.Combine(directory, "result.json"),
+                    JsonSerializer.Serialize(evidence, StateJson.Options));
+            }
+            AnalyticsTrial row = Assert.Single(new RunEvidenceReader().Read(
+                run, new AnalyticsExportOptions("arm", "claude-code", "2.1.241", "opus", "high", false)));
+            Assert.Equal(0.6m, row.CostUsd);
+            Assert.Null(row.Credits);
+            Assert.Null(row.PremiumRequests);
+            Assert.Equal(3, row.AgentSeconds);
+            Assert.Equal(20, row.InputTokens);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ExportsOneCanonicalRowPerLogicalTrialFromNativeEvidence()
     {
         string root = TestDirectory();

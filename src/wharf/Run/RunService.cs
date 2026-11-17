@@ -37,7 +37,7 @@ internal sealed record VerifierRetryOutcome(
 public sealed class RunService
 {
     private readonly HarborTaskLoader taskLoader;
-    private readonly IAgentImagePreparer imagePreparer;
+    private readonly IAgentImagePreparer? imagePreparer;
     private readonly IAgentWorkspacePreparer workspacePreparer;
     private readonly AgentExecutionService agentExecution;
     private readonly PristineVerifierService verifier;
@@ -50,7 +50,7 @@ public sealed class RunService
         PristineVerifierService? verifier = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
-        this.imagePreparer = imagePreparer ?? new DockerAgentImagePreparer();
+        this.imagePreparer = imagePreparer;
         this.workspacePreparer = workspacePreparer ?? new DockerAgentWorkspacePreparer();
         this.agentExecution = agentExecution ?? new AgentExecutionService(new DockerAgentRunner());
         this.verifier = verifier ?? new PristineVerifierService(
@@ -69,6 +69,8 @@ public sealed class RunService
         CancellationToken cancellationToken = default,
         RunResumeTarget? resume = null)
     {
+        IAgentImagePreparer imagePreparer = this.imagePreparer ??
+            new DockerAgentImagePreparer(cli: configuration.Cli);
         string resolvedRoot = Path.GetFullPath(taskRoot);
         if (!Directory.Exists(resolvedRoot))
             throw new RunException($"run task directory does not exist: {resolvedRoot}");
@@ -125,6 +127,8 @@ public sealed class RunService
             invocationError = exception.Message;
             logger.Info($"agent setup failed error={exception.Message}");
         }
+        if (invocation is not null)
+            configuration = configuration with { CliVersion = invocation.EffectiveVersion };
         string resolvedOutput = Path.GetFullPath(outputDirectory);
         string jobDirectory;
         string attemptDirectory;
@@ -136,7 +140,8 @@ public sealed class RunService
                     configuration.Model,
                     configuration.Effort,
                     configuration.CliVersion,
-                    invocation?.EffectiveVersion));
+                    invocation?.EffectiveVersion,
+                    configuration.Cli));
             Directory.CreateDirectory(jobDirectory);
             attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
         }
@@ -365,7 +370,9 @@ public sealed class RunService
                                 invocation with
                                 {
                                     Arguments = invocation.Arguments
-                                        .Append(BuildPromptArgument(File.ReadAllText(task.InstructionPath)))
+                                        .Concat(BuildPromptArguments(
+                                            File.ReadAllText(task.InstructionPath),
+                                            configuration.Cli))
                                         .ToArray()
                                 },
                                 [],
@@ -1174,18 +1181,25 @@ public sealed class RunService
         string model,
         string effort,
         string requestedVersion,
-        string? effectiveVersion)
+        string? effectiveVersion,
+        string cli = "copilot")
     {
-        string effectiveEffort = RunConfigurationResolver.ResolveEffectiveEffort(model, effort);
-        return $"{RunConfigurationResolver.DefaultCopilotCli}-{model}-{effectiveEffort}-" +
+        _ = AgentCli.For(cli);
+        string effectiveEffort = cli == "copilot"
+            ? RunConfigurationResolver.ResolveEffectiveEffort(model, effort)
+            : effort;
+        return $"{cli}-{model}-{effectiveEffort}-" +
                $"{effectiveVersion ?? requestedVersion}";
     }
 
     private static CopilotInvocation PrepareInvocation(RunConfiguration configuration)
     {
-        CopilotAdapter adapter = new(new NpmRegistryCopilotCliProbe());
+        CopilotAdapter adapter = new(
+            new NpmRegistryCopilotCliProbe(cli: configuration.Cli),
+            executable: configuration.Cli,
+            cli: configuration.Cli);
         (CopilotCredentialSource credentialSource, string? configuredCredential) =
-            ResolveCredential(configuration.Credentials);
+            ResolveCredential(configuration.Credentials, configuration.Cli);
         CopilotInvocation invocation = adapter.PrepareAsync(
             new CopilotAdapterOptions(
                 configuration.CliVersion,
@@ -1203,8 +1217,13 @@ public sealed class RunService
     }
 
     internal static (CopilotCredentialSource Source, string? Value) ResolveCredential(
-        SecretSettings credentials)
+        SecretSettings credentials,
+        string cli = "copilot")
     {
+        AgentCli selected = AgentCli.For(cli);
+        if (cli == "claude")
+            return (new CopilotCredentialSource(
+                CopilotCredentialSourceKind.File, "~/.wharf/claude"), null);
         string? configuredCredential =
             new[] { credentials.Token, credentials.ApiKey, credentials.Password }
                 .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
@@ -1214,7 +1233,7 @@ public sealed class RunService
                 "~/.wharf/copilot"), null)
             : (new CopilotCredentialSource(
                 CopilotCredentialSourceKind.Environment,
-                "GH_TOKEN"), configuredCredential);
+                selected.CredentialVariable), configuredCredential);
     }
 
     internal static double ResolveTimeoutSeconds(
@@ -1246,6 +1265,9 @@ public sealed class RunService
 
     internal static string BuildPromptArgument(string prompt) =>
         $"--prompt={prompt}";
+
+    internal static IReadOnlyList<string> BuildPromptArguments(string prompt, string cli) =>
+        cli == "claude" ? ["--", prompt] : [BuildPromptArgument(prompt)];
 
     internal static int? ResolveContainerCpuLimit(
         int? configuredLimit,

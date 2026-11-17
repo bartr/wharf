@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Wharf.Agent;
 
 namespace Wharf.Copilot;
 
@@ -57,7 +58,8 @@ public sealed record CopilotInvocation(
     string FrontierEffort,
     IReadOnlyList<string> SubagentModels,
     IReadOnlyList<string> Endpoints,
-    string? CredentialValue = null)
+    string? CredentialValue = null,
+    string Cli = "copilot")
 {
     public string RedactedCommand =>
         string.Join(
@@ -79,13 +81,15 @@ public sealed partial class CopilotAdapter
 {
     private readonly ICopilotCliProbe probe;
     private readonly string executable;
+    private readonly AgentCli cli;
 
-    public CopilotAdapter(ICopilotCliProbe probe, string executable = "copilot")
+    public CopilotAdapter(ICopilotCliProbe probe, string executable = "copilot", string cli = "copilot")
     {
         this.probe = probe ?? throw new ArgumentNullException(nameof(probe));
         this.executable = string.IsNullOrWhiteSpace(executable)
             ? throw new ArgumentException("CLI executable must not be empty", nameof(executable))
             : executable;
+        this.cli = AgentCli.For(cli);
     }
 
     public async Task<string> ResolveVersionAsync(
@@ -93,10 +97,10 @@ public sealed partial class CopilotAdapter
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(requestedVersion))
-            throw new CopilotAdapterException("requested Copilot CLI version is required");
+            throw new CopilotAdapterException($"requested {cli.Name} CLI version is required");
         return requestedVersion.Equals("latest", StringComparison.OrdinalIgnoreCase)
-            ? NormalizeVersion((await probe.GetVersionAsync(cancellationToken)).Value, "published")
-            : NormalizeVersion(requestedVersion, "requested");
+            ? NormalizeVersion((await probe.GetVersionAsync(cancellationToken)).Value, $"published {cli.Name}")
+            : NormalizeVersion(requestedVersion, $"requested {cli.Name}");
     }
 
     public async Task<CopilotInvocation> PrepareAsync(
@@ -108,19 +112,27 @@ public sealed partial class CopilotAdapter
         string effectiveVersion = requestedVersion;
 
         string normalizedFrontierEffort = NormalizeFrontierEffort(options.FrontierEffort);
-        bool isHydraFusion = options.Model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase);
+        bool isHydraFusion = cli.Name == "copilot" &&
+            options.Model.Equals("hydrafusion", StringComparison.OrdinalIgnoreCase);
         bool useModelDefaultEffort = options.NativeEffort.Equals(
             "default",
             StringComparison.OrdinalIgnoreCase);
-        var arguments = new List<string>
-        {
-            "--model", options.Model,
-            "--allow-all-tools",
-            "--no-auto-update"
-        };
+        var arguments = cli.Name == "claude"
+            ? new List<string>
+            {
+                "--model", options.Model,
+                "--print", "--output-format", "stream-json", "--verbose",
+                "--dangerously-skip-permissions"
+            }
+            : new List<string>
+            {
+                "--model", options.Model,
+                "--allow-all-tools",
+                "--no-auto-update"
+            };
         if (!isHydraFusion && !useModelDefaultEffort)
         {
-            arguments.Add("--reasoning-effort");
+            arguments.Add(cli.Name == "claude" ? "--effort" : "--reasoning-effort");
             arguments.Add(options.NativeEffort);
         }
 
@@ -148,6 +160,8 @@ public sealed partial class CopilotAdapter
         {
             ["WHARF_COPILOT_CREDENTIAL_SOURCE"] = options.Credential.Kind.ToString().ToLowerInvariant()
         };
+        if (cli.Name == "claude")
+            environment["DISABLE_AUTOUPDATER"] = "1";
         bool stdin = options.Credential.Kind is CopilotCredentialSourceKind.Stdin;
         if (options.Credential.Kind is CopilotCredentialSourceKind.Environment)
         {
@@ -167,7 +181,7 @@ public sealed partial class CopilotAdapter
                 throw new CopilotAdapterException($"credential file is empty: {path}");
             }
 
-            environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"] = "GH_TOKEN";
+            environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"] = cli.CredentialVariable;
             return new CopilotInvocation(
                 executable,
                 arguments,
@@ -180,7 +194,8 @@ public sealed partial class CopilotAdapter
                 normalizedFrontierEffort,
                 options.SubagentModels,
                 options.Endpoints,
-                credential);
+                credential,
+                cli.Name);
         }
         else
         {
@@ -198,29 +213,37 @@ public sealed partial class CopilotAdapter
             options.NativeEffort,
             normalizedFrontierEffort,
             options.SubagentModels,
-            options.Endpoints);
+            options.Endpoints,
+            Cli: cli.Name);
     }
 
-    private static void ValidateOptions(CopilotAdapterOptions options)
+    private void ValidateOptions(CopilotAdapterOptions options)
     {
         if (options is null)
         {
-            throw new CopilotAdapterException("Copilot adapter options are required");
+            throw new CopilotAdapterException($"{cli.Name} adapter options are required");
         }
 
         if (string.IsNullOrWhiteSpace(options.RequestedVersion))
         {
-            throw new CopilotAdapterException("requested Copilot CLI version is required");
+            throw new CopilotAdapterException($"requested {cli.Name} CLI version is required");
         }
 
         if (string.IsNullOrWhiteSpace(options.Model))
         {
-            throw new CopilotAdapterException("Copilot model is required");
+            throw new CopilotAdapterException($"{cli.Name} model is required");
         }
 
         ValidateEffort(options.NativeEffort, "native effort");
         NormalizeFrontierEffort(options.FrontierEffort);
         options.Credential.Validate();
+        if (cli.Name == "claude" &&
+            (options.Credential.Kind is CopilotCredentialSourceKind.Stdin ||
+             options.SubagentModels.Count != 0 || options.Endpoints.Count != 0))
+        {
+            throw new CopilotAdapterException(
+                "Claude Code requires file or environment OAuth credentials and does not support Copilot subagent or endpoint options");
+        }
         foreach (string subagent in options.SubagentModels)
         {
             if (string.IsNullOrWhiteSpace(subagent))
@@ -246,7 +269,7 @@ public sealed partial class CopilotAdapter
         normalized = normalized.TrimStart('v');
         if (!SemverRegex().IsMatch(normalized))
         {
-            throw new CopilotAdapterException($"{name} Copilot CLI version is invalid: {version}");
+            throw new CopilotAdapterException($"{name} CLI version is invalid: {version}");
         }
 
         return normalized;
@@ -287,10 +310,9 @@ public sealed partial class CopilotAdapter
     private static partial Regex SemverRegex();
 }
 
-public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null) : ICopilotCliProbe
+public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null, string cli = "copilot") : ICopilotCliProbe
 {
-    private static readonly Uri LatestPackageUri =
-        new("https://registry.npmjs.org/@github%2Fcopilot/latest");
+    private readonly AgentCli cli = AgentCli.For(cli);
     private static readonly HttpClient SharedClient = new()
     {
         Timeout = TimeSpan.FromSeconds(30)
@@ -302,12 +324,13 @@ public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null) : ICop
         HttpResponseMessage response;
         try
         {
-            response = await client.GetAsync(LatestPackageUri, cancellationToken);
+            var uri = new Uri($"https://registry.npmjs.org/{Uri.EscapeDataString(cli.Package)}/latest");
+            response = await client.GetAsync(uri, cancellationToken);
         }
         catch (HttpRequestException exception)
         {
             throw new CopilotAdapterException(
-                $"Copilot CLI latest-version lookup failed: {exception.Message}");
+                $"{cli.Name} CLI latest-version lookup failed: {exception.Message}");
         }
 
         using (response)
@@ -315,15 +338,15 @@ public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null) : ICop
             if (response.StatusCode is not HttpStatusCode.OK)
             {
                 throw new CopilotAdapterException(
-                    $"Copilot CLI latest-version lookup failed with HTTP {(int)response.StatusCode}");
+                    $"{cli.Name} CLI latest-version lookup failed with HTTP {(int)response.StatusCode}");
             }
 
             string metadata = await response.Content.ReadAsStringAsync(cancellationToken);
-            return new CopilotCliVersion(ParseVersion(metadata));
+            return new CopilotCliVersion(ParseVersion(metadata, cli.Name));
         }
     }
 
-    internal static string ParseVersion(string metadata)
+    internal static string ParseVersion(string metadata, string cli = "copilot")
     {
         try
         {
@@ -338,10 +361,10 @@ public sealed class NpmRegistryCopilotCliProbe(HttpClient? client = null) : ICop
         catch (JsonException exception)
         {
             throw new CopilotAdapterException(
-                $"Copilot CLI latest-version lookup returned invalid JSON: {exception.Message}");
+                $"{cli} CLI latest-version lookup returned invalid JSON: {exception.Message}");
         }
 
         throw new CopilotAdapterException(
-            "Copilot CLI latest-version lookup returned no version");
+            $"{cli} CLI latest-version lookup returned no version");
     }
 }
