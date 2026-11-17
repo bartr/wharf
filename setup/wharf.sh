@@ -10,7 +10,7 @@ fi
 
 curl -fsSL https://gh.io/copilot-install | sudo bash
 curl -fsSL https://claude.ai/install.sh | bash
-npm install -g @openai/codex
+curl -fsSL https://chatgpt.com/codex/install.sh | sh
 curl -fsSL https://dev.meta.ai/install.sh | bash
 
 if [ -d "$HOME/.oh-my-zsh/completions" ]; then
