@@ -1,3 +1,6 @@
+using System.CommandLine;
+using Wharf.Command;
+using Wharf.Configuration;
 using Wharf.Host;
 using Wharf.Logging;
 using Wharf.Smoke;
@@ -6,6 +9,83 @@ namespace Wharf.Tests;
 
 public sealed class SmokeServiceTests
 {
+    [Theory]
+    [InlineData("smoke", "--model", "--effort")]
+    [InlineData("smoke", "-m", "-e")]
+    [InlineData("run", "--model", "--effort")]
+    [InlineData("run", "-m", "-e")]
+    public void CommandsAcceptModelAndEffort(string name, string modelFlag, string effortFlag)
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(item => item.Name == name);
+        var model = Assert.IsType<Option<string?>>(
+            command.Options.Single(item => item.Name == "--model"));
+        var effort = Assert.IsType<Option<string?>>(
+            command.Options.Single(item => item.Name == "--effort"));
+        var parsed = root.Parse([name, modelFlag, "custom-model", effortFlag, "high"]);
+
+        Assert.Empty(parsed.Errors);
+        Assert.Equal("custom-model", parsed.GetValue(model));
+        Assert.Equal("high", parsed.GetValue(effort));
+    }
+
+    [Theory]
+    [InlineData("copilot")]
+    [InlineData("claude")]
+    [InlineData("codex")]
+    public void ExplicitModelAndEffortOverrideEnvironment(string cli)
+    {
+        RunConfiguration configuration = SmokeService.ResolveConfiguration(
+            Path.GetTempPath(), cli, "custom-model", "max",
+            new Dictionary<string, string?>
+            {
+                ["MODEL"] = "short-environment-model",
+                ["WHARF_MODEL"] = "environment-model",
+                ["WHARF_EFFORT"] = "low"
+            });
+
+        Assert.Equal("custom-model", configuration.Model);
+        Assert.Equal("max", configuration.Effort);
+        Assert.Equal(Path.GetTempPath(), configuration.OutputDirectory);
+    }
+
+    [Fact]
+    public void OmittedFlagsPreserveEnvironmentModelAndEffort()
+    {
+        RunConfiguration configuration = SmokeService.ResolveConfiguration(
+            "jobs", environment: new Dictionary<string, string?>
+            {
+                ["WHARF_MODEL"] = "environment-model",
+                ["WHARF_EFFORT"] = "high"
+            });
+
+        Assert.Equal("environment-model", configuration.Model);
+        Assert.Equal("high", configuration.Effort);
+    }
+
+    [Theory]
+    [InlineData("copilot", "hydrafusion")]
+    [InlineData("claude", "claude-sonnet-5-5")]
+    [InlineData("codex", "gpt-6-luna")]
+    public void OmittedFlagsPreserveProviderDefaults(string cli, string model)
+    {
+        RunConfiguration configuration = SmokeService.ResolveConfiguration(
+            "jobs", cli, environment: new Dictionary<string, string?>());
+
+        Assert.Equal(model, configuration.Model);
+        Assert.Equal("default", configuration.Effort);
+    }
+
+    [Fact]
+    public void UnsupportedEffortFailsBeforeExecution()
+    {
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
+            SmokeService.ResolveConfiguration("jobs", effort: "invalid",
+                environment: new Dictionary<string, string?>()));
+
+        Assert.Contains("unsupported effort: invalid", exception.Message);
+    }
+
     [Fact]
     public void PreservesHostQualificationFailureInResult()
     {

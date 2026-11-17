@@ -184,7 +184,7 @@ public sealed class ClaudeCliTests
     [Fact]
     public void ParsesOnlyFinalCumulativeUsageWithoutConvertingDollarsToCredits()
     {
-        ClaudeResult result = Assert.IsType<ClaudeResult>(ClaudeUsageParser.Parse(
+        AgentStreamResult result = Assert.IsType<AgentStreamResult>(ClaudeUsageParser.Parse(
             """
             {"type":"assistant","message":{"usage":{"input_tokens":999}}}
             {"type":"result","is_error":false,"num_turns":3,"total_cost_usd":0.45,"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":30,"cache_creation_input_tokens":40},"modelUsage":{"claude-opus":{"inputTokens":10,"outputTokens":20,"cacheReadInputTokens":30,"cacheCreationInputTokens":40,"costUSD":0.45}}}
@@ -205,7 +205,7 @@ public sealed class ClaudeCliTests
     [Fact]
     public void PreservesUnknownCostAndErrorResults()
     {
-        ClaudeResult result = Assert.IsType<ClaudeResult>(ClaudeUsageParser.Parse(
+        AgentStreamResult result = Assert.IsType<AgentStreamResult>(ClaudeUsageParser.Parse(
             """{"type":"result","is_error":true,"usage":{"input_tokens":10}}"""));
         Assert.True(result.IsError);
         Assert.Null(result.Usage?.CostUsd);

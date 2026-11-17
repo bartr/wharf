@@ -129,6 +129,8 @@ public sealed record AgentEvidenceSummary(
     string? Error = null,
     string? CpuSet = null);
 
+internal sealed record AgentStreamResult(AgentUsage? Usage, int? Turns, bool IsError);
+
 public sealed record AgentExecutionOutcome(
     AgentEvidenceSummary Summary,
     AgentExecutionRequest Request,

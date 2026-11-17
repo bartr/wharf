@@ -238,13 +238,8 @@ public static class CommandTree
         {
             Description = "JSONL progress log path. Defaults to run.jsonl inside the run directory."
         };
-        var model = new Option<string?>("--model") { Description = "Model name." };
-        model.Aliases.Add("-m");
-        var effort = new Option<string?>("--effort")
-        {
-            Description = "Model effort: default, low, medium, high, or max."
-        };
-        effort.Aliases.Add("-e");
+        var model = CreateModelOption();
+        var effort = CreateEffortOption();
         var cliVersion = new Option<string?>("--cli-version")
         {
             Description = "Exact selected CLI version, or latest."
@@ -919,6 +914,8 @@ public static class CommandTree
         };
         var cli = CreateCliOption();
         include.Aliases.Add("-i");
+        var model = CreateModelOption();
+        var effort = CreateEffortOption();
         command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
         command.Options.Add(allowUnsupported);
@@ -928,6 +925,8 @@ public static class CommandTree
         command.Options.Add(diagnostic);
         command.Options.Add(include);
         command.Options.Add(cli);
+        command.Options.Add(model);
+        command.Options.Add(effort);
         command.SetAction(parseResult =>
         {
             try
@@ -955,7 +954,9 @@ public static class CommandTree
                     host,
                     logger,
                     parseResult.GetValue(include),
-                    parseResult.GetValue(cli));
+                    parseResult.GetValue(cli),
+                    parseResult.GetValue(model),
+                    parseResult.GetValue(effort));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {
@@ -988,8 +989,25 @@ public static class CommandTree
 
     private static Option<string?> CreateCliOption() => new("--cli")
     {
-        Description = "Agent CLI: copilot (default) or claude."
+        Description = "Agent CLI: copilot (default), claude, or codex."
     };
+
+    private static Option<string?> CreateModelOption()
+    {
+        var option = new Option<string?>("--model") { Description = "Model name." };
+        option.Aliases.Add("-m");
+        return option;
+    }
+
+    private static Option<string?> CreateEffortOption()
+    {
+        var option = new Option<string?>("--effort")
+        {
+            Description = "Model effort: default, low, medium, high, or max."
+        };
+        option.Aliases.Add("-e");
+        return option;
+    }
 
     private static CliCommand CreateProfileCommand()
     {

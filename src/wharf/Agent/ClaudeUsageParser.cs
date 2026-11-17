@@ -2,13 +2,11 @@ using System.Text.Json;
 
 namespace Wharf.Agent;
 
-internal sealed record ClaudeResult(AgentUsage? Usage, int? Turns, bool IsError);
-
 internal static class ClaudeUsageParser
 {
-    public static ClaudeResult? Parse(string output)
+    public static AgentStreamResult? Parse(string output)
     {
-        ClaudeResult? result = null;
+        AgentStreamResult? result = null;
         using var reader = new StringReader(output);
         while (reader.ReadLine() is { } line)
         {
@@ -70,7 +68,7 @@ internal static class ClaudeUsageParser
                 bool isError = root.TryGetProperty("is_error", out JsonElement error)
                     ? error.GetBoolean()
                     : throw new AgentExecutionException("Claude Code result is missing is_error");
-                result = new ClaudeResult(usage, turns, isError);
+                result = new AgentStreamResult(usage, turns, isError);
             }
             catch (Exception exception) when (
                 exception is JsonException or InvalidOperationException or

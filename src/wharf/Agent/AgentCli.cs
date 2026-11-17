@@ -10,7 +10,8 @@ internal sealed record AgentCli(string Name, string Package, string CredentialVa
     {
         "copilot" => new(name, "@github/copilot", "GH_TOKEN"),
         "claude" => new(name, "@anthropic-ai/claude-code", "CLAUDE_CODE_OAUTH_TOKEN"),
+        "codex" => new(name, "@openai/codex", "WHARF_CODEX_AUTH_JSON"),
         _ => throw new RunConfigurationException(
-            $"unsupported CLI: {name}; allowed values: claude, copilot")
+            $"unsupported CLI: {name}; allowed values: claude, codex, copilot")
     };
 }

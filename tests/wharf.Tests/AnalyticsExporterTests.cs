@@ -8,6 +8,38 @@ namespace Wharf.Tests;
 public sealed class AnalyticsExporterTests
 {
     [Fact]
+    public void CodexUsageKeepsUnknownCostAndCreditsNull()
+    {
+        string root = TestDirectory();
+        try
+        {
+            string run = Path.Combine(root, "all-1");
+            WriteMinimalTrial(run, "task-a__1", "task-a");
+            string agent = Path.Combine(run, "task-a__1", "agent");
+            Directory.CreateDirectory(agent);
+            AgentStreamResult parsed = Assert.IsType<AgentStreamResult>(CodexUsageParser.Parse(
+                """{"type":"turn.completed","usage":{"input_tokens":10,"cached_input_tokens":4,"output_tokens":20}}"""));
+            var summary = new AgentEvidenceSummary(
+                "1.0", "task-a", "completed", 0, 1500, 30, parsed.Turns, null, null,
+                "patch.diff", "stdout.log", "stderr.log", "trajectory.jsonl", parsed.Usage);
+            File.WriteAllText(Path.Combine(agent, "result.json"),
+                JsonSerializer.Serialize(summary, StateJson.Options));
+            AnalyticsTrial row = Assert.Single(new RunEvidenceReader().Read(
+                run, new AnalyticsExportOptions("arm", "codex-cli", "0.169.0", "gpt-6-luna", "default", false)));
+            Assert.Equal(10, row.InputTokens);
+            Assert.Equal(4, row.CacheTokens);
+            Assert.Equal(20, row.OutputTokens);
+            Assert.Null(row.CostUsd);
+            Assert.Null(row.Credits);
+            Assert.Null(row.PremiumRequests);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ExportsClaudeDollarCostsAcrossRetriesWithoutCredits()
     {
         string root = TestDirectory();

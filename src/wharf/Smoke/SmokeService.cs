@@ -37,7 +37,9 @@ public sealed class SmokeService
         HostCheckReport host,
         WharfLogger logger,
         string? include = null,
-        string? cli = null)
+        string? cli = null,
+        string? model = null,
+        string? effort = null)
     {
         if (string.IsNullOrWhiteSpace(taskRoot) || !Directory.Exists(taskRoot))
             throw new SmokeException($"smoke task directory does not exist: {taskRoot}");
@@ -65,26 +67,7 @@ public sealed class SmokeService
                 host.ExitCode);
         }
 
-        RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(),
-            new RunConfigurationOverrides(
-                K: 1,
-                N: 1,
-                P: 1,
-                Cli: cli,
-                OutputDirectory: resolvedOutput),
-            new Dictionary<string, string?>
-            {
-                ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
-                ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
-                ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
-                ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
-                ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
-                ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
-                ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
-                ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
-                ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
-            });
+        RunConfiguration configuration = ResolveConfiguration(resolvedOutput, cli, model, effort);
         if (configuration.ContainerCpus is <= 0)
             throw new SmokeException("containerCpus must be positive");
         RunResult result = runService.Execute(
@@ -104,6 +87,39 @@ public sealed class SmokeService
             Path.Combine(task.RootPath, "task.toml"),
             resolvedOutput,
             0);
+    }
+
+    internal static RunConfiguration ResolveConfiguration(
+        string outputDirectory,
+        string? cli = null,
+        string? model = null,
+        string? effort = null,
+        IReadOnlyDictionary<string, string?>? environment = null)
+    {
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            new RunManifest(),
+            new RunConfigurationOverrides(
+                K: 1,
+                N: 1,
+                P: 1,
+                Cli: cli,
+                Model: model,
+                Effort: effort,
+                OutputDirectory: outputDirectory),
+            environment ?? new Dictionary<string, string?>
+            {
+                ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
+                ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
+                ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
+                ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
+                ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
+                ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
+            });
+        RunConfigurationValidator.ValidateEffort(configuration.Effort);
+        return configuration;
     }
 
     private static void WriteSmokeSelection(

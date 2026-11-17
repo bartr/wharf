@@ -144,6 +144,7 @@ public static class RunConfigurationResolver
     public const string DefaultCopilotCli = "copilot";
     public const string DefaultCopilotModel = "hydrafusion";
     public const string DefaultClaudeModel = "claude-sonnet-5-5";
+    public const string DefaultCodexModel = "gpt-6-luna";
     public const string DefaultCopilotVersion = "latest";
 
     public static string ResolveEffectiveEffort(string model, string effort) =>
@@ -191,7 +192,12 @@ public static class RunConfigurationResolver
         _ = AgentCli.For(cli);
         string model = Pick(
             overrides.Model, EnvironmentValue("WHARF_MODEL"), manifest.Model,
-            cli == "claude" ? DefaultClaudeModel : DefaultCopilotModel);
+            cli switch
+            {
+                "claude" => DefaultClaudeModel,
+                "codex" => DefaultCodexModel,
+                _ => DefaultCopilotModel
+            });
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "default");
         if (cli == "copilot")
             effort = ResolveEffectiveEffort(model, effort);
@@ -285,6 +291,8 @@ public static class RunConfigurationValidator
 
     internal static bool IsSupportedEffort(string effort) => Efforts.Contains(effort);
 
+    internal static void ValidateEffort(string effort) => ValidateValue(effort, Efforts, "effort");
+
     public static void Validate(RunManifest? manifest, RunConfiguration configuration)
     {
         if (manifest is not null && manifest.SchemaVersion is not "1.0")
@@ -310,7 +318,7 @@ public static class RunConfigurationValidator
         ValidateTimeout(configuration.Retries.MaxAttempts, "maxAttempts", allowZero: true);
         ValidateTimeout(configuration.Retries.BackoffSeconds, "backoffSeconds", allowZero: true);
         ValidateValue(configuration.OutputFormat, Formats, "output format");
-        ValidateValue(configuration.Effort, Efforts, "effort");
+        ValidateEffort(configuration.Effort);
         ValidateValue(configuration.ResourcePolicy, Policies, "resource policy");
 
         if (configuration.RetentionDays < 0)

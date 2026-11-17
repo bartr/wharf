@@ -324,19 +324,21 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             AgentUsage? usage;
             int? steps = null;
             int exitCode = agent.ExitCode;
-            if (request.Invocation.Cli == "claude")
+            if (request.Invocation.Cli is "claude" or "codex")
             {
                 usage = null;
                 try
                 {
-                    ClaudeResult? result = ClaudeUsageParser.Parse(standardOutput);
+                    AgentStreamResult? result = request.Invocation.Cli == "claude"
+                        ? ClaudeUsageParser.Parse(standardOutput)
+                        : CodexUsageParser.Parse(standardOutput);
                     usage = result?.Usage;
                     steps = result?.Turns;
                     if (result?.IsError == true || (result is null && exitCode == 0))
                     {
                         if (exitCode == 0)
                             exitCode = 1;
-                        standardError += "\nClaude Code did not return a successful result; see trajectory.jsonl.";
+                        standardError += $"\n{request.Invocation.Cli} did not return a successful result; see trajectory.jsonl.";
                     }
                 }
                 catch (AgentExecutionException exception)
@@ -439,10 +441,24 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add(containerName);
         arguments.Add("/bin/bash");
         arguments.Add("-lc");
+        string command = request.Invocation.Cli == "codex"
+            ? """
+              (
+                  set -e
+                  umask 077
+                  mkdir -p "$CODEX_HOME"
+                  chmod 700 "$CODEX_HOME"
+                  printf '%s' "$WHARF_CODEX_AUTH_JSON" >"$CODEX_HOME/auth.json"
+                  chmod 600 "$CODEX_HOME/auth.json"
+                  unset WHARF_CODEX_AUTH_JSON OPENAI_API_KEY CODEX_API_KEY
+                  "$@"
+              )
+              """
+            : "\"$@\"";
         arguments.Add(
             $"export PATH={AgentCli.For(request.Invocation.Cli).InstallPath}/node_modules/.bin:$PATH; " +
             "cd /workspace/; " +
-            "\"$@\" >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
+            $"{command} >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
             "status=$?; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
             "exit $status");
         arguments.Add("--");

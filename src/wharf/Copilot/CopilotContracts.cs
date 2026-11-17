@@ -117,23 +117,44 @@ public sealed partial class CopilotAdapter
         bool useModelDefaultEffort = options.NativeEffort.Equals(
             "default",
             StringComparison.OrdinalIgnoreCase);
-        var arguments = cli.Name == "claude"
-            ? new List<string>
-            {
+        List<string> arguments = cli.Name switch
+        {
+            "claude" =>
+            [
                 "--model", options.Model,
                 "--print", "--output-format", "stream-json", "--verbose",
                 "--dangerously-skip-permissions"
-            }
-            : new List<string>
-            {
+            ],
+            "codex" =>
+            [
+                "exec", "--json",
+                "--model", options.Model,
+                "--dangerously-bypass-approvals-and-sandbox",
+                "--config", "cli_auth_credentials_store=\"file\"",
+                "--config", "forced_login_method=\"chatgpt\""
+            ],
+            _ =>
+            [
                 "--model", options.Model,
                 "--allow-all-tools",
                 "--no-auto-update"
-            };
+            ]
+        };
+        string nativeEffort = cli.Name == "codex" && options.NativeEffort == "max"
+            ? "xhigh"
+            : options.NativeEffort;
         if (!isHydraFusion && !useModelDefaultEffort)
         {
-            arguments.Add(cli.Name == "claude" ? "--effort" : "--reasoning-effort");
-            arguments.Add(options.NativeEffort);
+            if (cli.Name == "codex")
+            {
+                arguments.Add("--config");
+                arguments.Add($"model_reasoning_effort=\"{nativeEffort}\"");
+            }
+            else
+            {
+                arguments.Add(cli.Name == "claude" ? "--effort" : "--reasoning-effort");
+                arguments.Add(nativeEffort);
+            }
         }
 
         if (isHydraFusion)
@@ -162,6 +183,8 @@ public sealed partial class CopilotAdapter
         };
         if (cli.Name == "claude")
             environment["DISABLE_AUTOUPDATER"] = "1";
+        if (cli.Name == "codex")
+            environment["CODEX_HOME"] = "/home/wharf/.codex";
         bool stdin = options.Credential.Kind is CopilotCredentialSourceKind.Stdin;
         if (options.Credential.Kind is CopilotCredentialSourceKind.Environment)
         {
@@ -172,7 +195,14 @@ public sealed partial class CopilotAdapter
             string path = ExpandHome(options.Credential.Reference);
             if (!File.Exists(path))
             {
-                throw new CopilotAdapterException($"credential file does not exist: {path}");
+                string message = $"credential file does not exist: {path}";
+                if (cli.Name == "codex")
+                    message += "\nSign in with your ChatGPT account using file-based storage:\n" +
+                        "  codex -c 'cli_auth_credentials_store=\"file\"' login\n" +
+                        "For SSH/headless machines:\n" +
+                        "  codex -c 'cli_auth_credentials_store=\"file\"' login --device-auth\n" +
+                        "If CODEX_HOME is set, use the same value when signing in.";
+                throw new CopilotAdapterException(message);
             }
 
             string credential = File.ReadAllText(path).Trim();
@@ -180,6 +210,8 @@ public sealed partial class CopilotAdapter
             {
                 throw new CopilotAdapterException($"credential file is empty: {path}");
             }
+            if (cli.Name == "codex")
+                ValidateCodexCredential(credential);
 
             environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"] = cli.CredentialVariable;
             return new CopilotInvocation(
@@ -190,7 +222,7 @@ public sealed partial class CopilotAdapter
                 requestedVersion,
                 effectiveVersion,
                 options.Model,
-                options.NativeEffort,
+                nativeEffort,
                 normalizedFrontierEffort,
                 options.SubagentModels,
                 options.Endpoints,
@@ -210,7 +242,7 @@ public sealed partial class CopilotAdapter
             requestedVersion,
             effectiveVersion,
             options.Model,
-            options.NativeEffort,
+            nativeEffort,
             normalizedFrontierEffort,
             options.SubagentModels,
             options.Endpoints,
@@ -237,19 +269,22 @@ public sealed partial class CopilotAdapter
         ValidateEffort(options.NativeEffort, "native effort");
         NormalizeFrontierEffort(options.FrontierEffort);
         options.Credential.Validate();
-        if (cli.Name == "claude" &&
+        if (cli.Name != "copilot" &&
             (options.Credential.Kind is CopilotCredentialSourceKind.Stdin ||
              options.SubagentModels.Count != 0 || options.Endpoints.Count != 0))
         {
             throw new CopilotAdapterException(
-                "Claude Code requires file or environment OAuth credentials and does not support Copilot subagent or endpoint options");
+                $"{cli.Name} requires file or environment credentials and does not support Copilot subagent or endpoint options");
         }
+        if (cli.Name == "codex" && options.Credential.Kind is not CopilotCredentialSourceKind.File)
+            throw new CopilotAdapterException("Codex requires a ChatGPT auth.json credential file");
         foreach (string subagent in options.SubagentModels)
         {
             if (string.IsNullOrWhiteSpace(subagent))
             {
                 throw new CopilotAdapterException("subagent model names must not be empty");
             }
+
         }
 
         foreach (string endpoint in options.Endpoints)
@@ -260,6 +295,34 @@ public sealed partial class CopilotAdapter
             {
                 throw new CopilotAdapterException($"endpoint is not allowed: {endpoint}");
             }
+        }
+    }
+
+    private static void ValidateCodexCredential(string credential)
+    {
+        const string message = "Codex credential file must contain ChatGPT auth.json with a nonempty tokens.access_token, not an API key";
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(credential);
+            JsonElement root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("tokens", out JsonElement tokens) ||
+                tokens.ValueKind != JsonValueKind.Object ||
+                !tokens.TryGetProperty("access_token", out JsonElement accessToken) ||
+                accessToken.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(accessToken.GetString()) ||
+                (root.TryGetProperty("OPENAI_API_KEY", out JsonElement apiKey) &&
+                 apiKey.ValueKind != JsonValueKind.Null) ||
+                (root.TryGetProperty("auth_mode", out JsonElement mode) &&
+                 mode.ValueKind != JsonValueKind.Null &&
+                 (mode.ValueKind != JsonValueKind.String || mode.GetString() != "chatgpt")))
+            {
+                throw new CopilotAdapterException(message);
+            }
+        }
+        catch (JsonException)
+        {
+            throw new CopilotAdapterException(message);
         }
     }
 

@@ -30,7 +30,7 @@ public sealed record RetainedResumePlan(
 public sealed class RetainedRunResumePlanner
 {
     private static readonly Regex ArmPattern = new(
-        @"^(?<cli>copilot|claude)-(?<model>.+)-(?<effort>default|low|medium|high|max)-(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)$",
+        @"^(?<cli>copilot|claude|codex)-(?<model>.+)-(?<effort>default|low|medium|high|max)-(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)$",
         RegexOptions.CultureInvariant);
     private static readonly Regex PlanPattern = new(
         @"plan tasks=(?<tasks>\d+) attempts=(?<k>\d+) runs=(?<runs>\d+) " +
@@ -62,7 +62,7 @@ public sealed class RetainedRunResumePlanner
         if (!arm.Success && !baseline)
         {
             throw new RecoveryException(
-                "resume run parent must use <copilot|claude>-<model>-<effort>-<version>");
+                "resume run parent must use <copilot|claude|codex>-<model>-<effort>-<version>");
         }
 
         Match metadata = ReadPlanMetadata(logPath);

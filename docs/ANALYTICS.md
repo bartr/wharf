@@ -854,6 +854,13 @@ never converted into Copilot credits. Missing costs remain null. Token counts
 come from cumulative result usage, and `num_turns` supplies agent steps, not
 request counts. Raw stream-json remains in `trajectory.jsonl`.
 
+Native Codex runs sum per-turn token evidence from JSONL `turn.completed`
+events, including cached-input, cache-write, and reasoning token counts.
+Completed turns supply agent steps, not request counts. Codex JSONL does not
+provide billing cost, so `cost_usd`, credits, and request counts stay null;
+do not estimate them from token pricing. Raw JSONL remains in `trajectory.jsonl`,
+including failed turns.
+
 The legacy DeepSWE runner does not populate `agent_result.cost_usd` for Copilot CLI trials. The
 authoritative usage value is preserved in each trial's session event stream:
 

@@ -1199,7 +1199,10 @@ public sealed class RunService
             executable: configuration.Cli,
             cli: configuration.Cli);
         (CopilotCredentialSource credentialSource, string? configuredCredential) =
-            ResolveCredential(configuration.Credentials, configuration.Cli);
+            ResolveCredential(
+                configuration.Credentials,
+                configuration.Cli,
+                Environment.GetEnvironmentVariable("CODEX_HOME"));
         CopilotInvocation invocation = adapter.PrepareAsync(
             new CopilotAdapterOptions(
                 configuration.CliVersion,
@@ -1218,12 +1221,19 @@ public sealed class RunService
 
     internal static (CopilotCredentialSource Source, string? Value) ResolveCredential(
         SecretSettings credentials,
-        string cli = "copilot")
+        string cli = "copilot",
+        string? codexHome = null)
     {
         AgentCli selected = AgentCli.For(cli);
+        if (cli == "codex")
+            return (new CopilotCredentialSource(
+                CopilotCredentialSourceKind.File,
+                string.IsNullOrWhiteSpace(codexHome)
+                    ? "~/.codex/auth.json"
+                    : Path.Combine(codexHome, "auth.json")), null);
         if (cli == "claude")
             return (new CopilotCredentialSource(
-                CopilotCredentialSourceKind.File, "~/.wharf/claude"), null);
+                CopilotCredentialSourceKind.File, $"~/.wharf/{cli}"), null);
         string? configuredCredential =
             new[] { credentials.Token, credentials.ApiKey, credentials.Password }
                 .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
@@ -1267,7 +1277,7 @@ public sealed class RunService
         $"--prompt={prompt}";
 
     internal static IReadOnlyList<string> BuildPromptArguments(string prompt, string cli) =>
-        cli == "claude" ? ["--", prompt] : [BuildPromptArgument(prompt)];
+        cli is "claude" or "codex" ? ["--", prompt] : [BuildPromptArgument(prompt)];
 
     internal static int? ResolveContainerCpuLimit(
         int? configuredLimit,

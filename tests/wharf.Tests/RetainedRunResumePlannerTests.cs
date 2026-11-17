@@ -8,12 +8,14 @@ namespace Wharf.Tests;
 
 public sealed class RetainedRunResumePlannerTests : IDisposable
 {
-    [Fact]
-    public void ClaudeResumeRestoresRetainedCliAndRejectsMismatchedArm()
+    [Theory]
+    [InlineData("claude")]
+    [InlineData("codex")]
+    public void ResumeRestoresRetainedCliAndRejectsMismatchedArm(string cli)
     {
-        RetainedRunFixture fixture = CreateRun(k: 1, cli: "claude");
+        RetainedRunFixture fixture = CreateRun(k: 1, cli: cli);
         RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(fixture.RunDirectory);
-        Assert.Equal("claude", plan.Configuration.Cli);
+        Assert.Equal(cli, plan.Configuration.Cli);
         string metadataPath = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
         JsonNode metadata = JsonNode.Parse(File.ReadAllText(metadataPath))!;
         metadata["configuration"]!["cli"] = "copilot";
