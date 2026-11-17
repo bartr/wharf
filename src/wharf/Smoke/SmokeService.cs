@@ -39,7 +39,8 @@ public sealed class SmokeService
         string? include = null,
         string? cli = null,
         string? model = null,
-        string? effort = null)
+        string? effort = null,
+        string? cliVersion = null)
     {
         if (string.IsNullOrWhiteSpace(taskRoot) || !Directory.Exists(taskRoot))
             throw new SmokeException($"smoke task directory does not exist: {taskRoot}");
@@ -67,7 +68,7 @@ public sealed class SmokeService
                 host.ExitCode);
         }
 
-        RunConfiguration configuration = ResolveConfiguration(resolvedOutput, cli, model, effort);
+        RunConfiguration configuration = ResolveConfiguration(resolvedOutput, cli, model, effort, cliVersion);
         if (configuration.ContainerCpus is <= 0)
             throw new SmokeException("containerCpus must be positive");
         RunResult result = runService.Execute(
@@ -94,6 +95,7 @@ public sealed class SmokeService
         string? cli = null,
         string? model = null,
         string? effort = null,
+        string? cliVersion = null,
         IReadOnlyDictionary<string, string?>? environment = null)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
@@ -105,6 +107,7 @@ public sealed class SmokeService
                 Cli: cli,
                 Model: model,
                 Effort: effort,
+                CliVersion: cliVersion,
                 OutputDirectory: outputDirectory),
             environment ?? new Dictionary<string, string?>
             {
@@ -112,6 +115,7 @@ public sealed class SmokeService
                 ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                 ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                 ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION"),
                 ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                 ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                 ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),

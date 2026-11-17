@@ -108,6 +108,7 @@ public sealed partial class CopilotAdapter
         CancellationToken cancellationToken = default)
     {
         ValidateOptions(options);
+        string? credential = ReadFileCredential(options.Credential);
         string requestedVersion = await ResolveVersionAsync(options.RequestedVersion, cancellationToken);
         string effectiveVersion = requestedVersion;
 
@@ -192,42 +193,7 @@ public sealed partial class CopilotAdapter
         }
         else if (options.Credential.Kind is CopilotCredentialSourceKind.File)
         {
-            string path = ExpandHome(options.Credential.Reference);
-            if (!File.Exists(path))
-            {
-                string message = $"credential file does not exist: {path}";
-                if (cli.Name == "codex")
-                    message += "\nSign in with your ChatGPT account using file-based storage:\n" +
-                        "  codex -c 'cli_auth_credentials_store=\"file\"' login\n" +
-                        "For SSH/headless machines:\n" +
-                        "  codex -c 'cli_auth_credentials_store=\"file\"' login --device-auth\n" +
-                        "If CODEX_HOME is set, use the same value when signing in.";
-                throw new CopilotAdapterException(message);
-            }
-
-            string credential = File.ReadAllText(path).Trim();
-            if (string.IsNullOrWhiteSpace(credential))
-            {
-                throw new CopilotAdapterException($"credential file is empty: {path}");
-            }
-            if (cli.Name == "codex")
-                ValidateCodexCredential(credential);
-
             environment["WHARF_COPILOT_CREDENTIAL_VARIABLE"] = cli.CredentialVariable;
-            return new CopilotInvocation(
-                executable,
-                arguments,
-                environment,
-                stdin,
-                requestedVersion,
-                effectiveVersion,
-                options.Model,
-                nativeEffort,
-                normalizedFrontierEffort,
-                options.SubagentModels,
-                options.Endpoints,
-                credential,
-                cli.Name);
         }
         else
         {
@@ -246,7 +212,34 @@ public sealed partial class CopilotAdapter
             normalizedFrontierEffort,
             options.SubagentModels,
             options.Endpoints,
+            CredentialValue: credential,
             Cli: cli.Name);
+    }
+
+    private string? ReadFileCredential(CopilotCredentialSource source)
+    {
+        if (source.Kind is not CopilotCredentialSourceKind.File)
+            return null;
+
+        string path = ExpandHome(source.Reference);
+        if (!File.Exists(path))
+        {
+            string message = $"credential file does not exist: {path}";
+            if (cli.Name == "codex")
+                message += "\nSign in with your ChatGPT account using file-based storage:\n" +
+                    "  codex -c 'cli_auth_credentials_store=\"file\"' login\n" +
+                    "For SSH/headless machines:\n" +
+                    "  codex -c 'cli_auth_credentials_store=\"file\"' login --device-auth\n" +
+                    "If CODEX_HOME is set, use the same value when signing in.";
+            throw new CopilotAdapterException(message);
+        }
+
+        string credential = File.ReadAllText(path).Trim();
+        if (string.IsNullOrWhiteSpace(credential))
+            throw new CopilotAdapterException($"credential file is empty: {path}");
+        if (cli.Name == "codex")
+            ValidateCodexCredential(credential);
+        return credential;
     }
 
     private void ValidateOptions(CopilotAdapterOptions options)

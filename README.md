@@ -100,7 +100,9 @@ For SSH/headless machines, add `--device-auth`. Wharf reads Codex's native
 use the same `CODEX_HOME` setting when signing in and running Wharf.
 No separate Wharf credential copy or plain-text API key is needed. If the file
 is missing, Wharf reports the path and both login commands without launching
-authentication automatically. It does not fall back to `~/.wharf/codex`.
+authentication automatically. Run and smoke validate the auth file before
+CLI version lookup, image pulls/builds, or agent execution; setup failures
+abort without creating run output. It does not fall back to `~/.wharf/codex`.
 
 Wharf creates a private copy at `/home/wharf/.codex/auth.json` only during
 agent execution, with directory mode 0700 and file mode 0600. It removes the
@@ -119,14 +121,24 @@ wharf run --cli claude -n 16 -p 12 -k 4
 
 wharf prebuild --cli codex --cli-version latest -p 12
 wharf run --cli codex --cli-version latest -n 16 -p 12 -k 4
-WHARF_CLI_VERSION=latest wharf smoke --cli codex --model gpt-6-luna --effort high
+wharf smoke --cli codex --cli-version latest --model gpt-6-luna --effort high
 ```
 
 `--cli` overrides `WHARF_CLI`, then manifest `"cli"`, then `copilot`.
-`--cli-version` selects an exact version of the chosen CLI, or resolves `latest`
-once before preparation. If `WHARF_CLI_VERSION` is pinned for Copilot, pass
-`--cli-version latest` when switching providers, or pin that provider's version.
-For `smoke`, set `WHARF_CLI_VERSION` instead.
+On `run`, `smoke`, and `prebuild`, `--cli-version` pins the selected CLI or
+resolves its own `latest` version once before preparation. Run manifests may
+also pin `cliVersion`; precedence is flag, manifest, then `latest`. Wharf uses
+the resolved exact version in image caches, run directories, and retained
+evidence, independently of any host-installed CLI.
+
+`WHARF_CLI_VERSION` and `CLI_VERSION` are no longer supported. If either is
+set, Wharf stops with migration instructions, even with an explicit version
+flag. Remove old shell/profile exports and run:
+
+```bash
+unset WHARF_CLI_VERSION CLI_VERSION
+```
+
 Caches and run directories are CLI-specific. Resume
 restores the original CLI and exact version from retained evidence.
 Use `wharf run --cli codex --dry-run` to preview without reading credentials,

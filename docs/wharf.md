@@ -145,9 +145,11 @@ does not cause an unexpected cold start.
 `prebuild -p` limits the number of tasks preparing images concurrently. Each task
 prepares its agent and verifier images sequentially, so their combined build
 concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, then 4; prebuild
-has no N cap. `--p` is not accepted. CLI selection is `--cli-version`,
-`WHARF_CLI_VERSION`, then `latest`, resolved once to an exact version without
+has no N cap. `--p` is not accepted. CLI version selection is `--cli-version`,
+then the selected provider's `latest`, resolved once to an exact version without
 reading credentials. Pin the same version for prebuild and run.
+`WHARF_CLI_VERSION` and `CLI_VERSION` are rejected; remove their exports and
+use `--cli-version` instead.
 
 Prebuild uses the same persistent task-environment, version/platform-specific
 Copilot payload, and composed agent image caches as a normal run. It also
@@ -486,12 +488,13 @@ container and reuse the task's configured environment image. After MVP,
 - Support bounded trial retries with configurable included and excluded exception types.
 - Support force-build, environment retention, resource-policy, mount, and artifact options.
 - Validate all run settings before creating output directories or consuming model quota.
-- Pin agent CLI versions with `--cli-version` or `WHARF_CLI_VERSION` and record
-  the effective version for every trial. CLI version follows the same
-  flag-over-environment-over-manifest-over-default precedence as other run
-  settings. Exact versions drive version-specific image preparation without
-  consulting the host-installed CLI; `latest` resolves the currently published
-  `@github/copilot` version from the npm registry before image preparation.
+- Pin agent CLI versions with `--cli-version` on run, smoke, and prebuild,
+  or `cliVersion` in run manifests, and record the effective version for every
+  trial. Version precedence is flag, manifest, then `latest`; obsolete
+  `WHARF_CLI_VERSION` and `CLI_VERSION` settings are rejected with migration
+  guidance. Exact versions drive version-specific image preparation without
+  consulting the host-installed CLI; `latest` resolves the selected provider's
+  published package version before image preparation.
 - Record requested and effective model and effort settings.
 - Use `hydrafusion` as the default model when no model is explicitly configured.
 - Accept `default` as an effort setting and omit the provider effort argument

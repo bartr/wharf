@@ -138,6 +138,25 @@ public sealed class CodexCliTests : IDisposable
                 () => Adapter().PrepareAsync(Options(path)))).Message);
     }
 
+    [Theory]
+    [InlineData(null, "does not exist")]
+    [InlineData("", "empty")]
+    [InlineData("{synthetic-secret", "ChatGPT auth.json")]
+    public async Task InvalidAuthFailsBeforeLatestVersionLookup(string? credential, string error)
+    {
+        string path = Path.Combine(root, "auth.json");
+        if (credential is not null)
+            File.WriteAllText(path, credential);
+        var probe = new CountingVersionProbe();
+        var adapter = new CopilotAdapter(probe, "codex", "codex");
+
+        CopilotAdapterException exception = await Assert.ThrowsAsync<CopilotAdapterException>(
+            () => adapter.PrepareAsync(Options(path) with { RequestedVersion = "latest" }));
+
+        Assert.Contains(error, exception.Message);
+        Assert.Equal(0, probe.CallCount);
+    }
+
     [Fact]
     public void CodexUsesItsOwnCredentialPromptAndArmIdentity()
     {
@@ -204,6 +223,30 @@ public sealed class CodexCliTests : IDisposable
         var adapter = new CopilotAdapter(
             new NpmRegistryCopilotCliProbe(client, "codex"), "codex", "codex");
         Assert.Equal("0.169.0", await adapter.ResolveVersionAsync("latest"));
+    }
+
+    [Theory]
+    [InlineData("claude", "2.1.241")]
+    [InlineData("codex", "0.169.0")]
+    public async Task LatestProviderVersionNamesItsOwnRunDirectory(string cli, string version)
+    {
+        string path = Path.Combine(root, "credential");
+        File.WriteAllText(path, cli == "codex" ? Credential : "synthetic-oauth");
+        RunConfiguration configuration = RunConfigurationResolver.Resolve(
+            null, new RunConfigurationOverrides(Cli: cli), new Dictionary<string, string?>());
+        var probe = new CountingVersionProbe(version);
+        var adapter = new CopilotAdapter(probe, cli, cli);
+        CopilotInvocation invocation = await adapter.PrepareAsync(Options(path) with
+        {
+            RequestedVersion = configuration.CliVersion,
+            Model = configuration.Model
+        });
+
+        Assert.Equal(version, invocation.EffectiveVersion);
+        Assert.Equal(1, probe.CallCount);
+        Assert.Equal($"{cli}-{configuration.Model}-default-{version}",
+            RunService.BuildJobDirectoryName(configuration.Model, configuration.Effort,
+                configuration.CliVersion, invocation.EffectiveVersion, cli));
     }
 
     [Fact]
@@ -277,6 +320,17 @@ public sealed class CodexCliTests : IDisposable
     {
         public Task<CopilotCliVersion> GetVersionAsync(CancellationToken cancellationToken) =>
             throw new InvalidOperationException("An exact version must not query the registry.");
+    }
+
+    private sealed class CountingVersionProbe(string version = "0.169.0") : ICopilotCliProbe
+    {
+        public int CallCount { get; private set; }
+
+        public Task<CopilotCliVersion> GetVersionAsync(CancellationToken cancellationToken)
+        {
+            CallCount++;
+            return Task.FromResult(new CopilotCliVersion(version));
+        }
     }
 
     private sealed class RegistryHandler : HttpMessageHandler

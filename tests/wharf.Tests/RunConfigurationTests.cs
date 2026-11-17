@@ -40,8 +40,7 @@ public sealed class RunConfigurationTests
         {
             ["WHARF_K"] = "5",
             ["WHARF_N"] = "4",
-            ["WHARF_MODEL"] = "environment-model",
-            ["WHARF_CLI_VERSION"] = "environment-version"
+            ["WHARF_MODEL"] = "environment-model"
         };
 
         RunConfiguration result = RunConfigurationResolver.Resolve(
@@ -57,18 +56,41 @@ public sealed class RunConfigurationTests
         Assert.Equal("flag-version", result.CliVersion);
     }
 
-    [Fact]
-    public void CliVersionUsesEnvironmentBeforeManifest()
+    [Theory]
+    [InlineData("copilot", "1.0.108", "1.0.107")]
+    [InlineData("claude", "2.1.241", "2.1.240")]
+    [InlineData("codex", "0.169.0", "0.168.0")]
+    public void CliVersionUsesFlagThenManifestThenProviderLatest(
+        string cli, string flag, string manifest)
     {
-        RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(CliVersion: "manifest-version"),
-            new RunConfigurationOverrides(),
-            new Dictionary<string, string?>
-            {
-                ["WHARF_CLI_VERSION"] = "environment-version"
-            });
+        var environment = new Dictionary<string, string?>();
+        var configuration = new RunManifest(Cli: cli, CliVersion: manifest);
+        Assert.Equal(flag, RunConfigurationResolver.Resolve(configuration,
+            new RunConfigurationOverrides(CliVersion: flag), environment).CliVersion);
+        Assert.Equal(manifest, RunConfigurationResolver.Resolve(configuration,
+            new RunConfigurationOverrides(), environment).CliVersion);
+        Assert.Equal("latest", RunConfigurationResolver.Resolve(configuration with { CliVersion = null },
+            new RunConfigurationOverrides(), environment).CliVersion);
+    }
 
-        Assert.Equal("environment-version", result.CliVersion);
+    [Theory]
+    [InlineData("copilot", "WHARF_CLI_VERSION")]
+    [InlineData("claude", "WHARF_CLI_VERSION")]
+    [InlineData("codex", "WHARF_CLI_VERSION")]
+    [InlineData("copilot", "CLI_VERSION")]
+    [InlineData("claude", "CLI_VERSION")]
+    [InlineData("codex", "CLI_VERSION")]
+    public void ObsoleteVersionEnvironmentFailsEvenWithExplicitPin(string cli, string variable)
+    {
+        RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
+            RunConfigurationResolver.Resolve(
+                new RunManifest(Cli: cli),
+                new RunConfigurationOverrides(CliVersion: "1.2.3"),
+                new Dictionary<string, string?> { [variable] = "1.0.108" }));
+
+        Assert.Contains(variable, exception.Message);
+        Assert.Contains("unset", exception.Message);
+        Assert.Contains("--cli-version", exception.Message);
     }
 
     [Fact]

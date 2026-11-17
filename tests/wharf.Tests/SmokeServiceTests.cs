@@ -10,6 +10,25 @@ namespace Wharf.Tests;
 public sealed class SmokeServiceTests
 {
     [Theory]
+    [InlineData("run", "1.2.3")]
+    [InlineData("smoke", "1.2.3")]
+    [InlineData("prebuild", "1.2.3")]
+    [InlineData("run", "latest")]
+    [InlineData("smoke", "latest")]
+    [InlineData("prebuild", "latest")]
+    public void CommandsAcceptCliVersion(string name, string version)
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(item => item.Name == name);
+        var option = Assert.IsType<Option<string?>>(
+            command.Options.Single(item => item.Name == "--cli-version"));
+        var parsed = root.Parse([name, "--cli-version", version]);
+
+        Assert.Empty(parsed.Errors);
+        Assert.Equal(version, parsed.GetValue(option));
+    }
+
+    [Theory]
     [InlineData("smoke", "--model", "--effort")]
     [InlineData("smoke", "-m", "-e")]
     [InlineData("run", "--model", "--effort")]
@@ -37,7 +56,7 @@ public sealed class SmokeServiceTests
     {
         RunConfiguration configuration = SmokeService.ResolveConfiguration(
             Path.GetTempPath(), cli, "custom-model", "max",
-            new Dictionary<string, string?>
+            environment: new Dictionary<string, string?>
             {
                 ["MODEL"] = "short-environment-model",
                 ["WHARF_MODEL"] = "environment-model",
@@ -47,6 +66,19 @@ public sealed class SmokeServiceTests
         Assert.Equal("custom-model", configuration.Model);
         Assert.Equal("max", configuration.Effort);
         Assert.Equal(Path.GetTempPath(), configuration.OutputDirectory);
+    }
+
+    [Theory]
+    [InlineData("copilot", "1.0.108")]
+    [InlineData("claude", "2.1.241")]
+    [InlineData("codex", "0.169.0")]
+    public void SmokeUsesSelectedProviderVersionPin(string cli, string version)
+    {
+        RunConfiguration configuration = SmokeService.ResolveConfiguration(
+            "jobs", cli, cliVersion: version,
+            environment: new Dictionary<string, string?>());
+
+        Assert.Equal(version, configuration.CliVersion);
     }
 
     [Fact]

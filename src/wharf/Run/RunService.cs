@@ -116,19 +116,8 @@ public sealed class RunService
             : resume.Attempts.Select(item => item.Attempt).ToArray();
         int plannedRuns = scheduledAttempts.Count;
         string runId = Guid.NewGuid().ToString("N")[..8];
-        CopilotInvocation? invocation = null;
-        string? invocationError = null;
-        try
-        {
-            invocation = PrepareInvocation(configuration);
-        }
-        catch (CopilotAdapterException exception)
-        {
-            invocationError = exception.Message;
-            logger.Info($"agent setup failed error={exception.Message}");
-        }
-        if (invocation is not null)
-            configuration = configuration with { CliVersion = invocation.EffectiveVersion };
+        CopilotInvocation invocation = PrepareInvocation(configuration);
+        configuration = configuration with { CliVersion = invocation.EffectiveVersion };
         string resolvedOutput = Path.GetFullPath(outputDirectory);
         string jobDirectory;
         string attemptDirectory;
@@ -140,7 +129,7 @@ public sealed class RunService
                     configuration.Model,
                     configuration.Effort,
                     configuration.CliVersion,
-                    invocation?.EffectiveVersion,
+                    invocation.EffectiveVersion,
                     configuration.Cli));
             Directory.CreateDirectory(jobDirectory);
             attemptDirectory = CreateAttemptDirectory(jobDirectory, attemptPrefix);
@@ -332,7 +321,7 @@ public sealed class RunService
                                             requestedImage,
                                             message => logger.Info($"{prefix} status={message}"),
                                             buildTimeout.Token,
-                                            invocation?.EffectiveVersion);
+                                            invocation.EffectiveVersion);
                                     removeAgentImage = string.Equals(
                                         image,
                                         requestedImage,
@@ -348,11 +337,6 @@ public sealed class RunService
                                 }
                             }
                             logger.Info($"{prefix} status=image-ready image={image}");
-                            if (invocation is null)
-                            {
-                                return null;
-                            }
-
                             string? cpuSet = await cpuAllocator.AllocateAsync(
                                 image,
                                 containerCpuLimit,
@@ -392,103 +376,86 @@ public sealed class RunService
                         },
                         trialCancellationToken);
                     preparationDuration.Stop();
-                    string preparationResult = agentRequest is null ? "failed" : "completed";
                     logger.StageCompleted(
                         preparationStage,
                         preparationDuration.Elapsed,
-                        preparationResult,
-                        agentRequest is null ? invocationError : null,
-                        agentRequest is null ? "Invocation" : null);
+                        "completed");
                     preparationCompleted = true;
                     agentDuration = Stopwatch.StartNew();
                     logger.StageStarted(agentStage);
 
-                    if (agentRequest is null)
+                    logger.Info($"{prefix} status=running-agent");
+                    AgentExecutionOutcome agentOutcome =
+                        await agentExecution.ExecuteWithInfrastructureRetryAsync(
+                        agentRequest,
+                        Path.Combine(trialDirectory, "agent"),
+                        $"{task.TaskId}__{task.SourceChecksum[..8]}{attemptSuffix}",
+                        maximumRetries: 1,
+                        async (failedRequest, retryNumber, retryCancellationToken) =>
+                        {
+                            logger.Info(
+                                $"{prefix} status=agent-infrastructure-retry " +
+                                $"retry={retryNumber} reason=copilot-service");
+                            string retryWorkspace = Path.Combine(
+                                trialDirectory,
+                                $"workspace-infrastructure-retry-{retryNumber}");
+                            Directory.CreateDirectory(retryWorkspace);
+                            AgentExecutionRequest retryRequest = failedRequest with
+                            {
+                                WorkspaceDirectory = retryWorkspace,
+                                ContainerName = BuildAgentContainerName(
+                                    $"{executionName}-retry-{retryNumber}")
+                            };
+                            await preparationGate.ExecuteAsync(
+                                PreparationOperation.AgentRetry,
+                                new PreparationGateContext(
+                                    runNumber,
+                                    task.TaskId,
+                                    attempt.AttemptNumber,
+                                    trialRetry,
+                                    attempt.AttemptNumber,
+                                    retryNumber),
+                                async prepareCancellationToken =>
+                                {
+                                    await workspacePreparer.PrepareAsync(
+                                        retryRequest,
+                                        prepareCancellationToken);
+                                    return true;
+                                },
+                                retryCancellationToken);
+                            return retryRequest;
+                        },
+                        new FileInfrastructureRetrySink(trialDirectory),
+                        trialCancellationToken);
+                    AgentEvidenceSummary agentEvidence = agentOutcome.Summary;
+                    agentRequest = agentOutcome.Request;
+                    if (agentOutcome.TotalCost.HasValue)
                     {
-                        agentErrorType = "Invocation";
-                        File.WriteAllText(
-                            Path.Combine(trialDirectory, "agent", "error.txt"),
-                            invocationError ?? "Copilot invocation could not be prepared");
-                        logger.Info(
-                            $"{prefix} status=agent-failed error={invocationError}",
-                            invocationError,
-                            "Invocation");
+                        totalCost = (totalCost ?? 0) + agentOutcome.TotalCost.Value;
+                    }
+                    File.Copy(
+                        Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
+                        Path.Combine(trialDirectory, "artifacts", "model.patch"),
+                        overwrite: true);
+                    string cost = totalCost?.ToString(
+                        "0.####",
+                        System.Globalization.CultureInfo.InvariantCulture)
+                        ?? "unknown";
+                    logger.Info(
+                        $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
+                        agentEvidence.Status == "failed"
+                            ? agentEvidence.Error ?? "agent execution failed"
+                            : null,
+                        agentEvidence.Status == "failed"
+                            ? agentEvidence.ErrorType ?? "AgentExecution"
+                            : null);
+                    if (agentEvidence.Status == "failed")
+                    {
+                        agentErrorType = agentEvidence.ErrorType ?? "AgentExecution";
                     }
                     else
                     {
-                        logger.Info($"{prefix} status=running-agent");
-                        AgentExecutionOutcome agentOutcome =
-                            await agentExecution.ExecuteWithInfrastructureRetryAsync(
-                            agentRequest,
-                            Path.Combine(trialDirectory, "agent"),
-                            $"{task.TaskId}__{task.SourceChecksum[..8]}{attemptSuffix}",
-                            maximumRetries: 1,
-                            async (failedRequest, retryNumber, retryCancellationToken) =>
-                            {
-                                logger.Info(
-                                    $"{prefix} status=agent-infrastructure-retry " +
-                                    $"retry={retryNumber} reason=copilot-service");
-                                string retryWorkspace = Path.Combine(
-                                    trialDirectory,
-                                    $"workspace-infrastructure-retry-{retryNumber}");
-                                Directory.CreateDirectory(retryWorkspace);
-                                AgentExecutionRequest retryRequest = failedRequest with
-                                {
-                                    WorkspaceDirectory = retryWorkspace,
-                                    ContainerName = BuildAgentContainerName(
-                                        $"{executionName}-retry-{retryNumber}")
-                                };
-                                await preparationGate.ExecuteAsync(
-                                    PreparationOperation.AgentRetry,
-                                    new PreparationGateContext(
-                                        runNumber,
-                                        task.TaskId,
-                                        attempt.AttemptNumber,
-                                        trialRetry,
-                                        attempt.AttemptNumber,
-                                        retryNumber),
-                                    async prepareCancellationToken =>
-                                    {
-                                        await workspacePreparer.PrepareAsync(
-                                            retryRequest,
-                                            prepareCancellationToken);
-                                        return true;
-                                    },
-                                    retryCancellationToken);
-                                return retryRequest;
-                            },
-                            new FileInfrastructureRetrySink(trialDirectory),
-                            trialCancellationToken);
-                        AgentEvidenceSummary agentEvidence = agentOutcome.Summary;
-                        agentRequest = agentOutcome.Request;
-                        if (agentOutcome.TotalCost.HasValue)
-                        {
-                            totalCost = (totalCost ?? 0) + agentOutcome.TotalCost.Value;
-                        }
-                        File.Copy(
-                            Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
-                            Path.Combine(trialDirectory, "artifacts", "model.patch"),
-                            overwrite: true);
-                        string cost = totalCost?.ToString(
-                            "0.####",
-                            System.Globalization.CultureInfo.InvariantCulture)
-                            ?? "unknown";
-                        logger.Info(
-                            $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
-                            agentEvidence.Status == "failed"
-                                ? agentEvidence.Error ?? "agent execution failed"
-                                : null,
-                            agentEvidence.Status == "failed"
-                                ? agentEvidence.ErrorType ?? "AgentExecution"
-                                : null);
-                        if (agentEvidence.Status == "failed")
-                        {
-                            agentErrorType = agentEvidence.ErrorType ?? "AgentExecution";
-                        }
-                        else
-                        {
-                            agentCompletedSuccessfully = true;
-                        }
+                        agentCompletedSuccessfully = true;
                     }
                     agentDuration.Stop();
                     string agentResult = agentErrorType is null ? "completed" : "failed";

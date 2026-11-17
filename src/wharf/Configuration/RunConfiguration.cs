@@ -158,6 +158,7 @@ public static class RunConfigurationResolver
         RunConfigurationOverrides overrides,
         IReadOnlyDictionary<string, string?> environment)
     {
+        RejectObsoleteVersionEnvironment(environment);
         manifest ??= new RunManifest();
         string? EnvironmentValue(string name)
         {
@@ -201,11 +202,7 @@ public static class RunConfigurationResolver
         string effort = Pick(overrides.Effort, EnvironmentValue("WHARF_EFFORT"), manifest.Effort, "default");
         if (cli == "copilot")
             effort = ResolveEffectiveEffort(model, effort);
-        string cliVersion = Pick(
-            overrides.CliVersion,
-            EnvironmentValue("WHARF_CLI_VERSION"),
-            manifest.CliVersion,
-            DefaultCopilotVersion);
+        string cliVersion = overrides.CliVersion ?? manifest.CliVersion ?? DefaultCopilotVersion;
         SecretSettings credentials = new(
             EnvironmentValue("WHARF_API_KEY") ?? manifest.Credentials?.ApiKey,
             EnvironmentValue("WHARF_TOKEN") ?? manifest.Credentials?.Token,
@@ -241,6 +238,17 @@ public static class RunConfigurationResolver
             overrides.NoOp ?? manifest.NoOp ?? false,
             overrides.Oracle ?? manifest.Oracle ?? false,
             cli);
+    }
+
+    internal static void RejectObsoleteVersionEnvironment(IReadOnlyDictionary<string, string?> environment)
+    {
+        foreach (string name in new[] { "WHARF_CLI_VERSION", "CLI_VERSION" })
+        {
+            if (environment.GetValueOrDefault(name) is not null)
+                throw new RunConfigurationException(
+                    $"{name} is no longer supported; unset WHARF_CLI_VERSION CLI_VERSION " +
+                    "and use --cli-version or manifest cliVersion to pin the selected CLI");
+        }
     }
 
     private static int PickInt(int? flag, string? environment, int? manifest, int fallback, string name) =>

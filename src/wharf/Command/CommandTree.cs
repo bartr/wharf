@@ -132,10 +132,7 @@ public static class CommandTree
         var verbose = new Option<bool>("--verbose") { Description = "Show image preparation details." };
         verbose.Aliases.Add("-v");
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency (default: 4)." };
-        var cliVersion = new Option<string>("--cli-version")
-        {
-            Description = "Exact selected CLI version to warm, or latest."
-        };
+        var cliVersion = CreateCliVersionOption();
         var cli = CreateCliOption();
         command.Options.Add(tasks);
         command.Options.Add(verbose);
@@ -167,7 +164,8 @@ public static class CommandTree
                         ["P"] = Environment.GetEnvironmentVariable("P"),
                         ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
                         ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
-                        ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION")
+                        ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
                     });
                 BuildResult result = new BuildService(
                     imagePreparer: new DockerAgentImagePreparer(
@@ -240,10 +238,7 @@ public static class CommandTree
         };
         var model = CreateModelOption();
         var effort = CreateEffortOption();
-        var cliVersion = new Option<string?>("--cli-version")
-        {
-            Description = "Exact selected CLI version, or latest."
-        };
+        var cliVersion = CreateCliVersionOption();
         var cli = CreateCliOption();
         var retainWorkspaces = new Option<bool>("--retain-workspaces")
         {
@@ -326,6 +321,7 @@ public static class CommandTree
                             ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
                             ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
                             ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                            ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION"),
                             ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                             ["WHARF_RETAIN_WORKSPACES"] =
                                 Environment.GetEnvironmentVariable("WHARF_RETAIN_WORKSPACES"),
@@ -470,6 +466,12 @@ public static class CommandTree
                 if (string.IsNullOrWhiteSpace(requestedRun))
                     throw new RecoveryException("resume run directory is required");
 
+                RunConfigurationResolver.RejectObsoleteVersionEnvironment(
+                    new Dictionary<string, string?>
+                    {
+                        ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
+                    });
                 RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
                     requestedRun,
                     parseResult.GetValue(tasks),
@@ -916,6 +918,7 @@ public static class CommandTree
         include.Aliases.Add("-i");
         var model = CreateModelOption();
         var effort = CreateEffortOption();
+        var cliVersion = CreateCliVersionOption();
         command.Options.Add(taskRoot);
         command.Options.Add(outputDirectory);
         command.Options.Add(allowUnsupported);
@@ -927,6 +930,7 @@ public static class CommandTree
         command.Options.Add(cli);
         command.Options.Add(model);
         command.Options.Add(effort);
+        command.Options.Add(cliVersion);
         command.SetAction(parseResult =>
         {
             try
@@ -934,6 +938,12 @@ public static class CommandTree
                 string? selectedTaskRoot = parseResult.GetValue(taskRoot);
                 if (selectedTaskRoot is null)
                     throw new SmokeException("smoke task directory is required");
+                RunConfigurationResolver.RejectObsoleteVersionEnvironment(
+                    new Dictionary<string, string?>
+                    {
+                        ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
+                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
+                    });
                 HostCheckReport host = new HostCheckService(
                     [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
                     .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
@@ -956,7 +966,8 @@ public static class CommandTree
                     parseResult.GetValue(include),
                     parseResult.GetValue(cli),
                     parseResult.GetValue(model),
-                    parseResult.GetValue(effort));
+                    parseResult.GetValue(effort),
+                    parseResult.GetValue(cliVersion));
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {
@@ -990,6 +1001,11 @@ public static class CommandTree
     private static Option<string?> CreateCliOption() => new("--cli")
     {
         Description = "Agent CLI: copilot (default), claude, or codex."
+    };
+
+    private static Option<string?> CreateCliVersionOption() => new("--cli-version")
+    {
+        Description = "Exact selected CLI version, or latest."
     };
 
     private static Option<string?> CreateModelOption()
