@@ -4,22 +4,6 @@ WharfSWE is a 14-task C# software-engineering benchmark built from Wharf's own
 development history. The Wharf CLI runs this suite separately from DeepSWE.
 At K=4, each arm contains 56 logical trials.
 
-## Task admission order
-
-Wharf automatically loads [duration estimates](tasks/agent-duration-estimates.json)
-and admits tasks longest to shortest within each K wave. Estimates use all
-168 logical trials from the checksum-matched HydraFusion, GPT-6.1 Sol, and
-GPT-6 Luna CLI 1.0.112 arms described below: 12 observations per task, including
-reward-zero trials. Agent seconds come from the retained JSONL exports;
-verifier seconds are the sum of command durations in each retained
-`verifier/trial-result.json`. Each scheduling estimate is the sum of the
-per-task median agent and median verifier seconds, rounded to milliseconds.
-Preparation and evidence-copy time are excluded.
-
-The shared schema's C# language stride is 1, so it introduces no language
-interleaving or artificial duration offsets. `--shortest-first` reverses the
-order within each wave. These estimates do not change task payloads/checksums.
-
 ## Passing trials by CLI revision
 
 ![Passing trials by Copilot CLI revision for HydraFusion, GPT-6.1 Sol, GPT-6 Astra, GPT-6 Luna, and Claude Opus 5.5](docs/pass-at-1-by-cli-revision.svg)
@@ -84,58 +68,6 @@ exception categories. All 280 logical trials remain included. Sol and Astra
 pass every trial without measured regressions; Luna has the lowest cost per
 costed trial. Claude Opus 5.5 here runs through Copilot, not Claude Code.
 The separate Claude Code run awaiting usage-limit recovery is not exported.
-
-## Historical CLI 1.0.112 comparison
-
-Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.112/all-1),
-[GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.112/all-1), and
-[GPT-6 Luna](jobs/copilot-gpt-6-luna-default-1.0.112/all-1).
-All three completed runs use identical task IDs/checksums and retained
-configuration apart from model: K=4, N=40, P=16, and default effort.
-Retained image-cache metadata confirms effective CLI 1.0.112 for all
-168 trials. These are sequential runs, not replicated model comparisons;
-host load and cache conditions are not controlled by matching configuration.
-
-| Metric | HydraFusion | GPT-6.1 Sol | GPT-6 Luna |
-|---|---:|---:|---:|
-| Passes / logical trials | 56 / 56 | 56 / 56 | 51 / 56 |
-| PASS@1 | 100.00% | 100.00% | 91.07% |
-| P2P errors | 0 | 0 | 3 |
-| Score | 100.00% | 100.00% | 90.32% |
-| Tasks solved on any retained attempt | 14 / 14 | 14 / 14 | 14 / 14 |
-| Cost coverage | 56 / 56 | 56 / 56 | 56 / 56 |
-| Total known cost | $14.3689 | $10.4845 | $0.7554 |
-| Cost per costed trial | $0.2566 | $0.1872 | $0.0135 |
-| Mean agent time | 299.4 s | 191.5 s | 170.9 s |
-| Median agent time | 222.7 s | 182.9 s | 165.4 s |
-| Agent p90 | 471.0 s | 303.5 s | 249.2 s |
-| Agent p95 | 1042.2 s | 338.6 s | 263.1 s |
-| Maximum agent time | 1230.6 s | 385.9 s | 283.6 s |
-| Agent commands over 10 minutes | 4 / 56 | 0 / 56 | 0 / 56 |
-| Agent commands over 15 minutes | 4 / 56 | 0 / 56 | 0 / 56 |
-| Run elapsed through final cleanup | 22m 11.4s | 8m 38.5s | 7m 55.3s |
-| Time to finish first 50 of 56 trials | 9m 15.0s | 6m 39.1s | 6m 29.7s |
-| Remaining time for final six trials | 12m 56.4s | 1m 59.4s | 1m 25.6s |
-
-HydraFusion and Sol pass every trial without measured regressions. HydraFusion
-has a heavier observed agent-time tail: four commands exceed 15 minutes, while
-every Sol and Luna command finishes within seven minutes. Sol has lower cost
-per costed trial and lower mean agent time than HydraFusion in these runs.
-Luna is cheaper and faster on average, but has five reward-zero trials,
-including three patches with P2P errors.
-
-Luna's reward-zero trials are `wharf-audit` attempt 3 and `wharf-host-profile`
-attempts 1 and 3 (each 0/3 functional tests and 0/1 regression tests),
-`wharf-reporting` attempt 4 (2/3 functional tests and 1/1 regression tests),
-and `wharf-scheduler` attempt 3 (1/3 functional tests and 1/1 regression tests).
-None of the three runs has whole-trial retries, verifier retries, or exception
-categories; all trials remain in the denominator.
-
-Timing percentiles use linear interpolation over the 56 actual agent-command
-durations. Run elapsed spans the retained run-start timestamp to final cleanup;
-the final-six interval starts when the 50th cleanup completes and includes
-any remaining scheduling, preparation, agent execution, verification, and
-cleanup. It is not a pure agent-time measure or an average trial duration.
 
 ## Data coverage
 
