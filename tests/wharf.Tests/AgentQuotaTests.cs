@@ -10,10 +10,13 @@ public sealed class AgentQuotaTests
 {
     [Theory]
     [InlineData("codex", """{"type":"error","message":"You've hit your usage limit. secret-token"}""", false)]
+    [InlineData("codex", """{"type":"error","message":"You\u2019ve hit your usage limit. secret-token"}""", false)]
+    [InlineData("codex", """{"type":"turn.failed","error":{"message":"You\u2019ve hit your usage limit. secret-token"}}""", false)]
     [InlineData("codex", """{"type":"turn.failed","error":{"code":"usage_limit_reached","resets_at":1795050000}}""", false)]
     [InlineData("codex", """{"type":"error","error":{"type":"insufficient_quota","message":"secret-token"}}""", true)]
     [InlineData("codex", """{"error":{"type":"usage_limit_reached","code":null,"message":"secret-token","resets_at":1795050000}}""", false)]
     [InlineData("claude", """{"type":"assistant","error":"rate_limit","message":{"content":[{"type":"text","text":"You've hit your limit · resets 5pm"}]}}""", false)]
+    [InlineData("claude", """{"type":"assistant","error":"rate_limit","message":{"content":[{"type":"text","text":"You\u2019ve hit your limit; resets 5pm"}]}}""", false)]
     [InlineData("claude", """{"type":"result","is_error":true,"errors":["Credit balance is too low. secret-token"]}""", true)]
     [InlineData("claude", """{"type":"rate_limit_event","rate_limit_info":{"status":"rejected","rateLimitType":"five_hour","resetsAt":1795050000}}""", false)]
     public void RecognizesExplicitExhaustionWithoutRetainingRawDiagnostics(
@@ -59,6 +62,8 @@ public sealed class AgentQuotaTests
     [InlineData("You've hit your limit · resets 5pm (America/Chicago)", "17:00 (America/Chicago)")]
     [InlineData("You've hit your usage limit. Try again at 5:32 PM.", "17:32")]
     [InlineData("You've hit your usage limit. resets secret-token", null)]
+    [InlineData("You\u2019ve hit your usage limit. Try again at Nov 19th, 2026 2:53 AM.", "2026-11-19 02:53")]
+    [InlineData("You've hit your usage limit. Try again at Feb 31st, 2026 2:53 AM.", null)]
     public void NormalizesExplicitResetClockWithoutRetainingSurroundingMessage(
         string message, string? expected)
     {
@@ -89,6 +94,7 @@ public sealed class AgentQuotaTests
                 Assert.Equal(quota, found);
                 notifications++;
             }
+
         };
 
         AgentExecutionOutcome outcome = await service.ExecuteWithInfrastructureRetryAsync(
@@ -107,6 +113,35 @@ public sealed class AgentQuotaTests
             File.ReadAllText(Path.Combine(directories.Evidence, "result.json")));
         Assert.Contains("\"reset\":\"1795050000\"",
             File.ReadAllText(Path.Combine(directories.Evidence, "result.json")));
+    }
+
+    [Fact]
+    public async Task CodexSubscriptionWindowErrorDoesNotRetryOrAcceptPartialPatch()
+    {
+        using var directories = new TestDirectories();
+        string output = JsonSerializer.Serialize(new
+        {
+            type = "error",
+            message = "You\u2019ve hit your usage limit. Upgrade to Pro, " +
+                "purchase more credits or try again at Nov 19th, 2026 2:53 AM."
+        });
+        var runner = new FakeRunner(new AgentRunResult(
+            1, output, "", output, "partial patch", TimeSpan.FromSeconds(1)));
+        var sink = new RetrySink();
+        AgentExecutionOutcome outcome = await new AgentExecutionService(runner)
+            .ExecuteWithInfrastructureRetryAsync(
+                directories.Request with
+                {
+                    Invocation = directories.Request.Invocation with { Cli = "codex" }
+                },
+                directories.Evidence, "logical-1", 2,
+                (_, _, _) => throw new InvalidOperationException("quota must not retry"), sink);
+
+        Assert.Equal(AgentQuotaFailure.ErrorType, outcome.Summary.ErrorType);
+        Assert.Equal("2026-11-19 02:53", outcome.Summary.Quota?.Reset);
+        Assert.Equal("failed", outcome.Summary.Status);
+        Assert.Equal(1, runner.Starts);
+        Assert.Equal(0, sink.Count);
     }
 
     [Fact]
@@ -182,7 +217,7 @@ public sealed class AgentQuotaTests
         using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         string release = Path.Combine(directories.Root, "release");
         const string quotaLine =
-            """{"type":"turn.failed","error":{"code":"usage_limit_reached","resets_at":1795050000}}""";
+            """{"type":"turn.failed","error":{"message":"You\u2019ve hit your usage limit. Try again at Nov 19th, 2026 2:53 AM."}}""";
         var notified = new TaskCompletionSource<AgentQuotaFailure>(
             TaskCreationOptions.RunContinuationsAsynchronously);
         int notifications = 0;
@@ -210,7 +245,7 @@ public sealed class AgentQuotaTests
         {
             AgentQuotaFailure quota = await notified.Task.WaitAsync(cancellation.Token);
             Assert.False(execution.IsCompleted);
-            Assert.Equal("1795050000", quota.Reset);
+            Assert.Equal("2026-11-19 02:53", quota.Reset);
         }
         finally
         {

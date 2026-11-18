@@ -88,7 +88,7 @@ internal static class AgentQuotaParser
         if (value.ValueKind != JsonValueKind.String)
             return null;
 
-        string message = value.GetString()!;
+        string message = value.GetString()!.Replace('\u2019', '\'');
         bool credits = Contains(message, "credit balance is too low") ||
             Contains(message, "insufficient credits") ||
             Contains(message, "out of credits") ||
@@ -134,7 +134,19 @@ internal static class AgentQuotaParser
 
     private static string? MessageReset(string message)
     {
-        Match match = Regex.Match(message.Length > 4096 ? message[..4096] : message,
+        string bounded = message.Length > 4096 ? message[..4096] : message;
+        Match dated = Regex.Match(bounded,
+            @"try again at\s+(?<month>[A-Za-z]{3})\s+(?<day>\d{1,2})(?:st|nd|rd|th)?,\s+(?<year>\d{4})\s+(?<time>(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*[ap]m)(?=$|[\s.])",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+            TimeSpan.FromMilliseconds(100));
+        if (dated.Success && DateTime.TryParseExact(
+                $"{dated.Groups["month"].Value} {dated.Groups["day"].Value}, " +
+                $"{dated.Groups["year"].Value} {dated.Groups["time"].Value}",
+                ["MMM d, yyyy h:mm tt", "MMM d, yyyy h:mmtt", "MMM d, yyyy h tt", "MMM d, yyyy htt"],
+                CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out DateTime resetDate))
+            return resetDate.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+        Match match = Regex.Match(bounded,
             @"(?:resets?|try again at)\s+(?<time>(?:1[0-2]|0?[1-9])(?::[0-5]\d)?\s*[ap]m)(?:\s*\((?<zone>[A-Za-z_]+(?:/[A-Za-z_+-]+)+)\))?(?=$|[\s.·])",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
             TimeSpan.FromMilliseconds(100));

@@ -107,7 +107,8 @@ quota-interrupted execution, including a partial passing patch, is rejected:
 Wharf first writes a secret-free audit under `.github/tracking/`, then permanently
 deletes that execution's raw payload, leaving its logical slot pending.
 Known rejected usage/cost/time remains in the audit, separate from accepted
-analytics. Generic HTTP 429 or service overload alone does not trigger this.
+analytics. Provider reset dates/times are retained without assuming a timezone
+when none is supplied. Generic HTTP 429 or service overload alone does not trigger this.
 
 After a manual quota reset, run another batch; Wharf does not sleep, sign in,
 or switch models automatically. Exit 0 means the invocation finished normally
