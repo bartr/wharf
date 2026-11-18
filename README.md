@@ -77,6 +77,11 @@ execution environments, and automated verification of the resulting code.
 
 ### Subscription-aware batches
 
+**The benchmark adapts to your workflow—not the other way around.**
+
+Run what your quota and schedule allow, then continue later without losing
+completed results or manually cleaning up quota-interrupted attempts.
+
 Start a fixed K-attempt experiment in batches of at most B pending logical trials:
 
 ```bash
