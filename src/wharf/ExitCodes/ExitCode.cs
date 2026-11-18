@@ -8,4 +8,5 @@ public readonly record struct ExitCode(int Value)
     public static ExitCode UnsupportedHost => new(3);
     public static ExitCode BlockedRun => new(4);
     public static ExitCode PartialRun => new(5);
+    public static ExitCode QuotaPaused => new(6);
 }

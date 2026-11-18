@@ -226,6 +226,12 @@ public static class CommandTree
         var k = new Option<int?>("-k") { Description = "Attempts per task." };
         var n = new Option<int?>("-n") { Description = "Task concurrency." };
         var p = new Option<int?>("-p") { Description = "Agent and verifier preparation concurrency." };
+        var batchSize = new Option<int?>("-b") { Description = "Maximum pending logical trials admitted by this invocation." };
+        batchSize.Aliases.Add("--batch-size");
+        var runDirectory = new Option<string?>("--run-directory")
+        {
+            Description = "Continue this exact retained run with -b; otherwise use the current run directory."
+        };
         var containerCpus = new Option<int?>("--container-cpus")
         {
             Description = "Optional logical CPU limit per agent/verifier container (default: unrestricted). No affinity restriction when available CPUs are at or below this limit."
@@ -265,6 +271,8 @@ public static class CommandTree
         command.Options.Add(noOp);
         command.Options.Add(oracle);
         command.Options.Add(k);
+        command.Options.Add(batchSize);
+        command.Options.Add(runDirectory);
         command.Options.Add(n);
         command.Options.Add(p);
         command.Options.Add(containerCpus);
@@ -282,7 +290,70 @@ public static class CommandTree
         command.Options.Add(verbose);
         command.SetAction(parseResult =>
         {
-            if (!parseResult.GetValue(dryRun))
+            int? requestedBatch = parseResult.GetValue(batchSize);
+            try
+            {
+                RunBatch.ValidateSize(requestedBatch);
+                string? directory = parseResult.GetValue(runDirectory);
+                if (directory is not null && string.IsNullOrWhiteSpace(directory))
+                    throw new RunException("--run-directory must name an existing run");
+                if (directory is not null && requestedBatch is null)
+                    throw new RunException("--run-directory on run requires -b or --batch-size");
+                string currentDirectory = Directory.GetCurrentDirectory();
+                if (requestedBatch is not null &&
+                    (directory is not null ||
+                     Path.Exists(Path.Combine(currentDirectory, RetainedRunMetadataStore.FileName)) ||
+                     Path.Exists(Path.Combine(currentDirectory, RunBatch.FileName)) ||
+                     (System.Text.RegularExpressions.Regex.IsMatch(
+                         Path.GetFileName(currentDirectory), @"^all-\d+$") &&
+                      File.Exists(Path.Combine(currentDirectory, "run.jsonl")))))
+                {
+                    Option[] immutableOptions =
+                    [
+                        manifest, noOp, oracle, k, n, p, containerCpus, outputFormat,
+                        outputDirectory, model, effort, cliVersion, cli, retainWorkspaces,
+                        shortestFirst, include, tasks, logFile
+                    ];
+                    foreach (Option option in immutableOptions)
+                        if (parseResult.GetResult(option) is { Implicit: false })
+                            throw new RunException(
+                                $"batch continuation restores immutable run policy; remove {option.Name}");
+                    RetainedResumePlan plan = BatchRunPlanning.Plan(
+                        directory ?? currentDirectory, requestedBatch.Value);
+                    BatchRunPlanning.Preview(
+                        plan.Attempts.Select(item => item.Attempt).ToArray(),
+                        requestedBatch.Value, plan.K *
+                        RetainedRunMetadataStore.Read(plan.RunDirectory)!.Tasks.Count,
+                        plan.CliVersion);
+                    if (parseResult.GetValue(dryRun) || plan.Attempts.Count == 0)
+                        return ExitCode.Success.Value;
+                    RunConfiguration retained = plan.Configuration with
+                    {
+                        Credentials = new SecretSettings(
+                            Environment.GetEnvironmentVariable("WHARF_API_KEY"),
+                            Environment.GetEnvironmentVariable("WHARF_TOKEN"),
+                            Environment.GetEnvironmentVariable("WHARF_PASSWORD"))
+                    };
+                    using WharfLogger batchLogger = WharfLogger.CreateDeferred(configuration with
+                    {
+                        Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
+                    });
+                    RunResult continued = new RunService().Execute(
+                        plan.TaskRoot, retained.OutputDirectory, retained, batchLogger,
+                        cancellationToken: cancellationToken,
+                        resume: new RunResumeTarget(plan.RunDirectory, plan.Attempts),
+                        batchSize: requestedBatch);
+                    Console.WriteLine($"batch status={continued.Status} run={plan.RunDirectory}");
+                    return continued.Status == "quota-paused" ? ExitCode.QuotaPaused.Value : ExitCode.Success.Value;
+                }
+            }
+            catch (Exception exception) when (exception is RunException or RecoveryException or
+                RunConfigurationException or CopilotAdapterException or IOException)
+            {
+                Console.Error.WriteLine(exception.Message);
+                return ExitCode.InvalidInput.Value;
+            }
+            if (!parseResult.GetValue(dryRun) || requestedBatch is not null)
             {
                 try
                 {
@@ -346,6 +417,19 @@ public static class CommandTree
                                 $"run task include did not match a task: {includeExpression}");
                         }
                     }
+                    if (requestedBatch is not null && parseResult.GetValue(dryRun))
+                    {
+                        if (runConfiguration.NoOp || runConfiguration.Oracle)
+                            throw new RunException("batch mode requires an AI agent run");
+                        selectedTasks ??= new HarborTaskLoader().Load(taskRoot);
+                        BatchRunPlanning.Preview(
+                            TaskSelector.OrderAttemptsForAdmission(
+                                TaskSelector.ExpandAttempts(selectedTasks, runConfiguration.K),
+                                runConfiguration.ShortestFirst),
+                            requestedBatch.Value, selectedTasks.Count * runConfiguration.K,
+                            runConfiguration.CliVersion);
+                        return ExitCode.Success.Value;
+                    }
                     WharfConfiguration loggerConfiguration = configuration with
                     {
                         Verbosity = Math.Max(configuration.Verbosity, parseResult.GetValue(verbose) ? 1 : 0)
@@ -364,12 +448,17 @@ public static class CommandTree
                         runConfiguration,
                         logger,
                         selectedTasks,
-                        cancellationToken: cancellationToken);
-                    Console.WriteLine(
-                        $"complete runs={(runConfiguration.NoOp || runConfiguration.Oracle ? result.TaskCount * runConfiguration.K : result.TaskCount)} " +
-                        $"result={(runConfiguration.NoOp || runConfiguration.Oracle ? result.Status : "execution-pending")} " +
-                        $"output={result.OutputDirectory} log={logger.JsonlPath}");
-                    return ExitCode.Success.Value;
+                        cancellationToken: cancellationToken,
+                        batchSize: requestedBatch);
+                    if (requestedBatch is not null)
+                        Console.WriteLine($"batch status={result.Status} " +
+                            $"run={Path.Combine(result.JobDirectory, result.AttemptDirectory)} log={logger.JsonlPath}");
+                    else
+                        Console.WriteLine(
+                            $"complete runs={(runConfiguration.NoOp || runConfiguration.Oracle ? result.TaskCount * runConfiguration.K : result.TaskCount)} " +
+                            $"result={result.Status} " +
+                            $"output={result.OutputDirectory} log={logger.JsonlPath}");
+                    return result.Status == "quota-paused" ? ExitCode.QuotaPaused.Value : ExitCode.Success.Value;
                 }
                 catch (RunException exception)
                 {
@@ -390,6 +479,11 @@ public static class CommandTree
                 {
                     Console.Error.WriteLine($"unable to create run artifacts: {exception.Message}");
                     return ExitCode.InternalFailure.Value;
+                }
+                catch (RecoveryException exception)
+                {
+                    Console.Error.WriteLine(exception.Message);
+                    return ExitCode.InvalidInput.Value;
                 }
             }
 
@@ -526,9 +620,10 @@ public static class CommandTree
                     cancellationToken: cancellationToken,
                     resume: new RunResumeTarget(plan.RunDirectory, plan.Attempts));
                 Console.WriteLine(
-                    $"resume complete trials={plan.Attempts.Count} " +
+                    $"resume {(result.Status == "quota-paused" ? "quota-paused" : "complete")} " +
+                    $"trials={plan.Attempts.Count} " +
                     $"run={result.AttemptDirectory} log={logger.JsonlPath}");
-                return ExitCode.Success.Value;
+                return result.Status == "quota-paused" ? ExitCode.QuotaPaused.Value : ExitCode.Success.Value;
             }
             catch (Exception exception) when (
                 exception is RecoveryException or

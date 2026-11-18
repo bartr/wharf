@@ -41,13 +41,15 @@ public sealed class RunService
     private readonly IAgentWorkspacePreparer workspacePreparer;
     private readonly AgentExecutionService agentExecution;
     private readonly PristineVerifierService verifier;
+    private readonly Func<RunConfiguration, CopilotInvocation> invocationFactory;
 
     public RunService(
         HarborTaskLoader? taskLoader = null,
         IAgentImagePreparer? imagePreparer = null,
         IAgentWorkspacePreparer? workspacePreparer = null,
         AgentExecutionService? agentExecution = null,
-        PristineVerifierService? verifier = null)
+        PristineVerifierService? verifier = null,
+        Func<RunConfiguration, CopilotInvocation>? invocationFactory = null)
     {
         this.taskLoader = taskLoader ?? new HarborTaskLoader();
         this.imagePreparer = imagePreparer;
@@ -57,6 +59,7 @@ public sealed class RunService
             new FilePristineWorkspaceFactory(),
             new GitPatchApplier(),
             new ProcessVerifierRunner());
+        this.invocationFactory = invocationFactory ?? PrepareInvocation;
     }
 
     public RunResult Execute(
@@ -67,8 +70,10 @@ public sealed class RunService
         IReadOnlyList<HarborTask>? selectedTasks = null,
         string attemptPrefix = "all",
         CancellationToken cancellationToken = default,
-        RunResumeTarget? resume = null)
+        RunResumeTarget? resume = null,
+        int? batchSize = null)
     {
+        RunBatch.ValidateSize(batchSize);
         IAgentImagePreparer imagePreparer = this.imagePreparer ??
             new DockerAgentImagePreparer(cli: configuration.Cli);
         string resolvedRoot = Path.GetFullPath(taskRoot);
@@ -97,11 +102,25 @@ public sealed class RunService
 
         if (configuration.NoOp || configuration.Oracle)
         {
+            if (batchSize is not null)
+                throw new RunException("batch mode requires an AI agent run, not --no-op or --oracle");
             return new BaselineRunService(imagePreparer).Execute(
                 resolvedRoot, outputDirectory, configuration, logger, tasks,
                 attemptPrefix, cancellationToken, resume);
         }
 
+        using RunBatch? resumedBatch = resume is null ? null : new RunBatch(resume.RunDirectory);
+        if (resume is not null)
+        {
+            RetainedResumePlan refreshed = new RetainedRunResumePlanner().Plan(
+                resume.RunDirectory, taskRoot, configuration.N, configuration.P);
+            resume = new RunResumeTarget(refreshed.RunDirectory, refreshed.Attempts);
+            if (RetainedRunMetadataStore.Read(resume.RunDirectory) is { } retained)
+            {
+                var ids = retained.Tasks.Select(task => task.TaskId).ToHashSet(StringComparer.Ordinal);
+                tasks = taskLoader.Load(resolvedRoot).Where(task => ids.Contains(task.TaskId)).ToArray();
+            }
+        }
         int? containerCpuLimit = ResolveContainerCpuLimit(
             configuration.ContainerCpus,
             tasks.Count,
@@ -114,9 +133,13 @@ public sealed class RunService
                 TaskSelector.ExpandAttempts(tasks, configuration.K),
                 configuration.ShortestFirst)
             : resume.Attempts.Select(item => item.Attempt).ToArray();
-        int plannedRuns = scheduledAttempts.Count;
+        int plannedRuns = resume is null ? tasks.Count * configuration.K :
+            (RetainedRunMetadataStore.Read(resume.RunDirectory)?.Tasks.Count ?? tasks.Count) *
+            configuration.K;
+        int initialPending = scheduledAttempts.Count;
+        scheduledAttempts = scheduledAttempts.Take(batchSize ?? scheduledAttempts.Count).ToArray();
         string runId = Guid.NewGuid().ToString("N")[..8];
-        CopilotInvocation invocation = PrepareInvocation(configuration);
+        CopilotInvocation invocation = invocationFactory(configuration);
         configuration = configuration with { CliVersion = invocation.EffectiveVersion };
         string resolvedOutput = Path.GetFullPath(outputDirectory);
         string jobDirectory;
@@ -151,6 +174,11 @@ public sealed class RunService
                 configuration,
                 tasks);
         }
+        using RunBatch? createdBatch = resume is null
+            ? new RunBatch(Path.Combine(jobDirectory, attemptDirectory))
+            : null;
+        RunBatch batch = resumedBatch ?? createdBatch!;
+        batch.Begin(batchSize, scheduledAttempts, initialPending);
         logger.AttachJsonlPathIfUnset(
             Path.Combine(jobDirectory, attemptDirectory, "run.jsonl"));
         logger.Info(
@@ -170,440 +198,456 @@ public sealed class RunService
             configuration.P,
             logger.PreparationGateChanged);
         using var cpuAllocator = new DockerCpuSetAllocator();
-        Parallel.ForEachAsync(
-            scheduledAttempts.Select((attempt, index) => (attempt, index)),
-            new ParallelOptions
-            {
-                MaxDegreeOfParallelism = configuration.N,
-                CancellationToken = cancellationToken
-            },
-            async (item, trialCancellationToken) =>
+        bool batchFinished = false;
+        try
         {
-            TaskAttempt attempt = item.attempt;
-            HarborTask task = attempt.Task;
-            int runNumber = item.index + 1;
-            string prefix = FormatRunPrefix(
-                runNumber,
-                plannedRuns,
-                task,
-                attempt.AttemptNumber,
-                configuration.K,
-                configuration.K);
-            string attemptSuffix = configuration.K > 1
-                ? $"__attempt-{attempt.AttemptNumber}"
-                : string.Empty;
-            string trialDirectory = Path.Combine(
-                jobDirectory,
-                attemptDirectory,
-                $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}{attemptSuffix}");
-            int maximumTrialRetries = configuration.Retries.MaxAttempts ?? 1;
-            RetainedResumeAttempt? resumeAttempt =
-                resumeAttempts.GetValueOrDefault(attempt.AttemptId);
-            if (resumeAttempt is not null)
+            Parallel.ForEachAsync(
+                scheduledAttempts.Select((attempt, index) => (attempt, index)),
+                new ParallelOptions
+                {
+                    MaxDegreeOfParallelism = configuration.N,
+                    CancellationToken = cancellationToken
+                },
+                async (item, trialCancellationToken) =>
             {
-                if (!string.Equals(
-                        Path.GetFullPath(trialDirectory),
-                        Path.GetFullPath(resumeAttempt.TrialDirectory),
-                        StringComparison.Ordinal))
-                {
-                    throw new RunException(
-                        $"resume trial path mismatch for {attempt.AttemptId}");
-                }
-                if (File.Exists(Path.Combine(trialDirectory, "result.json")) &&
-                    !resumeAttempt.HasInvalidTerminalResult)
-                {
-                    throw new RunException(
-                        $"resume trial already has a terminal result: {trialDirectory}");
-                }
-                string archived = ResumeEvidenceArchiver.Archive(trialDirectory);
-                logger.Info(
-                    $"{prefix} status=resume-evidence-archived path={archived}");
-            }
-
-            int initialTrialRetry = resumeAttempt?.TrialRetry ?? 0;
-            decimal? totalCost = resumeAttempt?.TotalCost;
-            bool firstExecution = true;
-            for (int trialRetry = initialTrialRetry; ; trialRetry++)
-            {
-                if (trialRetry > 0 && !firstExecution)
-                {
-                    ArchiveTrialExecution(trialDirectory, trialRetry);
-                }
-                firstExecution = false;
-                string trialRetrySuffix = trialRetry > 0
-                    ? $"__trial-retry-{trialRetry}"
-                    : string.Empty;
-                string executionName =
-                    $"{SanitizePathPart(task.TaskId)}{attemptSuffix}__{runId}{trialRetrySuffix}";
-                Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
-                Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
-                Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
-                string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
-                Directory.CreateDirectory(workspaceDirectory);
-                string image = string.Empty;
-                bool removeAgentImage = false;
-                AgentExecutionRequest? agentRequest = null;
-                string? agentErrorType = null;
-                bool agentCompletedSuccessfully = false;
-                StageLogContext Stage(string stage) => new(
+                TaskAttempt attempt = item.attempt;
+                if (!batch.Admit(attempt.AttemptId))
+                    return;
+                HarborTask task = attempt.Task;
+                int runNumber = item.index + 1;
+                string prefix = FormatRunPrefix(
                     runNumber,
                     plannedRuns,
-                    task.TaskId,
+                    task,
                     attempt.AttemptNumber,
-                    trialRetry,
-                    stage);
-                StageLogContext preparationStage = Stage("preparation");
-                var preparationDuration = Stopwatch.StartNew();
-                bool preparationCompleted = false;
-                StageLogContext agentStage = Stage("agent");
-                Stopwatch? agentDuration = null;
-                bool agentCompleted = false;
-
-                void CompleteExecutionStage(
-                    string result,
-                    string error,
-                    string errorType)
+                    configuration.K,
+                    configuration.K);
+                string attemptSuffix = configuration.K > 1
+                    ? $"__attempt-{attempt.AttemptNumber}"
+                    : string.Empty;
+                string trialDirectory = Path.Combine(
+                    jobDirectory,
+                    attemptDirectory,
+                    $"{SanitizePathPart(task.TaskId)}__{task.SourceChecksum[..8]}{attemptSuffix}");
+                int maximumTrialRetries = configuration.Retries.MaxAttempts ?? 1;
+                RetainedResumeAttempt? resumeAttempt =
+                    resumeAttempts.GetValueOrDefault(attempt.AttemptId);
+                if (resumeAttempt is not null)
                 {
-                    if (!preparationCompleted)
+                    if (!string.Equals(
+                            Path.GetFullPath(trialDirectory),
+                            Path.GetFullPath(resumeAttempt.TrialDirectory),
+                            StringComparison.Ordinal))
                     {
+                        throw new RunException(
+                            $"resume trial path mismatch for {attempt.AttemptId}");
+                    }
+                    if (File.Exists(Path.Combine(trialDirectory, "result.json")) &&
+                        !resumeAttempt.HasInvalidTerminalResult)
+                    {
+                        throw new RunException(
+                            $"resume trial already has a terminal result: {trialDirectory}");
+                    }
+                    string archived = ResumeEvidenceArchiver.Archive(trialDirectory);
+                    logger.Info(
+                        $"{prefix} status=resume-evidence-archived path={archived}");
+                }
+
+                int initialTrialRetry = resumeAttempt?.TrialRetry ?? 0;
+                decimal? totalCost = resumeAttempt?.TotalCost;
+                bool firstExecution = true;
+                for (int trialRetry = initialTrialRetry; ; trialRetry++)
+                {
+                    if (trialRetry > 0 && !firstExecution)
+                    {
+                        ArchiveTrialExecution(trialDirectory, trialRetry);
+                    }
+                    firstExecution = false;
+                    string trialRetrySuffix = trialRetry > 0
+                        ? $"__trial-retry-{trialRetry}"
+                        : string.Empty;
+                    string executionName =
+                        $"{SanitizePathPart(task.TaskId)}{attemptSuffix}__{runId}{trialRetrySuffix}";
+                    Directory.CreateDirectory(Path.Combine(trialDirectory, "agent"));
+                    Directory.CreateDirectory(Path.Combine(trialDirectory, "artifacts"));
+                    Directory.CreateDirectory(Path.Combine(trialDirectory, "verifier"));
+                    string workspaceDirectory = Path.Combine(trialDirectory, "workspace");
+                    Directory.CreateDirectory(workspaceDirectory);
+                    string image = string.Empty;
+                    bool removeAgentImage = false;
+                    AgentExecutionRequest? agentRequest = null;
+                    string? agentErrorType = null;
+                    AgentQuotaFailure? trialQuota = null;
+                    bool agentCompletedSuccessfully = false;
+                    StageLogContext Stage(string stage) => new(
+                        runNumber,
+                        plannedRuns,
+                        task.TaskId,
+                        attempt.AttemptNumber,
+                        trialRetry,
+                        stage);
+                    StageLogContext preparationStage = Stage("preparation");
+                    var preparationDuration = Stopwatch.StartNew();
+                    bool preparationCompleted = false;
+                    StageLogContext agentStage = Stage("agent");
+                    Stopwatch? agentDuration = null;
+                    bool agentCompleted = false;
+
+                    void CompleteExecutionStage(
+                        string result,
+                        string error,
+                        string errorType)
+                    {
+                        if (!preparationCompleted)
+                        {
+                            preparationDuration.Stop();
+                            logger.StageCompleted(
+                                preparationStage,
+                                preparationDuration.Elapsed,
+                                result,
+                                error,
+                                errorType);
+                            preparationCompleted = true;
+                        }
+                        else if (!agentCompleted && agentDuration is not null)
+                        {
+                            agentDuration.Stop();
+                            logger.StageCompleted(
+                                agentStage,
+                                agentDuration.Elapsed,
+                                result,
+                                error,
+                                errorType);
+                            agentCompleted = true;
+                        }
+                    }
+
+                    logger.StageStarted(preparationStage);
+                    try
+                    {
+                        logger.Info($"{prefix} status=waiting-preparation");
+                        agentRequest = await preparationGate.ExecuteAsync(
+                            PreparationOperation.Agent,
+                            new PreparationGateContext(
+                                runNumber,
+                                task.TaskId,
+                                attempt.AttemptNumber,
+                                trialRetry,
+                                attempt.AttemptNumber),
+                            async preparationCancellationToken =>
+                            {
+                                if (batch.IsStopped)
+                                    throw new AgentExecutionException(
+                                        "run paused after quota exhaustion", "QuotaPaused");
+                                logger.Info($"{prefix} status=preparing-image");
+                                using (var buildTimeout = CancellationTokenSource.CreateLinkedTokenSource(
+                                           preparationCancellationToken))
+                                {
+                                    buildTimeout.CancelAfter(TimeSpan.FromSeconds(
+                                        ResolveTimeoutSeconds(
+                                            configuration.Timeouts.SetupSeconds,
+                                            task.AgentBuildTimeoutSeconds,
+                                            1800)));
+                                    try
+                                    {
+                                        string requestedImage =
+                                            BuildAgentImageName(executionName);
+                                        image = await imagePreparer.PrepareAsync(
+                                                task,
+                                                Path.Combine(trialDirectory, "agent"),
+                                                requestedImage,
+                                                message => logger.Info($"{prefix} status={message}"),
+                                                buildTimeout.Token,
+                                                invocation.EffectiveVersion);
+                                        removeAgentImage = string.Equals(
+                                            image,
+                                            requestedImage,
+                                            StringComparison.Ordinal);
+                                    }
+                                    catch (OperationCanceledException) when (
+                                        !preparationCancellationToken.IsCancellationRequested &&
+                                        buildTimeout.IsCancellationRequested)
+                                    {
+                                        throw new AgentExecutionException(
+                                            "agent image build exceeded its timeout",
+                                            "AgentBuildTimeout");
+                                    }
+                                }
+                                logger.Info($"{prefix} status=image-ready image={image}");
+                                string? cpuSet = await cpuAllocator.AllocateAsync(
+                                    image,
+                                    containerCpuLimit,
+                                    item.index,
+                                    preparationCancellationToken);
+                                logger.Info(
+                                    $"{prefix} container-cpus={containerCpuLimit?.ToString() ?? "unrestricted"} " +
+                                    $"cpu-set={cpuSet ?? "unrestricted"}");
+                                var request = new AgentExecutionRequest(
+                                    task.TaskId,
+                                    image,
+                                    task.RootPath,
+                                    workspaceDirectory,
+                                    "bridge",
+                                    invocation with
+                                    {
+                                        Arguments = invocation.Arguments
+                                            .Concat(BuildPromptArguments(
+                                                File.ReadAllText(task.InstructionPath),
+                                                configuration.Cli))
+                                            .ToArray()
+                                    },
+                                    [],
+                                    BuildAgentContainerName(executionName),
+                                    TimeSpan.FromSeconds(ResolveTimeoutSeconds(
+                                        configuration.Timeouts.AgentSeconds,
+                                        task.AgentTimeoutSeconds,
+                                        5400)),
+                                    RetainWorkspace: configuration.RetainWorkspaces,
+                                    CpuSet: cpuSet,
+                                    AgentStarting: () => batch.AgentStarting(attempt.AttemptId),
+                                    QuotaDetected: failure =>
+                                    {
+                                        trialQuota = failure;
+                                        batch.Stop(failure, trialDirectory, attempt, configuration);
+                                    });
+                                logger.Info($"{prefix} status=preparing-workspace");
+                                await workspacePreparer.PrepareAsync(
+                                    request,
+                                    preparationCancellationToken);
+                                logger.Info($"{prefix} status=workspace-ready");
+                                return request;
+                            },
+                            trialCancellationToken);
                         preparationDuration.Stop();
                         logger.StageCompleted(
                             preparationStage,
                             preparationDuration.Elapsed,
-                            result,
-                            error,
-                            errorType);
+                            "completed");
                         preparationCompleted = true;
-                    }
-                    else if (!agentCompleted && agentDuration is not null)
-                    {
+                        agentDuration = Stopwatch.StartNew();
+                        logger.StageStarted(agentStage);
+
+                        logger.Info($"{prefix} status=running-agent");
+                        AgentExecutionOutcome agentOutcome =
+                            await agentExecution.ExecuteWithInfrastructureRetryAsync(
+                            agentRequest,
+                            Path.Combine(trialDirectory, "agent"),
+                            $"{task.TaskId}__{task.SourceChecksum[..8]}{attemptSuffix}",
+                            maximumRetries: 1,
+                            async (failedRequest, retryNumber, retryCancellationToken) =>
+                            {
+                                logger.Info(
+                                    $"{prefix} status=agent-infrastructure-retry " +
+                                    $"retry={retryNumber} reason=copilot-service");
+                                string retryWorkspace = Path.Combine(
+                                    trialDirectory,
+                                    $"workspace-infrastructure-retry-{retryNumber}");
+                                Directory.CreateDirectory(retryWorkspace);
+                                AgentExecutionRequest retryRequest = failedRequest with
+                                {
+                                    WorkspaceDirectory = retryWorkspace,
+                                    ContainerName = BuildAgentContainerName(
+                                        $"{executionName}-retry-{retryNumber}")
+                                };
+                                await preparationGate.ExecuteAsync(
+                                    PreparationOperation.AgentRetry,
+                                    new PreparationGateContext(
+                                        runNumber,
+                                        task.TaskId,
+                                        attempt.AttemptNumber,
+                                        trialRetry,
+                                        attempt.AttemptNumber,
+                                        retryNumber),
+                                    async prepareCancellationToken =>
+                                    {
+                                        await workspacePreparer.PrepareAsync(
+                                            retryRequest,
+                                            prepareCancellationToken);
+                                        return true;
+                                    },
+                                    retryCancellationToken);
+                                return retryRequest;
+                            },
+                            new FileInfrastructureRetrySink(trialDirectory),
+                            trialCancellationToken);
+                        AgentEvidenceSummary agentEvidence = agentOutcome.Summary;
+                        agentRequest = agentOutcome.Request;
+                        if (agentOutcome.TotalCost.HasValue)
+                        {
+                            totalCost = (totalCost ?? 0) + agentOutcome.TotalCost.Value;
+                        }
+                        File.Copy(
+                            Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
+                            Path.Combine(trialDirectory, "artifacts", "model.patch"),
+                            overwrite: true);
+                        string cost = totalCost?.ToString(
+                            "0.####",
+                            System.Globalization.CultureInfo.InvariantCulture)
+                            ?? "unknown";
+                        logger.Info(
+                            $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
+                            agentEvidence.Status == "failed"
+                                ? agentEvidence.Error ?? "agent execution failed"
+                                : null,
+                            agentEvidence.Status == "failed"
+                                ? agentEvidence.ErrorType ?? "AgentExecution"
+                                : null);
+                        if (agentEvidence.Status == "failed")
+                        {
+                            agentErrorType = agentEvidence.ErrorType ?? "AgentExecution";
+                        }
+                        else
+                        {
+                            agentCompletedSuccessfully = true;
+                        }
                         agentDuration.Stop();
+                        string agentResult = agentErrorType is null ? "completed" : "failed";
                         logger.StageCompleted(
                             agentStage,
                             agentDuration.Elapsed,
-                            result,
-                            error,
-                            errorType);
+                            agentResult,
+                            agentErrorType is null
+                                ? null
+                                : "agent execution did not complete successfully",
+                            agentErrorType);
                         agentCompleted = true;
                     }
-                }
+                    catch (OperationCanceledException exception)
+                    {
+                        CompleteExecutionStage(
+                            "cancelled",
+                            exception.Message,
+                            "Cancellation");
+                        throw;
+                    }
+                    catch (AgentExecutionException exception)
+                    {
+                        agentErrorType = exception.ErrorType;
+                        CompleteExecutionStage(
+                            "failed",
+                            exception.Message,
+                            exception.ErrorType);
+                        File.WriteAllText(
+                            Path.Combine(trialDirectory, "agent", "error.txt"),
+                            exception.Message);
+                        logger.Info(
+                            $"{prefix} status=agent-failed error={exception.Message}",
+                            exception.Message,
+                            exception.ErrorType);
+                    }
+                    catch (AgentImageException exception)
+                    {
+                        agentErrorType = "AgentImage";
+                        CompleteExecutionStage("failed", exception.Message, agentErrorType);
+                        File.WriteAllText(
+                            Path.Combine(trialDirectory, "agent", "error.txt"),
+                            exception.Message);
+                        logger.Info(
+                            $"{prefix} status=agent-failed error={exception.Message}",
+                            exception.Message,
+                            agentErrorType);
+                    }
+                    catch (ImagePullException exception)
+                    {
+                        agentErrorType = "ImagePull";
+                        CompleteExecutionStage("failed", exception.Message, agentErrorType);
+                        File.WriteAllText(
+                            Path.Combine(trialDirectory, "agent", "error.txt"),
+                            exception.Message);
+                        logger.Info(
+                            $"{prefix} status=agent-failed error={exception.Message}",
+                            exception.Message,
+                            agentErrorType);
+                    }
+                    catch (DockerImageException exception)
+                    {
+                        agentErrorType = "DockerImage";
+                        CompleteExecutionStage("failed", exception.Message, agentErrorType);
+                        File.WriteAllText(
+                            Path.Combine(trialDirectory, "agent", "error.txt"),
+                            exception.Message);
+                        logger.Info(
+                            $"{prefix} status=agent-failed error={exception.Message}",
+                            exception.Message,
+                            agentErrorType);
+                    }
+                    string taskStatus = "agent-failed";
+                    string? patch = null;
+                    string sourceDirectory = ResolveVerifierSource(task);
+                    string? verifierError = "agent execution did not produce a patch";
+                    int verifierRetry = 0;
+                    string? agentPatchPath = Path.Combine(trialDirectory, "agent", "patch.diff");
+                    if (File.Exists(agentPatchPath))
+                    {
+                        patch = File.ReadAllText(agentPatchPath);
+                    }
 
-                logger.StageStarted(preparationStage);
-                try
-                {
-                    logger.Info($"{prefix} status=waiting-preparation");
-                    agentRequest = await preparationGate.ExecuteAsync(
-                        PreparationOperation.Agent,
-                        new PreparationGateContext(
-                            runNumber,
-                            task.TaskId,
-                            attempt.AttemptNumber,
-                            trialRetry,
-                            attempt.AttemptNumber),
-                        async preparationCancellationToken =>
+                    bool quotaRejected = agentErrorType is AgentQuotaFailure.ErrorType or "QuotaPaused";
+                    if (!quotaRejected && ShouldRunVerifier(patch))
+                    {
+                        StageLogContext verifierStage = Stage("verifier");
+                        var verifierDuration = Stopwatch.StartNew();
+                        string verifierStageResult = "failed";
+                        string? verifierStageError = null;
+                        string? verifierStageErrorType = null;
+                        logger.StageStarted(verifierStage);
+                        try
                         {
-                            logger.Info($"{prefix} status=preparing-image");
-                            using (var buildTimeout = CancellationTokenSource.CreateLinkedTokenSource(
-                                       preparationCancellationToken))
-                            {
-                                buildTimeout.CancelAfter(TimeSpan.FromSeconds(
-                                    ResolveTimeoutSeconds(
-                                        configuration.Timeouts.SetupSeconds,
-                                        task.AgentBuildTimeoutSeconds,
-                                        1800)));
-                                try
-                                {
-                                    string requestedImage =
-                                        BuildAgentImageName(executionName);
-                                    image = await imagePreparer.PrepareAsync(
-                                            task,
-                                            Path.Combine(trialDirectory, "agent"),
-                                            requestedImage,
-                                            message => logger.Info($"{prefix} status={message}"),
-                                            buildTimeout.Token,
-                                            invocation.EffectiveVersion);
-                                    removeAgentImage = string.Equals(
-                                        image,
-                                        requestedImage,
-                                        StringComparison.Ordinal);
-                                }
-                                catch (OperationCanceledException) when (
-                                    !preparationCancellationToken.IsCancellationRequested &&
-                                    buildTimeout.IsCancellationRequested)
-                                {
-                                    throw new AgentExecutionException(
-                                        "agent image build exceeded its timeout",
-                                        "AgentBuildTimeout");
-                                }
-                            }
-                            logger.Info($"{prefix} status=image-ready image={image}");
-                            string? cpuSet = await cpuAllocator.AllocateAsync(
-                                image,
-                                containerCpuLimit,
-                                item.index,
-                                preparationCancellationToken);
-                            logger.Info(
-                                $"{prefix} container-cpus={containerCpuLimit?.ToString() ?? "unrestricted"} " +
-                                $"cpu-set={cpuSet ?? "unrestricted"}");
-                            var request = new AgentExecutionRequest(
-                                task.TaskId,
-                                image,
-                                task.RootPath,
-                                workspaceDirectory,
-                                "bridge",
-                                invocation with
-                                {
-                                    Arguments = invocation.Arguments
-                                        .Concat(BuildPromptArguments(
-                                            File.ReadAllText(task.InstructionPath),
-                                            configuration.Cli))
-                                        .ToArray()
-                                },
-                                [],
-                                BuildAgentContainerName(executionName),
-                                TimeSpan.FromSeconds(ResolveTimeoutSeconds(
-                                    configuration.Timeouts.AgentSeconds,
-                                    task.AgentTimeoutSeconds,
-                                    5400)),
-                                RetainWorkspace: configuration.RetainWorkspaces,
-                                CpuSet: cpuSet);
-                            logger.Info($"{prefix} status=preparing-workspace");
-                            await workspacePreparer.PrepareAsync(
-                                request,
-                                preparationCancellationToken);
-                            logger.Info($"{prefix} status=workspace-ready");
-                            return request;
-                        },
-                        trialCancellationToken);
-                    preparationDuration.Stop();
-                    logger.StageCompleted(
-                        preparationStage,
-                        preparationDuration.Elapsed,
-                        "completed");
-                    preparationCompleted = true;
-                    agentDuration = Stopwatch.StartNew();
-                    logger.StageStarted(agentStage);
-
-                    logger.Info($"{prefix} status=running-agent");
-                    AgentExecutionOutcome agentOutcome =
-                        await agentExecution.ExecuteWithInfrastructureRetryAsync(
-                        agentRequest,
-                        Path.Combine(trialDirectory, "agent"),
-                        $"{task.TaskId}__{task.SourceChecksum[..8]}{attemptSuffix}",
-                        maximumRetries: 1,
-                        async (failedRequest, retryNumber, retryCancellationToken) =>
-                        {
-                            logger.Info(
-                                $"{prefix} status=agent-infrastructure-retry " +
-                                $"retry={retryNumber} reason=copilot-service");
-                            string retryWorkspace = Path.Combine(
-                                trialDirectory,
-                                $"workspace-infrastructure-retry-{retryNumber}");
-                            Directory.CreateDirectory(retryWorkspace);
-                            AgentExecutionRequest retryRequest = failedRequest with
-                            {
-                                WorkspaceDirectory = retryWorkspace,
-                                ContainerName = BuildAgentContainerName(
-                                    $"{executionName}-retry-{retryNumber}")
-                            };
-                            await preparationGate.ExecuteAsync(
-                                PreparationOperation.AgentRetry,
-                                new PreparationGateContext(
-                                    runNumber,
-                                    task.TaskId,
-                                    attempt.AttemptNumber,
-                                    trialRetry,
-                                    attempt.AttemptNumber,
-                                    retryNumber),
-                                async prepareCancellationToken =>
-                                {
-                                    await workspacePreparer.PrepareAsync(
-                                        retryRequest,
-                                        prepareCancellationToken);
-                                    return true;
-                                },
-                                retryCancellationToken);
-                            return retryRequest;
-                        },
-                        new FileInfrastructureRetrySink(trialDirectory),
-                        trialCancellationToken);
-                    AgentEvidenceSummary agentEvidence = agentOutcome.Summary;
-                    agentRequest = agentOutcome.Request;
-                    if (agentOutcome.TotalCost.HasValue)
-                    {
-                        totalCost = (totalCost ?? 0) + agentOutcome.TotalCost.Value;
-                    }
-                    File.Copy(
-                        Path.Combine(trialDirectory, "agent", agentEvidence.PatchPath),
-                        Path.Combine(trialDirectory, "artifacts", "model.patch"),
-                        overwrite: true);
-                    string cost = totalCost?.ToString(
-                        "0.####",
-                        System.Globalization.CultureInfo.InvariantCulture)
-                        ?? "unknown";
-                    logger.Info(
-                        $"{prefix} status=agent-complete result={agentEvidence.Status} cost={cost}",
-                        agentEvidence.Status == "failed"
-                            ? agentEvidence.Error ?? "agent execution failed"
-                            : null,
-                        agentEvidence.Status == "failed"
-                            ? agentEvidence.ErrorType ?? "AgentExecution"
-                            : null);
-                    if (agentEvidence.Status == "failed")
-                    {
-                        agentErrorType = agentEvidence.ErrorType ?? "AgentExecution";
-                    }
-                    else
-                    {
-                        agentCompletedSuccessfully = true;
-                    }
-                    agentDuration.Stop();
-                    string agentResult = agentErrorType is null ? "completed" : "failed";
-                    logger.StageCompleted(
-                        agentStage,
-                        agentDuration.Elapsed,
-                        agentResult,
-                        agentErrorType is null
-                            ? null
-                            : "agent execution did not complete successfully",
-                        agentErrorType);
-                    agentCompleted = true;
-                }
-                catch (OperationCanceledException exception)
-                {
-                    CompleteExecutionStage(
-                        "cancelled",
-                        exception.Message,
-                        "Cancellation");
-                    throw;
-                }
-                catch (AgentExecutionException exception)
-                {
-                    agentErrorType = exception.ErrorType;
-                    CompleteExecutionStage(
-                        "failed",
-                        exception.Message,
-                        exception.ErrorType);
-                    File.WriteAllText(
-                        Path.Combine(trialDirectory, "agent", "error.txt"),
-                        exception.Message);
-                    logger.Info(
-                        $"{prefix} status=agent-failed error={exception.Message}",
-                        exception.Message,
-                        exception.ErrorType);
-                }
-                catch (AgentImageException exception)
-                {
-                    agentErrorType = "AgentImage";
-                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
-                    File.WriteAllText(
-                        Path.Combine(trialDirectory, "agent", "error.txt"),
-                        exception.Message);
-                    logger.Info(
-                        $"{prefix} status=agent-failed error={exception.Message}",
-                        exception.Message,
-                        agentErrorType);
-                }
-                catch (ImagePullException exception)
-                {
-                    agentErrorType = "ImagePull";
-                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
-                    File.WriteAllText(
-                        Path.Combine(trialDirectory, "agent", "error.txt"),
-                        exception.Message);
-                    logger.Info(
-                        $"{prefix} status=agent-failed error={exception.Message}",
-                        exception.Message,
-                        agentErrorType);
-                }
-                catch (DockerImageException exception)
-                {
-                    agentErrorType = "DockerImage";
-                    CompleteExecutionStage("failed", exception.Message, agentErrorType);
-                    File.WriteAllText(
-                        Path.Combine(trialDirectory, "agent", "error.txt"),
-                        exception.Message);
-                    logger.Info(
-                        $"{prefix} status=agent-failed error={exception.Message}",
-                        exception.Message,
-                        agentErrorType);
-                }
-                string taskStatus = "agent-failed";
-                string? patch = null;
-                string sourceDirectory = ResolveVerifierSource(task);
-                string? verifierError = "agent execution did not produce a patch";
-                int verifierRetry = 0;
-                string? agentPatchPath = Path.Combine(trialDirectory, "agent", "patch.diff");
-                if (File.Exists(agentPatchPath))
-                {
-                    patch = File.ReadAllText(agentPatchPath);
-                }
-
-                if (ShouldRunVerifier(patch))
-                {
-                    StageLogContext verifierStage = Stage("verifier");
-                    var verifierDuration = Stopwatch.StartNew();
-                    string verifierStageResult = "failed";
-                    string? verifierStageError = null;
-                    string? verifierStageErrorType = null;
-                    logger.StageStarted(verifierStage);
-                    try
-                    {
-                        string verifierDirectory = Path.Combine(trialDirectory, "verifier");
-                        string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
-                        File.Copy(
-                            agentPatchPath!,
-                            Path.Combine(artifactsDirectory, "model.patch"),
-                            overwrite: true);
-                        VerifierRetryOutcome verifierOutcome =
-                            await ExecuteVerifierWithRetryAsync(
-                                async (currentVerifierRetry, verifierCancellationToken) =>
-                                {
-                                    logger.Info($"{prefix} status=running-verifier");
-                                    Directory.CreateDirectory(verifierDirectory);
-                                    string? verifierImage = null;
-                                    try
+                            string verifierDirectory = Path.Combine(trialDirectory, "verifier");
+                            string artifactsDirectory = Path.Combine(trialDirectory, "artifacts");
+                            File.Copy(
+                                agentPatchPath!,
+                                Path.Combine(artifactsDirectory, "model.patch"),
+                                overwrite: true);
+                            VerifierRetryOutcome verifierOutcome =
+                                await ExecuteVerifierWithRetryAsync(
+                                    async (currentVerifierRetry, verifierCancellationToken) =>
                                     {
-                                        string verifierRetrySuffix = currentVerifierRetry > 0
-                                            ? $"__verifier-retry-{currentVerifierRetry}"
-                                            : string.Empty;
-                                        (PristineVerifierService Service, PreparedVerifierRun Prepared)
-                                            preparedVerifier = await preparationGate.ExecuteAsync(
-                                                PreparationOperation.Verifier,
-                                                new PreparationGateContext(
-                                                    runNumber,
-                                                    task.TaskId,
-                                                    attempt.AttemptNumber,
-                                                    trialRetry,
-                                                    attempt.AttemptNumber,
-                                                    currentVerifierRetry),
-                                                async preparationCancellationToken =>
-                                                {
-                                                    verifierImage = await PrepareVerifierImageAsync(
-                                                        task,
-                                                        trialDirectory,
-                                                        $"{runId}{attemptSuffix}{trialRetrySuffix}" +
-                                                        verifierRetrySuffix,
-                                                        logger,
-                                                        prefix,
-                                                        ResolveTimeoutSeconds(
-                                                            configuration.Timeouts.SetupSeconds,
-                                                            task.VerifierBuildTimeoutSeconds,
-                                                            1800),
-                                                        preparationCancellationToken);
-                                                    PristineVerifierService verifierService =
-                                                        verifierImage is null
-                                                            ? verifier
-                                                            : new PristineVerifierService(
-                                                                new FilePristineWorkspaceFactory(),
-                                                                new RetainingPatchApplier(),
-                                                                new DockerVerifierRunner());
-                                                    var verifierRequest = new VerifierRequest(
+                                        logger.Info($"{prefix} status=running-verifier");
+                                        Directory.CreateDirectory(verifierDirectory);
+                                        string? verifierImage = null;
+                                        try
+                                        {
+                                            string verifierRetrySuffix = currentVerifierRetry > 0
+                                                ? $"__verifier-retry-{currentVerifierRetry}"
+                                                : string.Empty;
+                                            (PristineVerifierService Service, PreparedVerifierRun Prepared)
+                                                preparedVerifier = await preparationGate.ExecuteAsync(
+                                                    PreparationOperation.Verifier,
+                                                    new PreparationGateContext(
+                                                        runNumber,
                                                         task.TaskId,
-                                                        sourceDirectory,
-                                                        workspaceDirectory,
-                                                        verifierImage is null ? "bridge" : "none",
-                                                        [new VerifierCommand(
+                                                        attempt.AttemptNumber,
+                                                        trialRetry,
+                                                        attempt.AttemptNumber,
+                                                        currentVerifierRetry),
+                                                    async preparationCancellationToken =>
+                                                    {
+                                                        verifierImage = await PrepareVerifierImageAsync(
+                                                            task,
+                                                            trialDirectory,
+                                                            $"{runId}{attemptSuffix}{trialRetrySuffix}" +
+                                                            verifierRetrySuffix,
+                                                            logger,
+                                                            prefix,
+                                                            ResolveTimeoutSeconds(
+                                                                configuration.Timeouts.SetupSeconds,
+                                                                task.VerifierBuildTimeoutSeconds,
+                                                                1800),
+                                                            preparationCancellationToken);
+                                                        PristineVerifierService verifierService =
+                                                            verifierImage is null
+                                                                ? verifier
+                                                                : new PristineVerifierService(
+                                                                    new FilePristineWorkspaceFactory(),
+                                                                    new RetainingPatchApplier(),
+                                                                    new DockerVerifierRunner());
+                                                        var verifierRequest = new VerifierRequest(
+                                                            task.TaskId,
+                                                            sourceDirectory,
+                                                            workspaceDirectory,
+                                                            verifierImage is null ? "bridge" : "none",
+                                                            [new VerifierCommand(
                                                             verifierImage is null
                                                                 ? "tests"
                                                                 : "grader",
@@ -615,232 +659,259 @@ public sealed class RunService
                                                                     configuration.Timeouts.VerifierSeconds,
                                                                     task.VerifierTimeoutSeconds,
                                                                     1800)))],
-                                                        [],
-                                                        [],
-                                                        verifierImage,
-                                                        verifierDirectory,
-                                                        artifactsDirectory,
-                                                        CpuSet: verifierImage is null ? null : agentRequest?.CpuSet);
-                                                    PreparedVerifierRun prepared =
-                                                        await verifierService.PrepareAsync(
-                                                            verifierRequest,
-                                                            patch!,
+                                                            [],
+                                                            [],
+                                                            verifierImage,
                                                             verifierDirectory,
-                                                            preparationCancellationToken);
-                                                    return (verifierService, prepared);
-                                                },
+                                                            artifactsDirectory,
+                                                            CpuSet: verifierImage is null ? null : agentRequest?.CpuSet);
+                                                        PreparedVerifierRun prepared =
+                                                            await verifierService.PrepareAsync(
+                                                                verifierRequest,
+                                                                patch!,
+                                                                verifierDirectory,
+                                                                preparationCancellationToken);
+                                                        return (verifierService, prepared);
+                                                    },
+                                                    verifierCancellationToken);
+                                            return await preparedVerifier.Service.VerifyPreparedAsync(
+                                                preparedVerifier.Prepared,
                                                 verifierCancellationToken);
-                                        return await preparedVerifier.Service.VerifyPreparedAsync(
-                                            preparedVerifier.Prepared,
-                                            verifierCancellationToken);
-                                    }
-                                    finally
+                                        }
+                                        finally
+                                        {
+                                            if (verifierImage is not null)
+                                                CleanupVerifierImage(verifierImage, logger, prefix);
+                                        }
+                                    },
+                                    (nextRetry, exception, _) =>
                                     {
-                                        if (verifierImage is not null)
-                                            CleanupVerifierImage(verifierImage, logger, prefix);
-                                    }
-                                },
-                                (nextRetry, exception, _) =>
-                                {
-                                    logger.Info(
-                                        $"{prefix} status=verifier-failed " +
-                                        $"error={exception.Message}",
-                                        exception.Message,
-                                        exception.ErrorType);
-                                    ArchiveVerifierExecution(trialDirectory, nextRetry);
-                                    verifierRetry = nextRetry;
-                                    logger.Info(
-                                        $"{prefix} status=verifier-retry retry={nextRetry} " +
-                                        $"reason={exception.ErrorType}");
-                                    return Task.CompletedTask;
-                                },
-                                maximumTrialRetries,
-                                configuration.Retries.BackoffSeconds,
-                                trialCancellationToken);
-                        verifierRetry = verifierOutcome.RetryCount;
-                        TrialResult verification = verifierOutcome.Result;
-                        taskStatus = verification.Status;
-                        verifierStageResult = taskStatus;
-                        verifierError = null;
-                        if (verification.Metrics is { } metrics)
-                        {
-                            logger.Info(
-                                $"{prefix} status=verifier-complete result={taskStatus} " +
-                                $"pass@1={metrics.PassAt} f2p={metrics.F2pPercent:0.##}% " +
-                                $"p2p={metrics.P2pPercent:0.##}%");
+                                        logger.Info(
+                                            $"{prefix} status=verifier-failed " +
+                                            $"error={exception.Message}",
+                                            exception.Message,
+                                            exception.ErrorType);
+                                        ArchiveVerifierExecution(trialDirectory, nextRetry);
+                                        verifierRetry = nextRetry;
+                                        logger.Info(
+                                            $"{prefix} status=verifier-retry retry={nextRetry} " +
+                                            $"reason={exception.ErrorType}");
+                                        return Task.CompletedTask;
+                                    },
+                                    maximumTrialRetries,
+                                    configuration.Retries.BackoffSeconds,
+                                    trialCancellationToken);
+                            verifierRetry = verifierOutcome.RetryCount;
+                            TrialResult verification = verifierOutcome.Result;
+                            taskStatus = verification.Status;
+                            verifierStageResult = taskStatus;
+                            verifierError = null;
+                            if (verification.Metrics is { } metrics)
+                            {
+                                logger.Info(
+                                    $"{prefix} status=verifier-complete result={taskStatus} " +
+                                    $"pass@1={metrics.PassAt} f2p={metrics.F2pPercent:0.##}% " +
+                                    $"p2p={metrics.P2pPercent:0.##}%");
+                            }
+                            else
+                            {
+                                logger.Info(
+                                    $"{prefix} status=verifier-complete result={taskStatus} " +
+                                    "metrics=unavailable");
+                            }
                         }
-                        else
+                        catch (VerifierExecutionException exception)
                         {
+                            verifierError = exception.Message;
+                            verifierStageError = exception.Message;
+                            verifierStageErrorType = exception.ErrorType;
                             logger.Info(
-                                $"{prefix} status=verifier-complete result={taskStatus} " +
-                                "metrics=unavailable");
+                                $"{prefix} status=verifier-failed error={verifierError}",
+                                verifierError,
+                                exception.ErrorType);
+                        }
+                        finally
+                        {
+                            verifierDuration.Stop();
+                            logger.StageCompleted(
+                                verifierStage,
+                                verifierDuration.Elapsed,
+                                trialCancellationToken.IsCancellationRequested
+                                    ? "cancelled"
+                                    : verifierStageResult,
+                                verifierStageError,
+                                verifierStageErrorType);
                         }
                     }
-                    catch (VerifierExecutionException exception)
+                    else
                     {
-                        verifierError = exception.Message;
-                        verifierStageError = exception.Message;
-                        verifierStageErrorType = exception.ErrorType;
-                        logger.Info(
-                            $"{prefix} status=verifier-failed error={verifierError}",
-                            verifierError,
-                            exception.ErrorType);
-                    }
-                    finally
-                    {
-                        verifierDuration.Stop();
+                        StageLogContext verifierStage = Stage("verifier");
+                        logger.StageStarted(verifierStage);
                         logger.StageCompleted(
                             verifierStage,
-                            verifierDuration.Elapsed,
-                            trialCancellationToken.IsCancellationRequested
-                                ? "cancelled"
-                                : verifierStageResult,
-                            verifierStageError,
-                            verifierStageErrorType);
+                            TimeSpan.Zero,
+                            "skipped",
+                            verifierError,
+                            "AgentExecution");
+                        logger.Info(
+                            $"{prefix} status=verifier-skipped reason={verifierError}",
+                            verifierError,
+                            "AgentExecution");
                     }
-                }
-                else
-                {
-                    StageLogContext verifierStage = Stage("verifier");
-                    logger.StageStarted(verifierStage);
-                    logger.StageCompleted(
-                        verifierStage,
-                        TimeSpan.Zero,
-                        "skipped",
-                        verifierError,
-                        "AgentExecution");
-                    logger.Info(
-                        $"{prefix} status=verifier-skipped reason={verifierError}",
-                        verifierError,
-                        "AgentExecution");
-                }
-                StageLogContext cleanupStage = Stage("cleanup");
-                var cleanupDuration = Stopwatch.StartNew();
-                logger.StageStarted(cleanupStage);
-                logger.Info($"{prefix} status=cleaning-up");
-                string? workspaceCleanupError = null;
-                if (!configuration.RetainWorkspaces)
-                {
-                    try
+                    StageLogContext cleanupStage = Stage("cleanup");
+                    var cleanupDuration = Stopwatch.StartNew();
+                    logger.StageStarted(cleanupStage);
+                    logger.Info($"{prefix} status=cleaning-up");
+                    string? workspaceCleanupError = null;
+                    if (!configuration.RetainWorkspaces && !quotaRejected)
                     {
-                        if (agentRequest is not null)
+                        try
                         {
-                            await PrepareWorkspacesForCleanupAsync(
-                                trialDirectory,
-                                agentRequest,
-                                BuildAgentContainerName(executionName),
-                                workspacePreparer,
-                                trialCancellationToken);
+                            if (agentRequest is not null)
+                            {
+                                await PrepareWorkspacesForCleanupAsync(
+                                    trialDirectory,
+                                    agentRequest,
+                                    BuildAgentContainerName(executionName),
+                                    workspacePreparer,
+                                    trialCancellationToken);
+                            }
+                            CleanupWorkspaceDirectories(trialDirectory);
                         }
-                        CleanupWorkspaceDirectories(trialDirectory);
+                        catch (Exception exception) when (
+                            exception is AgentExecutionException or
+                            IOException or
+                            UnauthorizedAccessException)
+                        {
+                            workspaceCleanupError = exception.Message;
+                            logger.Info(
+                                $"{prefix} status=workspace-cleanup-failed error={exception.Message}",
+                                exception.Message,
+                                "WorkspaceCleanup");
+                        }
+                        catch (OperationCanceledException exception)
+                        {
+                            cleanupDuration.Stop();
+                            logger.StageCompleted(
+                                cleanupStage,
+                                cleanupDuration.Elapsed,
+                                "cancelled",
+                                exception.Message,
+                                "Cancellation");
+                            throw;
+                        }
                     }
-                    catch (Exception exception) when (
-                        exception is AgentExecutionException or
-                        IOException or
-                        UnauthorizedAccessException)
+                    bool workspaceRetained = HasWorkspaceDirectories(trialDirectory);
+                    if (!quotaRejected)
+                        logger.Info($"{prefix} status=complete result={taskStatus}");
+                    var result = new
                     {
-                        workspaceCleanupError = exception.Message;
-                        logger.Info(
-                            $"{prefix} status=workspace-cleanup-failed error={exception.Message}",
-                            exception.Message,
-                            "WorkspaceCleanup");
-                    }
-                    catch (OperationCanceledException exception)
-                    {
-                        cleanupDuration.Stop();
-                        logger.StageCompleted(
-                            cleanupStage,
-                            cleanupDuration.Elapsed,
-                            "cancelled",
-                            exception.Message,
-                            "Cancellation");
-                        throw;
-                    }
-                }
-                bool workspaceRetained = HasWorkspaceDirectories(trialDirectory);
-                logger.Info($"{prefix} status=complete result={taskStatus}");
-                var result = new
-                {
-                    status = taskStatus,
-                    taskRoot = resolvedRoot,
-                    taskId = task.TaskId,
-                    attempt = attempt.AttemptNumber,
-                    taskManifest = Path.Combine(task.RootPath, "task.toml"),
-                    datasetManifest,
-                    agentImage = image,
-                    containerCpus = configuration.ContainerCpus,
-                    cpuSet = agentRequest?.CpuSet,
-                    agentWorkspace = Directory.Exists(workspaceDirectory)
-                        ? workspaceDirectory
-                        : null,
-                    workspaceRetained,
-                    workspaceCleanupError,
-                    trialRetry,
-                    verifierRetry,
-                    totalCost,
-                    verifierError
-                };
-                AtomicFile.Replace(
-                    Path.Combine(trialDirectory, "result.json"),
-                    JsonSerializer.Serialize(result, JsonOptions));
-                if (removeAgentImage)
-                {
-                    try
-                    {
-                        await imagePreparer.RemoveImageAsync(
-                            image,
-                            CancellationToken.None);
-                        logger.Info(
-                            $"{prefix} status=agent-image-cleaned image={image}");
-                    }
-                    catch (AgentImageException exception)
-                    {
-                        logger.Info(
-                            $"{prefix} status=agent-image-cleanup-failed " +
-                            $"error={exception.Message}",
-                            exception.Message,
-                            "AgentImageCleanup");
-                    }
-                }
-                cleanupDuration.Stop();
-                logger.StageCompleted(
-                    cleanupStage,
-                    cleanupDuration.Elapsed,
-                    workspaceCleanupError is null ? "completed" : "failed",
-                    workspaceCleanupError,
-                    workspaceCleanupError is null ? null : "WorkspaceCleanup");
-                if (!ShouldRetryTrial(
-                        taskStatus,
-                        agentErrorType,
-                        agentCompletedSuccessfully,
+                        status = taskStatus,
+                        taskRoot = resolvedRoot,
+                        taskId = task.TaskId,
+                        attempt = attempt.AttemptNumber,
+                        taskManifest = Path.Combine(task.RootPath, "task.toml"),
+                        datasetManifest,
+                        agentImage = image,
+                        containerCpus = configuration.ContainerCpus,
+                        cpuSet = agentRequest?.CpuSet,
+                        agentWorkspace = Directory.Exists(workspaceDirectory)
+                            ? workspaceDirectory
+                            : null,
+                        workspaceRetained,
+                        workspaceCleanupError,
                         trialRetry,
-                        maximumTrialRetries,
-                        trialCancellationToken))
-                {
-                    break;
-                }
+                        verifierRetry,
+                        totalCost,
+                        verifierError
+                    };
+                    if (!quotaRejected)
+                    {
+                        AtomicFile.Replace(
+                            Path.Combine(trialDirectory, "result.json"),
+                            JsonSerializer.Serialize(result, JsonOptions));
+                    }
+                    if (removeAgentImage)
+                    {
+                        try
+                        {
+                            await imagePreparer.RemoveImageAsync(
+                                image,
+                                CancellationToken.None);
+                            logger.Info(
+                                $"{prefix} status=agent-image-cleaned image={image}");
+                        }
+                        catch (AgentImageException exception)
+                        {
+                            logger.Info(
+                                $"{prefix} status=agent-image-cleanup-failed " +
+                                $"error={exception.Message}",
+                                exception.Message,
+                                "AgentImageCleanup");
+                        }
+                    }
+                    cleanupDuration.Stop();
+                    logger.StageCompleted(
+                        cleanupStage,
+                        cleanupDuration.Elapsed,
+                        workspaceCleanupError is null ? "completed" : "failed",
+                        workspaceCleanupError,
+                        workspaceCleanupError is null ? null : "WorkspaceCleanup");
+                    if (quotaRejected)
+                    {
+                        batch.Reject(trialDirectory, attempt, configuration, trialQuota);
+                        logger.Info($"{prefix} status=quota-rejected");
+                        break;
+                    }
+                    if (batch.IsStopped || !ShouldRetryTrial(
+                            taskStatus,
+                            agentErrorType,
+                            agentCompletedSuccessfully,
+                            trialRetry,
+                            maximumTrialRetries,
+                            trialCancellationToken))
+                    {
+                        batch.Accept(attempt.AttemptId);
+                        break;
+                    }
 
-                int nextRetry = trialRetry + 1;
-                logger.Info(
-                    $"{prefix} status=trial-retry retry={nextRetry} " +
-                    $"reason={agentErrorType}");
-                if (configuration.Retries.BackoffSeconds is > 0)
-                {
-                    await Task.Delay(
-                        TimeSpan.FromSeconds(configuration.Retries.BackoffSeconds.Value),
-                        trialCancellationToken);
+                    int nextRetry = trialRetry + 1;
+                    logger.Info(
+                        $"{prefix} status=trial-retry retry={nextRetry} " +
+                        $"reason={agentErrorType}");
+                    if (configuration.Retries.BackoffSeconds is > 0)
+                    {
+                        await Task.Delay(
+                            TimeSpan.FromSeconds(configuration.Retries.BackoffSeconds.Value),
+                            trialCancellationToken);
+                    }
                 }
-            }
-        }).GetAwaiter().GetResult();
+            }).GetAwaiter().GetResult();
 
-        return new RunResult(
-            "completed",
-            resolvedRoot,
-            datasetManifest,
-            tasks.Count,
-            resolvedOutput,
-            jobDirectory,
-            attemptDirectory);
+            int remaining = initialPending - batch.Summary.Accepted.Count;
+            string batchStatus = batch.Finish(remaining);
+            BatchInvocation summary = batch.Summary;
+            logger.Info(
+                $"batch status={batchStatus} requested={batchSize?.ToString() ?? "all"} " +
+                $"admitted={summary.Admitted.Count} started={summary.AgentStarted.Count} " +
+                $"accepted={summary.Accepted.Count} rejected={batch.RejectedCount} pending={remaining}");
+            batchFinished = true;
+            return new RunResult(
+                batchStatus,
+                resolvedRoot,
+                datasetManifest,
+                tasks.Count,
+                resolvedOutput,
+                jobDirectory,
+                attemptDirectory);
+        }
+        finally
+        {
+            if (!batchFinished)
+                batch.Finish(initialPending - batch.Summary.Accepted.Count,
+                    cancelled: cancellationToken.IsCancellationRequested,
+                    failed: !cancellationToken.IsCancellationRequested);
+        }
     }
 
     internal static bool ShouldRetryTrial(
@@ -857,6 +928,8 @@ public sealed class RunService
         !string.Equals(agentErrorType, "Invocation", StringComparison.Ordinal) &&
         !string.Equals(agentErrorType, "AgentTimeout", StringComparison.Ordinal) &&
         !string.Equals(agentErrorType, "AgentUnfinished", StringComparison.Ordinal) &&
+        !string.Equals(agentErrorType, AgentQuotaFailure.ErrorType, StringComparison.Ordinal) &&
+        !string.Equals(agentErrorType, "QuotaPaused", StringComparison.Ordinal) &&
         !IsVerifierError(agentErrorType) &&
         completedRetries < maximumRetries;
 

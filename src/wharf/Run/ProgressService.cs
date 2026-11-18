@@ -140,6 +140,14 @@ public static class ProgressService
                 !string.IsNullOrWhiteSpace(log.TaskId))
             {
                 fullTaskNames[stageRunNumber] = log.TaskId;
+                foreach ((string oldKey, ProgressRecord unbound) in records.Where(item =>
+                             item.Value.TaskId is null && item.Value.RunNumber == stageRunNumber &&
+                             item.Value.K == (log.LogicalAttempt ?? 1) &&
+                             log.TaskId.StartsWith(item.Value.Name, StringComparison.Ordinal)).ToArray())
+                {
+                    records.Remove(oldKey);
+                    records[$"{log.TaskId}#attempt-{unbound.K}"] = unbound with { TaskId = log.TaskId };
+                }
                 continue;
             }
             Match match = RunPattern.Match(log.Message);
@@ -155,13 +163,21 @@ public static class ProgressService
             int k = match.Groups["attempt"].Success
                 ? int.Parse(match.Groups["attempt"].Value, CultureInfo.InvariantCulture)
                 : 1;
+            string? taskId = fullTaskNames.GetValueOrDefault(runNumber);
+            if (taskId is not null)
+                key = $"{taskId}#attempt-{k}";
             ProgressRecord record = records.TryGetValue(key, out ProgressRecord? existing)
                 ? existing with { K = k }
-                : new ProgressRecord(k, runNumber, match.Groups["task"].Value);
+                : new ProgressRecord(k, runNumber, match.Groups["task"].Value, TaskId: taskId);
             Match status = StatusPattern.Match(log.Message);
             if (status.Success)
             {
                 string currentStatus = status.Groups["status"].Value;
+                if (currentStatus == "quota-rejected")
+                {
+                    records.Remove(key);
+                    continue;
+                }
                 bool isRetry = IsRetry(currentStatus);
                 if (isRetry)
                     retries++;
@@ -243,6 +259,35 @@ public static class ProgressService
             records[key] = record;
         }
 
+        string runDirectory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        if (File.Exists(Path.Combine(runDirectory, RunBatch.FileName)))
+        {
+            BatchState batches = RunBatch.Read(runDirectory);
+            var terminalIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string directory in Directory.EnumerateDirectories(runDirectory))
+            {
+                string result = Path.Combine(directory, "result.json");
+                if (!File.Exists(result) || batches.Rejections.Any(rejection =>
+                        !rejection.Deleted && rejection.TrialDirectory == Path.GetFileName(directory)))
+                    continue;
+                try
+                {
+                    using JsonDocument document = JsonDocument.Parse(File.ReadAllText(result));
+                    terminalIds.Add($"{document.RootElement.GetProperty("taskId").GetString()}" +
+                        $"#attempt-{document.RootElement.GetProperty("attempt").GetInt32()}");
+                }
+                catch (Exception exception) when (exception is JsonException or KeyNotFoundException or
+                    InvalidOperationException or FormatException)
+                {
+                    throw new RunException($"invalid retained progress result: {result}: {exception.Message}");
+                }
+            }
+            foreach (string key in records.Where(item => item.Value.Terminal &&
+                         item.Value.TaskId is not null &&
+                         !terminalIds.Contains($"{item.Value.TaskId}#attempt-{item.Value.K}"))
+                         .Select(item => item.Key).ToArray())
+                records.Remove(key);
+        }
         HashSet<int> queuedRuns = queuedOperations.Values
             .Select(record => record.RunNumber)
             .ToHashSet();
@@ -481,7 +526,8 @@ public static class ProgressService
         string? ErrorType = null,
         string? Stage = null,
         DateTimeOffset? StageStartedAt = null,
-        bool GradingSkipped = false);
+        bool GradingSkipped = false,
+        string? TaskId = null);
 
     private sealed record PreparationQueueRecord(
         string Key,

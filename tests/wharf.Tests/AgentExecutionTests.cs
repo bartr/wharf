@@ -346,9 +346,10 @@ public sealed class AgentExecutionTests
                 Cost: 3m));
         var service = new AgentExecutionService(runner);
         var sink = new RecordingRetrySink();
+        int starts = 0;
 
         AgentExecutionOutcome outcome = await service.ExecuteWithInfrastructureRetryAsync(
-            Request(source.Path, workspace.Path),
+            Request(source.Path, workspace.Path) with { AgentStarting = () => starts++ },
             evidence.Path,
             "task-1__attempt",
             1,
@@ -360,6 +361,7 @@ public sealed class AgentExecutionTests
         Assert.Equal(retryWorkspace.Path, outcome.Request.WorkspaceDirectory);
         Assert.Equal(5m, outcome.TotalCost);
         Assert.Equal(1, outcome.InfrastructureRetries);
+        Assert.Equal(2, starts);
         Assert.Single(sink.Records);
         Assert.Equal("copilot-service", sink.Records[0].Classification);
         string retryDirectory = Assert.Single(

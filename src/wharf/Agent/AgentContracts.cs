@@ -14,7 +14,9 @@ public sealed record AgentExecutionRequest(
     TimeSpan? Timeout = null,
     bool RetainWorkspace = false,
     string? EvidenceDirectory = null,
-    string? CpuSet = null)
+    string? CpuSet = null,
+    Action? AgentStarting = null,
+    Action<AgentQuotaFailure>? QuotaDetected = null)
 {
     public void Validate()
     {
@@ -84,7 +86,13 @@ public sealed record AgentRunResult(
     string? DebugLogDirectory = null,
     AgentUsage? Usage = null,
     bool OutOfMemory = false,
-    bool TimedOut = false);
+    bool TimedOut = false,
+    AgentQuotaFailure? Quota = null);
+
+public sealed record AgentQuotaFailure(string Reason, string? Reset = null)
+{
+    public const string ErrorType = "AgentQuota";
+}
 
 public sealed record AgentModelUsage(
     long InputTokens,
@@ -127,7 +135,8 @@ public sealed record AgentEvidenceSummary(
     AgentUsage? Usage = null,
     string? ErrorType = null,
     string? Error = null,
-    string? CpuSet = null);
+    string? CpuSet = null,
+    AgentQuotaFailure? Quota = null);
 
 internal sealed record AgentStreamResult(AgentUsage? Usage, int? Turns, bool IsError);
 

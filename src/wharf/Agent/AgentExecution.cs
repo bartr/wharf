@@ -25,10 +25,23 @@ public sealed class AgentExecutionService
         }
 
         Directory.CreateDirectory(evidenceDirectory);
+        int quotaNotified = 0;
+        void NotifyQuota(AgentQuotaFailure quota)
+        {
+            if (Interlocked.Exchange(ref quotaNotified, 1) == 0)
+                request.QuotaDetected?.Invoke(quota);
+        }
+        request.AgentStarting?.Invoke();
         AgentRunResult result = await runner.RunAsync(
-            request with { EvidenceDirectory = evidenceDirectory },
+            request with { EvidenceDirectory = evidenceDirectory, QuotaDetected = NotifyQuota },
             cancellationToken);
-        string status = result.OutOfMemory || result.TimedOut
+        result = result with
+        {
+            Quota = result.Quota ??
+                AgentQuotaParser.Parse(request.Invocation.Cli, result.StandardOutput) ??
+                AgentQuotaParser.Parse(request.Invocation.Cli, result.StandardError)
+        };
+        string status = result.Quota is not null || result.OutOfMemory || result.TimedOut
             ? "failed"
             : result.ExitCode != 0
             ? "failed"
@@ -46,6 +59,8 @@ public sealed class AgentExecutionService
                 result.DebugLogDirectory,
                 Path.Combine(evidenceDirectory, "copilot-logs"));
         }
+        if (result.Quota is not null)
+            NotifyQuota(result.Quota);
         if (status == "unfinished")
         {
             throw new AgentExecutionException(
@@ -79,7 +94,7 @@ public sealed class AgentExecutionService
                     evidenceDirectory,
                     cancellationToken);
             }
-            catch (AgentExecutionException exception)
+            catch (AgentExecutionException exception) when (exception.ErrorType != "QuotaPaused")
             {
                 executionException = exception;
                 summary = JsonSerializer.Deserialize<AgentEvidenceSummary>(
@@ -95,7 +110,8 @@ public sealed class AgentExecutionService
 
             string standardError = File.ReadAllText(
                 Path.Combine(evidenceDirectory, summary.StandardErrorPath));
-            if (summary.Status == "completed" ||
+            if (summary.ErrorType == AgentQuotaFailure.ErrorType ||
+                summary.Status == "completed" ||
                 request.Invocation.Cli != "copilot" ||
                 !IsRetryableCopilotServiceFailure(standardError) ||
                 retryNumber >= maximumRetries)
@@ -210,13 +226,18 @@ public sealed class AgentExecutionService
             Path.GetFileName(stderrPath),
             Path.GetFileName(trajectoryPath),
             result.Usage,
-            result.OutOfMemory
+            result.Quota is not null
+                ? AgentQuotaFailure.ErrorType
+                : result.OutOfMemory
                 ? "OutOfMemory"
                 : result.TimedOut ? "AgentTimeout" : null,
-            result.OutOfMemory
+            result.Quota is not null
+                ? result.Quota.Reason
+                : result.OutOfMemory
                 ? "agent container reported a cgroup OOM kill"
                 : result.TimedOut ? "agent execution exceeded its timeout" : null,
-            cpuSet);
+            cpuSet,
+            result.Quota);
         AtomicFile.Replace(
             summaryPath,
             JsonSerializer.Serialize(summary, StateJson.Options));
@@ -257,11 +278,16 @@ public sealed partial class DockerAgentRunner : IAgentRunner
                 containerName,
                 cancellationToken);
             await using IDockerOomWatch oomWatch = oomMonitor.Start(containerName);
+            var quotaObserver = new AgentQuotaObserver(request.Invocation.Cli, request.QuotaDetected);
+            cancellationToken.ThrowIfCancellationRequested();
+            request.AgentStarting?.Invoke();
             Task<DockerProcessResult> agentTask = DockerAgentProcess.RunAsync(
                 arguments,
                 credentialVariable,
                 request.Invocation.CredentialValue,
-                CancellationToken.None);
+                CancellationToken.None,
+                quotaObserver.Observe,
+                quotaObserver.Observe);
             TimeSpan agentTimeout = request.Timeout ?? TimeSpan.FromSeconds(5400);
             Task timeoutTask = Task.Delay(agentTimeout, cancellationToken);
             Task<bool> oomTask = oomWatch.WaitAsync(agentTask, CancellationToken.None);
@@ -318,6 +344,8 @@ public sealed partial class DockerAgentRunner : IAgentRunner
             string patch = ReadRequiredEvidence(
                 evidenceDirectory,
                 "patch.diff");
+            quotaObserver.Observe(standardOutput);
+            quotaObserver.Observe(standardError);
             string debugLogDirectory = Path.Combine(
                 evidenceDirectory,
                 "copilot-logs");
@@ -365,7 +393,8 @@ public sealed partial class DockerAgentRunner : IAgentRunner
                 Cost: usage?.AiCredits,
                 Usage: usage,
                 OutOfMemory: outOfMemory,
-                TimedOut: timedOut);
+                TimedOut: timedOut,
+                Quota: quotaObserver.Quota);
         }
         finally
         {
@@ -458,8 +487,10 @@ public sealed partial class DockerAgentRunner : IAgentRunner
         arguments.Add(
             $"export PATH={AgentCli.For(request.Invocation.Cli).InstallPath}/node_modules/.bin:$PATH; " +
             "cd /workspace/; " +
-            $"{command} >/logs/agent/stdout.log 2>/logs/agent/stderr.log; " +
-            "status=$?; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
+            (request.Invocation.Cli is "claude" or "codex"
+                ? $"{command} > >(tee /logs/agent/stdout.log) 2> >(tee /logs/agent/stderr.log >&2); "
+                : $"{command} >/logs/agent/stdout.log 2>/logs/agent/stderr.log; ") +
+            "status=$?; wait; cp /logs/agent/stdout.log /logs/agent/trajectory.jsonl; " +
             "exit $status");
         arguments.Add("--");
         arguments.Add(request.Invocation.Executable);
@@ -911,7 +942,9 @@ internal static class DockerAgentProcess
         IReadOnlyList<string> arguments,
         string? credentialVariable,
         string? credentialValue,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<string>? standardOutputLine = null,
+        Action<string>? standardErrorLine = null)
     {
         var startInfo = new ProcessStartInfo("docker")
         {
@@ -929,10 +962,22 @@ internal static class DockerAgentProcess
             startInfo.ArgumentList.Add(argument);
         }
 
+        return await RunProcessAsync(
+            startInfo, cancellationToken, standardOutputLine, standardErrorLine);
+    }
+
+    internal static async Task<DockerProcessResult> RunProcessAsync(
+        ProcessStartInfo startInfo,
+        CancellationToken cancellationToken,
+        Action<string>? standardOutputLine = null,
+        Action<string>? standardErrorLine = null)
+    {
         using Process process = Process.Start(startInfo)
             ?? throw new AgentExecutionException("Docker agent process could not be started");
-        Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
+        Task<string> outputTask = ReadOutputAsync(
+            process.StandardOutput, standardOutputLine, cancellationToken);
+        Task<string> errorTask = ReadOutputAsync(
+            process.StandardError, standardErrorLine, cancellationToken);
         try
         {
             await process.WaitForExitAsync(cancellationToken);
@@ -947,6 +992,39 @@ internal static class DockerAgentProcess
             process.ExitCode,
             await outputTask,
             await errorTask);
+    }
+
+    private static async Task<string> ReadOutputAsync(
+        StreamReader reader,
+        Action<string>? lineReceived,
+        CancellationToken cancellationToken)
+    {
+        if (lineReceived is null)
+            return await reader.ReadToEndAsync(cancellationToken);
+
+        var output = new System.Text.StringBuilder();
+        var line = new System.Text.StringBuilder();
+        var buffer = new char[4096];
+        int count;
+        while ((count = await reader.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
+        {
+            output.Append(buffer, 0, count);
+            for (int index = 0; index < count; index++)
+            {
+                if (buffer[index] == '\n')
+                {
+                    lineReceived(line.ToString().TrimEnd('\r'));
+                    line.Clear();
+                }
+                else
+                {
+                    line.Append(buffer[index]);
+                }
+            }
+        }
+        if (line.Length > 0)
+            lineReceived(line.ToString());
+        return output.ToString();
     }
 }
 

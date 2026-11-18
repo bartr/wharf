@@ -29,6 +29,7 @@ public sealed class RunEvidenceReader
         IReadOnlyList<StageEvidence> stages = ReadStages(
             Path.Combine(fullRunDirectory, "run.jsonl"));
         string job = options.Job ?? Path.GetFileName(fullRunDirectory);
+        Wharf.Run.BatchState batchState = Wharf.Run.RunBatch.Read(fullRunDirectory);
 
         var rows = new List<AnalyticsTrial>();
         foreach (string trialDirectory in Directory.EnumerateDirectories(fullRunDirectory)
@@ -39,11 +40,21 @@ public sealed class RunEvidenceReader
             {
                 continue;
             }
+            if (batchState.Rejections.Any(item =>
+                    item.TrialDirectory == Path.GetFileName(trialDirectory) && !item.Deleted))
+                continue;
 
             using JsonDocument result = ReadJson(resultPath);
             JsonElement root = result.RootElement;
             string taskId = RequiredString(root, "taskId", resultPath);
             int attempt = RequiredInt(root, "attempt", resultPath);
+            DateTimeOffset? rejectedAt = batchState.Rejections
+                .Where(item => item.TaskId == taskId && item.Attempt == attempt)
+                .Select(item => (DateTimeOffset?)item.Cutoff).Max();
+            DateTimeOffset? acceptedInvocation = batchState.Invocations
+                .Where(batch => batch.Accepted.Contains($"{taskId}#attempt-{attempt}", StringComparer.Ordinal))
+                .Select(batch => (DateTimeOffset?)batch.Started).Max();
+            DateTimeOffset? acceptedAfter = new[] { rejectedAt, acceptedInvocation }.Max();
             tasks.TryGetValue(taskId, out HarborTask? task);
             IReadOnlyList<AgentEvidenceSummary> agentEvidence = ReadAgentEvidence(trialDirectory);
             RewardEvidence reward = ReadReward(trialDirectory, root);
@@ -54,7 +65,8 @@ public sealed class RunEvidenceReader
             IReadOnlyList<StageEvidence> trialStages = stages
                 .Where(stage =>
                     stage.TaskId == taskId &&
-                    stage.LogicalAttempt == attempt)
+                    stage.LogicalAttempt == attempt &&
+                    (acceptedAfter is null || stage.Timestamp > acceptedAfter))
                 .ToArray();
             double? trialSeconds = ElapsedSeconds(trialStages);
             string? exceptionType = trialStages

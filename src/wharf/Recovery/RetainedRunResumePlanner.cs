@@ -169,6 +169,7 @@ public sealed class RetainedRunResumePlanner
         }
 
         IReadOnlyList<TaskAttempt> expected = TaskSelector.ExpandAttempts(tasks, k);
+        BatchState batchState = RunBatch.Read(resolvedRun);
         var attempts = new List<RetainedResumeAttempt>();
         int completed = 0;
         foreach (TaskAttempt attempt in expected)
@@ -178,7 +179,9 @@ public sealed class RetainedRunResumePlanner
                 TrialDirectoryName(attempt, k));
             ValidateRetainedTrialIdentity(resolvedRun, trialDirectory, attempt, k);
             string resultPath = Path.Combine(trialDirectory, "result.json");
-            if (File.Exists(resultPath) &&
+            bool pendingDeletion = batchState.Rejections.Any(item =>
+                item.TrialDirectory == Path.GetFileName(trialDirectory) && !item.Deleted);
+            if (!pendingDeletion && File.Exists(resultPath) &&
                 IsValidTerminalResult(resultPath, attempt))
             {
                 completed++;
@@ -186,7 +189,7 @@ public sealed class RetainedRunResumePlanner
             }
 
             int trialRetry = ExistingTrialRetry(trialDirectory);
-            decimal? totalCost = ExistingTotalCost(trialDirectory);
+            decimal? totalCost = ExistingTotalCost(trialDirectory, includeCurrent: !pendingDeletion);
             attempts.Add(new RetainedResumeAttempt(
                 attempt,
                 trialDirectory,
@@ -245,8 +248,11 @@ public sealed class RetainedRunResumePlanner
     }
 
     internal static string TrialDirectoryName(TaskAttempt attempt, int k) =>
-        $"{Sanitize(attempt.Task.TaskId)}__{attempt.Task.SourceChecksum[..8]}" +
-        (k > 1 ? $"__attempt-{attempt.AttemptNumber}" : string.Empty);
+        TrialDirectoryName(attempt.Task.TaskId, attempt.Task.SourceChecksum, attempt.AttemptNumber, k);
+
+    internal static string TrialDirectoryName(string taskId, string checksum, int attempt, int k) =>
+        $"{Sanitize(taskId)}__{checksum[..8]}" +
+        (k > 1 ? $"__attempt-{attempt}" : string.Empty);
 
     private static Match ReadPlanMetadata(string logPath)
     {
@@ -313,7 +319,7 @@ public sealed class RetainedRunResumePlanner
             .Max();
     }
 
-    private static decimal? ExistingTotalCost(string trialDirectory)
+    private static decimal? ExistingTotalCost(string trialDirectory, bool includeCurrent = true)
     {
         int retry = ExistingTrialRetry(trialDirectory);
         decimal? totalCost = null;
@@ -328,7 +334,7 @@ public sealed class RetainedRunResumePlanner
         }
 
         string agentDirectory = Path.Combine(trialDirectory, "agent");
-        if (!Directory.Exists(agentDirectory))
+        if (!includeCurrent || !Directory.Exists(agentDirectory))
             return totalCost;
 
         foreach (string resultPath in Directory.EnumerateFiles(

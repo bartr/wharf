@@ -75,6 +75,49 @@ execution environments, and automated verification of the resulting code.
 
 ## Choosing the agent CLI
 
+### Subscription-aware batches
+
+Start a fixed K-attempt experiment in batches of at most B pending logical trials:
+
+```bash
+# From the repository root
+cd wharf-swe
+wharf run --cli codex --model gpt-6.1-sol -k 4 -n 32 -p 12 -b 25
+```
+
+After checking the reported run directory, continue from that exact `all-N`
+directory with `wharf run -b 1`, or from anywhere:
+
+```bash
+wharf run --run-directory /absolute/path/to/all-1 -b 20
+wharf run --run-directory /absolute/path/to/all-1 --batch-size 2 --dry-run
+```
+
+Continuation restores the original task subset/checksums, K, N, P, provider,
+model, effort, exact resolved CLI version, timeouts, retries, and other policy.
+Do not repeat or override those flags; only the batch size, diagnostic controls,
+and refreshed credentials may change. It never resolves `latest` again.
+Ordinary failures finish their slots; batching does not rerun them to seek passes.
+B counts admitted logical trials, including failures, not successes or retries.
+Copilot also supports bounded batches.
+
+Explicit Claude/Codex subscription exhaustion stops new agent starts and agent
+retries, even without `-b`. Already running agents and verifiers drain. Each
+quota-interrupted execution, including a partial passing patch, is rejected:
+Wharf first writes a secret-free audit under `.github/tracking/`, then permanently
+deletes that execution's raw payload, leaving its logical slot pending.
+Known rejected usage/cost/time remains in the audit, separate from accepted
+analytics. Generic HTTP 429 or service overload alone does not trigger this.
+
+After a manual quota reset, run another batch; Wharf does not sleep, sign in,
+or switch models automatically. Exit 0 means the invocation finished normally
+(possibly only its batch); exit 6 means quota-paused. Console output and atomic
+schema `1.0` `batches.json` distinguish batch-limit, completed, quota-paused,
+cancelled, and failed states. Interrupted deletion is recovered before admission;
+one writer owns a run, while dry-run/progress remain read-only.
+
+### Provider selection
+
 Copilot remains the default. Select Claude Code with `--cli claude` or Codex
 with `--cli codex` on `run`, `prebuild`, or `smoke`. Claude defaults to Sonnet
 5.5 (`claude-sonnet-5-5`); Codex defaults to `gpt-6-luna`. Override the model
