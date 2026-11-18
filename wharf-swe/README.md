@@ -43,7 +43,42 @@ Regenerate all three graphs in `wharf-swe/docs/` from the JSONL exports in
 `wharf-swe/data/` with `python3 scripts/plot-wharf-swe-pass-at-1.py` from the
 repository root. Keep this README aligned with `data/manifest.json`.
 
-## Latest CLI 1.0.113 comparison
+## Latest completed runs
+
+The latest Copilot runs use CLI 1.0.114; the completed Codex runs use 0.169.0.
+All five arms use the same 14 task IDs/checksums, K=4/N=56, and default effort.
+Copilot uses P=16, while Codex uses P=12. These compare model plus harness
+configurations, not isolated model capability or controlled CLI-version effects.
+The revision graphs above include only Copilot arms, through revision 114.
+
+| Model | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| GPT-6.1 Sol | copilot-cli | 1.0.114 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2064 | 335.6 s |
+| GPT-6.1 Sol | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | 184.4 s |
+| HydraFusion | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2729 | 419.5 s |
+| GPT-6 Luna | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0162 | 265.2 s |
+| GPT-6 Luna | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | 95.8 s |
+
+Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.114/all-1),
+[Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.114/all-1),
+[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.114/all-1),
+[Codex Sol](jobs/codex-gpt-6.1-sol-default-0.169.0/all-1), and
+[Codex Luna](jobs/codex-gpt-6-luna-default-0.169.0/all-1).
+
+All 280 new logical trials are included. Codex Sol records 14 agent-execution
+exceptions ending in usage-limit errors, despite all 14 retained patches
+passing verification. Codex Luna records five logical trials with an
+agent-execution exception and one whole-trial retry; its duration includes
+both agent executions for that trial. Nonzero exits can shorten agent time,
+so shorter durations are not necessarily efficiency gains.
+
+Copilot has 56/56 cost coverage per arm; both Codex arms have 0/56 retained
+billed-cost coverage. API-equivalent estimates are not inserted into
+`cost_usd` or compared as actual ChatGPT subscription charges. Codex Sol
+also lacks final token usage for its 14 interrupted executions.
+The incomplete Claude Code usage-limit recovery run is not exported.
+
+## Historical CLI 1.0.113 comparison
 
 Sources: [HydraFusion](jobs/copilot-hydrafusion-default-1.0.113/all-1),
 [GPT-6.1 Sol](jobs/copilot-gpt-6.1-sol-default-1.0.113/all-1),
@@ -71,25 +106,26 @@ The separate Claude Code run awaiting usage-limit recovery is not exported.
 
 ## Data coverage
 
-* Exported arms: 52
-* Exported logical trials: 2912
+* Exported arms: 57
+* Exported logical trials: 3192
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 2912 / 2912 trials
-* Agent and trial duration measurements: 2912 / 2912 trials
-* Cost evidence: 2912 / 2912 trials
-* Trials with an exception category: 0
+* Functional and regression measurements: 3192 / 3192 trials
+* Agent and trial duration measurements: 3192 / 3192 trials
+* Cost evidence: 3080 / 3192 trials (96.49%)
+* Trials with an exception category: 19
 
 Only completed `all-1` runs are included.
 Infrastructure and verifier retries are not additional logical trials.
 
 ## Results
 
-Verified 2026-11-17 from fifty-two completed runs. Each arm contains 14
+Verified 2026-11-18 from fifty-seven completed runs. Each arm contains 14
 tasks and four attempts per task.
 
-Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending.
-All runs use default effort and the Copilot CLI.
+Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending
+(unknown costs last within ties). All runs use default effort; CLI identity
+and version are explicit.
 
 | Model | Effort | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|
@@ -97,6 +133,7 @@ All runs use default effort and the Copilot CLI.
 | GPT-6.1 Sol | default | copilot-cli | 1.0.110 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1934 | 199.3 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2011 | 243.4 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.111 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2020 | 196.6 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.114 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2064 | 335.6 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.113 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2082 | 330.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.111 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2247 | 303.1 s |
 | **HydraFusion** | default | copilot-cli | 1.0.112 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2566 | 299.4 s |
@@ -115,6 +152,7 @@ All runs use default effort and the Copilot CLI.
 | GPT-6 Astra | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 0 | 96.43% | $1.3180 | 252.5 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.108 | 54 / 56 | 96.43% | 1 | 96.18% | $0.0165 | 211.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.96 | 54 / 56 | 96.43% | 1 | 96.18% | $0.3197 | 272.5 s |
+| GPT-6.1 Sol | default | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | 184.4 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
 | **HydraFusion** | default | copilot-cli | 1.0.110 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2324 | 296.0 s |
@@ -125,9 +163,11 @@ All runs use default effort and the Copilot CLI.
 | **HydraFusion** | default | copilot-cli | 1.0.105 | 52 / 56 | 92.86% | 2 | 92.36% | $0.2681 | 188.7 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.91 | 52 / 56 | 92.86% | 3 | 92.11% | $0.4792 | 180.8 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.105 | 52 / 56 | 92.86% | 3 | 92.11% | $0.5319 | 147.2 s |
+| **HydraFusion** | default | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2729 | 419.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.106 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2895 | 378.2 s |
 | **HydraFusion** | default | copilot-cli | 1.0.95 | 51 / 56 | 91.07% | 0 | 91.07% | $0.3186 | 302.9 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.111 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0137 | 200.0 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0162 | 265.2 s |
 | **HydraFusion** | default | copilot-cli | 1.0.102 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3341 | 266.9 s |
 | **HydraFusion** | default | copilot-cli | 1.0.103 | 51 / 56 | 91.07% | 2 | 90.57% | $0.3930 | 229.4 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.113 | 51 / 56 | 91.07% | 2 | 90.57% | $0.4935 | 206.6 s |
@@ -145,6 +185,7 @@ All runs use default effort and the Copilot CLI.
 | MAI Code 1.1 Flash | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 5 | 80.89% | $0.0770 | 275.1 s |
 | GPT-5.6 Luna | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 6 | 80.64% | $0.0231 | 190.6 s |
 | GPT-5.6 Terra | default | copilot-cli | 1.0.96 | 44 / 56 | 78.57% | 2 | 78.07% | $0.2463 | 141.5 s |
+| GPT-6 Luna | default | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | 95.8 s |
 
 PASS@1 is the trial-level pass rate. P2P errors count trial patches that failed
 at least one pre-existing test. Score is `passes / trials - (p2p_errors * 0.0025)`,
@@ -152,8 +193,9 @@ displayed as a percentage: each P2P error subtracts 0.25 percentage points.
 It is separate from PASS@1 and the Enterprise Score audit metric, is not
 clamped at zero, and is null for empty arms.
 
-Average cost divides known cost by cost-bearing
-logical trials; all rows in this table have 56/56 cost coverage. Average agent
+Cost/trial divides known cost by cost-bearing logical trials.
+Copilot rows have 56/56 cost coverage; Codex rows have 0/56 and show unknown.
+Average agent
 time uses actual agent-command durations, summed across whole-trial retries,
 and excludes preparation, evidence-copy, and verifier time. Equal K makes this
 the task-weighted, K-normalized mean as well.

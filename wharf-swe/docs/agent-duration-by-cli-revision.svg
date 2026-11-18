@@ -1,259 +1,275 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="730" viewBox="0 0 1100 730" role="img" aria-labelledby="title description">
 <title id="title">WharfSWE p90 agent duration by Copilot CLI revision</title>
-<desc id="description">Selected WharfSWE models, with one point per completed 56-trial arm. X is the revision of CLI 1.0.x; Y shows p90 agent time (m:ss). The X axis starts at revision 95. Y axis: 0:00 to 11:00. Lines join observed runs only.</desc>
+<desc id="description">Selected WharfSWE models, with one point per completed 56-trial arm. X is the revision of CLI 1.0.x; Y shows p90 agent time (m:ss). The X axis starts at revision 95. Y axis: 0:00 to 12:00. Lines join observed runs only.</desc>
 <rect width="1100" height="730" fill="white"/>
 <g font-family="sans-serif" fill="#222222">
 <text x="550" y="34" text-anchor="middle" font-size="24" font-weight="bold">WharfSWE p90 agent duration by Copilot CLI revision</text>
-<text x="550" y="60" text-anchor="middle" font-size="14">Selected models | 14 tasks x 4 attempts per run | Y axis: 0:00-11:00</text>
+<text x="550" y="60" text-anchor="middle" font-size="14">Selected models | 14 tasks x 4 attempts per run | Y axis: 0:00-12:00</text>
 <path d="M95 480.00H1035" stroke="#dddddd"/>
 <text x="80" y="485.00" text-anchor="end" font-size="14">0:00</text>
-<path d="M95 445.45H1035" stroke="#dddddd"/>
-<text x="80" y="450.45" text-anchor="end" font-size="14">1:00</text>
-<path d="M95 410.91H1035" stroke="#dddddd"/>
-<text x="80" y="415.91" text-anchor="end" font-size="14">2:00</text>
-<path d="M95 376.36H1035" stroke="#dddddd"/>
-<text x="80" y="381.36" text-anchor="end" font-size="14">3:00</text>
-<path d="M95 341.82H1035" stroke="#dddddd"/>
-<text x="80" y="346.82" text-anchor="end" font-size="14">4:00</text>
-<path d="M95 307.27H1035" stroke="#dddddd"/>
-<text x="80" y="312.27" text-anchor="end" font-size="14">5:00</text>
-<path d="M95 272.73H1035" stroke="#dddddd"/>
-<text x="80" y="277.73" text-anchor="end" font-size="14">6:00</text>
-<path d="M95 238.18H1035" stroke="#dddddd"/>
-<text x="80" y="243.18" text-anchor="end" font-size="14">7:00</text>
-<path d="M95 203.64H1035" stroke="#dddddd"/>
-<text x="80" y="208.64" text-anchor="end" font-size="14">8:00</text>
-<path d="M95 169.09H1035" stroke="#dddddd"/>
-<text x="80" y="174.09" text-anchor="end" font-size="14">9:00</text>
-<path d="M95 134.55H1035" stroke="#dddddd"/>
-<text x="80" y="139.55" text-anchor="end" font-size="14">10:00</text>
+<path d="M95 448.33H1035" stroke="#dddddd"/>
+<text x="80" y="453.33" text-anchor="end" font-size="14">1:00</text>
+<path d="M95 416.67H1035" stroke="#dddddd"/>
+<text x="80" y="421.67" text-anchor="end" font-size="14">2:00</text>
+<path d="M95 385.00H1035" stroke="#dddddd"/>
+<text x="80" y="390.00" text-anchor="end" font-size="14">3:00</text>
+<path d="M95 353.33H1035" stroke="#dddddd"/>
+<text x="80" y="358.33" text-anchor="end" font-size="14">4:00</text>
+<path d="M95 321.67H1035" stroke="#dddddd"/>
+<text x="80" y="326.67" text-anchor="end" font-size="14">5:00</text>
+<path d="M95 290.00H1035" stroke="#dddddd"/>
+<text x="80" y="295.00" text-anchor="end" font-size="14">6:00</text>
+<path d="M95 258.33H1035" stroke="#dddddd"/>
+<text x="80" y="263.33" text-anchor="end" font-size="14">7:00</text>
+<path d="M95 226.67H1035" stroke="#dddddd"/>
+<text x="80" y="231.67" text-anchor="end" font-size="14">8:00</text>
+<path d="M95 195.00H1035" stroke="#dddddd"/>
+<text x="80" y="200.00" text-anchor="end" font-size="14">9:00</text>
+<path d="M95 163.33H1035" stroke="#dddddd"/>
+<text x="80" y="168.33" text-anchor="end" font-size="14">10:00</text>
+<path d="M95 131.67H1035" stroke="#dddddd"/>
+<text x="80" y="136.67" text-anchor="end" font-size="14">11:00</text>
 <path d="M95 100.00H1035" stroke="#dddddd"/>
-<text x="80" y="105.00" text-anchor="end" font-size="14">11:00</text>
+<text x="80" y="105.00" text-anchor="end" font-size="14">12:00</text>
 <path d="M95.00 100V480" stroke="#eeeeee"/>
 <text x="95.00" y="504" text-anchor="middle" font-size="13">95</text>
-<path d="M147.22 100V480" stroke="#eeeeee"/>
-<text x="147.22" y="504" text-anchor="middle" font-size="13">96</text>
-<path d="M199.44 100V480" stroke="#eeeeee"/>
-<text x="199.44" y="504" text-anchor="middle" font-size="13">97</text>
-<path d="M251.67 100V480" stroke="#eeeeee"/>
-<text x="251.67" y="504" text-anchor="middle" font-size="13">98</text>
-<path d="M356.11 100V480" stroke="#eeeeee"/>
-<text x="356.11" y="504" text-anchor="middle" font-size="13">100</text>
-<path d="M408.33 100V480" stroke="#eeeeee"/>
-<text x="408.33" y="504" text-anchor="middle" font-size="13">101</text>
-<path d="M460.56 100V480" stroke="#eeeeee"/>
-<text x="460.56" y="504" text-anchor="middle" font-size="13">102</text>
-<path d="M512.78 100V480" stroke="#eeeeee"/>
-<text x="512.78" y="504" text-anchor="middle" font-size="13">103</text>
-<path d="M565.00 100V480" stroke="#eeeeee"/>
-<text x="565.00" y="504" text-anchor="middle" font-size="13">104</text>
-<path d="M617.22 100V480" stroke="#eeeeee"/>
-<text x="617.22" y="504" text-anchor="middle" font-size="13">105</text>
-<path d="M669.44 100V480" stroke="#eeeeee"/>
-<text x="669.44" y="504" text-anchor="middle" font-size="13">106</text>
-<path d="M721.67 100V480" stroke="#eeeeee"/>
-<text x="721.67" y="504" text-anchor="middle" font-size="13">107</text>
-<path d="M773.89 100V480" stroke="#eeeeee"/>
-<text x="773.89" y="504" text-anchor="middle" font-size="13">108</text>
-<path d="M826.11 100V480" stroke="#eeeeee"/>
-<text x="826.11" y="504" text-anchor="middle" font-size="13">109</text>
-<path d="M878.33 100V480" stroke="#eeeeee"/>
-<text x="878.33" y="504" text-anchor="middle" font-size="13">110</text>
-<path d="M930.56 100V480" stroke="#eeeeee"/>
-<text x="930.56" y="504" text-anchor="middle" font-size="13">111</text>
-<path d="M982.78 100V480" stroke="#eeeeee"/>
-<text x="982.78" y="504" text-anchor="middle" font-size="13">112</text>
+<path d="M144.47 100V480" stroke="#eeeeee"/>
+<text x="144.47" y="504" text-anchor="middle" font-size="13">96</text>
+<path d="M193.95 100V480" stroke="#eeeeee"/>
+<text x="193.95" y="504" text-anchor="middle" font-size="13">97</text>
+<path d="M243.42 100V480" stroke="#eeeeee"/>
+<text x="243.42" y="504" text-anchor="middle" font-size="13">98</text>
+<path d="M342.37 100V480" stroke="#eeeeee"/>
+<text x="342.37" y="504" text-anchor="middle" font-size="13">100</text>
+<path d="M391.84 100V480" stroke="#eeeeee"/>
+<text x="391.84" y="504" text-anchor="middle" font-size="13">101</text>
+<path d="M441.32 100V480" stroke="#eeeeee"/>
+<text x="441.32" y="504" text-anchor="middle" font-size="13">102</text>
+<path d="M490.79 100V480" stroke="#eeeeee"/>
+<text x="490.79" y="504" text-anchor="middle" font-size="13">103</text>
+<path d="M540.26 100V480" stroke="#eeeeee"/>
+<text x="540.26" y="504" text-anchor="middle" font-size="13">104</text>
+<path d="M589.74 100V480" stroke="#eeeeee"/>
+<text x="589.74" y="504" text-anchor="middle" font-size="13">105</text>
+<path d="M639.21 100V480" stroke="#eeeeee"/>
+<text x="639.21" y="504" text-anchor="middle" font-size="13">106</text>
+<path d="M688.68 100V480" stroke="#eeeeee"/>
+<text x="688.68" y="504" text-anchor="middle" font-size="13">107</text>
+<path d="M738.16 100V480" stroke="#eeeeee"/>
+<text x="738.16" y="504" text-anchor="middle" font-size="13">108</text>
+<path d="M787.63 100V480" stroke="#eeeeee"/>
+<text x="787.63" y="504" text-anchor="middle" font-size="13">109</text>
+<path d="M837.11 100V480" stroke="#eeeeee"/>
+<text x="837.11" y="504" text-anchor="middle" font-size="13">110</text>
+<path d="M886.58 100V480" stroke="#eeeeee"/>
+<text x="886.58" y="504" text-anchor="middle" font-size="13">111</text>
+<path d="M936.05 100V480" stroke="#eeeeee"/>
+<text x="936.05" y="504" text-anchor="middle" font-size="13">112</text>
+<path d="M985.53 100V480" stroke="#eeeeee"/>
+<text x="985.53" y="504" text-anchor="middle" font-size="13">113</text>
 <path d="M1035.00 100V480" stroke="#eeeeee"/>
-<text x="1035.00" y="504" text-anchor="middle" font-size="13">113</text>
+<text x="1035.00" y="504" text-anchor="middle" font-size="13">114</text>
 <path d="M95 95V480H1040" fill="none" stroke="#777777"/>
 <text x="565" y="535" text-anchor="middle" font-size="16">Copilot CLI revision (1.0.x)</text>
 <text transform="translate(30 290) rotate(-90)" text-anchor="middle" font-size="16">p90 agent time (m:ss)</text>
-<polyline data-model="hydrafusion" points="95.00,202.08 147.22,186.83 199.44,167.37 251.67,259.34 356.11,202.08 408.33,271.09 460.56,234.36 512.78,250.79 565.00,309.56 617.22,308.17 669.44,129.12 721.67,182.58 773.89,163.27 826.11,137.40 878.33,186.38 930.56,209.97 982.78,208.84 1035.00,153.18" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6.1-sol" points="95.00,207.96 460.56,198.57 617.22,283.78 773.89,278.85 826.11,265.57 878.33,283.87 930.56,277.91 982.78,305.26 1035.00,219.47" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-astra" points="95.00,263.44 460.56,253.57 617.22,321.42 773.89,275.34 1035.00,220.07" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-luna" points="95.00,260.15 460.56,268.17 617.22,314.43 773.89,308.38 826.11,320.93 878.33,326.27 930.56,310.90 982.78,336.52 1035.00,260.09" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="claude-opus-5.5" points="95.00,297.54 460.56,283.61 617.22,354.96 773.89,352.76 1035.00,285.33" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="341.093" data-costed-trials="56" transform="translate(460.56 283.61)">
+<polyline data-model="hydrafusion" points="95.00,225.24 144.47,211.26 193.95,193.42 243.42,277.73 342.37,225.24 391.84,288.50 441.32,254.83 490.79,269.89 540.26,323.77 589.74,322.49 639.21,158.36 688.68,207.37 738.16,189.66 787.63,165.95 837.11,210.84 886.58,232.48 936.05,231.44 985.53,180.41 1035.00,114.56" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6.1-sol" points="95.00,230.63 441.32,222.03 589.74,300.13 738.16,295.61 787.63,283.44 837.11,300.22 886.58,294.75 936.05,319.83 985.53,241.18 1035.00,242.26" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-astra" points="95.00,281.49 441.32,272.44 589.74,334.63 738.16,292.39 985.53,241.73" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-luna" points="95.00,278.47 441.32,285.82 589.74,328.23 738.16,322.68 787.63,334.18 837.11,339.08 886.58,324.99 936.05,348.48 985.53,278.41 1035.00,291.77" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="claude-opus-5.5" points="95.00,312.75 441.32,299.98 589.74,365.38 738.16,363.36 985.53,301.55" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="341.093" data-costed-trials="56" transform="translate(441.32 299.98)">
 <title>Claude Opus 5.5 | CLI 1.0.102 | p90 agent time (m:ss): 5:41 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="217.175" data-costed-trials="56" transform="translate(617.22 354.96)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="217.175" data-costed-trials="56" transform="translate(589.74 365.38)">
 <title>Claude Opus 5.5 | CLI 1.0.105 | p90 agent time (m:ss): 3:37 | 52/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.108" data-revision="108" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="220.993" data-costed-trials="56" transform="translate(773.89 352.76)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.108" data-revision="108" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="220.993" data-costed-trials="56" transform="translate(738.16 363.36)">
 <title>Claude Opus 5.5 | CLI 1.0.108 | p90 agent time (m:ss): 3:41 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.113" data-revision="113" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="338.111" data-costed-trials="56" transform="translate(1035.00 285.33)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.113" data-revision="113" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="338.111" data-costed-trials="56" transform="translate(985.53 301.55)">
 <title>Claude Opus 5.5 | CLI 1.0.113 | p90 agent time (m:ss): 5:38 | 51/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-claude-opus-5.5-default-1.0.95" data-revision="95" data-passes="49" data-trials="56" data-metric="agent_p90_seconds" data-value="316.898" data-costed-trials="56" transform="translate(95.00 297.54)">
+<g data-arm="copilot-claude-opus-5.5-default-1.0.95" data-revision="95" data-passes="49" data-trials="56" data-metric="agent_p90_seconds" data-value="316.898" data-costed-trials="56" transform="translate(95.00 312.75)">
 <title>Claude Opus 5.5 | CLI 1.0.95 | p90 agent time (m:ss): 5:17 | 49/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.102" data-revision="102" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="393.2785" data-costed-trials="56" transform="translate(460.56 253.57)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.102" data-revision="102" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="393.2785" data-costed-trials="56" transform="translate(441.32 272.44)">
 <title>GPT-6 Astra | CLI 1.0.102 | p90 agent time (m:ss): 6:33 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.105" data-revision="105" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="275.4335" data-costed-trials="56" transform="translate(617.22 321.42)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.105" data-revision="105" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="275.4335" data-costed-trials="56" transform="translate(589.74 334.63)">
 <title>GPT-6 Astra | CLI 1.0.105 | p90 agent time (m:ss): 4:35 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="355.470" data-costed-trials="56" transform="translate(773.89 275.34)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="355.470" data-costed-trials="56" transform="translate(738.16 292.39)">
 <title>GPT-6 Astra | CLI 1.0.108 | p90 agent time (m:ss): 5:55 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="451.453" data-costed-trials="56" transform="translate(1035.00 220.07)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="451.453" data-costed-trials="56" transform="translate(985.53 241.73)">
 <title>GPT-6 Astra | CLI 1.0.113 | p90 agent time (m:ss): 7:31 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-astra-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="376.1265" data-costed-trials="56" transform="translate(95.00 263.44)">
+<g data-arm="copilot-gpt-6-astra-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="376.1265" data-costed-trials="56" transform="translate(95.00 281.49)">
 <title>GPT-6 Astra | CLI 1.0.95 | p90 agent time (m:ss): 6:16 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.102" data-revision="102" data-passes="50" data-trials="56" data-metric="agent_p90_seconds" data-value="367.9185" data-costed-trials="56" transform="translate(460.56 268.17)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.102" data-revision="102" data-passes="50" data-trials="56" data-metric="agent_p90_seconds" data-value="367.9185" data-costed-trials="56" transform="translate(441.32 285.82)">
 <title>GPT-6 Luna | CLI 1.0.102 | p90 agent time (m:ss): 6:08 | 50/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.105" data-revision="105" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="287.566" data-costed-trials="56" transform="translate(617.22 314.43)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.105" data-revision="105" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="287.566" data-costed-trials="56" transform="translate(589.74 328.23)">
 <title>GPT-6 Luna | CLI 1.0.105 | p90 agent time (m:ss): 4:48 | 48/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.108" data-revision="108" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="298.077" data-costed-trials="56" transform="translate(773.89 308.38)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.108" data-revision="108" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="298.077" data-costed-trials="56" transform="translate(738.16 322.68)">
 <title>GPT-6 Luna | CLI 1.0.108 | p90 agent time (m:ss): 4:58 | 54/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.109" data-revision="109" data-passes="50" data-trials="56" data-metric="agent_p90_seconds" data-value="276.285" data-costed-trials="56" transform="translate(826.11 320.93)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.109" data-revision="109" data-passes="50" data-trials="56" data-metric="agent_p90_seconds" data-value="276.285" data-costed-trials="56" transform="translate(787.63 334.18)">
 <title>GPT-6 Luna | CLI 1.0.109 | p90 agent time (m:ss): 4:36 | 50/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.110" data-revision="110" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="267.0055" data-costed-trials="56" transform="translate(878.33 326.27)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.110" data-revision="110" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="267.0055" data-costed-trials="56" transform="translate(837.11 339.08)">
 <title>GPT-6 Luna | CLI 1.0.110 | p90 agent time (m:ss): 4:27 | 51/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.111" data-revision="111" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="293.696" data-costed-trials="56" transform="translate(930.56 310.90)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.111" data-revision="111" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="293.696" data-costed-trials="56" transform="translate(886.58 324.99)">
 <title>GPT-6 Luna | CLI 1.0.111 | p90 agent time (m:ss): 4:54 | 51/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.112" data-revision="112" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="249.199" data-costed-trials="56" transform="translate(982.78 336.52)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.112" data-revision="112" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="249.199" data-costed-trials="56" transform="translate(936.05 348.48)">
 <title>GPT-6 Luna | CLI 1.0.112 | p90 agent time (m:ss): 4:09 | 51/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.113" data-revision="113" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="381.957" data-costed-trials="56" transform="translate(1035.00 260.09)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.113" data-revision="113" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="381.957" data-costed-trials="56" transform="translate(985.53 278.41)">
 <title>GPT-6 Luna | CLI 1.0.113 | p90 agent time (m:ss): 6:22 | 53/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6-luna-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="381.850" data-costed-trials="56" transform="translate(95.00 260.15)">
+<g data-arm="copilot-gpt-6-luna-default-1.0.114" data-revision="114" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="356.645" data-costed-trials="56" transform="translate(1035.00 291.77)">
+<title>GPT-6 Luna | CLI 1.0.114 | p90 agent time (m:ss): 5:57 | 51/56 passing trials | Cost coverage: 56/56</title>
+<rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-luna-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="381.850" data-costed-trials="56" transform="translate(95.00 278.47)">
 <title>GPT-6 Luna | CLI 1.0.95 | p90 agent time (m:ss): 6:22 | 54/56 passing trials | Cost coverage: 56/56</title>
 <rect x="-4" y="-4" width="8" height="8" fill="none" stroke="#cc79a7" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.102" data-revision="102" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="488.7915" data-costed-trials="56" transform="translate(460.56 198.57)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.102" data-revision="102" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="488.7915" data-costed-trials="56" transform="translate(441.32 222.03)">
 <title>GPT-6.1 Sol | CLI 1.0.102 | p90 agent time (m:ss): 8:09 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.105" data-revision="105" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="340.797" data-costed-trials="56" transform="translate(617.22 283.78)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.105" data-revision="105" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="340.797" data-costed-trials="56" transform="translate(589.74 300.13)">
 <title>GPT-6.1 Sol | CLI 1.0.105 | p90 agent time (m:ss): 5:41 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="349.371" data-costed-trials="56" transform="translate(773.89 278.85)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.108" data-revision="108" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="349.371" data-costed-trials="56" transform="translate(738.16 295.61)">
 <title>GPT-6.1 Sol | CLI 1.0.108 | p90 agent time (m:ss): 5:49 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="372.430" data-costed-trials="56" transform="translate(826.11 265.57)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="372.430" data-costed-trials="56" transform="translate(787.63 283.44)">
 <title>GPT-6.1 Sol | CLI 1.0.109 | p90 agent time (m:ss): 6:12 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.110" data-revision="110" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="340.6385" data-costed-trials="56" transform="translate(878.33 283.87)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.110" data-revision="110" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="340.6385" data-costed-trials="56" transform="translate(837.11 300.22)">
 <title>GPT-6.1 Sol | CLI 1.0.110 | p90 agent time (m:ss): 5:41 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="351.007" data-costed-trials="56" transform="translate(930.56 277.91)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="351.007" data-costed-trials="56" transform="translate(886.58 294.75)">
 <title>GPT-6.1 Sol | CLI 1.0.111 | p90 agent time (m:ss): 5:51 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="303.4875" data-costed-trials="56" transform="translate(982.78 305.26)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="303.4875" data-costed-trials="56" transform="translate(936.05 319.83)">
 <title>GPT-6.1 Sol | CLI 1.0.112 | p90 agent time (m:ss): 5:03 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="452.4985" data-costed-trials="56" transform="translate(1035.00 219.47)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="452.4985" data-costed-trials="56" transform="translate(985.53 241.18)">
 <title>GPT-6.1 Sol | CLI 1.0.113 | p90 agent time (m:ss): 7:32 | 56/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-gpt-6.1-sol-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="472.484" data-costed-trials="56" transform="translate(95.00 207.96)">
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.114" data-revision="114" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="450.449" data-costed-trials="56" transform="translate(1035.00 242.26)">
+<title>GPT-6.1 Sol | CLI 1.0.114 | p90 agent time (m:ss): 7:30 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6.1-sol-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="472.484" data-costed-trials="56" transform="translate(95.00 230.63)">
 <title>GPT-6.1 Sol | CLI 1.0.95 | p90 agent time (m:ss): 7:52 | 54/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#0072b2" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.100" data-revision="100" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="482.709" data-costed-trials="56" transform="translate(356.11 202.08)">
+<g data-arm="copilot-hydrafusion-default-1.0.100" data-revision="100" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="482.709" data-costed-trials="56" transform="translate(342.37 225.24)">
 <title>HydraFusion | CLI 1.0.100 | p90 agent time (m:ss): 8:03 | 53/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.101" data-revision="101" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="362.849" data-costed-trials="56" transform="translate(408.33 271.09)">
+<g data-arm="copilot-hydrafusion-default-1.0.101" data-revision="101" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="362.849" data-costed-trials="56" transform="translate(391.84 288.50)">
 <title>HydraFusion | CLI 1.0.101 | p90 agent time (m:ss): 6:03 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.102" data-revision="102" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="426.643" data-costed-trials="56" transform="translate(460.56 234.36)">
+<g data-arm="copilot-hydrafusion-default-1.0.102" data-revision="102" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="426.643" data-costed-trials="56" transform="translate(441.32 254.83)">
 <title>HydraFusion | CLI 1.0.102 | p90 agent time (m:ss): 7:07 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.103" data-revision="103" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="398.106" data-costed-trials="56" transform="translate(512.78 250.79)">
+<g data-arm="copilot-hydrafusion-default-1.0.103" data-revision="103" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="398.106" data-costed-trials="56" transform="translate(490.79 269.89)">
 <title>HydraFusion | CLI 1.0.103 | p90 agent time (m:ss): 6:38 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.104" data-revision="104" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="296.019" data-costed-trials="56" transform="translate(565.00 309.56)">
+<g data-arm="copilot-hydrafusion-default-1.0.104" data-revision="104" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="296.019" data-costed-trials="56" transform="translate(540.26 323.77)">
 <title>HydraFusion | CLI 1.0.104 | p90 agent time (m:ss): 4:56 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="298.442" data-costed-trials="56" transform="translate(617.22 308.17)">
+<g data-arm="copilot-hydrafusion-default-1.0.105" data-revision="105" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="298.442" data-costed-trials="56" transform="translate(589.74 322.49)">
 <title>HydraFusion | CLI 1.0.105 | p90 agent time (m:ss): 4:58 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.106" data-revision="106" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="609.416" data-costed-trials="56" transform="translate(669.44 129.12)">
+<g data-arm="copilot-hydrafusion-default-1.0.106" data-revision="106" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="609.416" data-costed-trials="56" transform="translate(639.21 158.36)">
 <title>HydraFusion | CLI 1.0.106 | p90 agent time (m:ss): 10:09 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.107" data-revision="107" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="516.5635" data-costed-trials="56" transform="translate(721.67 182.58)">
+<g data-arm="copilot-hydrafusion-default-1.0.107" data-revision="107" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="516.5635" data-costed-trials="56" transform="translate(688.68 207.37)">
 <title>HydraFusion | CLI 1.0.107 | p90 agent time (m:ss): 8:37 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.108" data-revision="108" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="550.1155" data-costed-trials="56" transform="translate(773.89 163.27)">
+<g data-arm="copilot-hydrafusion-default-1.0.108" data-revision="108" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="550.1155" data-costed-trials="56" transform="translate(738.16 189.66)">
 <title>HydraFusion | CLI 1.0.108 | p90 agent time (m:ss): 9:10 | 55/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="595.05" data-costed-trials="56" transform="translate(826.11 137.40)">
+<g data-arm="copilot-hydrafusion-default-1.0.109" data-revision="109" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="595.05" data-costed-trials="56" transform="translate(787.63 165.95)">
 <title>HydraFusion | CLI 1.0.109 | p90 agent time (m:ss): 9:55 | 55/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.110" data-revision="110" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="509.98" data-costed-trials="56" transform="translate(878.33 186.38)">
+<g data-arm="copilot-hydrafusion-default-1.0.110" data-revision="110" data-passes="53" data-trials="56" data-metric="agent_p90_seconds" data-value="509.98" data-costed-trials="56" transform="translate(837.11 210.84)">
 <title>HydraFusion | CLI 1.0.110 | p90 agent time (m:ss): 8:30 | 53/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="468.991" data-costed-trials="56" transform="translate(930.56 209.97)">
+<g data-arm="copilot-hydrafusion-default-1.0.111" data-revision="111" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="468.991" data-costed-trials="56" transform="translate(886.58 232.48)">
 <title>HydraFusion | CLI 1.0.111 | p90 agent time (m:ss): 7:49 | 56/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="470.954" data-costed-trials="56" transform="translate(982.78 208.84)">
+<g data-arm="copilot-hydrafusion-default-1.0.112" data-revision="112" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="470.954" data-costed-trials="56" transform="translate(936.05 231.44)">
 <title>HydraFusion | CLI 1.0.112 | p90 agent time (m:ss): 7:51 | 56/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.113" data-revision="113" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="567.643" data-costed-trials="56" transform="translate(1035.00 153.18)">
+<g data-arm="copilot-hydrafusion-default-1.0.113" data-revision="113" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="567.643" data-costed-trials="56" transform="translate(985.53 180.41)">
 <title>HydraFusion | CLI 1.0.113 | p90 agent time (m:ss): 9:28 | 55/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.95" data-revision="95" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="482.7065" data-costed-trials="56" transform="translate(95.00 202.08)">
+<g data-arm="copilot-hydrafusion-default-1.0.114" data-revision="114" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="692.4065" data-costed-trials="56" transform="translate(1035.00 114.56)">
+<title>HydraFusion | CLI 1.0.114 | p90 agent time (m:ss): 11:32 | 51/56 passing trials | Cost coverage: 56/56</title>
+<circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
+</g>
+<g data-arm="copilot-hydrafusion-default-1.0.95" data-revision="95" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="482.7065" data-costed-trials="56" transform="translate(95.00 225.24)">
 <title>HydraFusion | CLI 1.0.95 | p90 agent time (m:ss): 8:03 | 51/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.96" data-revision="96" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="509.190" data-costed-trials="56" transform="translate(147.22 186.83)">
+<g data-arm="copilot-hydrafusion-default-1.0.96" data-revision="96" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="509.190" data-costed-trials="56" transform="translate(144.47 211.26)">
 <title>HydraFusion | CLI 1.0.96 | p90 agent time (m:ss): 8:29 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.97" data-revision="97" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="542.996" data-costed-trials="56" transform="translate(199.44 167.37)">
+<g data-arm="copilot-hydrafusion-default-1.0.97" data-revision="97" data-passes="52" data-trials="56" data-metric="agent_p90_seconds" data-value="542.996" data-costed-trials="56" transform="translate(193.95 193.42)">
 <title>HydraFusion | CLI 1.0.97 | p90 agent time (m:ss): 9:03 | 52/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>
-<g data-arm="copilot-hydrafusion-default-1.0.98" data-revision="98" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="383.2465" data-costed-trials="56" transform="translate(251.67 259.34)">
+<g data-arm="copilot-hydrafusion-default-1.0.98" data-revision="98" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="383.2465" data-costed-trials="56" transform="translate(243.42 277.73)">
 <title>HydraFusion | CLI 1.0.98 | p90 agent time (m:ss): 6:23 | 54/56 passing trials | Cost coverage: 56/56</title>
 <circle r="6" fill="none" stroke="#d55e00" stroke-width="2"/>
 </g>

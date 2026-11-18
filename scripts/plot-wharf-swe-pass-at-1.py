@@ -191,7 +191,7 @@ def plot(records, output, key, title, axis_label, ticks, format_tick, format_val
 
 
 def main():
-    records = [summarize(path) for path in sorted(DATA.glob("*.jsonl"))]
+    records = [summarize(path) for path in sorted(DATA.glob("copilot-*.jsonl"))]
     records = [
         row for row in records if row["model"] in STYLES and row["revision"] >= 95
     ]
