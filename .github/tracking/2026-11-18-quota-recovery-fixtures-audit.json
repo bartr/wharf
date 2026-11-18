@@ -1,0 +1,1319 @@
+{
+  "authorization": "User requested actual Opus/Sol run preparation and explicitly confirmed deletion of the nine pending Opus payloads too. No agents may run.",
+  "createdAt": "2026-11-18T21:17:44.033484+00:00",
+  "diagnosis": "Explicit subscription usage-limit interruptions are invalid logical-trial completions under the approved new policy, even where partial patches passed. Raw payloads are permanently removed after this audit; fixed logical slots remain pending.",
+  "originalRuntimeCommit": null,
+  "repositoryCommitAtPreparation": "3ad650ef63def468cf2324c134baea52f4d2295c",
+  "runs": [
+    {
+      "configuration": {
+        "artifacts": [],
+        "cli": "claude",
+        "cliVersion": "2.1.326",
+        "containerCpus": null,
+        "effort": "default",
+        "k": 4,
+        "model": "claude-opus-5-5",
+        "mounts": [],
+        "n": 56,
+        "noOp": false,
+        "oracle": false,
+        "outputDirectory": "jobs",
+        "outputFormat": "text",
+        "p": 12,
+        "resourcePolicy": "default",
+        "retainWorkspaces": false,
+        "retentionDays": 30,
+        "retries": {
+          "backoffSeconds": null,
+          "maxAttempts": 1
+        },
+        "shortestFirst": false,
+        "timeouts": {
+          "agentSeconds": null,
+          "reportSeconds": null,
+          "setupSeconds": null,
+          "verifierSeconds": null
+        }
+      },
+      "expectedPendingAfter": 9,
+      "expectedTerminalAfter": 47,
+      "plannedLogicalTrials": 56,
+      "runDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1",
+      "runLogSha256": "3e892b50255d8ede76746aa304c4d61be09ba8064e08d3449b29a049030e9bca",
+      "runPlanSha256": "59c0bb89cd805df37f4fbdfe24ddd5fc741c6f747552cba4edcc1f9e2039e65d",
+      "targets": [
+        {
+          "agentCommandMilliseconds": 105163,
+          "agents": [
+            {
+              "durationMilliseconds": 2394,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-derived-image__387f55dd__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 102769,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-derived-image__387f55dd__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 109072,
+                "cacheWriteTokens": 12256,
+                "costUsd": 0.24574239999999997,
+                "inputTokens": 10,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 109072,
+                    "cacheWriteTokens": 12256,
+                    "inputTokens": 10,
+                    "outputTokens": 6292,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.24574239999999997,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 6292,
+                "reasoningTokens": 0,
+                "requestCost": 0.24574239999999997,
+                "requests": null,
+                "totalTokens": 6302
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.24574239999999997,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 2635972,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-derived-image",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-derived-image__387f55dd__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-derived-image__387f55dd__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 117198,
+          "agents": [
+            {
+              "durationMilliseconds": 2205,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-2/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 114993,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-2/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 145304,
+                "cacheWriteTokens": 15919,
+                "costUsd": 0.3162008,
+                "inputTokens": 12,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 145304,
+                    "cacheWriteTokens": 15919,
+                    "inputTokens": 12,
+                    "outputTokens": 7987,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.3162008,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 7987,
+                "reasoningTokens": 0,
+                "requestCost": 0.3162008,
+                "requests": null,
+                "totalTokens": 7999
+              }
+            }
+          ],
+          "attempt": 2,
+          "availableUsageCostUsd": 0.3162008,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 3208570,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-execution",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-2/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-2",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 109012,
+          "agents": [
+            {
+              "durationMilliseconds": 2295,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 106717,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 180901,
+                "cacheWriteTokens": 14743,
+                "costUsd": 0.2790202,
+                "inputTokens": 14,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 180901,
+                    "cacheWriteTokens": 14743,
+                    "inputTokens": 14,
+                    "outputTokens": 6242,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.2790202,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 6242,
+                "reasoningTokens": 0,
+                "requestCost": 0.2790202,
+                "requests": null,
+                "totalTokens": 6256
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.2790202,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 3124875,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-execution",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-execution__571af49d__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 143332,
+          "agents": [
+            {
+              "durationMilliseconds": 2122,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-3/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 141210,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-3/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 137917,
+                "cacheWriteTokens": 15633,
+                "costUsd": 0.41007540000000003,
+                "inputTokens": 12,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 137917,
+                    "cacheWriteTokens": 15633,
+                    "inputTokens": 12,
+                    "outputTokens": 12869,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.41007540000000003,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 12869,
+                "reasoningTokens": 0,
+                "requestCost": 0.41007540000000003,
+                "requests": null,
+                "totalTokens": 12881
+              }
+            }
+          ],
+          "attempt": 3,
+          "availableUsageCostUsd": 0.41007540000000003,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 2890187,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-image-pull",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-3/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-3",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 135741,
+          "agents": [
+            {
+              "durationMilliseconds": 1995,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 133746,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 133000,
+                "cacheWriteTokens": 12006,
+                "costUsd": 0.350676,
+                "inputTokens": 12,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 133000,
+                    "cacheWriteTokens": 12006,
+                    "inputTokens": 12,
+                    "outputTokens": 11399,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.350676,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 11399,
+                "reasoningTokens": 0,
+                "requestCost": 0.350676,
+                "requests": null,
+                "totalTokens": 11411
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.350676,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 2831510,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-image-pull",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-image-pull__b5630225__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 94162,
+          "agents": [
+            {
+              "durationMilliseconds": 2236,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-packaging__42745d22__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 91926,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-packaging__42745d22__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 105987,
+                "cacheWriteTokens": 11152,
+                "costUsd": 0.3058934,
+                "inputTokens": 10,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 105987,
+                    "cacheWriteTokens": 11152,
+                    "inputTokens": 10,
+                    "outputTokens": 9772,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.3058934,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 9772,
+                "reasoningTokens": 0,
+                "requestCost": 0.3058934,
+                "requests": null,
+                "totalTokens": 9782
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.3058934,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 276320,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-packaging",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-packaging__42745d22__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-packaging__42745d22__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 105696,
+          "agents": [
+            {
+              "durationMilliseconds": 2185,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-recovery__f33c812d__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 103511,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-recovery__f33c812d__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 143032,
+                "cacheWriteTokens": 14520,
+                "costUsd": 0.2809744,
+                "inputTokens": 12,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 143032,
+                    "cacheWriteTokens": 14520,
+                    "inputTokens": 12,
+                    "outputTokens": 6808,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.2809744,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 6808,
+                "reasoningTokens": 0,
+                "requestCost": 0.2809744,
+                "requests": null,
+                "totalTokens": 6820
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.2809744,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 3264165,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-recovery",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-recovery__f33c812d__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-recovery__f33c812d__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 106837,
+          "agents": [
+            {
+              "durationMilliseconds": 2355,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-reporting__e927caea__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 104482,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-reporting__e927caea__attempt-4/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 112563,
+                "cacheWriteTokens": 13749,
+                "costUsd": 0.2795246,
+                "inputTokens": 10,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 112563,
+                    "cacheWriteTokens": 13749,
+                    "inputTokens": 10,
+                    "outputTokens": 7349,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.2795246,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 7349,
+                "reasoningTokens": 0,
+                "requestCost": 0.2795246,
+                "requests": null,
+                "totalTokens": 7359
+              }
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": 0.2795246,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 3428837,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-reporting",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-reporting__e927caea__attempt-4/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-reporting__e927caea__attempt-4",
+          "verifierRewardBeforeDeletion": null
+        },
+        {
+          "agentCommandMilliseconds": 116903,
+          "agents": [
+            {
+              "durationMilliseconds": 2112,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-scheduler__49a01b53__attempt-3/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+                "costUsd": 0,
+                "inputTokens": 0,
+                "models": {},
+                "outputTokens": 0,
+                "reasoningTokens": 0,
+                "requestCost": 0,
+                "requests": null,
+                "totalTokens": 0
+              }
+            },
+            {
+              "durationMilliseconds": 114791,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-scheduler__49a01b53__attempt-3/trial-retries/retry-1/agent/result.json",
+              "status": "failed",
+              "usage": {
+                "aiCredits": null,
+                "cacheReadTokens": 113516,
+                "cacheWriteTokens": 14734,
+                "costUsd": 0.30843519999999996,
+                "inputTokens": 10,
+                "models": {
+                  "claude-opus-5-5": {
+                    "cacheReadTokens": 113516,
+                    "cacheWriteTokens": 14734,
+                    "inputTokens": 10,
+                    "outputTokens": 8391,
+                    "reasoningTokens": 0,
+                    "requestCost": 0.30843519999999996,
+                    "requests": null
+                  }
+                },
+                "outputTokens": 8391,
+                "reasoningTokens": 0,
+                "requestCost": 0.30843519999999996,
+                "requests": null,
+                "totalTokens": 8401
+              }
+            }
+          ],
+          "attempt": 3,
+          "availableUsageCostUsd": 0.30843519999999996,
+          "completeUsageCostEvidence": true,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "2026-11-18 01:40 UTC",
+          "payloadBytes": 3169099,
+          "payloadFiles": 41,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "agent-failed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 1,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-scheduler",
+          "terminalMarker": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-scheduler__49a01b53__attempt-3/result.usage-limit-before-resume.json",
+          "trialDirectory": "wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.326/all-1/wharf-scheduler__49a01b53__attempt-3",
+          "verifierRewardBeforeDeletion": null
+        }
+      ]
+    },
+    {
+      "configuration": {
+        "artifacts": [],
+        "cli": "codex",
+        "cliVersion": "0.169.0",
+        "containerCpus": null,
+        "effort": "default",
+        "k": 4,
+        "model": "gpt-6.1-sol",
+        "mounts": [],
+        "n": 56,
+        "noOp": false,
+        "oracle": false,
+        "outputDirectory": "jobs",
+        "outputFormat": "text",
+        "p": 12,
+        "resourcePolicy": "default",
+        "retainWorkspaces": false,
+        "retentionDays": 30,
+        "retries": {
+          "backoffSeconds": null,
+          "maxAttempts": 1
+        },
+        "shortestFirst": false,
+        "timeouts": {
+          "agentSeconds": null,
+          "reportSeconds": null,
+          "setupSeconds": null,
+          "verifierSeconds": null
+        }
+      },
+      "expectedPendingAfter": 14,
+      "expectedTerminalAfter": 42,
+      "plannedLogicalTrials": 56,
+      "runDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1",
+      "runLogSha256": "fe544b1b0472675e12a292006a149657d8a52d80c6e0e2af627c619bc4cb88eb",
+      "runPlanSha256": "805f0dfc3dfe842e140ce21dfe08853e74d31049649fbbc616d22e111a5d0292",
+      "targets": [
+        {
+          "agentCommandMilliseconds": 245359,
+          "agents": [
+            {
+              "durationMilliseconds": 245359,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-2/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 2,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15131940,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-agent",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-2/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-2",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 240741,
+          "agents": [
+            {
+              "durationMilliseconds": 240741,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-3/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 3,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15349690,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-agent",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-3/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-3",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 235468,
+          "agents": [
+            {
+              "durationMilliseconds": 235468,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15023125,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-agent",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-4/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-agent__dac4176f__attempt-4",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 246200,
+          "agents": [
+            {
+              "durationMilliseconds": 246200,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-1/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 1,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15879845,
+          "payloadFiles": 29,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-audit",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-1/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-1",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 239252,
+          "agents": [
+            {
+              "durationMilliseconds": 239252,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-2/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 2,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15862381,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-audit",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-2/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-audit__470015de__attempt-2",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 242525,
+          "agents": [
+            {
+              "durationMilliseconds": 242525,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-host-profile__edbb5fde__attempt-1/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 1,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 16172383,
+          "payloadFiles": 29,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-host-profile",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-host-profile__edbb5fde__attempt-1/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-host-profile__edbb5fde__attempt-1",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 236488,
+          "agents": [
+            {
+              "durationMilliseconds": 236488,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-1/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 1,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 261123,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-image-pull",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-1/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-1",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 232077,
+          "agents": [
+            {
+              "durationMilliseconds": 232077,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 298990,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-image-pull",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-4/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-image-pull__b5630225__attempt-4",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 232890,
+          "agents": [
+            {
+              "durationMilliseconds": 232890,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-reporting__e927caea__attempt-2/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 2,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 137183,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-reporting",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-reporting__e927caea__attempt-2/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-reporting__e927caea__attempt-2",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 233559,
+          "agents": [
+            {
+              "durationMilliseconds": 233559,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-scheduler__49a01b53__attempt-3/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 3,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15381212,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-scheduler",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-scheduler__49a01b53__attempt-3/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-scheduler__49a01b53__attempt-3",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 228987,
+          "agents": [
+            {
+              "durationMilliseconds": 228987,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-smoke__64b432f7__attempt-4/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 4,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 16121911,
+          "payloadFiles": 28,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-smoke",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-smoke__64b432f7__attempt-4/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-smoke__64b432f7__attempt-4",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 3,
+            "f2p_total": 3,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 247413,
+          "agents": [
+            {
+              "durationMilliseconds": 247413,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-1/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 1,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15276696,
+          "payloadFiles": 31,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-verifier",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-1/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-1",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 4,
+            "f2p_total": 4,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 253608,
+          "agents": [
+            {
+              "durationMilliseconds": 253608,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-2/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 2,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15309301,
+          "payloadFiles": 30,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-verifier",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-2/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-2",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 4,
+            "f2p_total": 4,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        },
+        {
+          "agentCommandMilliseconds": 232804,
+          "agents": [
+            {
+              "durationMilliseconds": 232804,
+              "errorType": null,
+              "exitCode": 1,
+              "normalizedCredits": null,
+              "path": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-3/agent/result.json",
+              "status": "failed",
+              "usage": null
+            }
+          ],
+          "attempt": 3,
+          "availableUsageCostUsd": null,
+          "completeUsageCostEvidence": false,
+          "knownNormalizedCreditsFromTerminal": null,
+          "knownResetEvidence": "Nov 18th, 2026 1:52 AM; provider message timezone unspecified",
+          "payloadBytes": 15258490,
+          "payloadFiles": 30,
+          "postDeletionState": "pending-pristine-retry",
+          "previousTerminalStatus": "passed",
+          "previousVerifierRetry": 0,
+          "previousWholeTrialRetry": 0,
+          "quotaCategory": "subscription-usage-limit",
+          "taskId": "wharf-verifier",
+          "terminalMarker": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-3/result.json",
+          "trialDirectory": "wharf-swe/jobs/codex-gpt-6.1-sol-default-0.169.0/all-1/wharf-verifier__4b0c2c25__attempt-3",
+          "verifierRewardBeforeDeletion": {
+            "f2p": 1.0,
+            "f2p_passed": 4,
+            "f2p_total": 4,
+            "p2p": 1.0,
+            "p2p_passed": 1,
+            "p2p_total": 1,
+            "partial": 1.0,
+            "reward": 1
+          }
+        }
+      ]
+    }
+  ],
+  "schemaVersion": "1.0",
+  "status": "recovery-fixtures-and-analytics-validated",
+  "supersededExport": {
+    "destination": ".github/tracking/superseded-analytics/codex-gpt-6.1-sol-default-0.169.0-before-quota-reopen.jsonl",
+    "reason": "Withdraw completed-arm snapshot until all 56 logical slots are terminal again.",
+    "sha256": "09e104ef078ef3ca260e6ed2c7a8c308f68f4e10b9e5501b2d61a0c343fec50e",
+    "source": "wharf-swe/data/codex-gpt-6.1-sol-default-0.169.0.jsonl"
+  },
+  "validation": {
+    "activeAnalyticsArms": 56,
+    "activeAnalyticsTrials": 3136,
+    "agentsExecuted": 0,
+    "allPendingTrialRetry": 0,
+    "copilotGraphsByteIdentical": true,
+    "effectiveCliVersionsUnchanged": true,
+    "opusPending": 9,
+    "opusTerminal": 47,
+    "payloadFilesDeleted": 770,
+    "readOnlyResumeValidated": true,
+    "runPlansAndAppendOnlyLogsByteIdentical": true,
+    "runtimeSourceChanged": false,
+    "selectedTrialDirectoriesDeleted": 23,
+    "solPending": 14,
+    "solTerminal": 42,
+    "supersededExportByteIdentical": true,
+    "unaffectedEvidenceByteIdentical": true
+  }
+}

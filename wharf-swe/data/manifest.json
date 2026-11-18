@@ -18,24 +18,6 @@
     "with_cost": 0
   },
   {
-    "arm": "codex-gpt-6.1-sol-default-0.169.0",
-    "bytes_jsonl": 37342,
-    "cli": "codex",
-    "cli_version": "0.169.0",
-    "effort": "default",
-    "model": "gpt-6.1-sol",
-    "passes": 54,
-    "p2p_errors": 1,
-    "score": 0.9617857142857142857142857143,
-    "scored": 56,
-    "tasks": 14,
-    "cost_per_trial_usd": null,
-    "average_agent_seconds": 184.4,
-    "total_cost_usd": null,
-    "trials": 56,
-    "with_cost": 0
-  },
-  {
     "arm": "copilot-claude-opus-5-default-1.0.91",
     "bytes_jsonl": 37242,
     "cli": "copilot-cli",
