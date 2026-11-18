@@ -45,52 +45,79 @@ repository root. Keep this README aligned with `data/manifest.json`.
 
 ## Latest completed runs
 
-The latest Copilot runs use CLI 1.0.114; the completed Codex runs use 0.169.0.
-All four arms use the same 14 task IDs/checksums, K=4/N=56, and default effort.
-Copilot uses P=16, while Codex uses P=12. These compare model plus harness
+The latest Copilot runs use CLI 1.0.114; the completed Codex runs use 0.169.0
+and Claude Code uses 2.1.326.
+All seven arms use the same 14 task IDs/checksums, K=4/N=56, and default effort.
+Copilot uses P=16, while Codex and Claude Code use P=12. These compare model plus harness
 configurations, not isolated model capability or controlled CLI-version effects.
 The revision graphs above include only Copilot arms, through revision 114.
+Claude Code and Codex graph comparisons are deferred until more runs are available.
 
-| Model | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
-|---|---|---|---:|---:|---:|---:|---:|---:|
-| GPT-6.1 Sol | copilot-cli | 1.0.114 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2064 | 335.6 s |
-| HydraFusion | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2729 | 419.5 s |
-| GPT-6 Luna | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0162 | 265.2 s |
-| GPT-6 Luna | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | 95.8 s |
+| Model | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | API est./trial | Avg agent time |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| GPT-6.1 Sol | copilot-cli | 1.0.114 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2064 | - | 335.6 s |
+| Claude Opus 5.5 | claude | 2.1.326 | 55 / 56 | 98.21% | 0 | 98.21% | $0.3582 | - | 124.6 s |
+| GPT-6 Astra | codex | 0.169.0 | 55 / 56 | 98.21% | 0 | 98.21% | unknown | $0.7185 | 160.0 s |
+| GPT-6.1 Sol | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | $0.1454 | 165.5 s |
+| HydraFusion | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2729 | - | 419.5 s |
+| GPT-6 Luna | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0162 | - | 265.2 s |
+| GPT-6 Luna | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | $0.0051 | 95.8 s |
 
 Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.114/all-1),
 [Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.114/all-1),
-[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.114/all-1), and
+[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.114/all-1),
+[Claude Code Opus](jobs/claude-claude-opus-5-5-default-2.1.326/all-1),
+[Codex Astra](jobs/codex-gpt-6-astra-default-0.169.0/all-1),
+[Codex Sol](jobs/codex-gpt-6.1-sol-default-0.169.0/all-1), and
 [Codex Luna](jobs/codex-gpt-6-luna-default-0.169.0/all-1).
 
-All 224 logical trials in these four completed arms are included.
-Codex Luna records five logical trials with an
-agent-execution exception and one whole-trial retry; its duration includes
-both agent executions for that trial. Nonzero exits can shorten agent time,
-so shorter durations are not necessarily efficiency gains.
+All 392 logical trials in these seven completed arms are included.
+Retained agent-execution exceptions affect 44 Claude Code Opus trials,
+four Codex Astra trials, and five Codex Luna trials; an exception does not
+override a retained verifier result. Luna has one whole-trial retry, and its
+duration and estimate include both agent executions for that trial.
+Nonzero exits can shorten agent time, so shorter durations are not
+necessarily efficiency gains.
 
-Copilot has 56/56 cost coverage per arm; Codex Luna has 0/56 retained
-billed-cost coverage. API-equivalent estimates are not inserted into
-`cost_usd` or compared as actual ChatGPT subscription charges.
-
-### Pending recovery fixtures
-
-The [Claude Code Opus run](jobs/claude-claude-opus-5-5-default-2.1.326/all-1)
-has 47 terminal slots (46 passed, one failed) and nine pending of 56.
-The [Codex Sol run](jobs/codex-gpt-6.1-sol-default-0.169.0/all-1)
-has 42 terminal slots (40 passed, two failed) and 14 pending of 56.
-Quota-interrupted payloads were permanently deleted after a durable
-[audit record](../.github/tracking/2026-11-18-quota-recovery-fixtures-audit.json)
-so both runs can exercise pristine batch recovery without rerunning other slots.
-The run plans and original append-only logs are unchanged.
-
-Neither run is a completed comparison arm. Sol's previous 56-row export is
-retained only as a
+The recovered Opus, Sol, and Astra runs now have all 56 terminal slots.
+Quota-rejected executions are excluded from accepted-trial analytics;
+their known usage and timing remain in separate
+[audit records](../.github/tracking/).
+Sol's previous pre-recovery export remains a
 [superseded analytics snapshot](../.github/tracking/superseded-analytics/codex-gpt-6.1-sol-default-0.169.0-before-quota-reopen.jsonl),
-outside active discovery. After recovery, re-export the completed 56-slot run
-and rebuild the manifest. Pending slots never reduce the denominator to 42
-or 47. The `run -b` feature is specified but not implemented yet; no recovery
-agents were launched during fixture preparation.
+outside active discovery.
+
+### Codex API-equivalent cost estimates
+
+Copilot and Claude Code have 56/56 retained USD-cost coverage per arm.
+Codex has no retained billed USD costs: `cost_usd` stays null, so the manifest
+continues to report zero billed-cost coverage for Codex.
+Each Codex JSONL row instead includes `estimated_cost_usd` and `cost_estimate`
+metadata with rates, source, pricing date, context assumption, and execution
+coverage. All three arms have complete token evidence for 56/56 trials.
+These estimates are API-equivalent comparison figures, not subscription charges.
+
+Using OpenAI's [Standard pricing](https://developers.openai.com/api/docs/pricing.md),
+checked 2026-11-18, USD per million tokens:
+
+| Model | Uncached input | Cached input | Output |
+|---|---:|---:|---:|
+| GPT-6 Astra | $10.00 | $1.00 | $50.00 |
+| GPT-6.1 Sol | $2.00 | $0.10 | $10.00 |
+| GPT-6 Luna | $0.10 | $0.01 | $0.50 |
+
+`estimated_cost_usd = ((input - cached_input) * input_rate + cached_input *
+cached_rate + output * output_rate) / 1000000`.
+Reasoning tokens are already included in output and are not charged twice.
+The scenario assumes at most 272K input tokens per request; aggregate retained
+usage cannot establish per-request context lengths. Long-context or other
+pricing tiers could cost more. Missing usage for any retained execution leaves
+the entire trial estimate null, rather than presenting a partial estimate.
+
+After exporting Codex arms, run
+`python3 scripts/estimate-wharf-swe-codex-costs.py` from the repository root,
+then `wharf analytics manifest --data-directory wharf-swe/data`.
+Re-exporting replaces estimate fields, so repeat enrichment after each export.
 
 ## Historical CLI 1.0.113 comparison
 
@@ -116,25 +143,26 @@ on at least one attempt, and no whole-trial retries, verifier retries, or
 exception categories. All 280 logical trials remain included. Sol and Astra
 pass every trial without measured regressions; Luna has the lowest cost per
 costed trial. Claude Opus 5.5 here runs through Copilot, not Claude Code.
-The separate Claude Code run awaiting usage-limit recovery is not exported.
+The separate Claude Code run is now complete and appears in the latest results.
 
 ## Data coverage
 
-* Exported arms: 56
-* Exported logical trials: 3136
+* Exported arms: 59
+* Exported logical trials: 3304
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 3136 / 3136 trials
-* Agent and trial duration measurements: 3136 / 3136 trials
-* Cost evidence: 3080 / 3136 trials (98.21%)
-* Trials with an exception category: 5
+* Functional and regression measurements: 3304 / 3304 trials
+* Agent and trial duration measurements: 3304 / 3304 trials
+* Retained USD-cost evidence: 3136 / 3304 trials (94.92%)
+* Separate Codex API-equivalent estimates: 168 / 168 Codex trials
+* Trials with an exception category: 53
 
 Only completed `all-1` runs are included.
 Infrastructure and verifier retries are not additional logical trials.
 
 ## Results
 
-Verified 2026-11-18 from fifty-six completed runs. Each arm contains 14
+Verified 2026-11-18 from fifty-nine completed runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending
@@ -158,6 +186,8 @@ and version are explicit.
 | **HydraFusion** | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2409 | 349.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.113 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2531 | 388.5 s |
 | **HydraFusion** | default | copilot-cli | 1.0.108 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2802 | 347.9 s |
+| Claude Opus 5.5 | default | claude | 2.1.326 | 55 / 56 | 98.21% | 0 | 98.21% | $0.3582 | 124.6 s |
+| GPT-6 Astra | default | codex | 0.169.0 | 55 / 56 | 98.21% | 0 | 98.21% | unknown | 160.0 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2045 | 242.2 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.102 | 55 / 56 | 98.21% | 1 | 97.96% | $0.2307 | 333.9 s |
 | **HydraFusion** | default | copilot-cli | 1.0.107 | 54 / 56 | 96.43% | 0 | 96.43% | $0.2661 | 331.5 s |
@@ -166,6 +196,7 @@ and version are explicit.
 | GPT-6 Astra | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 0 | 96.43% | $1.3180 | 252.5 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.108 | 54 / 56 | 96.43% | 1 | 96.18% | $0.0165 | 211.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.96 | 54 / 56 | 96.43% | 1 | 96.18% | $0.3197 | 272.5 s |
+| GPT-6.1 Sol | default | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | 165.5 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
 | **HydraFusion** | default | copilot-cli | 1.0.110 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2324 | 296.0 s |
@@ -207,7 +238,9 @@ It is separate from PASS@1 and the Enterprise Score audit metric, is not
 clamped at zero, and is null for empty arms.
 
 Cost/trial divides known cost by cost-bearing logical trials.
-Copilot rows have 56/56 cost coverage; Codex rows have 0/56 and show unknown.
+Copilot and Claude Code rows have 56/56 cost coverage; Codex rows have 0/56
+and show unknown. Separately labeled Codex API estimates appear in the latest
+completed-runs table and each Codex JSONL row, not in manifest billed-cost metrics.
 Average agent
 time uses actual agent-command durations, summed across whole-trial retries,
 and excludes preparation, evidence-copy, and verifier time. Equal K makes this
