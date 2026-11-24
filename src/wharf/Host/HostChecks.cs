@@ -110,36 +110,15 @@ public sealed class PlatformProbe(
     }
 }
 
-public sealed class DockerProbe : IHostProbe
+public sealed class DockerProbe(Func<string>? readInfo = null) : IHostProbe
 {
+    private readonly Lazy<string> info = new(readInfo ?? ReadInfo);
+
     public HostCheck Check(HostCheckOptions options)
     {
-        ProcessStartInfo startInfo = new("docker")
-        {
-            ArgumentList = { "info", "--format", "{{json .}}" },
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
         try
         {
-            using Process process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException("Docker process could not be started");
-            Task<string> errorTask = process.StandardError.ReadToEndAsync();
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
-            process.WaitForExit();
-            string error = errorTask.GetAwaiter().GetResult();
-            string output = outputTask.GetAwaiter().GetResult();
-            if (process.ExitCode != 0)
-            {
-                return new HostCheck("docker", false, false, string.IsNullOrWhiteSpace(error)
-                    ? $"docker exited with code {process.ExitCode}"
-                    : error.Trim());
-            }
-
-            using JsonDocument document = JsonDocument.Parse(output);
+            using JsonDocument document = JsonDocument.Parse(info.Value);
             JsonElement root = document.RootElement;
             if (!HasBoolean(root, "MemoryLimit") ||
                 !HasBoolean(root, "PidsLimit") ||
@@ -168,6 +147,46 @@ public sealed class DockerProbe : IHostProbe
         }
     }
 
+    internal string ReadDataRoot()
+    {
+        using JsonDocument document = JsonDocument.Parse(info.Value);
+        string? path = document.RootElement.TryGetProperty("DockerRootDir", out JsonElement value) &&
+            value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+        if (string.IsNullOrWhiteSpace(path) || !Path.IsPathFullyQualified(path))
+        {
+            throw new InvalidOperationException("Docker response lacks an absolute DockerRootDir");
+        }
+
+        return path;
+    }
+
+    private static string ReadInfo()
+    {
+        ProcessStartInfo startInfo = new("docker")
+        {
+            ArgumentList = { "info", "--format", "{{json .}}" },
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using Process process = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Docker process could not be started");
+        Task<string> errorTask = process.StandardError.ReadToEndAsync();
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+        process.WaitForExit();
+        string error = errorTask.GetAwaiter().GetResult();
+        string output = outputTask.GetAwaiter().GetResult();
+        if (process.ExitCode != 0)
+        {
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(error)
+                ? $"docker exited with code {process.ExitCode}"
+                : error.Trim());
+        }
+        return output;
+    }
+
     private static bool HasBoolean(JsonElement root, string name) =>
         root.TryGetProperty(name, out JsonElement value) &&
         value.ValueKind == JsonValueKind.True;
@@ -181,14 +200,21 @@ public sealed class DockerProbe : IHostProbe
             item.GetString() == "bridge");
 }
 
-public sealed class CapacityProbe : IHostProbe
+public sealed class CapacityProbe(
+    DockerProbe? docker = null,
+    Func<string, long>? readAvailableDiskBytes = null) : IHostProbe
 {
+    private readonly DockerProbe docker = docker ?? new DockerProbe();
+    private readonly Func<string, long> readAvailableDiskBytes =
+        readAvailableDiskBytes ?? (path => new DriveInfo(path).AvailableFreeSpace);
+
     public HostCheck Check(HostCheckOptions options)
     {
         try
         {
             long memory = ReadMemAvailable();
-            long disk = new DriveInfo("/").AvailableFreeSpace;
+            string diskPath = docker.ReadDataRoot();
+            long disk = readAvailableDiskBytes(diskPath);
             long cpu = Environment.ProcessorCount;
             (long nofileSoft, long nofileHard) = ReadNofileLimits();
             long inotify = ReadLong("/proc/sys/fs/inotify/max_user_instances");
@@ -206,7 +232,7 @@ public sealed class CapacityProbe : IHostProbe
                 "capacity",
                 passed,
                 false,
-                $"memory={memory}; disk={disk}; cpu={cpu}; nofileSoft={nofileSoft}; nofileHard={nofileHard}; inotifyInstances={inotify}; inotifyWatches={inotifyWatches}; pids={pids}");
+                $"memory={memory}; disk={disk}; diskPath={diskPath}; cpu={cpu}; nofileSoft={nofileSoft}; nofileHard={nofileHard}; inotifyInstances={inotify}; inotifyWatches={inotifyWatches}; pids={pids}");
         }
         catch (IOException exception)
         {
@@ -215,6 +241,18 @@ public sealed class CapacityProbe : IHostProbe
         catch (UnauthorizedAccessException exception)
         {
             return new HostCheck("capacity", false, false, $"capacity probe failed: {exception.Message}");
+        }
+        catch (System.ComponentModel.Win32Exception exception)
+        {
+            return new HostCheck("capacity", false, false, $"capacity probe failed: {exception.Message}");
+        }
+        catch (InvalidOperationException exception)
+        {
+            return new HostCheck("capacity", false, false, $"capacity probe failed: {exception.Message}");
+        }
+        catch (JsonException exception)
+        {
+            return new HostCheck("capacity", false, false, $"capacity probe failed: invalid Docker response: {exception.Message}");
         }
     }
 

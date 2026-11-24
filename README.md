@@ -47,6 +47,10 @@ execution environments, and automated verification of the resulting code.
     ```bash
     wharf check
     ```
+  Disk capacity requires at least 50 GiB free on the filesystem containing
+  Docker's reported `DockerRootDir`, not necessarily `/`. The capacity report
+  includes `diskPath`. Storage discovery or access failures remain blocking,
+  even with `--allow-unsupported-host`.
 - Run smoke test
    ```bash
    cd wharf-swe

@@ -97,8 +97,9 @@ public static class CommandTree
         command.Options.Add(json);
         command.SetAction(parseResult =>
         {
+            var docker = new DockerProbe();
             HostCheckReport report = new HostCheckService(
-                [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
+                [new PlatformProbe(), docker, new CapacityProbe(docker)])
                 .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
             if (parseResult.GetValue(json))
             {
@@ -1039,8 +1040,9 @@ public static class CommandTree
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                         ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
                     });
+                var docker = new DockerProbe();
                 HostCheckReport host = new HostCheckService(
-                    [new PlatformProbe(), new DockerProbe(), new CapacityProbe()])
+                    [new PlatformProbe(), docker, new CapacityProbe(docker)])
                     .Check(new HostCheckOptions(parseResult.GetValue(allowUnsupported)));
                 string? output = parseResult.GetValue(outputDirectory);
                 if (output is null)

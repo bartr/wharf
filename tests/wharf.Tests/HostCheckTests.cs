@@ -112,6 +112,109 @@ public sealed class HostCheckTests
         Assert.Equal(65_536, options.MinimumInotifyWatches);
     }
 
+    [Fact]
+    public void CapacityChecksDockerFilesystemAndSharesDaemonInspection()
+    {
+        int inspections = 0;
+        var docker = new DockerProbe(() =>
+        {
+            inspections++;
+            return """
+                {"DockerRootDir":"/mnt/data/docker","MemoryLimit":true,"PidsLimit":true,"Plugins":{"Network":["bridge"]}}
+                """;
+        });
+        var capacity = new CapacityProbe(docker, path =>
+            path == "/mnt/data/docker" ? 64L * 1024 * 1024 * 1024 : 8L * 1024 * 1024 * 1024);
+
+        HostCheckReport report = new HostCheckService([docker, capacity]).Check(DiskOnlyOptions());
+
+        Assert.True(report.IsSuccess);
+        Assert.Equal(1, inspections);
+        Assert.Contains("diskPath=/mnt/data/docker", report.Checks.Single(check => check.Name == "capacity").Detail);
+    }
+
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(-1, false)]
+    public void DockerFilesystemMustMeetDiskThreshold(long difference, bool passed)
+    {
+        HostCheckOptions options = DiskOnlyOptions() with { AllowUnsupportedHost = true };
+        var docker = new DockerProbe(() => """{"DockerRootDir":"/mnt/data/docker"}""");
+        var capacity = new CapacityProbe(docker, _ => options.MinimumDiskBytes + difference);
+
+        HostCheckReport report = new HostCheckService([capacity]).Check(options);
+
+        Assert.Equal(passed, report.IsSuccess);
+        Assert.Equal(!passed, report.HasBlockingFailure);
+        Assert.Contains("diskPath=/mnt/data/docker", report.Checks.Single().Detail);
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("""{"DockerRootDir":null}""")]
+    [InlineData("""{"DockerRootDir":""}""")]
+    [InlineData("""{"DockerRootDir":"relative/docker"}""")]
+    [InlineData("""{"DockerRootDir":42}""")]
+    [InlineData("invalid-json")]
+    public void InvalidDockerStorageDiscoveryBlocksWithoutRootFallback(string info)
+    {
+        var docker = new DockerProbe(() => info);
+        var capacity = new CapacityProbe(docker, _ =>
+            throw new Xunit.Sdk.XunitException("Invalid Docker storage must not fall back to another disk"));
+
+        HostCheckReport report = new HostCheckService([capacity]).Check(
+            DiskOnlyOptions() with { AllowUnsupportedHost = true });
+
+        Assert.True(report.HasBlockingFailure);
+        Assert.Equal(4, report.ExitCode);
+        Assert.Contains("capacity probe failed:", report.Checks.Single().Detail);
+    }
+
+    [Fact]
+    public void DockerDiscoveryFailureBlocksBothChecksWithoutRepeatingInspection()
+    {
+        int inspections = 0;
+        var docker = new DockerProbe(() =>
+        {
+            inspections++;
+            throw new InvalidOperationException("Docker daemon unavailable");
+        });
+        var capacity = new CapacityProbe(docker);
+
+        HostCheckReport report = new HostCheckService([docker, capacity]).Check(DiskOnlyOptions());
+
+        Assert.Equal(1, inspections);
+        Assert.True(report.HasBlockingFailure);
+        Assert.All(report.Checks, check =>
+        {
+            Assert.False(check.Passed);
+            Assert.Contains("Docker daemon unavailable", check.Detail);
+        });
+    }
+
+    [Fact]
+    public void InaccessibleDockerFilesystemIsBlocking()
+    {
+        var docker = new DockerProbe(() => """{"DockerRootDir":"/mnt/data/docker"}""");
+        var capacity = new CapacityProbe(docker, _ =>
+            throw new UnauthorizedAccessException("Docker storage is inaccessible"));
+
+        HostCheck result = capacity.Check(DiskOnlyOptions());
+
+        Assert.False(result.Passed);
+        Assert.False(result.Overridable);
+        Assert.Contains("Docker storage is inaccessible", result.Detail);
+    }
+
+    private static HostCheckOptions DiskOnlyOptions() => new(
+        MinimumMemoryBytes: 0,
+        MinimumCpuCount: 0,
+        MinimumNofileSoft: 0,
+        MinimumNofileHard: 0,
+        MinimumInotifyInstances: 0,
+        MinimumInotifyWatches: 0,
+        MinimumPids: 0);
+
     private sealed class FixedProbe(HostCheck result) : IHostProbe
     {
         public HostCheck Check(HostCheckOptions options) => result;
