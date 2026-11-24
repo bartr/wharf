@@ -45,27 +45,27 @@ repository root. Keep this README aligned with `data/manifest.json`.
 
 ## Latest completed runs
 
-The latest Copilot runs use CLI 1.0.114; the completed Codex runs use 0.169.0
+The latest Copilot runs use CLI 1.0.115; the completed Codex runs use 0.169.0
 and Claude Code uses 2.1.326.
 All seven arms use the same 14 task IDs/checksums, K=4/N=56, and default effort.
 Copilot uses P=16, while Codex and Claude Code use P=12. These compare model plus harness
 configurations, not isolated model capability or controlled CLI-version effects.
-The revision graphs above include only Copilot arms, through revision 114.
+The revision graphs above include only Copilot arms, through revision 115.
 Claude Code and Codex graph comparisons are deferred until more runs are available.
 
 | Model | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | API est./trial | Avg agent time |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| GPT-6.1 Sol | copilot-cli | 1.0.114 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2064 | - | 335.6 s |
+| GPT-6.1 Sol | copilot-cli | 1.0.115 | 55 / 56 | 98.21% | 0 | 98.21% | $0.1958 | - | 313.6 s |
 | Claude Opus 5.5 | claude | 2.1.326 | 55 / 56 | 98.21% | 0 | 98.21% | $0.3582 | - | 124.6 s |
 | GPT-6 Astra | codex | 0.169.0 | 55 / 56 | 98.21% | 0 | 98.21% | unknown | $0.7185 | 160.0 s |
 | GPT-6.1 Sol | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | $0.1454 | 165.5 s |
-| HydraFusion | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 0 | 91.07% | $0.2729 | - | 419.5 s |
-| GPT-6 Luna | copilot-cli | 1.0.114 | 51 / 56 | 91.07% | 2 | 90.57% | $0.0162 | - | 265.2 s |
+| HydraFusion | copilot-cli | 1.0.115 | 53 / 56 | 94.64% | 0 | 94.64% | $0.3070 | - | 458.1 s |
+| GPT-6 Luna | copilot-cli | 1.0.115 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0148 | - | 209.2 s |
 | GPT-6 Luna | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | $0.0051 | 95.8 s |
 
-Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.114/all-1),
-[Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.114/all-1),
-[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.114/all-1),
+Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.115/all-1),
+[Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.115/all-1),
+[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.115/all-1),
 [Claude Code Opus](jobs/claude-claude-opus-5-5-default-2.1.326/all-1),
 [Codex Astra](jobs/codex-gpt-6-astra-default-0.169.0/all-1),
 [Codex Sol](jobs/codex-gpt-6.1-sol-default-0.169.0/all-1), and
@@ -74,7 +74,7 @@ Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.114/all-1),
 All 392 logical trials in these seven completed arms are included.
 Retained agent-execution exceptions affect 44 Claude Code Opus trials,
 four Codex Astra trials, and five Codex Luna trials; an exception does not
-override a retained verifier result. Luna has one whole-trial retry, and its
+override a retained verifier result. Codex Luna has one whole-trial retry, and its
 duration and estimate include both agent executions for that trial.
 Nonzero exits can shorten agent time, so shorter durations are not
 necessarily efficiency gains.
@@ -147,13 +147,13 @@ The separate Claude Code run is now complete and appears in the latest results.
 
 ## Data coverage
 
-* Exported arms: 59
-* Exported logical trials: 3304
+* Exported arms: 62
+* Exported logical trials: 3472
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 3304 / 3304 trials
-* Agent and trial duration measurements: 3304 / 3304 trials
-* Retained USD-cost evidence: 3136 / 3304 trials (94.92%)
+* Functional and regression measurements: 3472 / 3472 trials
+* Agent and trial duration measurements: 3472 / 3472 trials
+* Retained USD-cost evidence: 3304 / 3472 trials (95.16%)
 * Separate Codex API-equivalent estimates: 168 / 168 Codex trials
 * Trials with an exception category: 53
 
@@ -162,7 +162,7 @@ Infrastructure and verifier retries are not additional logical trials.
 
 ## Results
 
-Verified 2026-11-18 from fifty-nine completed runs. Each arm contains 14
+Verified 2026-11-24 from sixty-two completed runs. Each arm contains 14
 tasks and four attempts per task.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending
@@ -182,6 +182,7 @@ and version are explicit.
 | GPT-6 Astra | default | copilot-cli | 1.0.113 | 56 / 56 | 100.00% | 0 | 100.00% | $1.1352 | 296.5 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2170 | 246.4 s |
 | GPT-6 Astra | default | copilot-cli | 1.0.102 | 56 / 56 | 100.00% | 0 | 100.00% | $1.2351 | 254.9 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.115 | 55 / 56 | 98.21% | 0 | 98.21% | $0.1958 | 313.6 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.105 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2298 | 224.8 s |
 | **HydraFusion** | default | copilot-cli | 1.0.109 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2409 | 349.3 s |
 | **HydraFusion** | default | copilot-cli | 1.0.113 | 55 / 56 | 98.21% | 0 | 98.21% | $0.2531 | 388.5 s |
@@ -200,6 +201,7 @@ and version are explicit.
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
 | **HydraFusion** | default | copilot-cli | 1.0.110 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2324 | 296.0 s |
+| **HydraFusion** | default | copilot-cli | 1.0.115 | 53 / 56 | 94.64% | 0 | 94.64% | $0.3070 | 458.1 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.113 | 53 / 56 | 94.64% | 1 | 94.39% | $0.0157 | 274.6 s |
 | **HydraFusion** | default | copilot-cli | 1.0.100 | 53 / 56 | 94.64% | 1 | 94.39% | $0.2932 | 272.0 s |
 | **HydraFusion** | default | copilot-cli | 1.0.97 | 52 / 56 | 92.86% | 1 | 92.61% | $0.3416 | 316.4 s |
@@ -217,6 +219,7 @@ and version are explicit.
 | Claude Opus 5.5 | default | copilot-cli | 1.0.113 | 51 / 56 | 91.07% | 2 | 90.57% | $0.4935 | 206.6 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.112 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0135 | 170.9 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.110 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0141 | 183.0 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.115 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0148 | 209.2 s |
 | **HydraFusion** | default | copilot-cli | 1.0.104 | 51 / 56 | 91.07% | 3 | 90.32% | $0.4028 | 196.7 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.109 | 50 / 56 | 89.29% | 2 | 88.79% | $0.0140 | 177.1 s |
 | Gemini 3.8 Flash | default | copilot-cli | 1.0.95 | 50 / 56 | 89.29% | 3 | 88.54% | $0.8911 | 801.5 s |
