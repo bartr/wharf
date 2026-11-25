@@ -36,6 +36,24 @@
     "with_cost": 0
   },
   {
+    "arm": "codex-gpt-6-astra-default-0.172.0",
+    "bytes_jsonl": 67507,
+    "cli": "codex",
+    "cli_version": "0.172.0",
+    "effort": "default",
+    "model": "gpt-6-astra",
+    "passes": 52,
+    "p2p_errors": 2,
+    "score": 0.9235714285714285714285714286,
+    "scored": 56,
+    "tasks": 14,
+    "cost_per_trial_usd": null,
+    "average_agent_seconds": 260.3,
+    "total_cost_usd": null,
+    "trials": 56,
+    "with_cost": 0
+  },
+  {
     "arm": "codex-gpt-6-luna-default-0.169.0",
     "bytes_jsonl": 67442,
     "cli": "codex",

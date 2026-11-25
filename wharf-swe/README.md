@@ -98,7 +98,7 @@ Codex has no retained billed USD costs: `cost_usd` stays null, so the manifest
 continues to report zero billed-cost coverage for Codex.
 Each Codex JSONL row instead includes `estimated_cost_usd` and `cost_estimate`
 metadata with rates, source, pricing date, context assumption, and execution
-coverage. All nine exported Codex arms have complete token evidence for 56/56 trials.
+coverage. All ten exported Codex arms have complete token evidence for 56/56 trials.
 These estimates are API-equivalent comparison figures, not subscription charges.
 
 Using OpenAI's [Standard pricing](https://developers.openai.com/api/docs/pricing.md),
@@ -151,14 +151,14 @@ The separate Claude Code run is now complete and appears in the latest results.
 
 ## Data coverage
 
-* Exported arms: 73
-* Exported logical trials: 4088
+* Exported arms: 74
+* Exported logical trials: 4144
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 4088 / 4088 trials
-* Agent and trial duration measurements: 4088 / 4088 trials
-* Retained USD-cost evidence: 3584 / 4088 trials (87.67%)
-* Separate Codex API-equivalent estimates: 504 / 504 Codex trials
+* Functional and regression measurements: 4144 / 4144 trials
+* Agent and trial duration measurements: 4144 / 4144 trials
+* Retained USD-cost evidence: 3584 / 4144 trials (86.49%)
+* Separate Codex API-equivalent estimates: 560 / 560 Codex trials
 * Trials with an exception category: 53
 
 Only completed `all-1` runs are included.
@@ -168,7 +168,7 @@ Infrastructure and verifier retries are not additional logical trials.
 
 Verified 2026-11-25. The table includes all completed Copilot arms and the
 existing Claude Code/Codex comparison arms: 67 runs with 14 tasks and four
-attempts per task. Six newer Codex arms are available in `data/manifest.json`
+attempts per task. Seven newer Codex arms are available in `data/manifest.json`
 but are not added to this comparison.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending

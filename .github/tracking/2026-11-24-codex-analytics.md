@@ -57,3 +57,32 @@
   enrichment, direct retained-evidence reconciliation, exact Decimal
   pricing/score calculations, historical-data checks, and `git diff --check`.
   No runtime/build changes or additional test tooling; no follow-ups.
+
+## 2026-11-25 Astra 0.172.0 follow-up
+
+Discovery found one further completed arm, Codex GPT-6 Astra 0.172.0,
+with K=4/N=56/P=16/default effort. No new Copilot runs were found; the
+latest Copilot table and three charts already cover all five CLI 1.0.116
+models and remain unchanged.
+
+1. [x] Export the 56-trial Astra arm using the canonical exporter.
+2. [x] Apply existing API-estimate enrichment and rebuild the manifest.
+3. [x] Reconcile every new trial and manifest metric with retained evidence,
+   confirm historical data/Copilot charts unchanged, and update README coverage.
+
+Astra passed 52/56 trials (92.86% PASS@1), with two P2P-error trials and
+92.36% Score. API-equivalent estimated cost averages $0.8537/trial;
+average actual agent-command duration is 260.3 seconds. All 56 trials have
+complete token/test/timing/estimate evidence, null billed costs, no retries,
+and no exceptions.
+
+Validation matched task IDs/checksums, logical-trial identity, configuration,
+reward/status/test counts, retained tokens, exact pricing conversion, agent
+and stage-event timing, patch sizes, and all generated manifest metrics.
+Manifest generation completed with 74 arms and 4144 logical trials.
+All 73 preceding manifest entries and exports are unchanged; exports were
+checked byte-for-byte. README coverage now records 3584/4144 retained costs
+(86.49%) and 560/560 Codex estimates. Latest Copilot comparison text and
+SVGs are unchanged, with all revision-116 graph values verified against data.
+Canonical commands, retained-evidence/coverage checks, and whitespace
+validation passed.
