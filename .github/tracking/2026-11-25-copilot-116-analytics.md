@@ -57,3 +57,34 @@ Aggregate coverage now reports 3976 trials, 3472 retained-cost measurements
 latest comparison metrics, coverage, and exact passing-trial/cost/p90-duration
 values at revision 116 in all three SVGs. Chart generation includes 55
 Copilot runs across five models. `git diff --check` passed.
+
+## Additional completed Opus and Astra runs
+
+Later discovery found two further completed CLI 1.0.116 arms: Claude Opus
+5.5 and GPT-6 Astra. Reused the same export/manifest/validation workflow.
+
+1. [x] Export both complete 56-trial arms; rebuild the WharfSWE manifest.
+2. [x] Add Opus and Astra to the latest and historical README tables,
+   update comparison and coverage counts, and regenerate Copilot-only charts.
+3. [x] Reconcile all 112 new rows, manifest metrics, README tables, and charts.
+
+| Model | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
+|---|---:|---:|---:|---:|---:|---:|
+| GPT-6 Astra | 55/56 | 98.21% | 0 | 98.21% | $1.1409 | 295.6 s |
+| Claude Opus 5.5 | 50/56 | 89.29% | 2 | 88.79% | $0.5240 | 209.4 s |
+
+Every new trial matches retained identity/checksum, status, verifier reward
+and test counts, credits/USD conversion, summed agent duration, stage-event
+trial duration, and patch size. Both arms use K=4/N=56/P=16/default effort,
+have complete cost/test/timing evidence, and have no trial/verifier retries
+or exception categories.
+
+The manifest now contains 73 arms and 4088 trials; all 71 preceding entries
+and JSONL exports are unchanged. Retained-cost coverage is 3584/4088 (87.67%).
+All 67 sorted README results match manifest metrics. The nine latest comparison
+arms share task IDs/checksums and include all five Copilot 1.0.116 models.
+Each chart contains 57 Copilot runs and five validated revision-116 points
+with exact pass, cost, and p90-duration values. Historical Claude/Codex
+comparison rows, Codex estimates, DeepSWE data, and raw evidence are unchanged.
+Canonical commands, direct evidence/README/SVG checks, and whitespace
+validation passed.

@@ -68,9 +68,9 @@
 <text transform="translate(30 290) rotate(-90)" text-anchor="middle" font-size="16">USD per costed trial</text>
 <polyline data-model="hydrafusion" points="95.00,393.53 139.76,393.21 184.52,387.29 229.29,368.28 318.81,400.40 363.57,384.27 408.33,389.31 453.10,373.33 497.86,370.68 542.62,407.23 587.38,401.43 632.14,407.77 676.90,403.94 721.67,414.60 766.43,416.92 811.19,419.01 855.95,410.35 900.71,411.29 945.48,405.93 990.24,396.68 1035.00,409.60" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
 <polyline data-model="gpt-6.1-sol" points="95.00,420.30 408.33,417.37 542.62,417.63 676.90,425.43 721.67,424.49 766.43,427.50 811.19,425.18 855.95,429.18 900.71,423.49 945.48,423.97 990.24,426.86 1035.00,428.41" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-astra" points="95.00,122.26 408.33,144.75 542.62,122.32 676.90,149.67 900.71,171.86" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-astra" points="95.00,122.26 408.33,144.75 542.62,122.32 676.90,149.67 900.71,171.86 1035.00,170.34" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
 <polyline data-model="gpt-6-luna" points="95.00,475.70 408.33,475.88 542.62,475.77 676.90,475.52 721.67,476.20 766.43,476.17 811.19,476.28 855.95,476.34 900.71,475.73 945.48,475.60 990.24,475.98 1035.00,475.92" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="claude-opus-5.5" points="95.00,335.86 408.33,350.12 542.62,335.62 676.90,344.65 900.71,346.05" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="claude-opus-5.5" points="95.00,335.86 408.33,350.12 542.62,335.62 676.90,344.65 900.71,346.05 1035.00,337.76" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="cost_per_trial" data-value="0.4785071428571428571428571429" data-costed-trials="56" transform="translate(408.33 350.12)">
 <title>Claude Opus 5.5 | CLI 1.0.102 | USD per costed trial: $0.4785 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
@@ -85,6 +85,10 @@
 </g>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.113" data-revision="113" data-passes="51" data-trials="56" data-metric="cost_per_trial" data-value="0.4934839285714285714285714286" data-costed-trials="56" transform="translate(900.71 346.05)">
 <title>Claude Opus 5.5 | CLI 1.0.113 | USD per costed trial: $0.4935 | 51/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.116" data-revision="116" data-passes="50" data-trials="56" data-metric="cost_per_trial" data-value="0.5240357142857142857142857143" data-costed-trials="56" transform="translate(1035.00 337.76)">
+<title>Claude Opus 5.5 | CLI 1.0.116 | USD per costed trial: $0.5240 | 50/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.95" data-revision="95" data-passes="49" data-trials="56" data-metric="cost_per_trial" data-value="0.5310375" data-costed-trials="56" transform="translate(95.00 335.86)">
@@ -105,6 +109,10 @@
 </g>
 <g data-arm="copilot-gpt-6-astra-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="cost_per_trial" data-value="1.135235714285714285714285714" data-costed-trials="56" transform="translate(900.71 171.86)">
 <title>GPT-6 Astra | CLI 1.0.113 | USD per costed trial: $1.1352 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.116" data-revision="116" data-passes="55" data-trials="56" data-metric="cost_per_trial" data-value="1.140855357142857142857142857" data-costed-trials="56" transform="translate(1035.00 170.34)">
+<title>GPT-6 Astra | CLI 1.0.116 | USD per costed trial: $1.1409 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
 <g data-arm="copilot-gpt-6-astra-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="cost_per_trial" data-value="1.317982142857142857142857143" data-costed-trials="56" transform="translate(95.00 122.26)">

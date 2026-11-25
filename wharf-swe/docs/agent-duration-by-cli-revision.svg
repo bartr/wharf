@@ -80,9 +80,9 @@
 <text transform="translate(30 290) rotate(-90)" text-anchor="middle" font-size="16">p90 agent time (m:ss)</text>
 <polyline data-model="hydrafusion" points="95.00,244.84 139.76,231.93 184.52,215.46 229.29,293.29 318.81,244.83 363.57,303.23 408.33,272.15 453.10,286.05 497.86,335.79 542.62,334.61 587.38,183.11 632.14,228.34 676.90,212.00 721.67,190.10 766.43,231.55 811.19,251.52 855.95,250.56 900.71,203.46 945.48,142.67 990.24,113.59 1035.00,171.40" fill="none" stroke="#d55e00" stroke-width="2" stroke-opacity="0.8"/>
 <polyline data-model="gpt-6.1-sol" points="95.00,249.82 408.33,241.87 542.62,313.97 676.90,309.79 721.67,298.56 766.43,314.05 811.19,309.00 855.95,332.15 900.71,259.55 945.48,260.55 990.24,257.38 1035.00,259.76" fill="none" stroke="#0072b2" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="gpt-6-astra" points="95.00,296.76 408.33,288.40 542.62,345.81 676.90,306.82 900.71,260.06" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="gpt-6-astra" points="95.00,296.76 408.33,288.40 542.62,345.81 676.90,306.82 900.71,260.06 1035.00,270.99" fill="none" stroke="#009e73" stroke-width="2" stroke-opacity="0.8"/>
 <polyline data-model="gpt-6-luna" points="95.00,293.97 408.33,300.76 542.62,339.90 676.90,334.78 721.67,345.40 766.43,349.92 811.19,336.92 855.95,358.60 900.71,293.92 945.48,306.25 990.24,334.99 1035.00,316.87" fill="none" stroke="#cc79a7" stroke-width="2" stroke-opacity="0.8"/>
-<polyline data-model="claude-opus-5.5" points="95.00,325.61 408.33,313.83 542.62,374.20 676.90,372.34 900.71,315.28" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
+<polyline data-model="claude-opus-5.5" points="95.00,325.61 408.33,313.83 542.62,374.20 676.90,372.34 900.71,315.28 1035.00,331.35" fill="none" stroke="#9467bd" stroke-width="2" stroke-opacity="0.8"/>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.102" data-revision="102" data-passes="48" data-trials="56" data-metric="agent_p90_seconds" data-value="341.093" data-costed-trials="56" transform="translate(408.33 313.83)">
 <title>Claude Opus 5.5 | CLI 1.0.102 | p90 agent time (m:ss): 5:41 | 48/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
@@ -97,6 +97,10 @@
 </g>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.113" data-revision="113" data-passes="51" data-trials="56" data-metric="agent_p90_seconds" data-value="338.111" data-costed-trials="56" transform="translate(900.71 315.28)">
 <title>Claude Opus 5.5 | CLI 1.0.113 | p90 agent time (m:ss): 5:38 | 51/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
+</g>
+<g data-arm="copilot-claude-opus-5.5-default-1.0.116" data-revision="116" data-passes="50" data-trials="56" data-metric="agent_p90_seconds" data-value="305.1135" data-costed-trials="56" transform="translate(1035.00 331.35)">
+<title>Claude Opus 5.5 | CLI 1.0.116 | p90 agent time (m:ss): 5:05 | 50/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-6 6,6 -6,6" fill="none" stroke="#9467bd" stroke-width="2"/>
 </g>
 <g data-arm="copilot-claude-opus-5.5-default-1.0.95" data-revision="95" data-passes="49" data-trials="56" data-metric="agent_p90_seconds" data-value="316.898" data-costed-trials="56" transform="translate(95.00 325.61)">
@@ -117,6 +121,10 @@
 </g>
 <g data-arm="copilot-gpt-6-astra-default-1.0.113" data-revision="113" data-passes="56" data-trials="56" data-metric="agent_p90_seconds" data-value="451.453" data-costed-trials="56" transform="translate(900.71 260.06)">
 <title>GPT-6 Astra | CLI 1.0.113 | p90 agent time (m:ss): 7:31 | 56/56 passing trials | Cost coverage: 56/56</title>
+<polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
+</g>
+<g data-arm="copilot-gpt-6-astra-default-1.0.116" data-revision="116" data-passes="55" data-trials="56" data-metric="agent_p90_seconds" data-value="429.026" data-costed-trials="56" transform="translate(1035.00 270.99)">
+<title>GPT-6 Astra | CLI 1.0.116 | p90 agent time (m:ss): 7:09 | 55/56 passing trials | Cost coverage: 56/56</title>
 <polygon points="0,-8 8,0 0,8 -8,0" fill="none" stroke="#009e73" stroke-width="2"/>
 </g>
 <g data-arm="copilot-gpt-6-astra-default-1.0.95" data-revision="95" data-passes="54" data-trials="56" data-metric="agent_p90_seconds" data-value="376.1265" data-costed-trials="56" transform="translate(95.00 296.76)">
