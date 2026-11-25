@@ -35,6 +35,12 @@ If an implementer wishes this document answered one of the open items, that is t
 
 [Bulleted, outcome-shaped, and checkable. Each goal should be traceable to an acceptance criterion in section 14.]
 
+### 2.1 Improvement hypothesis
+
+[User outcome and domain constraint; baseline evidence and conditions, or an
+explicit unknown; why the targeted change should help; what observation would
+challenge the hypothesis. Preserve source/confidence labels.]
+
 ## 3. Non-Goals
 
 [Explicit exclusions. This is the scope boundary that protects the timebox. Name the tempting adjacent work that is out of scope.]
@@ -128,6 +134,22 @@ If an implementer wishes this document answered one of the open items, that is t
 
 [Measurable bars, such as latency percentiles, throughput, and error rate, plus how the numbers are produced.]
 
+Do not invent a numerical target or baseline. If quantitative performance is
+not part of the change, state why this section is not applicable.
+
+### 10.5 Improvement evaluation
+
+Use the [shared evaluation contract](../../evaluation-contract.md).
+
+| Outcome or hypothesis | Baseline/source | Evaluation and comparison conditions | Evidence level required | Non-regression criterion |
+|---|---|---|---|---|
+| [source-supported claim] | [evidence or unknown with resolution path] | [checkable method; matched conditions or disclosed confounders] | [synthetic, integration, live, or applicable combination] | [what must not worsen and how checked] |
+
+[Decision criteria for keeping, revising, rejecting, or deferring the change;
+domain assumptions the evaluation may revise; missing observations and their
+resolution path. This is an evaluation plan, not a claim of demonstrated benefit.
+For bounded changes, a focused regression test may be sufficient.]
+
 ## 11. Configuration
 
 [Configuration layers in increasing precedence, with defaults.]
@@ -149,6 +171,10 @@ If an implementer wishes this document answered one of the open items, that is t
 ## 14. Acceptance Criteria
 
 Checkable statements that define done. Each maps to a goal in section 2. Anything not checkable here is not a requirement.
+
+Separate implementation checks from evidence needed to accept the improvement.
+Do not claim live effectiveness from a synthetic test; record required pending
+observations in section 15 and make any release dependency explicit.
 
 * [ ] [criterion]
 * [ ] [criterion]

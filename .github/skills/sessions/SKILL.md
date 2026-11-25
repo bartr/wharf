@@ -106,6 +106,18 @@ This is the cheapest moment to cut scope. A deleted bullet costs nothing, while 
 
 ## The Close Ritual
 
+Carry the [shared evaluation contract](../evaluation-contract.md) from the
+frame and RPI handoff into the existing session log. At close, record the
+outcome observed versus the hypothesis, non-regression evidence, the
+keep/revise/reject/defer decision, and any domain understanding that changed.
+Separate release status from demonstrated benefit; name pending observations
+and the next check instead of treating a tag or green tests as proof.
+
+Use the existing summary and next-session starter, not a new evaluation
+document. Promote only qualifying, sourced, non-sensitive learning to repo
+memory under the applicable policy. Trivial changes need only focused
+regression evidence, not a quantitative experiment.
+
 Every session ends the same way:
 
 1. Green tests.

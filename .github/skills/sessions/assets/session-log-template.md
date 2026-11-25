@@ -40,6 +40,20 @@ Written before any other work.
 
 What I built, what I decided, and what matters next time.
 
+### Evaluation and learning
+
+Carry forward the [shared evaluation contract](../../evaluation-contract.md)
+in this existing entry; for bounded fixes, a short regression-test result is
+sufficient. If copying this template elsewhere, adjust the link or retain the
+contract in the session handoff.
+
+* User outcome and improvement hypothesis:
+* Baseline/source and comparison conditions, or explicit unknown:
+* Observed outcome and evidence level, separate from command/release status:
+* Non-regression checks and missing measurements:
+* Decision, keep/revise/reject/defer, with evidence and limitations:
+* Domain learning, sources, scope, and what remains uncertain:
+
 ### Next session starter
 
 One sentence naming where the next session begins.

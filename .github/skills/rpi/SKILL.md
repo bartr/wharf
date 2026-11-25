@@ -45,6 +45,28 @@ This skill is self-contained. It runs on its own for a single task, and it compo
 
 The constraints are the mechanism. A phase that quietly does the next phase's work has defeated the point, so hold the boundary even when crossing it feels efficient.
 
+## Evaluation contract
+
+Carry the [shared evaluation contract](../evaluation-contract.md) through the
+existing phase artifacts, reusing an upstream discovery or PRD contract:
+
+* **Research:** cite the user outcome, domain constraints, baseline evidence
+  and conditions; distinguish assumptions from observations.
+* **Plan:** bind the improvement hypothesis to a checkable evaluation method,
+  required evidence levels, and non-regression criteria. Name missing evidence
+  and the next check; do not invent numerical targets or claim future benefit.
+* **Implement:** execute the planned checks, retaining failures and missing
+  measurements. Record execution status separately from observed outcomes.
+* **Review:** compare against the baseline and criteria where evidence permits;
+  disclose confounders, record keep/revise/reject/defer and its basis, and
+  capture what changed in domain understanding. Route missing evidence to
+  Research or a named follow-up rather than declaring the benefit proven.
+
+Passing tests establishes only what those tests exercise, not live user or
+provider effectiveness. An approved release decision is distinct from an
+improvement decision. Use focused regression evidence for bounded fixes;
+this contract adds no mandatory artifacts or permission to launch paid trials.
+
 ## The Context Reset Rule
 
 Start a new chat, or clear context, between every phase.

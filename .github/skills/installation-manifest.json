@@ -13,7 +13,19 @@
   "local_customizations": [
     {
       "skill": "prd",
-      "description": "Adds a readiness gate, proposed-assumption review, and a paired LLM-oriented JSONL requirements ledger."
+      "description": "Adds a readiness gate, proposed-assumption review, paired LLM requirements ledger, and source-backed improvement evaluation criteria."
+    },
+    {
+      "skill": "design-thinking",
+      "description": "Carries the shared evaluation contract from problem framing and concept validation into the PRD handoff."
+    },
+    {
+      "skill": "rpi",
+      "description": "Carries evaluation criteria through phase artifacts and separates executed checks, improvement decisions, and domain learning."
+    },
+    {
+      "skill": "sessions",
+      "description": "Records evaluation outcomes, improvement decisions, and sourced domain learning in the existing session close and log."
     }
   ],
   "files": [
@@ -27,39 +39,54 @@
     },
     {
       "path": "design-thinking/SKILL.md",
-      "sha256": "5b546a6faf7dcfb60214149a2c3dd157e29dd2797728805dbcc76362ccca764f"
+      "sha256": "0699703a141a88070eeb9d70c3ee978a2f02c4da97b5a1284d1f63666c31a826",
+      "source_sha256": "5b546a6faf7dcfb60214149a2c3dd157e29dd2797728805dbcc76362ccca764f",
+      "locally_modified": true
     },
     {
       "path": "prd/SKILL.md",
-      "sha256": "8e5d92531d80fe230409520d138e0e9509e57daaf3c991f1851dcfc2870b8850",
+      "sha256": "c977693fdf76f65adc6676d571d04edfee2aaaf76d953bea9022d0e93060125b",
       "source_sha256": "d58db41ef87c9b5a6b396602e98b8e0ef04e4a56621e0751d0f34e3e9ec16b43",
       "locally_modified": true
     },
     {
       "path": "prd/assets/prd-template.md",
-      "sha256": "bccbaefd7a62e07d259a49b2e483ff0e814cc675b6ae82a97b7970528f206f9d"
+      "sha256": "a64ec314479278c7a6c4b2b40dae6d2e003a2a02e99617c6a3529a6ad03bc619",
+      "source_sha256": "bccbaefd7a62e07d259a49b2e483ff0e814cc675b6ae82a97b7970528f206f9d",
+      "locally_modified": true
     },
     {
       "path": "prd/assets/readiness-template.md",
-      "sha256": "f0af20b899212c23c4044740a3a8a65d97462c8f8874cb1c4f3f76996e92aa93",
+      "sha256": "ee19360b3db7d998dbdfc5156024eaac56d2b43e66f54e315b444f9524783c9e",
       "locally_added": true
     },
     {
       "path": "prd/assets/requirements-jsonl.md",
-      "sha256": "31edf0bacacf71875bd0b4474798225b8ff22a07669331481a397b1149013919",
+      "sha256": "9669da0cfaaab9a9bf0d2fcd269145c7f12a8ef715e33048b3cf056d5ac559ce",
       "locally_added": true
     },
     {
       "path": "rpi/SKILL.md",
-      "sha256": "a000355d758ceca5cf517d06c2d56a855af033b31c226fb56aea034922458d0e"
+      "sha256": "79f5bbe1757618d1c231cc7618bbdbbb66937829033c51cd16458b9dc2118146",
+      "source_sha256": "a000355d758ceca5cf517d06c2d56a855af033b31c226fb56aea034922458d0e",
+      "locally_modified": true
     },
     {
       "path": "sessions/SKILL.md",
-      "sha256": "336a161d738fbcde3a762fc95a175b698e7c5809a26aa479d4cbefc31341de7d"
+      "sha256": "d6c938308b9222fd64f34ed10307275a81b0c080c1c6953ca712b94c5bf78f13",
+      "source_sha256": "336a161d738fbcde3a762fc95a175b698e7c5809a26aa479d4cbefc31341de7d",
+      "locally_modified": true
     },
     {
       "path": "sessions/assets/session-log-template.md",
-      "sha256": "481db89de68c237503f86bbee82b30a118d358dbd49835194c609e07a96fa301"
+      "sha256": "cf55a200e6684595f3a0585b648dab6aa15ff46520370ea22991c1f534d93918",
+      "source_sha256": "481db89de68c237503f86bbee82b30a118d358dbd49835194c609e07a96fa301",
+      "locally_modified": true
+    },
+    {
+      "path": "evaluation-contract.md",
+      "sha256": "c31dfe8b211ba89a6c9d968ab5f1158ccd935560e2a0de24460caebe0f6403a6",
+      "locally_added": true
     }
   ]
 }

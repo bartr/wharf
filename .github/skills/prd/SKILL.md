@@ -21,6 +21,24 @@ The loop is: write notes, review readiness, update the notes, review again, then
 generate the PRD and JSONL ledger. The notes stay the source of truth. Proposed
 assumptions are never silently promoted into requirements.
 
+## Evaluation contract
+
+Apply the [shared evaluation contract](../evaluation-contract.md) within the
+existing readiness review, PRD, and ledger. Trace the user outcome, baseline
+evidence or explicit unknown, improvement hypothesis, evaluation method, and
+non-regression criteria to source claims. Record decision criteria and the
+domain assumptions the evaluation could revise; do not invent future results.
+
+READY means ready to build, not proven effective. Distinguish specification
+readiness from evidence still needed to accept the improvement. Synthetic,
+integration, and live observations are separate evidence levels. Missing
+baseline measurements do not automatically block generation if a sufficient
+acceptance method and explicit resolution path are supported by the sources.
+
+Use sections 2, 10, 14, and 15 of the PRD and existing ledger record types;
+do not add a mandatory separate evaluation artifact. Scale the depth to the
+change and keep unsupported numerical targets out of requirements.
+
 ## When to Use
 
 | Situation                                                        | Use this skill        |
@@ -159,6 +177,9 @@ The sources are ready for final generation only when:
   acceptance criterion is stated or deliberately delegated;
 * goals and non-goals define a coherent release boundary;
 * every numerical target has a measurement method;
+* the improvement hypothesis, evaluation method, and non-regression criteria
+  are stated or explicitly confirmed, with missing evidence and its effect on
+  readiness recorded rather than claimed complete;
 * every proposed assumption is confirmed, rejected, or deliberate; and
 * the remaining open items are explicitly non-blocking.
 
@@ -168,6 +189,9 @@ of notes is not evidence of readiness.
 ### Step 7: Draft the PRD
 
 Fill the template section by section. Keep every heading. When a section has no material, write "Not applicable" with a reason, or leave it `open`, so the document's shape stays comparable to other PRDs.
+
+Resolve template-relative links for each output destination rather than copying
+their paths unchanged; this also applies to the readiness review.
 
 Write acceptance criteria in section 14 that are checkable without interpretation. Anything not checkable is not a requirement, so either sharpen it or move it to goals.
 

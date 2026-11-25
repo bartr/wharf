@@ -34,6 +34,18 @@ Run this skill when the problem is uncertain. Skip it when the problem, users, a
 
 State clearly when no user evidence is available. Proceed with assumptions explicitly labeled rather than presenting guesses as findings.
 
+## Evaluation contract
+
+Use the [shared evaluation contract](../evaluation-contract.md) in the existing
+activity artifacts. Capture the user outcome and domain constraints, cite
+baseline evidence or label it unknown, and frame the selected concept as an
+improvement hypothesis with a falsifying observation.
+
+Low-fidelity validation tests the concept, not production effectiveness. Carry
+its evidence, remaining assumptions, evaluation method, and non-regression
+criteria into the PRD handoff. Record when findings revise the team's domain
+understanding; do not treat conventional wisdom as validated evidence.
+
 ## Quick Start
 
 Ask the user for the request, the customer or team involved, and any existing material. Then work the six activities in order, confirming each before moving on.
@@ -162,6 +174,10 @@ Out of scope: [...]
 ## Success measures
 [observable, measurable outcomes]
 
+## Improvement hypothesis and evaluation
+[baseline evidence or explicit unknown, why the concept should help, what
+would challenge it, comparison method, and what must not regress]
+
 ## Acceptance criteria
 [testable statements that define done]
 
@@ -170,6 +186,10 @@ Out of scope: [...]
 
 ## Confidence
 [overall readiness, and what would change this PRD]
+
+## Learning
+[what discovery changed in domain understanding, evidence and conditions,
+and the next observation needed]
 ```
 
 Every requirement traces back to evidence or is explicitly labeled as an assumption. Unresolved `conflicting` items block handoff.

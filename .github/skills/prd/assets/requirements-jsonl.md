@@ -68,3 +68,24 @@ The metadata record also includes:
   decision, requirement, acceptance_criterion, deliberate, open_question.
 - Sort by ID within each record type.
 - Validate every line as JSON, all IDs as unique, and all ID references as existing.
+
+## Evaluation-contract mapping
+
+Preserve the [shared evaluation contract](../../evaluation-contract.md) using
+the existing record types, statuses, provenance, and relationships:
+
+- User outcomes are `goal` records; source-supported improvement hypotheses
+  are related `decision` records, or `derived` claims awaiting confirmation.
+- Required evaluation methods and non-regression checks are
+  `acceptance_criterion` records with explicit `verification`, linked to the
+  relevant goals, requirements, or constraints.
+- Baseline evidence and comparison conditions belong in the relevant claim
+  text and `source_refs`. Missing evidence or unresolved domain assumptions
+  are `open_question` records with a resolution path and explicit blocking
+  status.
+- Keep/revise/reject/defer criteria are source-supported `decision` records.
+  Do not encode a planned evaluation as a measured result or fabricate a
+  completed decision or domain finding.
+
+Actual evaluation outcomes and learned findings belong in downstream review
+and learning records; this ledger specifies what must be established.

@@ -56,6 +56,22 @@ Statuses: `proposed`, `confirmed`, `rejected`, or `deliberate`.
 |---------------------|----------------|----------------------------------|
 | [claim] | [yes or no] | [gap] |
 
+### 8.1 Evaluation-plan readiness
+
+Use the [shared evaluation contract](../../evaluation-contract.md).
+
+| Element | Source/confidence | Missing evidence and resolution path | Blocks readiness |
+|---|---|---|---|
+| User outcome and domain constraint | [source] | [gap or none] | [yes/no with reason] |
+| Baseline and improvement hypothesis | [observed/assumed/unknown with source] | [next observation; do not invent measurements] | [yes/no with reason] |
+| Evaluation method and comparison conditions | [source or confirmed decision] | [synthetic/integration/live checks and confounders] | [yes/no with reason] |
+| Non-regression and improvement decision criteria | [source or confirmed decision] | [acceptance method and required evidence] | [yes/no with reason] |
+
+Record assumptions the evaluation could revise in existing gaps or open
+questions. READY means ready to build with a sufficient evaluation plan, not
+that the improvement is proven. An unknown baseline is blocking only when an
+essential requirement or acceptance decision depends on resolving it first.
+
 ## 9. LLM Artifact Recommendation
 
 - Recommended format: [JSONL or structured Markdown]
