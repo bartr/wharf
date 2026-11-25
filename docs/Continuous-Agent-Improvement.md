@@ -471,6 +471,56 @@ actual versions span 2.1.220-2.1.222 despite the filename; historical
 Opus figures differ from the current exports; the numbers above use the
 retained rows and costed denominators, not a mixture of reporting snapshots.
 
+## What did not work: complexity must earn its place
+
+The loop is not a mechanism for justifying every idea we implement. "Keep the
+improvement" also means revising or removing a change that does not demonstrate
+useful value. A rejected hypothesis is reusable knowledge, not wasted work.
+
+### Container CPU controls: a plausible hypothesis without useful benefit
+
+We thought `--container-cpus` would make concurrent execution more predictable
+and improve resource use. The project lead's assessment of the experiments
+and operating experience is that it did not show useful value. It added a
+configuration and tuning complication without earning its place.
+
+That contrasts with `-p`, which addresses preparation pressure at the relevant
+resource boundary, and `-b`, which fits fixed experiments into subscription
+windows. Their operational value has concrete gate, cache, admission, and
+recovery evidence in the cases above; CPU controls did not show a comparable
+benefit. This is not a claim that CPU limits are never useful elsewhere.
+
+**Direction:** likely remove `--container-cpus`. It is still supported;
+this document records the negative finding and intended simplification,
+not an implemented removal or a quantified performance effect.
+
+### Run manifests: reconsider a configuration surface
+
+`--manifest` offered structured, reusable configuration, but it also introduced
+another authoring, validation, and precedence surface. The likely direction
+is to remove it in favor of environment variables and command-line flags.
+This is a simplification judgment, not evidence that manifests caused a
+measured performance failure.
+
+**Direction:** removal is under consideration, not implemented. Simplifying
+configuration input must not discard the retained effective configuration,
+task checksums, run plan, or immutable resume policy. Reproducibility comes
+from preserving the actual experiment, not requiring one particular input
+format.
+
+### CLI-version environment variables: a completed correction
+
+A CLI version depends on which CLI is selected. A generic ambient version pin
+can carry a Copilot version into a Claude Code or Codex invocation. The
+[version-policy change](../.github/tracking/2026-11-16-cli-version-policy-review.md)
+therefore retired `WHARF_CLI_VERSION` and `CLI_VERSION`, rejecting them with
+migration guidance rather than silently ignoring a mismatched pin.
+
+**Current behavior:** `--cli-version` takes precedence over manifest
+`cliVersion`, then the selected provider's `latest`. That contract remains
+in force while `--manifest` is supported. Exact effective version identity
+remains part of the retained experiment.
+
 ## Leadership implications
 
 The slide's loop has value beyond an individual agent:
@@ -481,6 +531,8 @@ The slide's loop has value beyond an individual agent:
   revise assumptions about what actually helps.
 - **Skills make the learning reusable.** Requirements, research, review, and
   retained evidence support both delivery and later discovery of its value.
+- **Complexity must earn its place.** Preserve negative findings and retire
+  low-value controls; a plausible hypothesis does not justify keeping a feature.
 - **Reuse has several forms.** A platform feature, an operating policy, an
   improved skill, or an actionable product-team finding can each move the
   system forward.
