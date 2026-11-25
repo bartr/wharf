@@ -1,4 +1,9 @@
-# Wharf development, testing, and operations summary through 1.1.0
+# Wharf development, testing, and operations summary through 1.7.0
+
+**Checkpoint:** November 25, 2026. Repository tags extend through 1.6.0;
+the current development version is 1.7.0, with no 1.7.0 tag at this review.
+The sections below distinguish tagged releases, development changes, and
+historical measurement snapshots.
 
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
@@ -15,8 +20,11 @@ moved from a CLI foundation to a deterministic, recoverable,
 evidence-preserving DeepSWE and Copilot execution platform. The subsequent
 `1.0.1` branch work corrected CLI version resolution, made provider-default
 effort the default, and extended the retained benchmark comparisons. Release
-1.1.0 brings those changes together with updated CLI conventions, richer
-analytics manifests, and an executable-package qualification gate.
+1.1.0 brought those changes together with updated CLI conventions, richer
+analytics manifests, and an executable-package qualification gate. Through
+the 1.7.0 development checkpoint, the platform also supports Claude Code and
+Codex, cache warm-up through `prebuild`, agent-free baselines, recurring
+WharfSWE comparisons, and quota-aware batching.
 
 * The system now has explicit boundaries for configuration, Harbor task
   loading, host checks, image preparation, Copilot execution, agent isolation,
@@ -49,15 +57,28 @@ analytics manifests, and an executable-package qualification gate.
   shippable; Research, Plan, Implement, Review artifacts prevented invented
   interfaces, made scope changes visible, and tied implementation claims to
   test evidence.
+* The development method paid dividends again in reuse. Retained requirements,
+  research, plans, reviews, and run evidence made it possible to recover the
+  reasoning behind improvements when a new continuous-improvement slide
+  prompted a broader assessment. The records supported 18 candidate case
+  studies and a shared evaluation contract in the existing skills, not a
+  new document-heavy workflow.
+* Domain knowledge and evaluation reinforce each other. Quota windows, Docker
+  behavior, systems capacity, and enterprise language needs motivated changes;
+  HVE, Auto, and model-harness observations also changed what the team knew
+  about effective configurations. The useful evaluation unit is model,
+  harness, and skills in their operating context.
 
 The 1.0.0 acceptance matrix is closed. Container-backed smoke validation and
 unattended K=4 benchmark runs are retained in the repository, with some runs
-spanning an overnight window. Through the `1.0.1` branch at `e6fe024`, the
+spanning an overnight window. At the historical `1.0.1` branch checkpoint
+`e6fe024`, the
 WharfSWE dataset contains 24 arms and 1344 logical trials with complete
 score, cost, and duration coverage. The `1.0.0` tag points to `1ab71c4`, and
-no `1.0.1` tag is present at this review. Post-v1 repair/replay, hosted
-operations, additional agent products, and multi-host distributed execution
-remain outside the delivered scope. Single-host concurrency is different:
+the intervening `1.0.1` branch was not tagged. Additional agent products were
+outside the MVP scope but are now delivered through Claude Code and Codex
+adapters. Repair/replay, hosted operations, and multi-host distributed
+execution remain outside the delivered scope. Single-host concurrency is different:
 post-1.0 operation has exercised `N=32 P=12` as the z01 operating setting,
 WharfSWE runs at `N=64 P=16`, and `N` up to about 2.5 times the processor
 count, as described in
@@ -66,10 +87,15 @@ operator-validated settings, not formally qualified scale profiles with
 published host-sizing recommendations.
 
 Since 1.0.0, sustained production use has become its own evidence stream. The
-operating sections below cover the cold-run preparation-concurrency lessons
-that made `P` essential, the 14-task .NET WharfSWE benchmark built with
-Wharf, and a ten-version HydraFusion CLI series that made the team an early,
-credible HydraFusion tester.
+operating sections retain the cold-run preparation-concurrency lessons that
+made `P` essential, the 14-task .NET WharfSWE benchmark built with Wharf,
+and the early ten-version HydraFusion CLI checkpoint. At this review, the
+[WharfSWE manifest](../wharf-swe/data/manifest.json) contains **74 arms and
+4,144 logical trials**, with retained billed-cost evidence for **3,584 trials
+(86.49%)**. The latest Copilot exports use CLI 1.0.116; additional Codex exports
+extend through 0.172.0. API-equivalent Codex estimates remain separate from
+unknown billed costs. These totals do not include the separately retained
+DeepSWE dataset or pending, unaccepted batch slots.
 
 ## Development approach
 
@@ -90,6 +116,59 @@ and a retrospective note.
 
 This structure is documented in `docs/wharf-sessions.md`, `docs/session-log.md`,
 `.github/skills/sessions/SKILL.md`, and `.github/skills/rpi/SKILL.md`.
+
+### How retained engineering work became reusable learning
+
+The skills were part of how Wharf was built, not an after-the-fact description
+of its features. Requirements established the intended outcome and boundary;
+research challenged assumptions; plans named the next checks; implementation
+retained evidence; and review separated completed work from accepted outcomes.
+The artifacts made it possible to revise a conclusion without losing why the
+earlier decision had appeared reasonable.
+
+On November 25, a TLT CVP's Microsoft Ignite slide, "Continuous agent
+improvement with evaluations," supplied a useful new framing. The attribution
+and presentation timing come from the project lead. Rather than treating it
+as a new methodology to impose wholesale, the team mapped it onto the workflow
+and evidence already present in the repository.
+
+That reuse followed a concrete sequence:
+
+1. **Apply the idea to an evidenced change.** Subscription-aware batching
+   showed how domain knowledge could improve a harness without changing
+   model accuracy or the benchmark's scoring contract.
+2. **Recover other examples from retained work.** The
+   [research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md)
+   identified 18 candidates across Wharf and sibling DeepSWE evidence.
+   Preparation-gate decisions, cache checks, evaluator revisions, and quota
+   audits could be traced instead of reconstructed solely from memory.
+3. **Turn the idea into reusable guidance.** A
+   [shared evaluation contract](../.github/skills/evaluation-contract.md)
+   added outcome, evidence, hypothesis, evaluation, decision, and learning
+   to the existing design-thinking, PRD, RPI, and sessions skills and templates.
+   It distinguishes readiness, demonstrated benefit, and release status.
+4. **Capture the value for another audience.** The
+   [TLT case-study document](Continuous-Agent-Improvement.md) now covers
+   batching, the development/reuse method, and eight prioritized cases, with
+   source evidence, limitations, and the next check.
+
+This is a second dividend from the development approach: artifacts first
+supported delivery, then supported discovering, explaining, and transferring
+its value. The idea from the slide could be incorporated without rewriting
+old PRDs, changing benchmark results, or starting a parallel workflow.
+
+The feedback is bidirectional. Domain expertise informs the next experiment;
+evaluation revises that expertise; and the revised understanding improves the
+skills and the next engineering decision. Wharf is a platform, not itself an
+agent, so this loop applies to systems and operating practices as well as
+agent configurations. HVE-informed skills used to develop Wharf are also
+distinct from HVE guidance supplied to a benchmark agent: evidence of value
+in one setting is not proof of value in the other.
+
+The observed reuse is concrete; a numerical productivity or cost gain from
+the skills has not been established. The next test is whether subsequent work
+produces clearer hypotheses, evidence-backed decisions, and useful learning
+without unnecessary overhead. Simplify the guidance where it does not help.
 
 ## Release progression
 
@@ -396,6 +475,153 @@ artifact and check its version. The failed artifact and failure record were
 retained before replacement. See the
 [1.1.0 qualification](release-qualification.md#110-checkpoint-2026-10-28).
 
+### Baselines and resource observation: 1.2.0
+
+The repository's 1.2.0 tag points to `600005d`. Post-1.1 work added read-only
+run resource monitoring and agent-free no-op/oracle execution. These baselines
+separate image/workspace overhead and verifier validity from model capability.
+Trusted reference solutions remain outside the agent boundary; baseline
+results do not become model-score trials. See the
+[baseline contract](wharf.md#agent-free-baseline-runs).
+
+CPU-affinity experiments also formed part of this period. The initial
+eight-CPU default was revised to opt-in before the tag (`b76ea4f`), and the
+comparison arms were later removed from the current published series.
+The useful lesson is to evaluate a plausible resource policy rather than
+assume that more constraints improve throughput. No controlled affinity
+advantage is claimed here.
+
+### Verified cache warm-up: 1.3.0
+
+The 1.3.0 tag points to `2077851`. Inspection found that the earlier build
+workflow omitted CLI-version-dependent agent caches and verifier preparation.
+The fix reused the actual run preparers, applied P to the combined preparation
+work, preserved ECR parents, and cleaned temporary children. The command was
+renamed from `build` to `prebuild`, without a compatibility alias.
+
+The [cache record](../.github/tracking/2026-11-08-build-cache-verification.json)
+retains 14/14 hits for task-environment, CLI-payload, and composed-agent caches,
+plus cached-layer reuse for all 14 verifier builds. The
+[1.3.0 validation](../.github/tracking/2026-11-08-prebuild-1.3.0.json)
+records 30 targeted tests, a Release build, formatting, version/help checks,
+and the existing Docker-backed discovery test.
+
+This changed the operating starting point: warm the selected task/CLI/base
+image entries once per machine, reuse them, and rewarm when those entries
+change or disappear. It does not precompile an unknown agent patch or populate
+every transient application cache. Cold and warm runs must remain labeled;
+the operator's large observed difference is not an isolated numerical speedup.
+
+### More accessible evaluation evidence: 1.4.0
+
+The 1.4.0 tag points to `86ca998`. This period added CLI 1.0.108/1.0.109
+comparisons, reproducible trend charts, host/setup refinements, and the
+documentation/data layout that separates Wharf documentation from DeepSWE
+tasks, jobs, and exports. The root README was restored as the entry point.
+
+These were improvements to the evaluation feedback loop, not new evidence of
+model accuracy caused by the release. Trial exports supply the chart data;
+historical task payloads, checksums, and retained evidence were not rewritten
+to achieve the layout change. Later renaming of Enterprise to WharfSWE made
+the small C# canary a clearer reference suite.
+
+### Additional CLI products and explicit operating policy: 1.5.0
+
+The 1.5.0 tag points to `cb6d85c`. WharfSWE browsing and recurring charts
+expanded, and native Claude Code and Codex adapters joined Copilot, which
+remained the default. Provider execution, version identity, credential
+handling, cost units, and missing evidence reuse the existing isolation,
+verification, recovery, and analytics boundaries.
+
+The [Claude review](../.github/tracking/2026-11-16-claude-cli-review.md) records
+171 compatibility tests followed by 24 provider-specific checks. The
+[Codex review](../.github/tracking/2026-11-16-codex-cli-review.md) records 180
+targeted tests and real CLI container lifecycle checks without model calls.
+These implementation checks were not authenticated benchmark qualification;
+later retained runs supply the live operational observations.
+
+Two changes removed avoidable operator friction:
+
+* [Authentication fail-fast](../.github/tracking/2026-11-16-auth-preflight-review.md)
+  rejects missing or invalid local credentials before version lookup,
+  image/container mutation, or output creation. Tests and actual CLI probes
+  established that boundary; well-formed expired credentials can still fail
+  during use.
+* The [version policy](../.github/tracking/2026-11-16-cli-version-policy-review.md)
+  made selected-provider pins explicit: `--cli-version` over manifest
+  `cliVersion` over provider `latest`. `WHARF_CLI_VERSION` and `CLI_VERSION`
+  are rejected with migration guidance. This supersedes the historical
+  environment-version contract described earlier, without changing retained
+  run identities.
+
+WharfSWE also gained
+[historical duration estimates](../.github/tracking/2026-11-17-wharfswe-duration-review.md)
+for longest-combined-agent/verifier-duration admission within each K wave.
+The estimates were checked against 168 unique source trials and current task
+checksums. Admission order is not a guarantee of completion order.
+
+### Subscription-aware batching and audited recovery: 1.6.0
+
+The 1.6.0 tag points to `3ba4b18`. Time-windowed Claude/Codex allowances exposed
+an operating mismatch: one fixed experiment could exceed the work available
+in one subscription window. `wharf run -b B` bounds new logical-trial
+admissions while retaining the task universe, immutable policy, completed
+results, and pending slots.
+
+Recognized quota exhaustion closes the agent-start gate while valid in-flight
+work drains. Interrupted executions receive durable rejection/recovery audits;
+they are not accepted model trials. Ordinary failed trials remain terminal,
+and infrastructure retries do not become additional trial rows.
+
+The [batch review](../.github/tracking/2026-11-18-batched-runs-review.md)
+records 522 passing regression tests and explicitly excludes one pre-existing
+live-model integration test. That exclusion is not counted as a pass. The
+[validation incident](../.github/tracking/2026-11-18-batched-runs-validation-incident.md)
+records why the test's discovery-oriented name was misleading and why
+live-model tests need explicit opt-in. Unknown usage was not imputed.
+
+Real Codex quota text then exposed a typographic-apostrophe classification
+defect. A targeted fix and
+[operator-initiated exhausted-quota check](../.github/tracking/2026-11-18-codex-quota-apostrophe-changes.md)
+established a `quota-paused` invocation with one slot started, none accepted,
+previously banked progress unchanged, and the same pending slot selected next.
+Known rejected usage/time stays in audit evidence, not accepted-trial costs.
+
+### Continued operational learning and skill reuse: 1.7.0 development
+
+Commit `dda5b08` set the development version to 1.7.0. No 1.7.0 tag exists
+at this review; the changes below are not a new release-qualification claim.
+
+* An Azure VM smoke failure exposed a capacity check against `/` rather than
+  Docker's actual data filesystem. The
+  [storage correction](../.github/tracking/2026-11-24-docker-storage-preflight.md)
+  reads DockerRootDir, preserves the 50 GiB threshold, and blocks discovery
+  failures explicitly. It passed 58 targeted tests plus an actual non-root
+  filesystem check without changing the host.
+* [Copilot 1.0.116 exports](../.github/tracking/2026-11-25-copilot-116-analytics.md)
+  and [additional Codex exports](../.github/tracking/2026-11-24-codex-analytics.md)
+  extended the retained comparison evidence. The current
+  [WharfSWE summary](../wharf-swe/README.md) distinguishes PASS@1, regression
+  penalties, cost coverage, and agent-command duration.
+* The November 25 Claude Opus 5.5 batch snapshot recorded seven invocations,
+  36 accepted trials, no duplicate admissions, and 20 pending slots. The
+  operator stopped at 99% usage, so this snapshot proves bounded continuity,
+  not a Claude quota-stop event or post-reset completion.
+* The Ignite slide prompted the
+  [evaluation-guidance update](../.github/tracking/2026-11-25-evaluation-guidance-plan.md)
+  and the [continuous system improvement record](Continuous-Agent-Improvement.md).
+  The existing workflow was revised and reused instead of replaced.
+
+Current canary evidence also makes clear why average pass rate is insufficient.
+In the retained CLI 1.0.116 arms, HydraFusion has four agent durations over
+20 minutes while Opus 5.5 has none. The project lead reports that an earlier
+long-tail finding was escalated to GitHub; the latest distribution supports
+the signal, not the escalation date or a completed product fix.
+
+No full 1.7.0 release gate was run for this retrospective. Historical
+qualification counts describe their specific changes, and the original 1.0.0
+acceptance matrix does not automatically qualify later runtime versions.
+
 ## Operating at scale after 1.0.0
 
 ### Preparation concurrency is the stability control
@@ -611,11 +837,58 @@ opaque. Each release stayed small enough to reason about, major decisions were
 recorded, and benchmark or qualification claims were tied to retained
 evidence rather than inference.
 
+The 1.7.0 development work shows another benefit: the artifacts became a
+searchable body of engineering knowledge. When the continuous-improvement
+slide arrived, the team could connect a new idea to past decisions, identify
+both improvements and mistaken assumptions, and update the skills for reuse.
+The [document update record](../.github/tracking/2026-11-25-continuous-improvement-document-changes.md)
+retains the scope and validation of that reuse.
+
+This does not prove a general productivity uplift from a skill library.
+It demonstrates a specific mechanism: preserve the reasoning and evidence
+during development, then reuse them to improve the process and the next
+system. Good ideas should enter through a proportionate, evaluated change,
+not a wholesale rewrite or a requirement for more artifacts on every small fix.
+
 # Session retrospectives
 
 Append one bullet at the close of every Wharf implementation session. Record
 what was surprising and what should be done differently in the next session.
 
+- Development checkpoint (`1.7.0`): Skills paid dividends twice: first by
+  structuring delivery, then by leaving the evidence needed to identify and
+  reuse its value when the Ignite slide supplied a new framing. Keep the
+  outcome, evidence, hypothesis, evaluation, decision, and learning in the
+  existing artifacts. Distinguish observed reuse from an unmeasured
+  productivity claim, and distinguish a development version from a qualified
+  release.
+- Post-1.6 operations (`1.7.0`): Host capacity checks must inspect the resource
+  actually used. Docker on a separate Azure data disk cannot be qualified by
+  root-volume free space. Fix the filesystem identity, not the threshold,
+  and verify the real reader with a non-root filesystem.
+- Release `1.6.0`: Subscription limits belong in execution-session admission,
+  not in the experiment's scoring definition. Bank completed trials, reject
+  quota-interrupted executions with auditable recovery, and retain ordinary
+  failures. Provider punctuation exposed a live classification edge case;
+  distinguish synthetic gate checks, real quota rejection, and post-reset
+  completion. Keep live-model tests behind explicit authorization and record
+  accidental execution or missing measurements honestly.
+- Release `1.5.0`: Reusing execution boundaries made alternate CLI products
+  feasible without creating alternate scoring rules. Fail local-auth defects
+  before setup work, make provider version pins explicit, and separate
+  implementation qualification from live subscription behavior. Duration
+  estimates improve admission policy, not guaranteed completion order.
+- Release `1.4.0`: Evaluation evidence is more useful when operators can find
+  and regenerate it. Improve layout and charts without rewriting pinned tasks
+  or historical results; keep suite identity and comparison caveats visible.
+- Release `1.3.0`: Successful preparation is not proof that run will reuse it.
+  Check the actual agent and verifier cache paths, preserve parent-image
+  identity, and label cold/warm conditions. Reuse completed cache research
+  when a command rename is all that remains.
+- Release `1.2.0`: Use agent-free baselines to separate infrastructure and
+  evaluator validity from model capability. Treat CPU-affinity policy as an
+  experiment rather than a default justified only by intuition; avoid turning
+  an implemented diagnostic into an unsupported throughput claim.
 - Release 1.1.0: A package can pass checksum, SBOM, and version-metadata checks
   yet be impossible to execute. Validate the extracted deliverable, not just
   its packaging structure. Retain failed artifacts and record the failure
