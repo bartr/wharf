@@ -45,27 +45,27 @@ repository root. Keep this README aligned with `data/manifest.json`.
 
 ## Latest completed runs
 
-The latest Copilot runs use CLI 1.0.115; the completed Codex runs use 0.169.0
+The latest Copilot runs use CLI 1.0.116; the comparison Codex runs use 0.169.0
 and Claude Code uses 2.1.326.
 All seven arms use the same 14 task IDs/checksums, K=4/N=56, and default effort.
 Copilot uses P=16, while Codex and Claude Code use P=12. These compare model plus harness
 configurations, not isolated model capability or controlled CLI-version effects.
-The revision graphs above include only Copilot arms, through revision 115.
+The revision graphs above include only Copilot arms, through revision 116.
 Claude Code and Codex graph comparisons are deferred until more runs are available.
 
 | Model | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | API est./trial | Avg agent time |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| GPT-6.1 Sol | copilot-cli | 1.0.115 | 55 / 56 | 98.21% | 0 | 98.21% | $0.1958 | - | 313.6 s |
+| GPT-6.1 Sol | copilot-cli | 1.0.116 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1901 | - | 306.2 s |
 | Claude Opus 5.5 | claude | 2.1.326 | 55 / 56 | 98.21% | 0 | 98.21% | $0.3582 | - | 124.6 s |
 | GPT-6 Astra | codex | 0.169.0 | 55 / 56 | 98.21% | 0 | 98.21% | unknown | $0.7185 | 160.0 s |
 | GPT-6.1 Sol | codex | 0.169.0 | 54 / 56 | 96.43% | 1 | 96.18% | unknown | $0.1454 | 165.5 s |
-| HydraFusion | copilot-cli | 1.0.115 | 53 / 56 | 94.64% | 0 | 94.64% | $0.3070 | - | 458.1 s |
-| GPT-6 Luna | copilot-cli | 1.0.115 | 51 / 56 | 91.07% | 3 | 90.32% | $0.0148 | - | 209.2 s |
+| HydraFusion | copilot-cli | 1.0.116 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2594 | - | 391.2 s |
+| GPT-6 Luna | copilot-cli | 1.0.116 | 48 / 56 | 85.71% | 4 | 84.71% | $0.0150 | - | 227.8 s |
 | GPT-6 Luna | codex | 0.169.0 | 40 / 56 | 71.43% | 11 | 68.68% | unknown | $0.0051 | 95.8 s |
 
-Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.115/all-1),
-[Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.115/all-1),
-[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.115/all-1),
+Sources: [Copilot Sol](jobs/copilot-gpt-6.1-sol-default-1.0.116/all-1),
+[Copilot HydraFusion](jobs/copilot-hydrafusion-default-1.0.116/all-1),
+[Copilot Luna](jobs/copilot-gpt-6-luna-default-1.0.116/all-1),
 [Claude Code Opus](jobs/claude-claude-opus-5-5-default-2.1.326/all-1),
 [Codex Astra](jobs/codex-gpt-6-astra-default-0.169.0/all-1),
 [Codex Sol](jobs/codex-gpt-6.1-sol-default-0.169.0/all-1), and
@@ -94,7 +94,7 @@ Codex has no retained billed USD costs: `cost_usd` stays null, so the manifest
 continues to report zero billed-cost coverage for Codex.
 Each Codex JSONL row instead includes `estimated_cost_usd` and `cost_estimate`
 metadata with rates, source, pricing date, context assumption, and execution
-coverage. All three arms have complete token evidence for 56/56 trials.
+coverage. All nine exported Codex arms have complete token evidence for 56/56 trials.
 These estimates are API-equivalent comparison figures, not subscription charges.
 
 Using OpenAI's [Standard pricing](https://developers.openai.com/api/docs/pricing.md),
@@ -147,14 +147,14 @@ The separate Claude Code run is now complete and appears in the latest results.
 
 ## Data coverage
 
-* Exported arms: 62
-* Exported logical trials: 3472
+* Exported arms: 71
+* Exported logical trials: 3976
 * Unique tasks per arm: 14
 * Attempts per task: 4
-* Functional and regression measurements: 3472 / 3472 trials
-* Agent and trial duration measurements: 3472 / 3472 trials
-* Retained USD-cost evidence: 3304 / 3472 trials (95.16%)
-* Separate Codex API-equivalent estimates: 168 / 168 Codex trials
+* Functional and regression measurements: 3976 / 3976 trials
+* Agent and trial duration measurements: 3976 / 3976 trials
+* Retained USD-cost evidence: 3472 / 3976 trials (87.32%)
+* Separate Codex API-equivalent estimates: 504 / 504 Codex trials
 * Trials with an exception category: 53
 
 Only completed `all-1` runs are included.
@@ -162,8 +162,10 @@ Infrastructure and verifier retries are not additional logical trials.
 
 ## Results
 
-Verified 2026-11-24 from sixty-two completed runs. Each arm contains 14
-tasks and four attempts per task.
+Verified 2026-11-25. The table includes all completed Copilot arms and the
+existing Claude Code/Codex comparison arms: 65 runs with 14 tasks and four
+attempts per task. Six newer Codex arms are available in `data/manifest.json`
+but are not added to this comparison.
 
 Sorted by PASS@1 descending, then P2P errors ascending, then cost ascending
 (unknown costs last within ties). All runs use default effort; CLI identity
@@ -172,6 +174,7 @@ and version are explicit.
 | Model | Effort | CLI | CLI version | Passes | PASS@1 | P2P errors | Score | Cost/trial | Avg agent time |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|
 | GPT-6.1 Sol | default | copilot-cli | 1.0.112 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1872 | 191.5 s |
+| GPT-6.1 Sol | default | copilot-cli | 1.0.116 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1901 | 306.2 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.110 | 56 / 56 | 100.00% | 0 | 100.00% | $0.1934 | 199.3 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.108 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2011 | 243.4 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.111 | 56 / 56 | 100.00% | 0 | 100.00% | $0.2020 | 196.6 s |
@@ -201,6 +204,7 @@ and version are explicit.
 | GPT-6 Luna | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.0158 | 257.5 s |
 | GPT-6.1 Sol | default | copilot-cli | 1.0.95 | 54 / 56 | 96.43% | 2 | 95.93% | $0.2200 | 283.7 s |
 | **HydraFusion** | default | copilot-cli | 1.0.110 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2324 | 296.0 s |
+| **HydraFusion** | default | copilot-cli | 1.0.116 | 53 / 56 | 94.64% | 0 | 94.64% | $0.2594 | 391.2 s |
 | **HydraFusion** | default | copilot-cli | 1.0.115 | 53 / 56 | 94.64% | 0 | 94.64% | $0.3070 | 458.1 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.113 | 53 / 56 | 94.64% | 1 | 94.39% | $0.0157 | 274.6 s |
 | **HydraFusion** | default | copilot-cli | 1.0.100 | 53 / 56 | 94.64% | 1 | 94.39% | $0.2932 | 272.0 s |
@@ -227,6 +231,7 @@ and version are explicit.
 | Claude Opus 5.5 | default | copilot-cli | 1.0.95 | 49 / 56 | 87.50% | 5 | 86.25% | $0.5310 | 215.9 s |
 | Claude Opus 5 | default | copilot-cli | 1.0.91 | 48 / 56 | 85.71% | 2 | 85.21% | $1.0990 | 230.7 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.108 | 48 / 56 | 85.71% | 3 | 84.96% | $0.4987 | 148.9 s |
+| GPT-6 Luna | default | copilot-cli | 1.0.116 | 48 / 56 | 85.71% | 4 | 84.71% | $0.0150 | 227.8 s |
 | GPT-6 Luna | default | copilot-cli | 1.0.105 | 48 / 56 | 85.71% | 4 | 84.71% | $0.0156 | 197.1 s |
 | Claude Opus 5.5 | default | copilot-cli | 1.0.102 | 48 / 56 | 85.71% | 4 | 84.71% | $0.4785 | 214.5 s |
 | MAI Code 1.1 Flash | default | copilot-cli | 1.0.95 | 46 / 56 | 82.14% | 5 | 80.89% | $0.0770 | 275.1 s |
