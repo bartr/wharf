@@ -590,3 +590,23 @@ This keeps the document focused on an evidence-backed improvement loop rather
 than a feature inventory. The
 [research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md)
 retains ten additional candidates and publication gaps for subsequent updates.
+
+## Other potential cases for further research
+
+These candidates have starting evidence in the
+[research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping).
+They are opportunities to develop the story, not claims that every benefit
+has been measured.
+
+| Potential case | Short description and research direction |
+|---|---|
+| **Tool and subagent economics** | A historical pilot traded a small pass-rate decrease for substantially lower cost without delegation. Investigate when delegation earns its additional cost and latency. |
+| **Agent-free baselines** | No-op and oracle runs separate infrastructure overhead and verifier validity from model capability. Quantify how they improve diagnosis or avoid unnecessary paid runs. |
+| **Evaluator quality** | Replace identifier checks and prompt mimicry with executable behavior and regression tests. Trace how evaluator revisions change what a passing result actually establishes. |
+| **Package-manager recursion** | A HOME directory inside the project caused pnpm staging to rediscover project policy recursively. Show how live evidence overturned an initially plausible environment-variable fix. |
+| **Container isolation and ownership** | Explicit container lifecycles and evidence copying replaced host bind mounts. Investigate the permission, isolation, and cleanup benefits without assuming a measured caching speedup. |
+| **Retry only the failed boundary** | Verifier-only retries preserve the completed agent's patch instead of rerunning expensive work. Quantify avoided agent execution while retaining honest retry and cost accounting. |
+| **Effective configuration, not labels** | CLI drift and off-model subagents can make similarly labeled runs different experiments. Trace actual settings and their implications for trustworthy comparisons. |
+| **Execute the packaged product** | Running an extracted Debian package caught missing runtime files that metadata and checksum checks missed. Document how validating the deliverable changed release qualification. |
+| **Cloud-aware preflight** | An Azure data disk exposed the error of checking root-volume space instead of Docker's actual filesystem. Show how deployment knowledge corrected the probe without weakening safety thresholds. |
+| **Failure evidence and scoring discipline** | Lost logs and incomplete costs limit learning; post-result exclusions can distort conclusions. Trace how durable failure records and predeclared scoring rules improved auditability. |
