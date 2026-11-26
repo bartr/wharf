@@ -74,6 +74,48 @@ which model-harness-guidance configurations work, and improving the method
 used to develop and evaluate them. A useful result can be a retained feature,
 a revised assumption, or an actionable finding for a product team.
 
+## Case overview
+
+Start here, then follow the links for evidence and limitations. Research
+candidates have starting evidence, not a claim that every benefit is measured.
+
+| Case | Insight or research direction | Evidence / decision |
+|---|---|---|
+| [**HVE: why the journey started**](#hve-why-this-journey-started) | More guidance is a hypothesis to test, not automatic proof of better engineering. | Retain useful discipline in a smaller skills subset; comparison limits remain. |
+| [**Skills pay dividends twice**](#skills-paid-dividends-in-development-and-again-in-reuse) | Structured development records make the reasoning and lessons reusable. | Workflow adopted; causal productivity gains are not established. |
+| [**Subscription-aware batching**](#subscription-aware-batch-execution) | Quota windows are an engineering constraint; retain progress and continue after a reset. | Implemented, with Claude batching and Codex rejection/recovery evidence. |
+| [**A Copilot-capable evaluation harness**](#from-an-evaluation-need-to-a-copilot-capable-harness) | Build the harness around the configuration that needs evaluation. | Working platform, not an isolated model-quality improvement. |
+| [**Execution versus preparation pressure**](#systems-knowledge-separates-execution-from-preparation-pressure) | Separate task concurrency from preparation concurrency to control resource pressure. | Independent N/P controls retained. |
+| [**Task ordering serves the operator**](#evaluation-know-how-makes-task-ordering-serve-the-operator) | Longest-first targets the completion tail; shortest-first targets early feedback. | Both policies implemented; timing gains are not yet measured. |
+| [**Prebuild warms the real path**](#docker-knowledge-makes-prebuild-warm-the-real-execution-path) | Docker cache knowledge changes what useful preparation must warm. | Prebuild retained; no isolated numerical speedup claimed. |
+| [**An affordable .NET canary**](#enterprise-knowledge-creates-an-affordable-net-canary) | Enterprise coverage and evaluation economics justify a small recurring suite. | WharfSWE adds C# coverage; it complements DeepSWE. |
+| [**HydraFusion's long tail**](#the-canary-exposes-hydrafusions-long-tail) | Good averages can conceal slow trials that affect user experience. | Distribution retained and finding escalated; no completed fix claimed. |
+| [**Auto becomes a learning opportunity**](#auto-turns-a-disappointing-result-into-a-learning-opportunity) | A disappointing configuration result can produce actionable product feedback. | Learning and partnership, not a universal routing conclusion. |
+| [**Models and harnesses challenge assumptions**](#evaluation-revises-assumptions-about-models-and-harnesses) | Evaluate model, harness, and skills together rather than rely on prestige or recency. | Configuration-specific observations, not universal rankings. |
+| [**Product partnership**](#product-partnership-a-key-outcome) | Reproducible findings create a feedback path into product engineering and customer engagement. | Relationship and enablement delivered; MSBench inclusion remains ongoing. |
+| [**Tool and subagent economics**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | A historical pilot traded a small pass-rate decrease for substantially lower cost without delegation. Investigate when delegation earns its additional cost and latency. | Research candidate. |
+| [**Agent-free baselines**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | No-op and oracle runs separate infrastructure overhead and verifier validity from model capability. Quantify how they improve diagnosis or avoid unnecessary paid runs. | Research candidate. |
+| [**Evaluator quality**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | Replace identifier checks and prompt mimicry with executable behavior and regression tests. Trace how evaluator revisions change what a passing result actually establishes. | Research candidate. |
+| [**Package-manager recursion**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | A HOME directory inside the project caused pnpm staging to rediscover project policy recursively. Show how live evidence overturned an initially plausible environment-variable fix. | Research candidate. |
+| [**Container isolation and ownership**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | Explicit container lifecycles and evidence copying replaced host bind mounts. Investigate the permission, isolation, and cleanup benefits without assuming a measured caching speedup. | Research candidate. |
+| [**Retry only the failed boundary**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | Verifier-only retries preserve the completed agent's patch instead of rerunning expensive work. Quantify avoided agent execution while retaining honest retry and cost accounting. | Research candidate. |
+| [**Effective configuration, not labels**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | CLI drift and off-model subagents can make similarly labeled runs different experiments. Trace actual settings and their implications for trustworthy comparisons. | Research candidate. |
+| [**Execute the packaged product**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | Running an extracted Debian package caught missing runtime files that metadata and checksum checks missed. Document how validating the deliverable changed release qualification. | Research candidate. |
+| [**Cloud-aware preflight**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | An Azure data disk exposed the error of checking root-volume space instead of Docker's actual filesystem. Show how deployment knowledge corrected the probe without weakening safety thresholds. | Research candidate. |
+| [**Failure evidence and scoring discipline**](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping) | Lost logs and incomplete costs limit learning; post-result exclusions can distort conclusions. Trace how durable failure records and predeclared scoring rules improved auditability. | Research candidate. |
+| [**Quota-aware economics**](#research-opportunity-quota-aware-economics) | Compare subscription and usage-priced execution, measuring quality, allowance utilization, waiting, and operator effort. Keep actual charges separate from API-equivalent estimates. | Research proposal; savings are not yet measured. |
+
+### Changes we did not keep
+
+These three changes were implemented and later retired, rather than merely
+proposed and never adopted. Removing complexity is also an improvement decision.
+
+| Retired change | Why it did not earn its place | Decision / preserved behavior |
+|---|---|---|
+| [**Container CPU controls**](#container-cpu-controls-remove-a-plausible-hypothesis-without-useful-benefit) | A plausible resource-control hypothesis did not provide useful benefit worth the configuration and affinity machinery. | Remove flag, config, environment input, probing and affinity; retain N/P, memory/PID limits and historical evidence. |
+| [**Per-run configuration manifests**](#run-configuration-remove-per-run-manifests-keep-useful-defaults) | Another per-run authoring, validation and precedence surface added unnecessary complexity. | Replace run manifests with user defaults; preserve effective configuration, task checksums and immutable resume policy. |
+| [**CLI-version environment variables**](#cli-version-environment-variables-a-completed-correction) | A generic ambient pin could carry one provider's version into another provider's invocation. | Reject retired variables; use an explicit flag or selected-provider latest and retain effective version identity. |
+
 ## HVE: why this journey started
 
 **Outcome and domain insight.** The original purpose of the journey was to
@@ -740,29 +782,3 @@ than a feature inventory. The
 retains ten additional candidates and publication gaps for subsequent updates.
 Quota-aware economics is a further research proposal arising from the batching
 observations in this document.
-
-## Other potential cases for further research
-
-These candidates have starting evidence in the
-[research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#additional-candidates-worth-keeping).
-They are opportunities to develop the story, not claims that every benefit
-has been measured.
-
-| Potential case | Short description and research direction |
-|---|---|
-| **Tool and subagent economics** | A historical pilot traded a small pass-rate decrease for substantially lower cost without delegation. Investigate when delegation earns its additional cost and latency. |
-| **Agent-free baselines** | No-op and oracle runs separate infrastructure overhead and verifier validity from model capability. Quantify how they improve diagnosis or avoid unnecessary paid runs. |
-| **Evaluator quality** | Replace identifier checks and prompt mimicry with executable behavior and regression tests. Trace how evaluator revisions change what a passing result actually establishes. |
-| **Package-manager recursion** | A HOME directory inside the project caused pnpm staging to rediscover project policy recursively. Show how live evidence overturned an initially plausible environment-variable fix. |
-| **Container isolation and ownership** | Explicit container lifecycles and evidence copying replaced host bind mounts. Investigate the permission, isolation, and cleanup benefits without assuming a measured caching speedup. |
-| **Retry only the failed boundary** | Verifier-only retries preserve the completed agent's patch instead of rerunning expensive work. Quantify avoided agent execution while retaining honest retry and cost accounting. |
-| **Effective configuration, not labels** | CLI drift and off-model subagents can make similarly labeled runs different experiments. Trace actual settings and their implications for trustworthy comparisons. |
-| **Execute the packaged product** | Running an extracted Debian package caught missing runtime files that metadata and checksum checks missed. Document how validating the deliverable changed release qualification. |
-| **Cloud-aware preflight** | An Azure data disk exposed the error of checking root-volume space instead of Docker's actual filesystem. Show how deployment knowledge corrected the probe without weakening safety thresholds. |
-| **Failure evidence and scoring discipline** | Lost logs and incomplete costs limit learning; post-result exclusions can distort conclusions. Trace how durable failure records and predeclared scoring rules improved auditability. |
-
-- **Quota-aware economics:** Investigate whether batching can turn more
-  subscription allowance into useful completed engineering work at lower actual
-  cost. Compare subscription-based and usage-priced execution while measuring
-  quality, allowance utilization, waiting, and operator effort. Keep actual
-  charges separate from API-equivalent estimates; savings are not yet measured.
