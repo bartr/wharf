@@ -1,6 +1,6 @@
-# Wharf 1.5.0
+# Wharf 1.8.0
 
-Wharf 1.5.0 builds on the MVP release of the DeepSWE/Harbor benchmark
+Wharf 1.8.0 builds on the MVP release of the DeepSWE/Harbor benchmark
 execution platform. It provides deterministic DeepSWE task selection, isolated
 Copilot, Claude Code, or Codex agent and verifier execution, durable evidence, recovery, unattended
 benchmark operation, HydraFusion support, and reproducible analytics. It runs
