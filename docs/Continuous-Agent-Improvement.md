@@ -88,11 +88,13 @@ candidates have starting evidence, not a claim that every benefit is measured.
 | [**A Copilot-capable evaluation harness**](#from-an-evaluation-need-to-a-copilot-capable-harness) | Build the harness around the configuration that needs evaluation. | Working platform, not an isolated model-quality improvement. |
 | [**Execution versus preparation pressure**](#systems-knowledge-separates-execution-from-preparation-pressure) | Separate task concurrency from preparation concurrency to control resource pressure. | Independent N/P controls retained. |
 | [**Task ordering serves the operator**](#evaluation-know-how-makes-task-ordering-serve-the-operator) | Longest-first targets the completion tail; shortest-first targets early feedback. | Both policies implemented; timing gains are not yet measured. |
+| [**Compatibility is not capacity**](#wsl-compatibility-is-not-native-linux-capacity) | A working WSL environment need not offer the same practical concurrency as native Linux. | Native Linux with Remote-SSH and host-local Docker adopted; scaling ratios are operator observations, not a matched benchmark. |
+| [**Cloud storage changes preparation capacity**](#cloud-storage-changes-preparation-capacity) | Disk capacity and speed are different constraints; preparation must fit the actual Docker/containerd storage. | Move both storage roots to the data drive and tune `-p` to its latency/throughput; retained failures support the operating lesson. |
 | [**tmux keeps evaluations independent of SSH**](#tmux-keeps-long-running-evaluations-independent-of-ssh) | Separate the evaluation's lifetime from the remote editor and network connection. | Named tmux sessions adopted for on-premises and cloud execution; no accuracy gain claimed. |
 | [**Prebuild warms the real path**](#docker-knowledge-makes-prebuild-warm-the-real-execution-path) | Docker cache knowledge changes what useful preparation must warm. | Prebuild retained; no isolated numerical speedup claimed. |
 | [**DeepSWE variability changes evaluation design**](#understanding-deepswe-variability-changes-evaluation-design) | Repeated outcomes and subset bias require a different mental model from deterministic regression tests. | Retained K=4 distributions and sampling research support full-suite comparisons and a separate .NET canary. |
 | [**An affordable .NET canary**](#enterprise-knowledge-creates-an-affordable-net-canary) | Enterprise coverage and evaluation economics justify a small recurring suite. | WharfSWE adds C# coverage; it complements DeepSWE. |
-| [**HydraFusion's long tail**](#the-canary-exposes-hydrafusions-long-tail) | Good averages can conceal slow trials that affect user experience. | Distribution retained and finding escalated; no completed fix claimed. |
+| [**HydraFusion dogfooding and its long tail**](#the-canary-exposes-hydrafusions-long-tail) | Product use and evaluations expose slow trials that averages conceal and inform model selection. | Dogfooded HydraFusion, escalated the tail, then returned to GPT-6.1-Sol for quality and price-performance; no completed fix claimed. |
 | [**Auto becomes a learning opportunity**](#auto-turns-a-disappointing-result-into-a-learning-opportunity) | A disappointing configuration result can produce actionable product feedback. | Learning and partnership, not a universal routing conclusion. |
 | [**Models and harnesses challenge assumptions**](#evaluation-revises-assumptions-about-models-and-harnesses) | Evaluate model, harness, and skills together rather than rely on prestige or recency. | Configuration-specific observations, not universal rankings. |
 | [**Product partnership**](#product-partnership-a-key-outcome) | Reproducible findings create a feedback path into product engineering and customer engagement. | Relationship and enablement delivered; MSBench inclusion remains ongoing. |
@@ -539,6 +541,87 @@ establish the mechanism; they do not quantify a wall-clock improvement.
 Early results from short tasks are also not a representative whole-suite
 quality estimate.
 
+## WSL compatibility is not native Linux capacity
+
+**Outcome and domain insight.** Wharf runs successfully in WSL; compatibility
+was not the problem. According to the project lead's testing, WSL introduced
+substantial overhead: practical trial concurrency scaled to roughly **1x the
+available vCPU count**, versus **over 2x on bare-metal Linux**. A working
+environment and an efficient evaluation host are different outcomes.
+
+**Change and evaluation.** We moved local evaluation execution to bare-metal
+Linux, using VS Code Remote-SSH to retain the familiar development experience.
+The project lead reports using the same procedure and scripts in
+[`setup/`](../setup/) on Azure, DigitalOcean, and Hetzner. Provider-specific
+cloud-init differed slightly, but the shared setup did not. Cloud VMs are not
+bare metal; the reusable choice is a native Linux execution environment.
+
+We also chose, based on operating experience, to run **dockerd locally inside
+the Linux execution host**, including cloud VMs, rather than use Docker
+Desktop. The [base setup](../setup/base.sh) installs Docker Engine and manages
+local Docker/containerd services and storage. DeepSWE's
+[shared setup](https://github.com/bartr/deep-swe/blob/7f23215d23352ee0cc8989257e1ea7e9aec9dac1/setup/base.sh#L22-L70)
+retains the same host-local approach; its
+[platform requirements](https://github.com/bartr/deep-swe/blob/7f23215d23352ee0cc8989257e1ea7e9aec9dac1/wharf.md#L56-L68)
+already distinguish WSL2 as lower-throughput and call for shared bootstrap.
+
+**Decision and reuse.** Keep WSL as a supported option, but prefer native Linux
+for high-concurrency evaluations and tune capacity on the actual host.
+Separate the editor from execution, and reuse provisioning across local and
+cloud infrastructure rather than maintain provider-specific runtime setups.
+This is systems experience improving the operating model, not model accuracy.
+
+**Evidence boundary.** The scaling ratios and three-provider deployment history
+are the project lead's observations. The retained z01 run establishes
+N=32/P=12 on 16 cores, not the over-2x observation or a throughput multiplier.
+DeepSWE's [cold-start report](https://github.com/bartr/deep-swe/blob/7f23215d23352ee0cc8989257e1ea7e9aec9dac1/docs/cold-start-2026-10-04/README.md#L350-L362)
+supports host/storage-specific tuning, but concerns Pier, not a WSL comparison.
+No matched WSL/native or Docker Desktop/local-dockerd results were found in the
+inspected records; do not attribute all WSL overhead to Docker Desktop.
+The [evidence note](../.github/tracking/2026-11-26-wsl-native-linux-evidence.md)
+records search scope and the conditions a future comparison must retain.
+
+## Cloud storage changes preparation capacity
+
+**Outcome and domain insight.** The project lead reports that our first cloud
+VMs had very fast local NVMe drives. Other VMs combined small boot disks with
+network-attached data drives. Reusing the software setup did not make these
+hosts equivalent: enough disk space does not imply enough I/O throughput or
+low enough latency for the same preparation concurrency.
+
+**Change and evaluation.** We adjusted both **dockerd and containerd** to use
+the data drives, rather than fill the small boot disks. The
+[shared base setup](../setup/base.sh) configures both storage roots under
+`/mnt/data` when mounted, including containerd's image layers and snapshots.
+Moving only Docker's data root would leave part of the image storage behind.
+
+We also tuned **`-p` preparation concurrency** to avoid saturating the drive
+and triggering Docker build errors as latency and I/O backlog grew. Moving
+storage solved the capacity problem; limiting simultaneous preparation
+addressed its performance constraints. The
+[preparation retrospective](RETRO.md#preparation-concurrency-is-the-stability-control)
+records Docker write failures and why P protects the daemon, storage driver,
+and disk independently of agent execution concurrency N.
+
+DeepSWE's earlier [data-disk experiments](https://github.com/bartr/deep-swe/blob/7f23215d23352ee0cc8989257e1ea7e9aec9dac1/docs/cold-start-2026-10-04/README.md#L276-L319)
+retain saturated I/O, rising latency, and BuildKit context-deadline failures.
+They used Pier and varied N, not Wharf's current P gate, but preserve evidence
+of the storage pressure that informed the later operating model. An Azure
+[preflight correction](../.github/tracking/2026-11-24-docker-storage-preflight.md)
+also taught us to check Docker's actual filesystem, not boot-volume free space.
+
+**Decision and reuse.** Keep shared provisioning, but tune preparation to the
+host's actual storage. Inspect both Docker and containerd placement, monitor
+I/O latency, queue depth, and preparation failures, and choose P with a safe
+cold-start margin rather than copy an NVMe host's setting to a network drive.
+Cloud deployment expertise changed both configuration and our capacity model.
+
+**Evidence boundary.** The NVMe-to-network-drive deployment sequence is the
+project lead's account; the retained reports support storage-sensitive failures
+and the adopted controls, not a universal network-disk limit or a measured
+NVMe speedup. No single P value is established for every cloud VM, and moving
+storage or limiting preparation does not guarantee that all build errors vanish.
+
 ## tmux keeps long-running evaluations independent of SSH
 
 **Outcome and domain insight.** Long-running evaluations should not depend on
@@ -671,6 +754,13 @@ than replaces broader evaluation.
 conceal slow outliers. Enterprise users also care about predictability and
 time to finish the last item.
 
+**Dogfooding and change.** After the first few rounds of testing, we switched
+to using HydraFusion as part of dogfooding and providing product feedback.
+We were not only evaluating a candidate from the outside; we adopted it in
+our own work. The project lead reports that, once we identified the long tail,
+we returned to **GPT-6.1-Sol**, a strong performer and our price-performance
+leader for this engineering workload.
+
 **Evaluation.** The retained Copilot CLI 1.0.116
 [HydraFusion](../wharf-swe/data/copilot-hydrafusion-default-1.0.116.jsonl) and
 [Opus 5.5](../wharf-swe/data/copilot-claude-opus-5.5-default-1.0.116.jsonl)
@@ -684,13 +774,26 @@ complete agent-time coverage:
 | Maximum | 1,584.1 s | 398.0 s |
 | Trials over 20 minutes | 4 | 0 |
 
+The [latest WharfSWE comparison](../wharf-swe/README.md#latest-completed-runs)
+also supports the practical choice of Sol: under Copilot CLI 1.0.116 it passed
+**56/56 trials** at **$0.1901 per costed trial**, versus HydraFusion's
+**53/56** at **$0.2594**. Both arms have complete cost coverage. This is strong
+quality at a lower observed cost, not a claim that Sol is the cheapest model:
+GPT-6 Luna costs less but passes fewer trials.
+
 **Decision and reuse.** The canary turns a suspected user-experience issue
 into a distribution and concrete slow trials. The project lead reports that
 the earlier HydraFusion long-tail finding was escalated to GitHub.
-This is the slide's find-issues loop extending into product-team feedback.
+This is the slide's find-issues loop extending into product-team feedback and
+our own operating decisions. Dogfood to learn and contribute feedback, but
+retain the freedom to return to a stronger quality/cost configuration when
+the experience does not meet the workload's needs.
 
-**Evidence boundary.** The latest distribution illustrates the signal; it is
-not evidence of when the earlier escalation occurred. Neither arm records
+**Evidence boundary.** The adoption, return to Sol, and price-performance
+assessment are the project lead's account. The latest comparisons illustrate
+the signal and trade-off; they do not date the earlier switch or escalation,
+prove a universal ranking, or measure productivity in our own work.
+Neither latency-comparison arm records
 exception categories. A latency tail is not by itself a diagnosed routing
 defect, and an escalation is not a completed fix. A controlled before/after
 evaluation is needed to establish any resulting improvement.
