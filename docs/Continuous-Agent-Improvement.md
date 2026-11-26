@@ -2,18 +2,8 @@
 
 # Continuous System Improvement with Evaluations: Wharf
 
-**Audience:** Technical Leadership Team (TLT): Technical Fellows, CVPs,
-Distinguished Engineers, Partner Engineers, and VPs of Engineering.
-
-**Framing:** The slide above was presented by a CVP on the TLT at Microsoft
-Ignite the week before this document was started, according to the context
-provided with the slide.
-
-**Started:** November 25, 2026. This is a living record of targeted improvements,
-the domain knowledge that motivated them, and the evidence that supports them.
-
-The slide uses "agent"; the method is broader. Wharf is an execution and
-evaluation platform, not itself a coding agent. The same loop improves software,
+The slide uses "agent"; we believe the method is broader. Wharf is a harbor
+evaluation platform that demonstrates the loop improves expertise, software,
 harnesses, skills, and operating practices.
 
 ## Executive takeaway
