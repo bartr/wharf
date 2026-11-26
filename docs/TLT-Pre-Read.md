@@ -44,10 +44,17 @@ verifiers.
   to GitHub.
 - **Domain knowledge improves the system.** Preparation controls address
   Docker pressure; batching preserves experiments across quota windows.
+- **Batching opens an economics research question.** Across seven invocations,
+  36 Claude trials were accepted without duplicates; a live Codex quota
+  rejection preserved completed work and left the interrupted slot pending.
+  Could quota-aware execution improve subscription utilization and lower
+  actual cost per useful completion? Continuity is demonstrated; savings
+  remain unmeasured.
 
-We also created a separate 14-task C# WharfSWE canary from Wharf's development
-history. DeepSWE lacks .NET and Java; this affordable .NET suite makes frequent
-checks practical. We are working with GitHub to include these tests in MSBench.
+- **WharfSWE adds an enterprise canary.** We created a separate 14-task C#
+  suite from Wharf's development history. DeepSWE lacks .NET and Java; this
+  affordable .NET suite makes frequent checks practical. We are working with
+  GitHub to include these tests in MSBench.
 
 ## Product partnership: a key outcome
 
@@ -72,13 +79,6 @@ path into GitHub Copilot engineering.
   learning**.
 
 ## TLT discussion and ask
-
-Batching preserved 36 accepted Claude trials across seven invocations without
-duplicates; a live Codex quota rejection preserved completed work and left
-the interrupted slot pending. This suggests an applied-AI research opportunity:
-can quota-aware execution make better use of subscription allowances and lower
-actual cost per useful completion? Continuity is demonstrated; savings remain
-unmeasured.
 
 1. Help identify customer/partner opportunities for joint engagement with
    GitHub's Performance Engineering team.
