@@ -73,7 +73,16 @@ path into GitHub Copilot engineering.
 
 ## TLT discussion and ask
 
+Batching preserved 36 accepted Claude trials across seven invocations without
+duplicates; a live Codex quota rejection preserved completed work and left
+the interrupted slot pending. This suggests an applied-AI research opportunity:
+can quota-aware execution make better use of subscription allowances and lower
+actual cost per useful completion? Continuity is demonstrated; savings remain
+unmeasured.
+
 1. Help identify customer/partner opportunities for joint engagement with
    GitHub's Performance Engineering team.
 2. Is there an opportunity to use Wharf as a working example of the approach
    recommended in the Ignite slide?
+3. Is there an opportunity to research quota-aware economics as engineering
+   shifts from interactive chat to longer-running agent work?
