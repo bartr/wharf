@@ -83,6 +83,7 @@ candidates have starting evidence, not a claim that every benefit is measured.
 |---|---|---|
 | [**HVE: why the journey started**](#hve-why-this-journey-started) | More guidance is a hypothesis to test, not automatic proof of better engineering. | Retain useful discipline in a smaller skills subset; comparison limits remain. |
 | [**Skills pay dividends twice**](#skills-paid-dividends-in-development-and-again-in-reuse) | Structured development records make the reasoning and lessons reusable. | Workflow adopted; causal productivity gains are not established. |
+| [**Repositories generate engineering knowledge**](#repository-evidence-becomes-transferable-engineering-knowledge) | Turn retained decisions, failures, and validation into lessons and exercises, not just software. | This case-study record and fe-core's evidence-derived Wharf knowledge pack are delivered; learning effectiveness remains unmeasured. |
 | [**Subscription-aware batching**](#subscription-aware-batch-execution) | Quota windows are an engineering constraint; retain progress and continue after a reset. | Implemented, with Claude batching and Codex rejection/recovery evidence. |
 | [**A Copilot-capable evaluation harness**](#from-an-evaluation-need-to-a-copilot-capable-harness) | Build the harness around the configuration that needs evaluation. | Working platform, not an isolated model-quality improvement. |
 | [**Execution versus preparation pressure**](#systems-knowledge-separates-execution-from-preparation-pressure) | Separate task concurrency from preparation concurrency to control resource pressure. | Independent N/P controls retained. |
@@ -257,6 +258,52 @@ system and the team's knowledge. There are two reinforcing loops:
 It is not a retrospective claim that the
 original implementation was defective or that this guidance has already
 produced a measured productivity gain.
+
+## Repository evidence becomes transferable engineering knowledge
+
+**Outcome and domain insight.** An AI-assisted repository can produce more than
+working code. If decisions, alternatives, failures, and validation stay with
+the work, the repository becomes a source of engineering knowledge. This
+matters especially when an assistant writes much of the implementation:
+producing software and developing the human's judgment are different outcomes.
+
+**Change and evaluation.** This continuous-improvement document is one example.
+We used Wharf's retained evidence to reconstruct why changes were made, what
+they established, what did not work, and which practices could be reused.
+The result is an evidence-linked engineering case study, not a feature list
+or a retrospective based only on recollection.
+
+The larger example is the
+[Wharf knowledge pack maintained in fe-core](https://github.com/frontier-engineering/fe-core/tree/c4fb665202f92a8570d6017602982a898abd2c40/docs/knowledge).
+It turns the same repository experience into a learning package:
+
+- **Fourteen practitioner lessons:** principles, supporting evidence, and
+  concrete practices, including separate N/P limits, correct retry boundaries,
+  executable release qualification, and retaining failed-run evidence.
+- **An eight-module study guide:** source readings and self-check questions,
+  beginning with the Harbor trial lifecycle.
+- **Foundations and scenario assessments:** checks of understanding and applied
+  judgment, with a separate assessor answer key and scoring rationale.
+- **Four failure labs and LLM coach prompts:** learners predict, identify
+  evidence, diagnose, and propose a safe next action before seeing the debrief.
+  The assistant questions and reviews their reasoning rather than immediately
+  supplying the solution.
+
+The pack was moved from Wharf into fe-core; its Wharf evidence links are pinned
+to commit `fd9c194`, preserving the historical source behind the lessons.
+Original tracking artifacts remain with the engineering work.
+
+**Decision and reuse.** Treat software, retained evidence, and transferable
+knowledge as three useful outputs of the same engineering effort. Teams can
+derive their own lessons, failure labs, and assessments from their repositories,
+adapting the principles to their SDLC rather than copying every tool or template.
+Wharf becomes a workshop reference example, not a requirement to adopt Wharf.
+
+**Evidence boundary.** The case study and learning materials exist; that does
+not prove improved learner performance or productivity. Passing an assessment
+is not equivalent to operating a failed benchmark and making a sound recovery
+decision. Pair study with bounded practice and evaluate learning separately.
+Pinned historical examples also require context when current behavior changes.
 
 ## Subscription-aware batch execution
 
