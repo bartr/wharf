@@ -12,7 +12,7 @@ enterprise benchmarks from Harbor task definitions.
 
 ## Product goals
 
-- Keep the common workflow simple: provision, check, smoke, run, resume, report.
+- Keep the common workflow simple: provision, check, smoke, prebuild, run, progress, resume, analytics.
 - Run one complete, trustworthy evaluation overnight without operator attention.
 - Scale from a 32-concurrent on-prem server to large cloud VMs with 88 or more concurrent trials.
 - Run on customer-owned infrastructure so source, tests, patches, and results remain under customer control.
@@ -31,10 +31,10 @@ enterprise benchmarks from Harbor task definitions.
   - DeepSWE as the initial task provider
   - Copilot CLI adapter
   - check and smoke validation
-  - run, resume, status, and stop lifecycle support
+  - run, resume, read-only progress, and Ctrl+C cancellation support
   - durable patches, results, trajectories, cost, and test evidence
   - PASS@1 and Enterprise Score reporting
-  - static human-readable reports and machine-readable exports
+  - concise run summaries and machine-readable analytics exports
   - the Ubuntu bootstrap process
 - automated repair and replay are the next phase after v1 execution parity and reporting are stable
 - v1.1 adds Claude Code and Codex adapters
@@ -385,7 +385,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   - `-v` is reserved for verbosity, so version uses `--version` or `wharf version`
 
 ## Features
-- when I stop a run, wharf should automatically stop and delete only the docker processes and ephemeral docker resources
+- when I cancel a run with Ctrl+C, wharf should retain evidence before cleaning up only its owned ephemeral Docker resources
 - wharf must retain all files, directories, logs, patches, trajectories, verifier evidence, cost data, and run state
 - retention defaults to retain everything
 - deleting retained data requires a separate explicit prune command
@@ -431,9 +431,10 @@ later renamed WharfSWE. Java coverage remains a future goal.
   - `wharf smoke`
   - `wharf run`
   - `wharf resume`
-  - `wharf status`
-  - `wharf stop`
-  - `wharf report`
+  - `wharf progress`
+  - `wharf analytics export`
+  - `wharf analytics manifest`
+  - `wharf prebuild`
   - `wharf completion`
   - `wharf version`
 - the repair and replay phase adds
@@ -447,7 +448,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   analytics export commands.
 - unknown commands, flags, configuration keys, models, effort values, and adapter options must fail explicitly
 - dry-run must validate configuration and show planned tasks and resources without creating run state, modifying Docker, or consuming model quota
-- status must be readable while a run is active without attaching to tmux or mutating run state
+- progress must be readable while a run is active without attaching to tmux or mutating run state
 
 ## Task compatibility
 
@@ -670,7 +671,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
 
 - Show live job progress and per-trial lifecycle states.
 - Provide quiet mode and repeatable `-v` verbosity through `-vvv`.
-- Make status readable without mutating or attaching to the running job.
+- Make progress readable without mutating or attaching to the running job.
 - Report pending, starting, agent, verifier, completed, errored, cancelled, and retry counts.
 - Record estimated completion time and occupied concurrency.
 - Write durable structured logs independent of the interactive display.
@@ -718,7 +719,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   `wharf analytics manifest` for the data-only index.
 - retain everything by default
 - preserve source file hashes and schema versions in exports
-- static Markdown reports and machine-readable JSON or JSONL exports are the v1 reporting surfaces
+- canonical JSONL exports and data-only JSON manifests are the analytics surfaces
 - hosted dashboards are deferred
 
 ## Requirements artifacts
@@ -780,14 +781,14 @@ later renamed WharfSWE. Java coverage remains a future goal.
 
 ## Reporting and comparison
 
-- Generate a concise report automatically at job completion.
+- Generate a concise run summary at job completion.
 - Compare a run with a selected prior or currently qualified configuration.
 - Highlight score, Enterprise Score, cost, runtime, language, and task deltas.
 - Highlight tasks that changed outcome and common failure categories.
 - Highlight requested-versus-effective model, effort, subagent, and CLI-version drift.
-- Keep execution and reporting separate so reports can be regenerated without rerunning agents.
+- Keep execution and analytics separate so exports can be regenerated without rerunning agents.
 - Support machine-readable output for enterprise dashboards and data products.
-- keep human report styling deliberately unspecified
+- keep downstream human presentation outside the CLI
 
 ## Delivery and support
 
@@ -795,10 +796,10 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - Provide an Ubuntu WSL bootstrap that reaches `check` and `smoke` automatically.
 - Recommend dedicated Wharf hosts when Docker daemon changes could affect other workloads.
 - Document validated hardware and concurrency profiles.
-- Include a conservative auto-calibration mode for concurrency.
+- Keep concurrency operator-controlled; no automatic profiling or tuning.
 - begin with host checks and operator-configured safety limits
-- use observed measurements to recommend concurrency without silently increasing operator limits
-- keep the exact recommendation algorithm deliberately unspecified
+- use observed measurements to select concurrency without silently increasing operator limits
+- no CLI concurrency recommendation algorithm is provided
 - Optimize for one complete evaluation per night rather than peak benchmark throughput.
 - Support signed upgrades and rollback between Wharf releases.
 - Keep Kubernetes, multi-node orchestration, and native Windows out of the initial release.
@@ -807,9 +808,9 @@ later renamed WharfSWE. Java coverage remains a future goal.
 
 - document the supported .NET SDK and toolchain in the repository
 - provide one command that formats, analyzes, unit tests, and integration tests a fresh clone
-- maintain local fixtures for Harbor task parsing, state recovery, artifact generation, and reporting
-- use golden fixtures for versioned configuration, event, result, report, and JSONL schemas
-- test interrupted runs at image pull, image build, agent setup, agent execution, verification, and report generation
+- maintain local fixtures for Harbor task parsing, state recovery, artifact generation, and analytics
+- use golden fixtures for versioned configuration, event, result, and analytics schemas
+- test interrupted runs at image pull, image build, agent setup, agent execution, and verification
 - test secret redaction using synthetic credentials
 - test unsupported-host and invalid-configuration failures before model quota can be consumed
 
@@ -820,9 +821,9 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - the v1 Copilot CLI adapter can pin its CLI version and records the requested and effective version
 - a DeepSWE task can run in separate agent and verifier environments without exposing hidden tests to the agent
 - a completed agent patch is retained and applied to a pristine verifier environment
-- stopping a run removes only Docker processes and ephemeral Docker resources and retains every file and directory
+- Ctrl+C cancellation retains required evidence and cleans up only Wharf-owned ephemeral Docker resources
 - resuming an interrupted run does not rerun completed logical attempts or double-count infrastructure retries
-- status reports every lifecycle state without attaching to tmux or mutating the run
+- progress reports lifecycle state without attaching to tmux or mutating the run
 - the `P` gate limits complete agent and verifier preparation and is released
   before execution
 - duplicate image pulls and identical derived-image builds are coalesced
@@ -832,7 +833,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - secrets do not appear in arguments, persisted configuration, normal logs, reports, or exported artifacts
 - PASS@1 and Enterprise Score match golden fixtures
 - cost, tokens, steps, agent wall time, trial wall time, and coverage completeness are reported when the provider supplies them
-- the same retained job produces the same static report and machine-readable export when reporting is rerun
+- the same retained job and export options produce the same canonical analytics JSONL when export is rerun
 - generated JSONL parses one object per line, uses unique stable IDs, resolves every reference, and records source provenance
 - in the repair and replay phase, deterministic repair summaries pass the leakage sanitizer tests
 - the reference DeepSWE K=4 workload completes on each documented host profile within its published overnight window with no completed trials lost

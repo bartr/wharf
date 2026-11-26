@@ -1,5 +1,11 @@
 # Wharf release qualification
 
+Historical checkpoints below retain the tests and contracts qualified at the
+time. Standalone status/stop/report/profile commands and their exclusive
+services/tests have since been removed. Current qualification covers progress,
+Ctrl+C cancellation, retained analytics, and operator-selected concurrency;
+historical report-renderer/host-profile rows are not current coverage claims.
+
 ## 1.1.0 checkpoint, 2026-10-28
 
 Release candidate: branch `1.1.0`, based on `8b099f9`, with version metadata

@@ -80,6 +80,25 @@ public sealed class WharfAppTests
         Assert.Contains("containerCpus", result.Error);
     }
 
+    [Theory]
+    [InlineData("status")]
+    [InlineData("stop")]
+    [InlineData("report")]
+    [InlineData("profile")]
+    public async Task RemovedCommandsFailAsUnknownWithoutCreatingRunEvidence(string command)
+    {
+        var result = await InvokeWithUserConfig(null, command);
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains(command, result.Error);
+        Assert.DoesNotContain("not implemented", result.Error);
+
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        Assert.DoesNotContain(root.Subcommands, registered => registered.Name == command);
+        var help = await InvokeWithUserConfig(null, "--help");
+        Assert.Equal(0, help.ExitCode);
+        Assert.DoesNotContain($"{command} ", help.Output);
+    }
+
     internal static async Task<(int ExitCode, string Output, string Error)> InvokeWithUserConfig(
         string? json, params string[] arguments)
     {

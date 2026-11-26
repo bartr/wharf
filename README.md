@@ -77,6 +77,17 @@ execution environments, and automated verification of the resulting code.
   wharf run -n 16 -p 12 -k 4 --model gpt-6-luna
   ```
 
+## Progress and retained results
+
+Use `wharf progress --log-file <run-directory>/run.jsonl` to inspect a run
+without attaching to its tmux session. Ctrl+C in the running pane requests
+cancellation so Wharf can retain evidence and clean up its owned resources.
+Use `wharf resume --run-directory <run-directory>` to continue unfinished work.
+
+Export completed runs with `wharf analytics export`, then rebuild the data-only
+index with `wharf analytics manifest`. Choose N/P explicitly from measured host
+capacity; Wharf does not automatically tune concurrency.
+
 ## Operator defaults
 
 Every Wharf invocation creates `~/.wharf/` and `~/.wharf/config.json` if missing,

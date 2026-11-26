@@ -3,15 +3,6 @@ using Wharf.State;
 
 namespace Wharf.Operations;
 
-public sealed record RunStatusSnapshot(
-    string RunId,
-    string Status,
-    IReadOnlyDictionary<string, int> LifecycleCounts,
-    int OccupiedConcurrency,
-    int InfrastructureRetries,
-    TimeSpan? EstimatedRemaining,
-    long LastSequence);
-
 public sealed record RunNotification(
     string SchemaVersion,
     string RunId,
@@ -52,17 +43,6 @@ public sealed class FileRunNotificationSink : IRunNotificationSink
             writeLock.Release();
         }
     }
-}
-
-public interface IEphemeralResourceCleaner
-{
-    Task RemoveAsync(IReadOnlySet<string> resourceIds, CancellationToken cancellationToken);
-}
-
-public interface IGracefulRun
-{
-    Task WaitForCompletionAsync(CancellationToken cancellationToken);
-    Task CancelAsync(CancellationToken cancellationToken);
 }
 
 public sealed class OperationsException(string message) : Exception(message);

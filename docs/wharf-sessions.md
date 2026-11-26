@@ -4,6 +4,11 @@ Historical implementation plan: its Session 2 run-input contract is superseded.
 `--manifest` is removed; current operator defaults and migration are documented
 in [README](../README.md#operator-defaults). Original session evidence is retained.
 
+The historical status/stop/report/profile command plans are also superseded:
+those CLI commands and their exclusive implementations are removed. Use
+`progress`, Ctrl+C cancellation, and `analytics`; N/P remain operator-selected.
+The session plan below is historical evidence, not the current CLI contract.
+
 Status: Wharf 1.0.0 released; MVP implementation, benchmark evidence, and
 acceptance matrix complete
 Source: `docs/wharf.jsonl`

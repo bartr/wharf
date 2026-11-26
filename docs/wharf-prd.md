@@ -27,8 +27,8 @@ contracts and acceptance criteria are met.
 | Stable CLI behavior and commands | A maintained .NET command-line parser behind a Wharf-owned boundary |
 | .NET SDK-style executable structure | Responsibility-based namespaces under `src/wharf` |
 | Versioned user configuration, event, result, summary, and log contracts | Internal event-store implementation |
-| Host checks and operator safety limits | Exact concurrency recommendation algorithm |
-| Required report content and machine schemas | Human report styling |
+| Host checks and operator safety limits | Operator-selected concurrency based on measurements |
+| Required analytics content and machine schemas | Downstream human presentation |
 | Build-pipeline gate and 429 behavior | Internal scheduling data structures |
 
 Wharf must use normal .NET project organization, keep `Program.cs` thin, and
@@ -38,8 +38,8 @@ Delivery and support]
 
 ## 2. Goals
 
-- [must] Provide a simple provision, check, smoke, run, resume, status, stop,
-  and report workflow. [Source: Product goals, CLI contract]
+- [must] Provide a simple provision, check, smoke, prebuild, run, progress,
+  resume, and analytics workflow. [Source: Product goals, CLI contract]
 - [must] Complete one trustworthy DeepSWE K=4 evaluation overnight without
   operator attention on each documented host profile. [Source: Product goals]
 - [must] Scale from a validated 32-concurrent on-premises profile to a
@@ -90,7 +90,7 @@ V1 does not include:
 | Copilot adapter | Install and run a pinned Copilot CLI headlessly | Records requested and effective CLI, model, effort, and subagent models |
 | State store | Persist append-only events and materialized summaries | Atomic writes; idempotent recovery; versioned schemas |
 | Artifact store | Retain patches, logs, trajectories, verifier evidence, and cost | Retain everything in v1 |
-| Reporter | Recompute static and machine-readable output | PASS@1, Enterprise Score, cost, usage, runtime, coverage |
+| Analytics | Export retained logical trials and rebuild a data-only index | Rewards, tests, cost, usage, runtime, coverage |
 
 Component names are derived labels for boundaries directly required by
 `docs/wharf.md`; internal package names remain deliberate implementation choices.
@@ -103,8 +103,8 @@ logical attempts and admits them through the configured build, agent, and
 verifier limits. The Docker worker prepares a reusable agent image, runs the
 agent with only adapter-allowed network access, saves the patch, and applies it
 in a pristine verifier environment that contains the hidden tests. Every state
-transition and artifact is retained. Status reads materialized summaries
-without mutating the run; reporting can be rerun from retained artifacts after
+transition and artifact is retained. Progress reads retained logs
+without mutating the run; analytics can be rerun from retained artifacts after
 execution completes. [Source: Run configuration, Scheduling and lifecycle,
 State model, Task compatibility, Results and artifacts]
 
@@ -127,7 +127,7 @@ State model, Task compatibility, Results and artifacts]
 - Runtime outputs remain in customer-owned storage.
 - Wharf emits a documented legacy Pier-compatible trial artifact subset plus additive
   Wharf metadata.
-- Reports are static Markdown and machine-readable JSON or JSONL.
+- Analytics exports are canonical JSONL; the data-only manifest is JSON.
 - The data-only reporting manifest does not require raw jobs. [Source: Features,
   Auditing and trustworthy scoring]
 
@@ -144,9 +144,9 @@ State model, Task compatibility, Results and artifacts]
 ### 5.4 Seed data
 
 - DeepSWE tasks are the primary development and acceptance dataset.
-- Smoke tasks validate the host, agent, verifier, artifact, and report path.
+- Smoke tasks validate the host, agent, verifier, and artifact path.
 - Local golden fixtures cover Harbor parsing, state recovery, artifacts,
-  versioned schemas, scoring, and reports. [Source: Initial scope, Development
+  versioned schemas, scoring, and analytics. [Source: Initial scope, Development
   process]
 
 ### 5.5 Schema
@@ -166,9 +166,10 @@ State model, Progress and operations]
 | `wharf smoke` | v1 | Exercise the complete supported execution path |
 | `wharf run` | v1 | Start a configured task or dataset run |
 | `wharf resume` | v1 | Resume missing or retryable work without duplicating completed attempts |
-| `wharf status` | v1 | Read current lifecycle counts and ETA without mutating the run |
-| `wharf stop` | v1 | Stop execution and remove only ephemeral Docker resources |
-| `wharf report` | v1 | Generate static and machine-readable reports from retained evidence |
+| `wharf progress` | v1 | Read lifecycle progress from retained run logs without mutating the run |
+| `wharf analytics export` | v1 | Export one canonical JSONL row per retained logical trial |
+| `wharf analytics manifest` | v1 | Rebuild the data-only index from canonical JSONL exports |
+| `wharf prebuild` | v1 | Warm the Docker image cache before execution |
 | `wharf completion` | v1 | Generate Bash and Zsh completion |
 | `wharf version` | v1 | Print only the effective semantic version |
 | `wharf repair` | post-v1 | Run repair/replay from a retained patch and sanitized failure summary |
@@ -248,7 +249,7 @@ Image pulls and builds]
 
 ### 7.3 Dashboards
 
-Not applicable to v1. Wharf writes static Markdown and machine-readable exports.
+Not applicable to v1. Wharf writes machine-readable analytics exports.
 A hosted dashboard and control plane are explicit non-goals. An optional webhook
 may report completion or a blocked run; durable status files are mandatory.
 [Source: Non-goals for v1, Progress and operations, Reporting and comparison]
@@ -304,8 +305,8 @@ JSONL. [Source: Development process, Acceptance criteria]
 Integration tests cover Docker host preflight, image deduplication, derived
 image reuse, the `P` preparation gate, 429 backoff and telemetry, Copilot
 version pinning, patch capture, separate verification, cleanup, interruption,
-resume, and report regeneration. Interruptions are injected during pull, build,
-agent setup, agent execution, verification, and reporting. [Source: Image pulls
+resume, and analytics export. Interruptions are injected during pull, build,
+agent setup, agent execution, and verification. [Source: Image pulls
 and builds, Agent support, Development process]
 
 ### 10.3 End-to-end tests
@@ -313,9 +314,9 @@ and builds, Agent support, Development process]
 - Ubuntu and WSL bootstrap must reach passing check and smoke results.
 - A DeepSWE task must run through the Copilot adapter, retain its patch, apply
   it to a pristine verifier, and hide verifier tests from the agent.
-- Stopping removes only ephemeral Docker resources and retains every file.
+- Ctrl+C cancellation retains required evidence and cleans only owned ephemeral Docker resources.
 - Resume does not rerun or double-count completed logical attempts.
-- Reports regenerated from the same retained job are identical.
+- Analytics regenerated from the same retained job and options are identical.
 - Unsupported hosts and invalid configuration fail before quota consumption.
 - Synthetic secrets never appear in arguments, configuration, logs, reports,
   or exports.
@@ -381,7 +382,7 @@ N/P, memory and PID safety limits are unchanged. [Source: Run configuration]
 1. Install the documented .NET SDK and Docker prerequisites.
 2. Run the repository's single format, lint, unit-test, and integration-test
    command.
-3. Run local Harbor parsing, state recovery, artifact, and report fixtures.
+3. Run local Harbor parsing, state recovery, artifact, and analytics fixtures.
 4. Run check and smoke on a supported Ubuntu environment.
 5. Exercise interruption and recovery fixtures before changing scheduling or
    persistence.
@@ -422,11 +423,11 @@ The README must document these steps and the exact validation command.
 - [ ] A DeepSWE task runs in separate agent and verifier environments without
   exposing hidden tests to the agent.
 - [ ] A completed patch is retained and applied to a pristine verifier.
-- [ ] Stop removes only Docker processes and ephemeral resources and retains
-  every file and directory.
+- [ ] Ctrl+C cancellation retains required evidence and cleans only owned
+  ephemeral Docker resources.
 - [ ] Resume does not rerun completed logical attempts or double-count
   infrastructure retries.
-- [ ] Status reports every lifecycle state without attaching to tmux or
+- [ ] Progress reports lifecycle state without attaching to tmux or
   mutating the run.
 - [ ] The `P` gate limits agent and verifier preparation and is released before execution.
 - [ ] Duplicate pulls and identical derived-agent builds are coalesced.
@@ -441,8 +442,8 @@ The README must document these steps and the exact validation command.
 - [ ] PASS@1 and Enterprise Score match golden fixtures.
 - [ ] Provider-supplied cost, tokens, steps, agent time, trial time, and coverage
   completeness are reported.
-- [ ] The same retained job regenerates the same static and machine-readable
-  reports.
+- [ ] The same retained job and options regenerate the same canonical
+  analytics JSONL.
 - [ ] `docs/wharf.jsonl` parses one object per line, uses unique IDs, resolves every
   reference, and records source provenance.
 - [ ] Each documented host profile completes DeepSWE K=4 within its published
