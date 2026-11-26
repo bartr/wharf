@@ -87,7 +87,9 @@ candidates have starting evidence, not a claim that every benefit is measured.
 | [**A Copilot-capable evaluation harness**](#from-an-evaluation-need-to-a-copilot-capable-harness) | Build the harness around the configuration that needs evaluation. | Working platform, not an isolated model-quality improvement. |
 | [**Execution versus preparation pressure**](#systems-knowledge-separates-execution-from-preparation-pressure) | Separate task concurrency from preparation concurrency to control resource pressure. | Independent N/P controls retained. |
 | [**Task ordering serves the operator**](#evaluation-know-how-makes-task-ordering-serve-the-operator) | Longest-first targets the completion tail; shortest-first targets early feedback. | Both policies implemented; timing gains are not yet measured. |
+| [**tmux keeps evaluations independent of SSH**](#tmux-keeps-long-running-evaluations-independent-of-ssh) | Separate the evaluation's lifetime from the remote editor and network connection. | Named tmux sessions adopted for on-premises and cloud execution; no accuracy gain claimed. |
 | [**Prebuild warms the real path**](#docker-knowledge-makes-prebuild-warm-the-real-execution-path) | Docker cache knowledge changes what useful preparation must warm. | Prebuild retained; no isolated numerical speedup claimed. |
+| [**DeepSWE variability changes evaluation design**](#understanding-deepswe-variability-changes-evaluation-design) | Repeated outcomes and subset bias require a different mental model from deterministic regression tests. | Retained K=4 distributions and sampling research support full-suite comparisons and a separate .NET canary. |
 | [**An affordable .NET canary**](#enterprise-knowledge-creates-an-affordable-net-canary) | Enterprise coverage and evaluation economics justify a small recurring suite. | WharfSWE adds C# coverage; it complements DeepSWE. |
 | [**HydraFusion's long tail**](#the-canary-exposes-hydrafusions-long-tail) | Good averages can conceal slow trials that affect user experience. | Distribution retained and finding escalated; no completed fix claimed. |
 | [**Auto becomes a learning opportunity**](#auto-turns-a-disappointing-result-into-a-learning-opportunity) | A disappointing configuration result can produce actionable product feedback. | Learning and partnership, not a universal routing conclusion. |
@@ -490,6 +492,37 @@ establish the mechanism; they do not quantify a wall-clock improvement.
 Early results from short tasks are also not a representative whole-suite
 quality estimate.
 
+## tmux keeps long-running evaluations independent of SSH
+
+**Outcome and domain insight.** Long-running evaluations should not depend on
+an uninterrupted editor or SSH connection. We use VS Code Remote-SSH to work
+on on-premises machines and cloud VMs, but a dropped connection should not
+interrupt hours of evaluation work. Connection continuity and evaluation
+continuity are different operational concerns.
+
+**Change and evaluation.** We standardized long-running tests and evaluations
+on named `tmux` sessions on the execution host. The job runs in the foreground
+with stdout and stderr connected to its pane, independently of the attached
+SSH client. If SSH drops or VS Code disconnects, the evaluation continues
+while the host and tmux session remain running. After reconnecting, we can
+reattach to the same session or inspect it with read-only `capture-pane`
+monitoring rather than restarting the job.
+
+The [benchmark execution policy](../.github/copilot-instructions.md#benchmark-execution)
+codifies this practice and points to the shared DeepSWE monitoring runbook.
+Named sessions and visible foreground output make the running evaluation
+inspectable by both humans and assistants.
+
+**Decision and reuse.** Keep tmux as the standard for long-running evaluations.
+Treat VS Code and SSH as ways to control and observe the work, not as the
+owners of its lifetime. This is a reusable best practice for remote engineering
+on local infrastructure or in the cloud, not a model or scoring change.
+
+**Evidence boundary.** The adopted workflow establishes the operating practice;
+we have not quantified avoided interruptions, saved cost, or throughput gains.
+tmux does not survive a host reboot or replace retained evidence and Wharf's
+resume mechanism for interrupted jobs.
+
 ## Docker knowledge makes prebuild warm the real execution path
 
 **Outcome and domain insight.** Cold and warm benchmarks are different
@@ -513,6 +546,53 @@ cold-start experiments separately.
 why this mattered operationally; no isolated numerical cold/warm speedup is
 claimed here. Prebuild cannot precompile an unknown patch or warm every
 transient application cache.
+
+## Understanding DeepSWE variability changes evaluation design
+
+**Outcome and domain insight.** Most traditional regression tests aim to produce
+the same result for the same code and environment. An LLM evaluation also tests
+the process that generates the patch: repeated attempts can take different paths
+and produce different outcomes. We observed variation from run to run, CLI
+version to CLI version, and model to model. Understanding how LLMs work, where
+they fail, and how the harness and guidance influence them changes how we
+interpret an evaluation.
+
+**Change and evaluation.** We retained repeated attempts rather than treating
+one pass or failure as a stable task classification. Two complete DeepSWE arms
+illustrate the lesson, with the same 113 task/checksum pairs, K=4, Copilot CLI
+1.0.105, and default effort:
+
+| Retained configuration | 0/4 | 1/4 | 2/4 | 3/4 | 4/4 | Mixed (1-3/4) |
+|---|---:|---:|---:|---:|---:|---:|
+| [GPT-6 Luna](../deep-swe/data/copilot-gpt-6-luna-default-1.0.105.jsonl) | 28 | 24 | 14 | 20 | 27 | 58/113 |
+| [GPT-6 Astra](../deep-swe/data/copilot-gpt-6-astra-default-1.0.105.jsonl) | 25 | 7 | 2 | 12 | 67 | 21/113 |
+
+In the Luna arm, fewer than half the tasks were 0/4 or 4/4: most were 1/4,
+2/4, or 3/4. The Astra arm had a very different distribution. The mixed-outcome
+majority is therefore a configuration-specific observation, not a universal
+DeepSWE property. Even 0/4 or 4/4 describes four observed attempts, not a
+guarantee that the task always fails or always passes.
+
+The [sampling research](ANALYTICS.md#why-there-is-no-representative-40-task-subset)
+also showed how misleading a small DeepSWE panel can be: only 8% of random
+40-task subsets reproduced all three arms within two percentage points.
+Selecting tasks to match known results overfit those configurations and
+performed worse on a held-out arm. Rerunning a subset adds fresh outcome
+variation; it does not repair the tasks omitted from it.
+
+**Decision and reuse.** For cheaper DeepSWE comparisons, reduce K before
+reducing task coverage. Avoid choosing an easy, hard, or retrospectively fitted
+subset and treating it as representative. This made the
+[.NET canary](#enterprise-knowledge-creates-an-affordable-net-canary) more
+valuable: WharfSWE provides an affordable, recurring signal on a deliberately
+defined enterprise domain, rather than pretending to be a miniature DeepSWE.
+
+**Evidence boundary.** These task-consistency buckets are diagnostics, not
+PASS@1; PASS@1 remains passing trials divided by retained logical trials.
+Four attempts do not establish a precise success probability, and variation
+must not automatically be attributed to randomness instead of systematic
+model, harness, version, or environment differences. The canary is also
+variable and cannot establish whole-DeepSWE quality or replace broader testing.
 
 ## Enterprise knowledge creates an affordable .NET canary
 
