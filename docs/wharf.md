@@ -304,6 +304,14 @@ container and reuse the task's configured environment image. After MVP,
 - `check` must reject unsupported hosts unless the operator supplies an explicit unsupported-host override
 
 ## Language
+
+Wharf intentionally moved from Go to .NET so its own development history could
+supply realistic enterprise software-engineering benchmark tasks. .NET and Java
+are common enterprise languages, but DeepSWE covers neither. Creating that
+enterprise benchmark was the reason for the language change, not an incidental
+later benefit. The resulting C# benchmark was originally named Enterprise and
+later renamed WharfSWE. Java coverage remains a future goal.
+
 - implement Wharf in .NET 10 LTS using idiomatic C# best practices
 - use an SDK-style executable project with a thin `Program.cs` process entry point
 - keep reusable implementation in responsibility-based namespaces under `src/wharf`

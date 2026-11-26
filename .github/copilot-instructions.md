@@ -1,5 +1,13 @@
 # Project Guidelines
 
+## Implementation language rationale
+
+Wharf moved from Go to .NET intentionally to create enterprise C# benchmark
+tasks from its own development history, addressing DeepSWE's lack of .NET and
+Java coverage. That benchmark was originally named Enterprise and later renamed
+WharfSWE; Java coverage remains a future goal. See the
+[canonical language rationale](../docs/wharf.md#language).
+
 ## Benchmark execution
 
 Always run long-running tests and benchmark jobs inside a named `tmux` session so
