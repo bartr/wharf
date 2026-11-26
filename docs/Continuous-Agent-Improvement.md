@@ -18,6 +18,12 @@ harnesses, skills, and operating practices.
 
 ## Executive takeaway
 
+This journey started with HVE: would its engineering guidance improve
+outcomes? We tested that hypothesis, and the findings informed our
+recommendation to retain the useful discipline in a much smaller form.
+The "skills" used to develop Wharf are a **very slimmed-down subset of HVE**,
+packaged as reusable workflows and refined locally, not the full HVE offering.
+
 Improving an agent-powered engineering system is not limited to selecting a
 better model. Outcomes depend on the **model, harness, and skills**, and how
 they interact with the user's environment and constraints.
@@ -27,7 +33,7 @@ helps select a useful change; evaluation can challenge conventional wisdom and
 improve that understanding. Findings must retain their tested conditions rather
 than becoming universal claims about a model or product.
 
-Wharf's batch execution is the first example in this record. Understanding
+Wharf's batch execution illustrates the operational value. Understanding
 subscription quota windows led to a targeted harness improvement: users can
 execute one reproducible benchmark over multiple sessions, retain completed
 work, and continue the remaining work after a quota reset.
@@ -47,7 +53,144 @@ which model-harness-guidance configurations work, and improving the method
 used to develop and evaluate them. A useful result can be a retained feature,
 a revised assumption, or an actionable finding for a product team.
 
-## Case 1: Subscription-aware batch execution
+## HVE: why this journey started
+
+**Outcome and domain insight.** The original purpose of the journey was to
+evaluate whether HVE improves engineering outcomes. More guidance consumes
+context and may help, do nothing, or interfere; its value should be measured.
+We tested the hypothesis rather than treating the presence of HVE as proof
+of better engineering.
+
+**Starting point and evaluation.** Historical DeepSWE research tested a small
+always-on note plus invokable skills rather than treating an approximately
+22K-token force-injected corpus as the representative integration. An early
+eight-task Go panel passed **23/32 trials with and without HVE**. Provenance is
+retained in the [research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#7-hve-more-guidance-is-a-hypothesis-not-an-automatic-improvement),
+including the historical report's commit and line references.
+
+The current retained Copilot 1.0.77 exports provide larger observations on
+identical baseline/HVE task-checksum sets, with 452 trials per arm:
+
+| Configuration | Baseline passes | HVE passes |
+|---|---:|---:|
+| Opus 5 | [322/452](../deep-swe/data/copilot-claude-opus-5-max-1.0.77.jsonl) | [300/452](../deep-swe/data/copilot-claude-opus-5-max-hve-1.0.77.jsonl) |
+| GPT-5.6 Luna | [335/452](../deep-swe/data/copilot-gpt-5.6-luna-max-1.0.77.jsonl) | [309/452](../deep-swe/data/copilot-gpt-5.6-luna-max-hve-1.0.77.jsonl) |
+
+**Recommendation and reuse.** These observations did not establish a quality
+gain from the tested guidance. The tested hypothesis informed our
+recommendation: retain useful HVE engineering practices as a very slimmed-down
+skills subset, rather than assume that a larger guidance package delivers
+better outcomes. Those skills supplied the discipline used to develop Wharf
+and later to identify and reuse its learning.
+
+By "skills" here, we mean this selected subset of HVE's engineering approach,
+not every skill in the ecosystem or a wholesale installation of HVE.
+The project lead reports that the original campaign has concluded and work
+with the HVE team now focuses on "shrinking" HVE. The recommendation is to make
+guidance selective and test its marginal value, not equate instruction volume
+with quality.
+
+**Evidence boundary.** Historical CLI/subagent confounds and differing
+integrations limit causal claims. The recommendation is evidence-informed,
+not a measured claim that the slimmed-down skills outperform every tested HVE
+integration. HVE-derived skills used to develop Wharf and guidance supplied to
+a benchmark agent are distinct uses; success in one does not prove the other
+effective. The ongoing HVE reduction work has no measured outcome here.
+
+## Skills paid dividends in development and again in reuse
+
+### How we developed Wharf
+
+Wharf's development used skills to turn domain knowledge into explicit
+requirements, bounded work, research, plans, implementation, and review.
+These skills are the very slimmed-down HVE subset described above: the
+recommendation from the evaluation put into engineering practice.
+The [implementation sessions](wharf-sessions.md) describe the RPI loop,
+durable artifacts, scope boundaries, and required release evidence.
+[RPI](../.github/skills/rpi/SKILL.md), credited to Microsoft HVE Core, separates
+investigation from implementation so a plausible answer is not treated as
+verified engineering.
+
+Those records have a second use. While assembling this document, we could
+trace preparation-concurrency decisions, cache validation, benchmark protocols,
+and failure diagnoses back to retained evidence. The
+[case-study research](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md)
+identified 18 potential additions, including the examples in this record.
+
+The development method therefore produced more than a working platform: it
+left a record we can reuse to explain decisions, challenge assumptions, and
+transfer practices to other work. This is an observed reuse of the artifacts,
+not a controlled estimate of how much faster or cheaper the skills made
+development.
+
+### The improvement hypothesis
+
+The batch specification already defined precise counting, recovery, and
+measurement rules. Reviewing its live execution exposed a useful distinction:
+requirements can be ready to implement while evidence for an improvement is
+still partial. A successful batch invocation does not establish every quota
+or post-reset behavior.
+
+The hypothesis is that making this distinction explicit in our existing
+engineering skills will improve framing, evaluation planning, and the accuracy
+of completion claims without adding another document-heavy workflow.
+
+### The targeted change
+
+Added a [shared evaluation contract](../.github/skills/evaluation-contract.md)
+with six parts: **outcome, evidence, hypothesis, evaluation, decision, and
+learning**. It is carried through existing artifacts, not six new documents.
+
+| Existing skill | Reuse of the slide |
+|---|---|
+| [Design thinking](../.github/skills/design-thinking/SKILL.md) | Frame the user outcome and domain constraints; separate evidence from assumptions; test the concept and record what discovery taught us. |
+| [PRD](../.github/skills/prd/SKILL.md) | Specify the hypothesis, baseline or explicit unknown, comparison method, required evidence levels, and what must not regress. READY means ready to build, not proven effective. |
+| [RPI](../.github/skills/rpi/SKILL.md) | Carry the criteria into implementation and review; separate executed checks from observed benefit; decide keep, revise, reject, or defer with evidence. |
+| [Sessions](../.github/skills/sessions/SKILL.md) | Record the improvement decision, learned domain knowledge, limitations, and the next observation alongside release status. |
+
+Updated the existing PRD, readiness, requirements-ledger guidance, and session
+log templates so generated artifacts preserve the contract. Installation
+metadata records these as local customizations; this does not change the
+upstream skills repository.
+
+### What stays invariant
+
+- Source provenance and explicit assumptions remain mandatory.
+- Unknown baselines stay unknown; no invented savings, rankings, or numerical
+  targets are introduced to fill a template.
+- Synthetic checks, integration checks, and live observations are distinct.
+- Failures and missing measurements remain part of the evidence.
+- Bounded fixes can use a short regression-test result; no new discovery cycle
+  or paid benchmark is required just because this contract exists.
+- Readiness, demonstrated benefit, and release status remain separate decisions.
+
+### Evaluation and learning
+
+The immediate evaluation checks that the contract flows through the existing
+skills and templates, local links and installation hashes are consistent,
+and both batching and a bounded bug fix can use it without extra ceremony.
+These checks establish guidance consistency, not improved engineering outcomes.
+
+The next evaluation is to apply the guidance to subsequent work and compare
+the clarity of its hypothesis, acceptance evidence, non-regression checks, and
+learning record with the earlier batch artifacts. Watch for added overhead or
+unsupported completion claims. Keep the guidance where it helps; simplify or
+revise it where it does not.
+
+This is reuse of the slide at the process level: domain experience improves
+the skills, the skills guide the next change, and evaluations refine both the
+system and the team's knowledge. There are two reinforcing loops:
+
+- **Build and retain:** use the skills to deliver changes and preserve their
+  decisions and evidence.
+- **Learn and reuse:** use those records to identify value, improve the skills,
+  and inform the next system or experiment.
+
+It is not a retrospective claim that the
+original implementation was defective or that this guidance has already
+produced a measured productivity gain.
+
+## Subscription-aware batch execution
 
 ### The user problem and the domain insight
 
@@ -166,98 +309,7 @@ provider-specific stop/drain checks where the existing observations leave gaps.
 Success means no starts after the quota latch, no accepted interrupted trials,
 no duplicated completed work, and eventual completion with unchanged scoring.
 
-## Case 2: Skills paid dividends in development and again in reuse
-
-### How we developed Wharf
-
-Wharf's development used skills to turn domain knowledge into explicit
-requirements, bounded work, research, plans, implementation, and review.
-The [implementation sessions](wharf-sessions.md) describe the RPI loop,
-durable artifacts, scope boundaries, and required release evidence.
-[RPI](../.github/skills/rpi/SKILL.md), credited to Microsoft HVE Core, separates
-investigation from implementation so a plausible answer is not treated as
-verified engineering.
-
-Those records have a second use. While assembling this document, we could
-trace preparation-concurrency decisions, cache validation, benchmark protocols,
-and failure diagnoses back to retained evidence. The
-[case-study research](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md)
-identified 18 potential additions, including the eight prioritized below.
-
-The development method therefore produced more than a working platform: it
-left a record we can reuse to explain decisions, challenge assumptions, and
-transfer practices to other work. This is an observed reuse of the artifacts,
-not a controlled estimate of how much faster or cheaper the skills made
-development.
-
-### The improvement hypothesis
-
-The batch specification already defined precise counting, recovery, and
-measurement rules. Reviewing its live execution exposed a useful distinction:
-requirements can be ready to implement while evidence for an improvement is
-still partial. A successful batch invocation does not establish every quota
-or post-reset behavior.
-
-The hypothesis is that making this distinction explicit in our existing
-engineering skills will improve framing, evaluation planning, and the accuracy
-of completion claims without adding another document-heavy workflow.
-
-### The targeted change
-
-Added a [shared evaluation contract](../.github/skills/evaluation-contract.md)
-with six parts: **outcome, evidence, hypothesis, evaluation, decision, and
-learning**. It is carried through existing artifacts, not six new documents.
-
-| Existing skill | Reuse of the slide |
-|---|---|
-| [Design thinking](../.github/skills/design-thinking/SKILL.md) | Frame the user outcome and domain constraints; separate evidence from assumptions; test the concept and record what discovery taught us. |
-| [PRD](../.github/skills/prd/SKILL.md) | Specify the hypothesis, baseline or explicit unknown, comparison method, required evidence levels, and what must not regress. READY means ready to build, not proven effective. |
-| [RPI](../.github/skills/rpi/SKILL.md) | Carry the criteria into implementation and review; separate executed checks from observed benefit; decide keep, revise, reject, or defer with evidence. |
-| [Sessions](../.github/skills/sessions/SKILL.md) | Record the improvement decision, learned domain knowledge, limitations, and the next observation alongside release status. |
-
-Updated the existing PRD, readiness, requirements-ledger guidance, and session
-log templates so generated artifacts preserve the contract. Installation
-metadata records these as local customizations; this does not change the
-upstream skills repository.
-
-### What stays invariant
-
-- Source provenance and explicit assumptions remain mandatory.
-- Unknown baselines stay unknown; no invented savings, rankings, or numerical
-  targets are introduced to fill a template.
-- Synthetic checks, integration checks, and live observations are distinct.
-- Failures and missing measurements remain part of the evidence.
-- Bounded fixes can use a short regression-test result; no new discovery cycle
-  or paid benchmark is required just because this contract exists.
-- Readiness, demonstrated benefit, and release status remain separate decisions.
-
-### Evaluation and learning
-
-The immediate evaluation checks that the contract flows through the existing
-skills and templates, local links and installation hashes are consistent,
-and both batching and a bounded bug fix can use it without extra ceremony.
-These checks establish guidance consistency, not improved engineering outcomes.
-
-The next evaluation is to apply the guidance to subsequent work and compare
-the clarity of its hypothesis, acceptance evidence, non-regression checks, and
-learning record with the earlier batch artifacts. Watch for added overhead or
-unsupported completion claims. Keep the guidance where it helps; simplify or
-revise it where it does not.
-
-This is reuse of the slide at the process level: domain experience improves
-the skills, the skills guide the next change, and evaluations refine both the
-system and the team's knowledge. There are two reinforcing loops:
-
-- **Build and retain:** use the skills to deliver changes and preserve their
-  decisions and evidence.
-- **Learn and reuse:** use those records to identify value, improve the skills,
-  and inform the next system or experiment.
-
-It is not a retrospective claim that the
-original implementation was defective or that this guidance has already
-produced a measured productivity gain.
-
-## Case 3: From an evaluation need to a Copilot-capable harness
+## From an evaluation need to a Copilot-capable harness
 
 **Outcome and domain insight.** The project began with a need to evaluate HVE
 and coding-agent configurations, not a desire to build another runner.
@@ -281,7 +333,7 @@ The original motivation is the project lead's account, not a universal claim
 that Pier cannot support Copilot. A matched throughput comparison is still
 needed to quantify the Pier-to-Wharf scaling gain.
 
-## Case 4: Systems knowledge separates execution from preparation pressure
+## Systems knowledge separates execution from preparation pressure
 
 **Outcome and domain insight.** More concurrent engineering work need not
 require one CPU per agent. Long-running commands and bursty Docker/image/
@@ -304,7 +356,7 @@ admission setting, not proof of a universal 2x throughput gain. A 56-trial
 WharfSWE run configured at N=64 also cannot prove 64 simultaneous executions.
 The outcome here is an evidenced operating point, not improved model accuracy.
 
-## Case 5: Docker knowledge makes prebuild warm the real execution path
+## Docker knowledge makes prebuild warm the real execution path
 
 **Outcome and domain insight.** Cold and warm benchmarks are different
 starting conditions. A successful build command does not prove that the next
@@ -328,7 +380,7 @@ why this mattered operationally; no isolated numerical cold/warm speedup is
 claimed here. Prebuild cannot precompile an unknown patch or warm every
 transient application cache.
 
-## Case 6: Enterprise knowledge creates an affordable .NET canary
+## Enterprise knowledge creates an affordable .NET canary
 
 **Outcome and domain insight.** DeepSWE covers Go, Python, TypeScript,
 JavaScript, and Rust, but not .NET or Java. Enterprise engineering needs
@@ -350,7 +402,7 @@ these observations, not comparable accuracy or an isolated speedup. WharfSWE
 adds .NET coverage; Java remains a coverage gap. A canary complements rather
 than replaces broader evaluation.
 
-## Case 7: The canary exposes HydraFusion's long tail
+## The canary exposes HydraFusion's long tail
 
 **Outcome and domain insight.** Strong pass rates and reasonable averages can
 conceal slow outliers. Enterprise users also care about predictability and
@@ -380,7 +432,7 @@ exception categories. A latency tail is not by itself a diagnosed routing
 defect, and an escalation is not a completed fix. A controlled before/after
 evaluation is needed to establish any resulting improvement.
 
-## Case 8: Auto turns a disappointing result into a learning opportunity
+## Auto turns a disappointing result into a learning opportunity
 
 **Outcome and domain insight.** Automatic selection should be tested against
 the engineering workload, not assumed to select an effective configuration.
@@ -403,40 +455,7 @@ collaboration chronology is attributed to the project lead. Auto's per-trial
 selected models were not retained, so the evidence cannot distinguish routing,
 model capability, effort, or their interactions as the cause.
 
-## Case 9: HVE tests whether more guidance earns its place
-
-**Outcome and domain insight.** The original evaluation question was whether
-HVE improves engineering outcomes. More guidance consumes context and may
-help, do nothing, or interfere; its value should be measured.
-
-**Starting point and evaluation.** Historical DeepSWE research tested a small
-always-on note plus invokable skills rather than treating an approximately
-22K-token force-injected corpus as the representative integration. An early
-eight-task Go panel passed **23/32 trials with and without HVE**. Provenance is
-retained in the [research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md#7-hve-more-guidance-is-a-hypothesis-not-an-automatic-improvement),
-including the historical report's commit and line references.
-
-The current retained Copilot 1.0.77 exports provide larger observations on
-identical baseline/HVE task-checksum sets, with 452 trials per arm:
-
-| Configuration | Baseline passes | HVE passes |
-|---|---:|---:|
-| Opus 5 | [322/452](../deep-swe/data/copilot-claude-opus-5-max-1.0.77.jsonl) | [300/452](../deep-swe/data/copilot-claude-opus-5-max-hve-1.0.77.jsonl) |
-| GPT-5.6 Luna | [335/452](../deep-swe/data/copilot-gpt-5.6-luna-max-1.0.77.jsonl) | [309/452](../deep-swe/data/copilot-gpt-5.6-luna-max-hve-1.0.77.jsonl) |
-
-**Decision and reuse.** These observations did not establish a quality gain
-from the tested guidance. The project lead reports that the original campaign
-has concluded and work with the HVE team now focuses on "shrinking" HVE.
-The reusable lesson is to make guidance selective and test its marginal value,
-not to equate the volume of instructions with quality.
-
-**Evidence boundary.** Historical CLI/subagent confounds and differing
-integrations limit causal claims. The ongoing reduction work has no measured
-outcome here. HVE-informed skills used to develop Wharf and guidance supplied
-to a benchmark agent are distinct uses; success in one does not prove the
-other effective.
-
-## Case 10: Evaluation revises assumptions about models and harnesses
+## Evaluation revises assumptions about models and harnesses
 
 **Outcome and domain insight.** Neither "Claude is best" nor "the newest model
 is best" is a sufficient selection rule. Evaluate the configuration's quality,
