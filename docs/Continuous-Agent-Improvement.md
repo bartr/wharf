@@ -417,6 +417,37 @@ admission setting, not proof of a universal 2x throughput gain. A 56-trial
 WharfSWE run configured at N=64 also cannot prove 64 simultaneous executions.
 The outcome here is an evidenced operating point, not improved model accuracy.
 
+## Evaluation know-how makes task ordering serve the operator
+
+**Outcome and domain insight.** Evaluation tasks do not take equal time.
+Starting historically long tasks late can leave a few stragglers running after
+most of the suite finishes. But reducing that completion tail is not always
+the operator's immediate goal: during an exploratory run, seeing results
+sooner can be more useful than optimizing the time to finish the whole suite.
+
+**Change and evaluation.** We built duration-aware task loading and admission:
+the default starts the historically longest tasks first, giving them more
+time to finish alongside shorter work. Estimates include both agent and
+verifier execution. We also added `--shortest-first` to reverse that order
+when early results are the priority. Both policies operate within each K wave,
+with deterministic tie-breaking and the same tasks, attempts, and scoring rules.
+The [duration-estimate review](../.github/tracking/2026-11-17-wharfswe-duration-review.md)
+checked the WharfSWE estimates against 168 unique historical trials and current
+task checksums; [ordering tests](../tests/wharf.Tests/HarborTaskTests.cs)
+cover both directions.
+
+**Decision and reuse.** Keep both policies because they serve different
+operational outcomes: longest-first targets the end-of-run tail;
+shortest-first targets time to initial feedback. This is practical evaluation
+expertise improving the harness, not a change to the model. Understanding how
+evaluations are actually run helps us choose which kind of waiting to reduce.
+
+**Evidence boundary.** Historical duration is an estimate, not a guarantee of
+completion order under concurrency. The implementation and ordering checks
+establish the mechanism; they do not quantify a wall-clock improvement.
+Early results from short tasks are also not a representative whole-suite
+quality estimate.
+
 ## Docker knowledge makes prebuild warm the real execution path
 
 **Outcome and domain insight.** Cold and warm benchmarks are different
