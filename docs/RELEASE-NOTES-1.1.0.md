@@ -1,5 +1,9 @@
 # Wharf 1.1.0
 
+Historical release notes: the run-input configuration described here has since
+been removed. Current behavior and migration are in
+[operator defaults](../README.md#operator-defaults); analytics manifests remain supported.
+
 Wharf 1.1.0 releases the accumulated runtime, CLI, analytics, and documentation
 changes since 1.0.0. The intervening `1.0.1` branch was a development
 checkpoint, not a tagged release.

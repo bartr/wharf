@@ -13,15 +13,14 @@ namespace Wharf.Tests;
 public sealed class ClaudeCliTests
 {
     [Theory]
-    [InlineData("copilot", "claude", "claude", "copilot")]
-    [InlineData(null, "claude", "copilot", "claude")]
-    [InlineData(null, null, "claude", "claude")]
-    [InlineData(null, null, null, "copilot")]
+    [InlineData("copilot", "claude", "copilot")]
+    [InlineData(null, "claude", "claude")]
+    [InlineData(null, null, "copilot")]
     public void ResolvesCliWithStandardPrecedence(
-        string? flag, string? environment, string? manifest, string expected)
+        string? flag, string? environment, string expected)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Cli: manifest),
+            null,
             new RunConfigurationOverrides(Cli: flag),
             new Dictionary<string, string?> { ["WHARF_CLI"] = environment });
 
@@ -36,8 +35,8 @@ public sealed class ClaudeCliTests
     public void ClaudeKeepsExplicitModelAndEffortAndIgnoresUnrelatedCliEnvironment()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Cli: "claude", Model: "claude-opus-4-6", Effort: "high"),
-            new RunConfigurationOverrides(),
+            null,
+            new RunConfigurationOverrides(Cli: "claude", Model: "claude-opus-4-6", Effort: "high"),
             new Dictionary<string, string?> { ["CLI"] = "copilot" });
 
         Assert.Equal("claude", configuration.Cli);
@@ -75,8 +74,8 @@ public sealed class ClaudeCliTests
     {
         string output = $"wharf-claude-dry-{Guid.NewGuid():N}";
         string rendered = DryRunService.Execute(
-            null, new RunConfigurationOverrides(Cli: "claude", OutputDirectory: output),
-            "json", new Dictionary<string, string?>());
+            new RunConfigurationOverrides(Cli: "claude", OutputDirectory: output),
+            "json", new Dictionary<string, string?>(), new UserConfiguration());
 
         using JsonDocument document = JsonDocument.Parse(rendered);
         Assert.Equal("claude", document.RootElement.GetProperty("cli").GetString());

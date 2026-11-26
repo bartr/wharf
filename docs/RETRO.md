@@ -5,6 +5,17 @@ the current development version is 1.7.0, with no 1.7.0 tag at this review.
 The sections below distinguish tagged releases, development changes, and
 historical measurement snapshots.
 
+**Current configuration update:** per-run `--manifest` input is removed.
+`~/.wharf/config.json` supplies operator defaults beneath flags and supported
+environment variables. Every invocation initializes missing user directory/config
+with built-in defaults without overwriting existing files, including help and
+dry-run. CLI versions remain explicit or provider
+`latest`; resume restores retained policy without reading current defaults.
+See [supported fields and migration](../README.md#operator-defaults).
+Historical configuration descriptions below record earlier behavior, not
+current support; retained benchmark evidence and dataset/analytics manifests
+are unchanged.
+
 Wharf was developed as an AI-native, evidence-first benchmark execution system
 for running DeepSWE tasks with Copilot CLI on customer-controlled Ubuntu
 infrastructure. Its design emphasizes deterministic execution, isolation,

@@ -11,6 +11,15 @@ public static class WharfApp
 {
     public static async Task<int> RunAsync(string[] args)
     {
+        try
+        {
+            UserConfigurationLoader.EnsureExists();
+        }
+        catch (RunConfigurationException exception)
+        {
+            Console.Error.WriteLine(exception.Message);
+            return ExitCode.InvalidInput.Value;
+        }
         var configuration = WharfConfiguration.FromEnvironment();
         using var cancellation = new CancellationTokenSource();
         ConsoleCancelEventHandler handler = (_, eventArgs) =>

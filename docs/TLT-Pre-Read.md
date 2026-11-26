@@ -72,6 +72,8 @@ path into GitHub Copilot engineering.
 
 ## Close the loop
 
+- Create a 244 core Azure VM and run wharf -n 452 - this will test running a complete
+  DeepSWE test at k=4 in one pass. The current max concurrency is 160 on a 64 core VM.
 - Rerun the HVE tests on the first HVE release in 2027 to evaluate the updated
   guidance against the baseline.
 - Work with the HVE team to incorporate the skills changes we adapted from

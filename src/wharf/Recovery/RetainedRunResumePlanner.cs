@@ -227,7 +227,7 @@ public sealed class RetainedRunResumePlanner
             Credentials = new SecretSettings(),
             ShortestFirst = shortestFirst
         };
-        RunConfigurationValidator.Validate(null, configuration);
+        RunConfigurationValidator.Validate(configuration);
         return new RetainedResumePlan(
             resolvedRun,
             resolvedTaskRoot,

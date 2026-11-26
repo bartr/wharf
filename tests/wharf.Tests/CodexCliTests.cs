@@ -21,15 +21,14 @@ public sealed class CodexCliTests : IDisposable
     public void Dispose() => Directory.Delete(root, recursive: true);
 
     [Theory]
-    [InlineData("flag-model", "environment-model", "manifest-model", "flag-model")]
-    [InlineData(null, "environment-model", "manifest-model", "environment-model")]
-    [InlineData(null, null, "manifest-model", "manifest-model")]
-    [InlineData(null, null, null, "gpt-6-luna")]
+    [InlineData("flag-model", "environment-model", "flag-model")]
+    [InlineData(null, "environment-model", "environment-model")]
+    [InlineData(null, null, "gpt-6-luna")]
     public void CodexDefaultAndModelOverridesUseStandardPrecedence(
-        string? flag, string? environment, string? manifest, string expected)
+        string? flag, string? environment, string expected)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Cli: "claude", Model: manifest),
+            null,
             new RunConfigurationOverrides(Cli: "codex", Model: flag),
             new Dictionary<string, string?>
             {
@@ -59,9 +58,9 @@ public sealed class CodexCliTests : IDisposable
     public void CodexDryRunRequiresNoCredentialOrOutput()
     {
         string output = $"wharf-codex-dry-{Guid.NewGuid():N}";
-        string rendered = DryRunService.Execute(null,
+        string rendered = DryRunService.Execute(
             new RunConfigurationOverrides(Cli: "codex", OutputDirectory: output),
-            "json", new Dictionary<string, string?>());
+            "json", new Dictionary<string, string?>(), new UserConfiguration());
         using JsonDocument document = JsonDocument.Parse(rendered);
         Assert.Equal("codex", document.RootElement.GetProperty("cli").GetString());
         Assert.Equal("gpt-6-luna", document.RootElement.GetProperty("model").GetString());

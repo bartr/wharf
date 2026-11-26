@@ -5,6 +5,52 @@ namespace Wharf.Tests;
 
 public sealed class RunConfigurationTests
 {
+    [Fact]
+    public async Task ConcurrentInitializationPreservesDefaultsAndExistingFiles()
+    {
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-init-{Guid.NewGuid():N}");
+        string directory = Path.Combine(home, ".wharf");
+        Directory.CreateDirectory(directory);
+        string credential = Path.Combine(directory, "copilot");
+        File.WriteAllText(credential, "synthetic-credential");
+        try
+        {
+            await Task.WhenAll(Enumerable.Range(0, 12).Select(_ =>
+                Task.Run(() => UserConfigurationLoader.EnsureExists(home))));
+            string path = Path.Combine(directory, "config.json");
+            Assert.NotNull(UserConfigurationLoader.Load(home).K);
+            Assert.Empty(Directory.GetFiles(directory, "*.tmp"));
+            File.WriteAllText(path, """{"k":7}""");
+            UserConfigurationLoader.EnsureExists(home);
+            Assert.Equal("""{"k":7}""", File.ReadAllText(path));
+            Assert.Equal("synthetic-credential", File.ReadAllText(credential));
+        }
+        finally
+        {
+            Directory.Delete(home, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void InitializationFailureIsExplicitAndPreservesObstructingFile()
+    {
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-init-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(home);
+        string path = Path.Combine(home, ".wharf");
+        File.WriteAllText(path, "not-a-directory");
+        try
+        {
+            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
+                () => UserConfigurationLoader.EnsureExists(home));
+            Assert.Contains("cannot initialize user configuration", exception.Message);
+            Assert.Equal("not-a-directory", File.ReadAllText(path));
+        }
+        finally
+        {
+            Directory.Delete(home, recursive: true);
+        }
+    }
+
     [Theory]
     [InlineData(false, false)]
     [InlineData(true, false)]
@@ -12,30 +58,27 @@ public sealed class RunConfigurationTests
     [InlineData(true, true)]
     public void BaselineModesAreRetainedAndRendered(bool noOp, bool oracle)
     {
-        var manifest = new RunManifest(NoOp: noOp, Oracle: oracle);
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            manifest, new RunConfigurationOverrides(), new Dictionary<string, string?>());
+            null, new RunConfigurationOverrides(NoOp: noOp, Oracle: oracle), new Dictionary<string, string?>());
         Assert.Equal(noOp, configuration.NoOp);
         Assert.Equal(oracle, configuration.Oracle);
         using JsonDocument document = JsonDocument.Parse(RunConfigurationRenderer.Render(configuration, "json"));
         Assert.Equal(noOp, document.RootElement.GetProperty("noOp").GetBoolean());
         Assert.Equal(oracle, document.RootElement.GetProperty("oracle").GetBoolean());
         RunConfiguration overridden = RunConfigurationResolver.Resolve(
-            manifest, new RunConfigurationOverrides(NoOp: !noOp, Oracle: !oracle),
+            null, new RunConfigurationOverrides(NoOp: !noOp, Oracle: !oracle),
             new Dictionary<string, string?>());
         Assert.Equal(!noOp, overridden.NoOp);
         Assert.Equal(!oracle, overridden.Oracle);
     }
 
     [Fact]
-    public void PrecedenceIsFlagThenEnvironmentThenManifestThenDefault()
+    public void PrecedenceIsFlagThenEnvironmentThenUserConfigThenDefault()
     {
-        var manifest = new RunManifest(
+        var defaults = new UserConfiguration(
             K: 3,
             N: 2,
-            P: 1,
-            Model: "manifest-model",
-            CliVersion: "manifest-version");
+            P: 1);
         var environment = new Dictionary<string, string?>
         {
             ["WHARF_K"] = "5",
@@ -44,7 +87,7 @@ public sealed class RunConfigurationTests
         };
 
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            manifest,
+            defaults,
             new RunConfigurationOverrides(K: 7, CliVersion: "flag-version"),
             environment);
 
@@ -57,20 +100,17 @@ public sealed class RunConfigurationTests
     }
 
     [Theory]
-    [InlineData("copilot", "1.0.108", "1.0.107")]
-    [InlineData("claude", "2.1.241", "2.1.240")]
-    [InlineData("codex", "0.169.0", "0.168.0")]
-    public void CliVersionUsesFlagThenManifestThenProviderLatest(
-        string cli, string flag, string manifest)
+    [InlineData("copilot", "1.0.108")]
+    [InlineData("claude", "2.1.241")]
+    [InlineData("codex", "0.169.0")]
+    public void CliVersionUsesFlagThenProviderLatest(
+        string cli, string flag)
     {
         var environment = new Dictionary<string, string?>();
-        var configuration = new RunManifest(Cli: cli, CliVersion: manifest);
-        Assert.Equal(flag, RunConfigurationResolver.Resolve(configuration,
-            new RunConfigurationOverrides(CliVersion: flag), environment).CliVersion);
-        Assert.Equal(manifest, RunConfigurationResolver.Resolve(configuration,
-            new RunConfigurationOverrides(), environment).CliVersion);
-        Assert.Equal("latest", RunConfigurationResolver.Resolve(configuration with { CliVersion = null },
-            new RunConfigurationOverrides(), environment).CliVersion);
+        Assert.Equal(flag, RunConfigurationResolver.Resolve(null,
+            new RunConfigurationOverrides(Cli: cli, CliVersion: flag), environment).CliVersion);
+        Assert.Equal("latest", RunConfigurationResolver.Resolve(null,
+            new RunConfigurationOverrides(Cli: cli), environment).CliVersion);
     }
 
     [Theory]
@@ -84,8 +124,8 @@ public sealed class RunConfigurationTests
     {
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
             RunConfigurationResolver.Resolve(
-                new RunManifest(Cli: cli),
-                new RunConfigurationOverrides(CliVersion: "1.2.3"),
+                null,
+                new RunConfigurationOverrides(Cli: cli, CliVersion: "1.2.3"),
                 new Dictionary<string, string?> { [variable] = "1.0.108" }));
 
         Assert.Contains(variable, exception.Message);
@@ -94,11 +134,11 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
-    public void EffortUsesFlagBeforeEnvironmentAndManifest()
+    public void EffortUsesFlagBeforeEnvironment()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(Model: "custom-model", Effort: "low"),
-            new RunConfigurationOverrides(Effort: "high"),
+            null,
+            new RunConfigurationOverrides(Model: "custom-model", Effort: "high"),
             new Dictionary<string, string?>
             {
                 ["WHARF_EFFORT"] = "medium"
@@ -108,11 +148,11 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
-    public void EffortUsesEnvironmentBeforeManifest()
+    public void EffortUsesEnvironmentBeforeDefault()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(Model: "custom-model", Effort: "low"),
-            new RunConfigurationOverrides(),
+            null,
+            new RunConfigurationOverrides(Model: "custom-model"),
             new Dictionary<string, string?>
             {
                 ["WHARF_EFFORT"] = "medium"
@@ -125,7 +165,7 @@ public sealed class RunConfigurationTests
     public void UsesHydraFusionWithModelDefaultEffortWhenNotConfigured()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 
@@ -144,16 +184,16 @@ public sealed class RunConfigurationTests
     [InlineData(null, "4", 6, 4)]
     [InlineData(null, null, 6, 6)]
     [InlineData(null, null, null, null)]
-    public void ContainerCpusUsesFlagEnvironmentManifestDefaultPrecedence(
-        int? flag, string? environment, int? manifest, int? expected)
+    public void ContainerCpusUsesFlagEnvironmentUserConfigDefaultPrecedence(
+        int? flag, string? environment, int? defaults, int? expected)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(ContainerCpus: manifest),
+            new UserConfiguration(ContainerCpus: defaults),
             new RunConfigurationOverrides(ContainerCpus: flag),
             new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = environment });
 
         Assert.Equal(expected, configuration.ContainerCpus);
-        RunConfigurationValidator.Validate(null, configuration);
+        RunConfigurationValidator.Validate(configuration);
     }
 
     [Fact]
@@ -188,22 +228,22 @@ public sealed class RunConfigurationTests
     public void RejectsNonPositiveContainerCpuLimits(int limit)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(ContainerCpus: limit),
+            new UserConfiguration(ContainerCpus: limit),
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
-            RunConfigurationValidator.Validate(null, configuration));
+            RunConfigurationValidator.Validate(configuration));
         Assert.Contains("containerCpus", exception.Message);
     }
 
     [Fact]
     public void RendersCpuLimitInBothDryRunFormats()
     {
-        string json = DryRunService.Execute(null, new RunConfigurationOverrides(ContainerCpus: 12),
-            "json", new Dictionary<string, string?>());
-        string text = DryRunService.Execute(null, new RunConfigurationOverrides(ContainerCpus: 12),
-            "text", new Dictionary<string, string?>());
+        string json = DryRunService.Execute(new RunConfigurationOverrides(ContainerCpus: 12),
+            "json", new Dictionary<string, string?>(), new UserConfiguration());
+        string text = DryRunService.Execute(new RunConfigurationOverrides(ContainerCpus: 12),
+            "text", new Dictionary<string, string?>(), new UserConfiguration());
         using JsonDocument document = JsonDocument.Parse(json);
 
         Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
@@ -213,10 +253,10 @@ public sealed class RunConfigurationTests
     [Fact]
     public void RendersUnrestrictedCpuDefaultInBothDryRunFormats()
     {
-        string json = DryRunService.Execute(null, new RunConfigurationOverrides(),
-            "json", new Dictionary<string, string?>());
-        string text = DryRunService.Execute(null, new RunConfigurationOverrides(),
-            "text", new Dictionary<string, string?>());
+        string json = DryRunService.Execute(new RunConfigurationOverrides(),
+            "json", new Dictionary<string, string?>(), new UserConfiguration());
+        string text = DryRunService.Execute(new RunConfigurationOverrides(),
+            "text", new Dictionary<string, string?>(), new UserConfiguration());
         using JsonDocument document = JsonDocument.Parse(json);
 
         Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("containerCpus").ValueKind);
@@ -224,17 +264,37 @@ public sealed class RunConfigurationTests
     }
 
     [Fact]
-    public void StrictManifestAcceptsContainerCpuLimit()
+    public void UserConfigLoadsOperationalDefaultsIntoDryRunWithoutOutput()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"wharf-cpu-{Guid.NewGuid():N}.json");
-        File.WriteAllText(path, """{"schemaVersion":"1.0","containerCpus":12}""");
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-config-{Guid.NewGuid():N}");
+        string directory = Path.Combine(home, ".wharf");
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "config.json"), """
+            {"schemaVersion":"1.0","k":2,"n":8,"p":6,"containerCpus":12,
+             "timeouts":{"setupSeconds":90,"agentSeconds":180,"verifierSeconds":60},
+             "retries":{"maxAttempts":2,"backoffSeconds":3},"outputFormat":"json",
+             "retainWorkspaces":true,"shortestFirst":true}
+            """);
         try
         {
-            Assert.Equal(12, RunManifestLoader.Load(path).ContainerCpus);
+            UserConfiguration defaults = UserConfigurationLoader.Load(home);
+            string output = $"wharf-preview-{Guid.NewGuid():N}";
+            string rendered = DryRunService.Execute(new RunConfigurationOverrides(OutputDirectory: output),
+                null, new Dictionary<string, string?>(), defaults);
+            using JsonDocument document = JsonDocument.Parse(rendered);
+            Assert.Equal(2, document.RootElement.GetProperty("k").GetInt32());
+            Assert.Equal(8, document.RootElement.GetProperty("n").GetInt32());
+            Assert.Equal(6, document.RootElement.GetProperty("p").GetInt32());
+            Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
+            Assert.Equal(180, document.RootElement.GetProperty("timeouts").GetProperty("agentSeconds").GetInt32());
+            Assert.Equal(2, document.RootElement.GetProperty("retries").GetProperty("maxAttempts").GetInt32());
+            Assert.True(document.RootElement.GetProperty("retainWorkspaces").GetBoolean());
+            Assert.True(document.RootElement.GetProperty("shortestFirst").GetBoolean());
+            Assert.False(Directory.Exists(output));
         }
         finally
         {
-            File.Delete(path);
+            Directory.Delete(home, recursive: true);
         }
     }
 
@@ -242,7 +302,7 @@ public sealed class RunConfigurationTests
     public void ShortestFirstIsOptIn()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(ShortestFirst: true),
             new Dictionary<string, string?>());
 
@@ -253,7 +313,7 @@ public sealed class RunConfigurationTests
     public void ReadsHydraFusionFromShortModelEnvironmentVariable()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?> { ["MODEL"] = "hydrafusion" });
 
@@ -265,12 +325,12 @@ public sealed class RunConfigurationTests
     public void RejectsInvalidHydraFusionEffort()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(Model: "hydrafusion", Effort: "invalid"),
-            new RunConfigurationOverrides(),
+            null,
+            new RunConfigurationOverrides(Model: "hydrafusion", Effort: "invalid"),
             new Dictionary<string, string?>());
 
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-            () => RunConfigurationValidator.Validate(new RunManifest(), result));
+            () => RunConfigurationValidator.Validate(result));
 
         Assert.Contains("effort", exception.Message);
     }
@@ -279,11 +339,11 @@ public sealed class RunConfigurationTests
     public void AcceptsDefaultEffortFromEnvironment()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?> { ["WHARF_EFFORT"] = "default" });
 
-        RunConfigurationValidator.Validate(new RunManifest(), result);
+        RunConfigurationValidator.Validate(result);
 
         Assert.Equal("default", result.Effort);
     }
@@ -292,7 +352,7 @@ public sealed class RunConfigurationTests
     public void DefaultsConcurrencyToFour()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 
@@ -304,11 +364,11 @@ public sealed class RunConfigurationTests
     public void AllowsWholeTrialRetriesToBeDisabled()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Retries: new RetryPolicy(MaxAttempts: 0)),
+            new UserConfiguration(Retries: new RetryPolicy(MaxAttempts: 0)),
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 
-        RunConfigurationValidator.Validate(new RunManifest(), configuration);
+        RunConfigurationValidator.Validate(configuration);
 
         Assert.Equal(0, configuration.Retries.MaxAttempts);
     }
@@ -317,28 +377,28 @@ public sealed class RunConfigurationTests
     public void RejectsUnsupportedReportTimeout()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Timeouts: new PhaseTimeouts(ReportSeconds: 30)),
+            new UserConfiguration(Timeouts: new PhaseTimeouts(ReportSeconds: 30)),
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-            () => RunConfigurationValidator.Validate(new RunManifest(), configuration));
+            () => RunConfigurationValidator.Validate(configuration));
 
         Assert.Contains("reportSeconds", exception.Message);
         Assert.Contains("not supported", exception.Message);
     }
 
     [Fact]
-    public void RetainWorkspacesUsesFlagEnvironmentManifestDefaultPrecedence()
+    public void RetainWorkspacesUsesFlagEnvironmentUserConfigDefaultPrecedence()
     {
-        var manifest = new RunManifest(RetainWorkspaces: true);
+        var defaults = new UserConfiguration(RetainWorkspaces: true);
 
         RunConfiguration environmentResult = RunConfigurationResolver.Resolve(
-            manifest,
+            defaults,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?> { ["WHARF_RETAIN_WORKSPACES"] = "0" });
         RunConfiguration flagResult = RunConfigurationResolver.Resolve(
-            manifest,
+            defaults,
             new RunConfigurationOverrides(RetainWorkspaces: true),
             new Dictionary<string, string?> { ["WHARF_RETAIN_WORKSPACES"] = "false" });
 
@@ -351,7 +411,7 @@ public sealed class RunConfigurationTests
     {
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
             () => RunConfigurationResolver.Resolve(
-                new RunManifest(),
+                null,
                 new RunConfigurationOverrides(),
                 new Dictionary<string, string?>
                 {
@@ -365,7 +425,7 @@ public sealed class RunConfigurationTests
     public void CapsPreparationConcurrencyAtTaskConcurrency()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(N: 2, P: 8),
             new Dictionary<string, string?>());
 
@@ -377,7 +437,7 @@ public sealed class RunConfigurationTests
     public void SupportsShortConcurrencyEnvironmentNames()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>
             {
@@ -393,7 +453,7 @@ public sealed class RunConfigurationTests
     public void ShortConcurrencyNamesOverrideWharfPrefixedValues()
     {
         RunConfiguration result = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>
             {
@@ -411,14 +471,11 @@ public sealed class RunConfigurationTests
     public void RendererIsDeterministicAndRedactsSecrets()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(
-                K: 2,
-                Output: new OutputSettings("json", "preview"),
-                Credentials: new SecretSettings(Token: "top-secret")),
-            new RunConfigurationOverrides(),
-            new Dictionary<string, string?>());
+            new UserConfiguration(K: 2, OutputFormat: "json"),
+            new RunConfigurationOverrides(OutputDirectory: "preview"),
+            new Dictionary<string, string?> { ["WHARF_TOKEN"] = "top-secret" });
 
-        RunConfigurationValidator.Validate(new RunManifest(), configuration);
+        RunConfigurationValidator.Validate(configuration);
         string first = RunConfigurationRenderer.Render(configuration, "json");
         string second = RunConfigurationRenderer.Render(configuration, "json");
 
@@ -432,7 +489,7 @@ public sealed class RunConfigurationTests
     public void SecretEnvironmentValuesAreRedacted()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?> { ["WHARF_TOKEN"] = "environment-secret" });
 
@@ -442,71 +499,78 @@ public sealed class RunConfigurationTests
         Assert.Contains("[REDACTED]", output);
     }
 
-    [Fact]
-    public void UnknownManifestKeyIsRejected()
+    [Theory]
+    [InlineData("""{"unknown":true}""")]
+    [InlineData("""{"b":2}""")]
+    [InlineData("""{"cliVersion":"1.2.3"}""")]
+    [InlineData("""{"credentials":{"token":"synthetic"}}""")]
+    [InlineData("""{"model":"custom"}""")]
+    [InlineData("""{"outputDirectory":"elsewhere"}""")]
+    [InlineData("""{"schemaVersion":"2.0"}""")]
+    [InlineData("""{"k":0}""")]
+    [InlineData("""{"p":0}""")]
+    [InlineData("""{"retries":{"maxAttempts":-1}}""")]
+    [InlineData("""{"timeouts":{"reportSeconds":30}}""")]
+    [InlineData("""{"timeouts":{"agentSeconds":0}}""")]
+    [InlineData("""{"k":1,"k":2}""")]
+    [InlineData("""{"timeouts":{"agentSeconds":1,"agentSeconds":2}}""")]
+    [InlineData("""{"timeouts":{"unknown":1}}""")]
+    [InlineData("""{"K":2}""")]
+    [InlineData("""{"k":"2"}""")]
+    [InlineData("null")]
+    [InlineData("[]")]
+    [InlineData("{")]
+    public void InvalidUserConfigIsRejected(string json)
     {
-        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
-        File.WriteAllText(path, """{"schemaVersion":"1.0","unknown":true}""");
-
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-config-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(home, ".wharf"));
+        File.WriteAllText(Path.Combine(home, ".wharf", "config.json"), json);
         try
         {
-            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-                () => RunManifestLoader.Load(path));
-            Assert.Contains("invalid manifest", exception.Message);
+            Assert.Throws<RunConfigurationException>(() => UserConfigurationLoader.Load(home));
         }
         finally
         {
-            File.Delete(path);
+            Directory.Delete(home, recursive: true);
         }
     }
 
     [Fact]
-    public void LegacyBuildConcurrencyManifestKeyIsRejected()
+    public void MissingUserConfigDoesNotCreateDirectories()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
-        File.WriteAllText(path, """{"schemaVersion":"1.0","b":2}""");
-
-        try
-        {
-            RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-                () => RunManifestLoader.Load(path));
-            Assert.Contains("invalid manifest", exception.Message);
-        }
-        finally
-        {
-            File.Delete(path);
-        }
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-missing-{Guid.NewGuid():N}");
+        Assert.Equal(new UserConfiguration(), UserConfigurationLoader.Load(home));
+        Assert.False(Directory.Exists(home));
     }
 
     [Fact]
     public void InvalidOutputDirectoryIsRejected()
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(Output: new OutputSettings(Directory: "/absolute")),
-            new RunConfigurationOverrides(),
+            null,
+            new RunConfigurationOverrides(OutputDirectory: "/absolute"),
             new Dictionary<string, string?>());
 
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-            () => RunConfigurationValidator.Validate(new RunManifest(), configuration));
+            () => RunConfigurationValidator.Validate(configuration));
 
         Assert.Contains("relative", exception.Message);
     }
 
     [Fact]
-    public void ManifestMustDeclareSchemaVersion()
+    public void InaccessibleUserConfigDoesNotSilentlyUseDefaults()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"wharf-{Guid.NewGuid():N}.json");
-        File.WriteAllText(path, """{"k":2}""");
-
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-config-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(home, ".wharf", "config.json"));
         try
         {
             RunConfigurationException exception = Assert.Throws<RunConfigurationException>(
-                () => RunManifestLoader.Load(path));
-            Assert.Contains("schemaVersion", exception.Message);
+                () => UserConfigurationLoader.Load(home));
+            Assert.Contains("cannot read user configuration", exception.Message);
         }
         finally
         {
-            File.Delete(path);
+            Directory.Delete(home, recursive: true);
         }
     }
 }

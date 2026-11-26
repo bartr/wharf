@@ -155,7 +155,7 @@ public static class CommandTree
                 if (string.IsNullOrWhiteSpace(taskRoot))
                     throw new BuildException("prebuild task directory is required");
                 RunConfiguration buildConfiguration = RunConfigurationResolver.Resolve(
-                    null,
+                    UserConfigurationLoader.Load(),
                     new RunConfigurationOverrides(
                         N: int.MaxValue, P: parseResult.GetValue(p),
                         CliVersion: parseResult.GetValue(cliVersion),
@@ -168,6 +168,7 @@ public static class CommandTree
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                         ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
                     });
+                RunConfigurationValidator.Validate(buildConfiguration);
                 BuildResult result = new BuildService(
                     imagePreparer: new DockerAgentImagePreparer(
                         progress: message => logger.Info(message), cli: buildConfiguration.Cli)).Execute(
@@ -213,7 +214,6 @@ public static class CommandTree
         CancellationToken cancellationToken)
     {
         var command = new CliCommand("run", "Execute or preview a configured evaluation run.");
-        var manifest = new Option<string?>("--manifest") { Description = "Path to a JSON run manifest." };
         var dryRun = new Option<bool>("--dry-run") { Description = "Validate and print a side-effect-free plan." };
         var noOp = new Option<bool>("--no-op")
         {
@@ -267,7 +267,6 @@ public static class CommandTree
         };
         var verbose = new Option<bool>("--verbose") { Description = "Show run discovery and artifact details." };
         verbose.Aliases.Add("-v");
-        command.Options.Add(manifest);
         command.Options.Add(dryRun);
         command.Options.Add(noOp);
         command.Options.Add(oracle);
@@ -311,7 +310,7 @@ public static class CommandTree
                 {
                     Option[] immutableOptions =
                     [
-                        manifest, noOp, oracle, k, n, p, containerCpus, outputFormat,
+                        noOp, oracle, k, n, p, containerCpus, outputFormat,
                         outputDirectory, model, effort, cliVersion, cli, retainWorkspaces,
                         shortestFirst, include, tasks, logFile
                     ];
@@ -358,11 +357,8 @@ public static class CommandTree
             {
                 try
                 {
-                    RunManifest runManifest = parseResult.GetValue(manifest) is { } manifestPath
-                        ? RunManifestLoader.Load(manifestPath)
-                        : new RunManifest();
                     RunConfiguration runConfiguration = RunConfigurationResolver.Resolve(
-                        runManifest,
+                        UserConfigurationLoader.Load(),
                         new RunConfigurationOverrides(
                             K: parseResult.GetValue(k),
                             N: parseResult.GetValue(n),
@@ -374,34 +370,14 @@ public static class CommandTree
                             Effort: parseResult.GetValue(effort),
                             CliVersion: parseResult.GetValue(cliVersion),
                             Cli: parseResult.GetValue(cli),
-                            RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
-                            ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
+                            RetainWorkspaces: parseResult.GetResult(retainWorkspaces) is { Implicit: false }
+                                ? parseResult.GetValue(retainWorkspaces) : null,
+                            ShortestFirst: parseResult.GetResult(shortestFirst) is { Implicit: false }
+                                ? parseResult.GetValue(shortestFirst) : null,
                             NoOp: parseResult.GetValue(noOp) ? true : null,
                             Oracle: parseResult.GetValue(oracle) ? true : null),
-                        new Dictionary<string, string?>
-                        {
-                            ["K"] = Environment.GetEnvironmentVariable("K"),
-                            ["N"] = Environment.GetEnvironmentVariable("N"),
-                            ["P"] = Environment.GetEnvironmentVariable("P"),
-                            ["WHARF_K"] = Environment.GetEnvironmentVariable("WHARF_K"),
-                            ["WHARF_N"] = Environment.GetEnvironmentVariable("WHARF_N"),
-                            ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
-                            ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
-                            ["WHARF_OUTPUT_FORMAT"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_FORMAT"),
-                            ["WHARF_OUTPUT_DIRECTORY"] = Environment.GetEnvironmentVariable("WHARF_OUTPUT_DIRECTORY"),
-                            ["MODEL"] = Environment.GetEnvironmentVariable("MODEL"),
-                            ["WHARF_MODEL"] = Environment.GetEnvironmentVariable("WHARF_MODEL"),
-                            ["WHARF_EFFORT"] = Environment.GetEnvironmentVariable("WHARF_EFFORT"),
-                            ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
-                            ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION"),
-                            ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
-                            ["WHARF_RETAIN_WORKSPACES"] =
-                                Environment.GetEnvironmentVariable("WHARF_RETAIN_WORKSPACES"),
-                            ["WHARF_API_KEY"] = Environment.GetEnvironmentVariable("WHARF_API_KEY"),
-                            ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
-                            ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
-                        });
-                    RunConfigurationValidator.Validate(runManifest, runConfiguration);
+                        RunConfigurationResolver.ReadEnvironment());
+                    RunConfigurationValidator.Validate(runConfiguration);
                     string? taskRoot = parseResult.GetValue(tasks);
                     if (string.IsNullOrWhiteSpace(taskRoot))
                         throw new RunException("run task directory is required");
@@ -491,7 +467,6 @@ public static class CommandTree
             try
             {
                 string? rendered = DryRunService.Execute(
-                    parseResult.GetValue(manifest),
                     new RunConfigurationOverrides(
                         K: parseResult.GetValue(k),
                         N: parseResult.GetValue(n),
@@ -503,8 +478,10 @@ public static class CommandTree
                         Effort: parseResult.GetValue(effort),
                         CliVersion: parseResult.GetValue(cliVersion),
                         Cli: parseResult.GetValue(cli),
-                        RetainWorkspaces: parseResult.GetValue(retainWorkspaces) ? true : null,
-                        ShortestFirst: parseResult.GetValue(shortestFirst) ? true : null,
+                        RetainWorkspaces: parseResult.GetResult(retainWorkspaces) is { Implicit: false }
+                            ? parseResult.GetValue(retainWorkspaces) : null,
+                        ShortestFirst: parseResult.GetResult(shortestFirst) is { Implicit: false }
+                            ? parseResult.GetValue(shortestFirst) : null,
                         NoOp: parseResult.GetValue(noOp) ? true : null,
                         Oracle: parseResult.GetValue(oracle) ? true : null),
                     parseResult.GetValue(outputFormat));
@@ -598,7 +575,7 @@ public static class CommandTree
                         Environment.GetEnvironmentVariable("WHARF_TOKEN"),
                         Environment.GetEnvironmentVariable("WHARF_PASSWORD"))
                 };
-                RunConfigurationValidator.Validate(null, runConfiguration);
+                RunConfigurationValidator.Validate(runConfiguration);
                 WharfConfiguration loggerConfiguration = configuration with
                 {
                     Verbosity = Math.Max(
@@ -1040,6 +1017,7 @@ public static class CommandTree
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                         ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
                     });
+                UserConfiguration defaults = UserConfigurationLoader.Load();
                 var docker = new DockerProbe();
                 HostCheckReport host = new HostCheckService(
                     [new PlatformProbe(), docker, new CapacityProbe(docker)])
@@ -1064,7 +1042,8 @@ public static class CommandTree
                     parseResult.GetValue(cli),
                     parseResult.GetValue(model),
                     parseResult.GetValue(effort),
-                    parseResult.GetValue(cliVersion));
+                    parseResult.GetValue(cliVersion),
+                    defaults);
                 if (parseResult.GetValue(json))
                     Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions
                     {

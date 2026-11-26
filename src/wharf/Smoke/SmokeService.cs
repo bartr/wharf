@@ -40,7 +40,8 @@ public sealed class SmokeService
         string? cli = null,
         string? model = null,
         string? effort = null,
-        string? cliVersion = null)
+        string? cliVersion = null,
+        UserConfiguration? defaults = null)
     {
         if (string.IsNullOrWhiteSpace(taskRoot) || !Directory.Exists(taskRoot))
             throw new SmokeException($"smoke task directory does not exist: {taskRoot}");
@@ -68,7 +69,8 @@ public sealed class SmokeService
                 host.ExitCode);
         }
 
-        RunConfiguration configuration = ResolveConfiguration(resolvedOutput, cli, model, effort, cliVersion);
+        RunConfiguration configuration = ResolveConfiguration(
+            resolvedOutput, cli, model, effort, cliVersion, defaults: defaults);
         if (configuration.ContainerCpus is <= 0)
             throw new SmokeException("containerCpus must be positive");
         RunResult result = runService.Execute(
@@ -96,10 +98,11 @@ public sealed class SmokeService
         string? model = null,
         string? effort = null,
         string? cliVersion = null,
-        IReadOnlyDictionary<string, string?>? environment = null)
+        IReadOnlyDictionary<string, string?>? environment = null,
+        UserConfiguration? defaults = null)
     {
         RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            defaults ?? UserConfigurationLoader.Load(),
             new RunConfigurationOverrides(
                 K: 1,
                 N: 1,
@@ -122,7 +125,7 @@ public sealed class SmokeService
                 ["WHARF_TOKEN"] = Environment.GetEnvironmentVariable("WHARF_TOKEN"),
                 ["WHARF_PASSWORD"] = Environment.GetEnvironmentVariable("WHARF_PASSWORD")
             });
-        RunConfigurationValidator.ValidateEffort(configuration.Effort);
+        RunConfigurationValidator.Validate(configuration with { OutputDirectory = "jobs" });
         return configuration;
     }
 

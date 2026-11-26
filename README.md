@@ -77,6 +77,70 @@ execution environments, and automated verification of the resulting code.
   wharf run -n 16 -p 12 -k 4 --model gpt-6-luna
   ```
 
+## Operator defaults
+
+Every Wharf invocation creates `~/.wharf/` and `~/.wharf/config.json` if missing,
+including no arguments, help/version, invalid flags, dry-run and resume.
+Initialization uses built-in defaults, not environment or command-line overrides,
+and never overwrites existing files. New runs, dry-run, smoke and prebuild read
+these defaults; edit the generated file when persistent overrides are useful.
+The generated default configuration is:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "k": 1,
+  "n": 4,
+  "p": 4,
+  "timeouts": {},
+  "retries": { "maxAttempts": 1 },
+  "outputFormat": "text",
+  "retainWorkspaces": false,
+  "shortestFirst": false
+}
+```
+
+All fields are optional; omitted `schemaVersion` means `1.0`. The other supported
+field is positive integer `containerCpus`; omit it for unrestricted CPUs.
+Precedence is **flags > supported environment variables > user config > defaults**.
+Run concurrency still caps P at N; prebuild uses configured P without an N cap;
+smoke always uses K=N=P=1. Timeout values must be positive seconds; omitted
+phase values use task timeouts, then built-in defaults. `setupSeconds` applies
+to agent and verifier preparation. `maxAttempts` is the maximum infrastructure
+retry count, not total logical attempts; zero disables retries. Retry values
+must be non-negative. `reportSeconds` is unsupported. Explicit Boolean flags
+such as `--retain-workspaces false` or `--shortest-first false` override defaults.
+
+Supported run environment settings remain `K`, `N`, `P` (preferred over
+`WHARF_K`, `WHARF_N`, `WHARF_P`), `MODEL`/`WHARF_MODEL`, `WHARF_EFFORT`,
+`WHARF_CLI`, `WHARF_OUTPUT_FORMAT`, `WHARF_OUTPUT_DIRECTORY`,
+`WHARF_RETAIN_WORKSPACES`, and `WHARF_CONTAINER_CPUS`. Timeouts and retries
+are configured in the user file, not through new flags or environment aliases.
+
+Missing configuration is atomically initialized without overwriting a concurrent
+creator's file. Initialization errors fail explicitly, including on help/version.
+Malformed JSON, unknown/duplicate keys, unsupported schemas and invalid settings
+fail explicitly when loading defaults, even if a flag would override them.
+Existing files are not validated by startup alone, so help and retained-run
+commands still work with malformed current config. After initialization,
+configuration is read-only during command execution;
+keep credentials in their separate credential sources, never in this file.
+Provider, model, effort, CLI version, tasks, output location, batch size and
+no-op/oracle modes are not user-config fields; choose them through existing
+flags and supported environment variables.
+
+`--manifest` is removed, with no compatibility alias or alternate config-path
+flag. Migrate operational defaults into the supported fields above and keep
+run-specific choices explicit. Old mount/artifact/retention-day/resource-policy
+input fields had no runtime implementation; they are not user-config controls.
+Their persisted effective-configuration fields remain readable for old runs.
+Every new run retains its secret-free resolved configuration in `run-plan.json`.
+Resume and batch continuation restore that exact policy without reading today's
+user config; dry-run prints effective settings without Docker or run-output creation.
+User-config initialization is the sole startup write for otherwise read-only
+commands, including dry-run and retained-run previews.
+Harbor task manifests and `wharf analytics manifest` are unchanged.
+
 ## Choosing the agent CLI
 
 ### Subscription-aware batches
@@ -177,10 +241,10 @@ wharf run --cli codex --cli-version latest -n 16 -p 12 -k 4
 wharf smoke --cli codex --cli-version latest --model gpt-6-luna --effort high
 ```
 
-`--cli` overrides `WHARF_CLI`, then manifest `"cli"`, then `copilot`.
+`--cli` overrides `WHARF_CLI`, then `copilot`.
 On `run`, `smoke`, and `prebuild`, `--cli-version` pins the selected CLI or
-resolves its own `latest` version once before preparation. Run manifests may
-also pin `cliVersion`; precedence is flag, manifest, then `latest`. Wharf uses
+resolves its own `latest` version once before preparation. Version precedence
+is flag, then provider `latest`; user config cannot pin versions. Wharf uses
 the resolved exact version in image caches, run directories, and retained
 evidence, independently of any host-installed CLI.
 

@@ -151,7 +151,7 @@ public sealed class StateStoreTests
 
     private static RunConfiguration CreateConfiguration() =>
         RunConfigurationResolver.Resolve(
-            new RunManifest(),
+            null,
             new RunConfigurationOverrides(),
             new Dictionary<string, string?>());
 

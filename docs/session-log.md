@@ -2,6 +2,10 @@
 
 Intentional practice log. One entry per session.
 
+Historical entries describe the contracts delivered at the time. The Session 2
+run-input surface is now removed; see [operator defaults](../README.md#operator-defaults).
+Retained run configuration and dataset/analytics manifests remain supported.
+
 Record start and end times when they occur. During close, cross-check them
 against the first session commit and merge or tag timestamp.
 

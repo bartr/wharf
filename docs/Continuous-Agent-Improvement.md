@@ -583,19 +583,30 @@ benefit. This is not a claim that CPU limits are never useful elsewhere.
 this document records the negative finding and intended simplification,
 not an implemented removal or a quantified performance effect.
 
-### Run manifests: reconsider a configuration surface
+### Run configuration: remove per-run manifests, keep useful defaults
 
 `--manifest` offered structured, reusable configuration, but it also introduced
-another authoring, validation, and precedence surface. The likely direction
-is to remove it in favor of environment variables and command-line flags.
-This is a simplification judgment, not evidence that manifests caused a
-measured performance failure.
+another per-run authoring, validation, and precedence surface. We removed that
+option and replaced it with operator defaults in `~/.wharf/config.json`.
+Every CLI invocation, even no arguments, help or dry-run, creates missing
+directories/config using built-in defaults without overwriting existing files.
+Flags and supported environment variables override the file. Timeouts and retries remain configurable without
+adding a large new flag surface. Provider/model/effort, CLI version, tasks,
+output location and baseline modes stay outside the user file.
 
-**Direction:** removal is under consideration, not implemented. Simplifying
-configuration input must not discard the retained effective configuration,
+**Decision:** removal is implemented. Malformed or unsupported user settings
+fail explicitly before new-run output is created; credentials remain separate.
+See the [operator-defaults contract](../README.md#operator-defaults).
+Initialization is the explicit startup-write exception to otherwise read-only
+commands; it does not create run evidence or make resume depend on current defaults.
+Simplifying configuration input does not discard the retained effective configuration,
 task checksums, run plan, or immutable resume policy. Reproducibility comes
 from preserving the actual experiment, not requiring one particular input
 format.
+
+This is a simplification judgment, not evidence of measured performance or
+productivity improvement. Historical task payloads and run evidence remain unchanged;
+Harbor and analytics manifests are unrelated and remain supported.
 
 ### CLI-version environment variables: a completed correction
 
@@ -605,10 +616,9 @@ can carry a Copilot version into a Claude Code or Codex invocation. The
 therefore retired `WHARF_CLI_VERSION` and `CLI_VERSION`, rejecting them with
 migration guidance rather than silently ignoring a mismatched pin.
 
-**Current behavior:** `--cli-version` takes precedence over manifest
-`cliVersion`, then the selected provider's `latest`. That contract remains
-in force while `--manifest` is supported. Exact effective version identity
-remains part of the retained experiment.
+**Current behavior:** `--cli-version` takes precedence over the selected
+provider's `latest`. Neither user config nor environment variables pin it.
+Exact effective version identity remains part of the retained experiment.
 
 ## Leadership implications
 
@@ -659,6 +669,8 @@ are distinct outcomes.
 
 ## Close the loop
 
+- Create a 244 core Azure VM and run wharf -n 452 - this will test running a complete
+  DeepSWE test at k=4 in one pass. The current max concurrency is 160 on a 64 core VM.
 - Rerun the HVE tests on the first HVE release in 2027 to evaluate the updated
   guidance against the baseline.
 - Work with the HVE team to incorporate the skills changes we adapted from

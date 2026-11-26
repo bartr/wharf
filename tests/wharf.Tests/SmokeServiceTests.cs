@@ -9,6 +9,22 @@ namespace Wharf.Tests;
 
 public sealed class SmokeServiceTests
 {
+    [Fact]
+    public void SmokeKeepsSingleTrialConcurrencyAndUsesOperationalDefaults()
+    {
+        RunConfiguration configuration = SmokeService.ResolveConfiguration(
+            Path.GetTempPath(), environment: new Dictionary<string, string?>(),
+            defaults: new UserConfiguration(K: 4, N: 32, P: 12,
+                Timeouts: new PhaseTimeouts(AgentSeconds: 123),
+                Retries: new RetryPolicy(MaxAttempts: 2), RetainWorkspaces: true));
+        Assert.Equal(1, configuration.K);
+        Assert.Equal(1, configuration.N);
+        Assert.Equal(1, configuration.P);
+        Assert.Equal(123, configuration.Timeouts.AgentSeconds);
+        Assert.Equal(2, configuration.Retries.MaxAttempts);
+        Assert.True(configuration.RetainWorkspaces);
+    }
+
     [Theory]
     [InlineData("run", "1.2.3")]
     [InlineData("smoke", "1.2.3")]
@@ -61,7 +77,7 @@ public sealed class SmokeServiceTests
                 ["MODEL"] = "short-environment-model",
                 ["WHARF_MODEL"] = "environment-model",
                 ["WHARF_EFFORT"] = "low"
-            });
+            }, defaults: new UserConfiguration());
 
         Assert.Equal("custom-model", configuration.Model);
         Assert.Equal("max", configuration.Effort);
@@ -76,7 +92,7 @@ public sealed class SmokeServiceTests
     {
         RunConfiguration configuration = SmokeService.ResolveConfiguration(
             "jobs", cli, cliVersion: version,
-            environment: new Dictionary<string, string?>());
+            environment: new Dictionary<string, string?>(), defaults: new UserConfiguration());
 
         Assert.Equal(version, configuration.CliVersion);
     }
@@ -89,7 +105,7 @@ public sealed class SmokeServiceTests
             {
                 ["WHARF_MODEL"] = "environment-model",
                 ["WHARF_EFFORT"] = "high"
-            });
+            }, defaults: new UserConfiguration());
 
         Assert.Equal("environment-model", configuration.Model);
         Assert.Equal("high", configuration.Effort);
@@ -102,7 +118,7 @@ public sealed class SmokeServiceTests
     public void OmittedFlagsPreserveProviderDefaults(string cli, string model)
     {
         RunConfiguration configuration = SmokeService.ResolveConfiguration(
-            "jobs", cli, environment: new Dictionary<string, string?>());
+            "jobs", cli, environment: new Dictionary<string, string?>(), defaults: new UserConfiguration());
 
         Assert.Equal(model, configuration.Model);
         Assert.Equal("default", configuration.Effort);
@@ -113,7 +129,7 @@ public sealed class SmokeServiceTests
     {
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
             SmokeService.ResolveConfiguration("jobs", effort: "invalid",
-                environment: new Dictionary<string, string?>()));
+                environment: new Dictionary<string, string?>(), defaults: new UserConfiguration()));
 
         Assert.Contains("unsupported effort: invalid", exception.Message);
     }

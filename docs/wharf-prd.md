@@ -26,7 +26,7 @@ contracts and acceptance criteria are met.
 |------------|-------------------------|
 | Stable CLI behavior and commands | A maintained .NET command-line parser behind a Wharf-owned boundary |
 | .NET SDK-style executable structure | Responsibility-based namespaces under `src/wharf` |
-| Versioned manifest, event, result, summary, and log contracts | Internal event-store implementation |
+| Versioned user configuration, event, result, summary, and log contracts | Internal event-store implementation |
 | Host checks and operator safety limits | Exact concurrency recommendation algorithm |
 | Required report content and machine schemas | Human report styling |
 | Build-pipeline gate and 429 behavior | Internal scheduling data structures |
@@ -97,7 +97,7 @@ Component names are derived labels for boundaries directly required by
 
 ### 4.2 Shape
 
-The CLI loads and validates a versioned run manifest, task dataset, adapter,
+The CLI loads and validates versioned user defaults, task dataset, adapter,
 and host configuration before consuming model quota. The scheduler creates
 logical attempts and admits them through the configured build, agent, and
 verifier limits. The Docker worker prepares a reusable agent image, runs the
@@ -135,7 +135,8 @@ State model, Task compatibility, Results and artifacts]
 
 - Task and dataset definitions are discovered from the selected local path.
 - Run configuration is merged in this precedence order: command flag,
-  environment variable, manifest, built-in default.
+  supported environment variable, user config, built-in default.
+  Resume restores retained settings without loading current user defaults.
 - Existing completed logical attempts are detected and banked on resume.
 - Empty patches, incomplete attempts, and quota failures remain unfinished.
   [Source: CLI contract, Run configuration, Task ordering and selection]
@@ -150,7 +151,7 @@ State model, Task compatibility, Results and artifacts]
 
 ### 5.5 Schema
 
-Wharf must version its run manifest, effective configuration, events, job and
+Wharf must version its user configuration, effective configuration, events, job and
 trial results, materialized summaries, structured logs, reports, and exports.
 Run, trial, logical-attempt, and infrastructure-retry identifiers are immutable.
 Events are append-only. Mutable summaries use atomic file replacement. Internal
@@ -178,8 +179,9 @@ Global CLI behavior:
 - `--help` and `-h` display command-specific help.
 - `--version` and `wharf version` print the semantic version with no additional
   text or punctuation.
-- `--dry-run` and `-d` validate and show the plan without creating state,
+- `--dry-run` and `-d` validate and show the plan without creating run state,
   modifying Docker, or consuming quota.
+  Every invocation first initializes missing user config with built-in defaults.
 - `--verbose` and `-v` add lifecycle and retry detail; `-vv` logs every 429
   retry and selected delay; `-vvv` adds redacted command and subprocess detail.
 - `-v` is reserved for verbosity.
@@ -337,25 +339,37 @@ Acceptance criteria]
 
 ## 11. Configuration
 
-Configuration precedence is command flag, environment variable, manifest, then
+Configuration precedence is command flag, supported environment variable, user config, then
 built-in default.
 
 | Setting | Flag or variable | Default | Purpose |
 |---------|------------------|---------|---------|
-| Attempts | `K` / manifest equivalent | `4` for full DeepSWE | Attempts per task |
-| Trial concurrency | `N` / manifest equivalent | Host/run profile | Concurrent logical trials |
-| Preparation concurrency | `P` / manifest equivalent | Available CPU, operator-overridable | Agent and verifier preparation |
-| CLI version | Adapter version setting | Explicit run value | Pin Copilot CLI |
+| Attempts | `-k`, `K`/`WHARF_K`, user config `k` | `1`; choose `4` for full DeepSWE | Attempts per task |
+| Trial concurrency | `-n`, `N`/`WHARF_N`, user config `n` | `4` | Concurrent logical trials |
+| Preparation concurrency | `-p`, `P`/`WHARF_P`, user config `p` | `4`, capped at N for runs | Agent and verifier preparation |
+| CLI version | `--cli-version` | Selected-provider `latest` | Pin selected CLI; not a user-config field |
 | Model | Adapter model setting | Adapter-defined | Select main model |
 | Effort | Adapter effort setting | Model/adapter-defined | Preserve native value and normalized class |
-| Timeouts | Phase settings | Task values | Override build, setup, agent, and verifier timeouts |
+| Timeouts | User config `timeouts` | Task values, then built-in defaults | Positive setup/agent/verifier seconds; no report phase |
+| Retries | User config `retries` | One infrastructure retry | Non-negative maxAttempts/backoffSeconds; zero disables retries |
 | Verbosity | `--verbose`, `-v`, `-vv`, `-vvv` | Concise | Console detail |
-| Output | Manifest/flag | Run directory | Customer-owned retained state |
+| Output | Flag/environment; user config controls format only | `jobs`, text | Customer-owned retained state |
 
 Wharf records the effective merged configuration without secret values.
-Environment names and manifest keys are versioned contracts. Unknown values
+Environment names and user-config keys are versioned contracts. Unknown values
 fail explicitly. V1 has no pull-concurrency setting. [Source: Run configuration,
 CLI contract]
+
+`--manifest` is removed. `~/.wharf/config.json` supplies operational
+defaults only; see the [supported fields and migration](../README.md#operator-defaults).
+Every invocation initializes missing user directory/config using built-in defaults,
+even no arguments, help, invalid flags, dry-run and resume. Existing files are
+never overwritten or validated by startup alone; initialization failures are explicit.
+This is the sole startup-write exception to otherwise read-only commands.
+Malformed, duplicate, unknown or invalid settings fail when loading defaults,
+before run-output creation. Credentials and run-specific choices stay
+outside the file. Historical resource-policy/mount/artifact/retention-day input
+fields were not implemented operationally; only their retained fields remain.
 
 ## 12. Inner-Loop Dev Process
 

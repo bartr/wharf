@@ -1,3 +1,7 @@
+Historical prompt, not current implementation guidance: the per-run input
+described below is removed. See [operator defaults](../README.md#operator-defaults)
+for its replacement; retained evidence and pinned task snapshots remain unchanged.
+
 Implement reproducible run configuration and side-effect-free dry-run support
 for the .NET 10 `wharf` CLI.
 

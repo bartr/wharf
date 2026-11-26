@@ -11,6 +11,140 @@ namespace Wharf.Tests;
 public sealed class WharfAppTests
 {
     [Theory]
+    [InlineData("", 0)]
+    [InlineData("--help", 0)]
+    [InlineData("--quiet", 0)]
+    [InlineData("version", 0)]
+    [InlineData("run --dry-run --output-format json", 0)]
+    [InlineData("run --dry-run -n 2", 0)]
+    [InlineData("prebuild --help", 0)]
+    [InlineData("smoke --help", 0)]
+    [InlineData("resume --help", 0)]
+    [InlineData("analytics manifest --help", 0)]
+    [InlineData("--unknown-flag", 1)]
+    [InlineData("unknown-command", 1)]
+    public async Task EveryInvocationInitializesMissingUserConfig(string arguments, int expectedExit)
+    {
+        var result = await InvokeWithUserConfig(null,
+            arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        Assert.Equal(expectedExit, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task DryRunAutomaticallyLoadsUserConfigAndHonorsExplicitOverrides()
+    {
+        const string json = """
+            {"k":3,"n":8,"p":6,"retainWorkspaces":true,"shortestFirst":true,
+             "timeouts":{"agentSeconds":123},"retries":{"maxAttempts":2}}
+            """;
+        var baseline = await InvokeWithUserConfig(json, "run", "--dry-run", "--output-format", "json");
+        Assert.Equal(0, baseline.ExitCode);
+        using JsonDocument defaults = JsonDocument.Parse(baseline.Output);
+        Assert.Equal(3, defaults.RootElement.GetProperty("k").GetInt32());
+        Assert.Equal(6, defaults.RootElement.GetProperty("p").GetInt32());
+        Assert.True(defaults.RootElement.GetProperty("retainWorkspaces").GetBoolean());
+        Assert.Equal(123, defaults.RootElement.GetProperty("timeouts").GetProperty("agentSeconds").GetInt32());
+
+        var overridden = await InvokeWithUserConfig(json, "run", "--dry-run",
+            "--output-format", "json", "-n", "2", "--retain-workspaces", "false",
+            "--shortest-first", "false", "--cli", "codex", "--cli-version", "0.169.0");
+        Assert.Equal(0, overridden.ExitCode);
+        using JsonDocument flags = JsonDocument.Parse(overridden.Output);
+        Assert.Equal(2, flags.RootElement.GetProperty("n").GetInt32());
+        Assert.Equal(2, flags.RootElement.GetProperty("p").GetInt32());
+        Assert.False(flags.RootElement.GetProperty("retainWorkspaces").GetBoolean());
+        Assert.False(flags.RootElement.GetProperty("shortestFirst").GetBoolean());
+        Assert.Equal("0.169.0", flags.RootElement.GetProperty("cliVersion").GetString());
+        Assert.Equal("codex", flags.RootElement.GetProperty("cli").GetString());
+    }
+
+    [Theory]
+    [InlineData("run", "--dry-run")]
+    [InlineData("run", "--no-op")]
+    [InlineData("prebuild", "--verbose")]
+    [InlineData("smoke", "--allow-unsupported-host")]
+    public async Task InvalidUserConfigFailsBeforeCreatingOutput(string command, string flag)
+    {
+        var result = await InvokeWithUserConfig("""{"unknown":true}""", command, flag);
+        Assert.Equal(2, result.ExitCode);
+        Assert.Contains("invalid user configuration", result.Error);
+    }
+
+    internal static async Task<(int ExitCode, string Output, string Error)> InvokeWithUserConfig(
+        string? json, params string[] arguments)
+    {
+        string home = Path.Combine(Path.GetTempPath(), $"wharf-user-home-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(home);
+        string path = Path.Combine(home, ".wharf", "config.json");
+        if (json is not null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, json);
+        }
+        try
+        {
+            using Process process = new()
+            {
+                StartInfo = new ProcessStartInfo("dotnet")
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    WorkingDirectory = home
+                }
+            };
+            process.StartInfo.Environment["HOME"] = home;
+            foreach (string name in RunConfigurationResolver.ReadEnvironment().Keys)
+                process.StartInfo.Environment.Remove(name);
+            process.StartInfo.ArgumentList.Add(typeof(WharfApp).Assembly.Location);
+            foreach (string argument in arguments)
+                process.StartInfo.ArgumentList.Add(argument);
+            Assert.True(process.Start());
+            Task<string> stdout = process.StandardOutput.ReadToEndAsync();
+            Task<string> stderr = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            string output = await stdout;
+            string error = await stderr;
+            Assert.False(Directory.Exists(Path.Combine(home, "jobs")));
+            Assert.False(File.Exists(Path.Combine(home, "run.jsonl")));
+            if (json is not null)
+                Assert.Equal(json, File.ReadAllText(path));
+            else
+            {
+                Assert.True(File.Exists(path));
+                RunConfiguration expected = RunConfigurationResolver.Resolve(
+                    null, new RunConfigurationOverrides(), new Dictionary<string, string?>());
+                RunConfiguration initialized = RunConfigurationResolver.Resolve(
+                    UserConfigurationLoader.Load(home),
+                    new RunConfigurationOverrides(), new Dictionary<string, string?>());
+                Assert.Equal(RunConfigurationRenderer.Render(expected, "json"),
+                    RunConfigurationRenderer.Render(initialized, "json"));
+                Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(path)!, "*.tmp"));
+            }
+            return (process.ExitCode, output, error);
+        }
+        finally
+        {
+            Directory.Delete(home, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task RunRejectsRemovedManifestOptionBeforeCreatingOutput()
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        var command = root.Subcommands.Single(command => command.Name == "run");
+        Assert.DoesNotContain(command.Options, option => option.Name == "--manifest");
+        Assert.NotEmpty(root.Parse(["run", "--manifest", "old.json", "--dry-run"]).Errors);
+        string output = $"wharf-removed-manifest-{Guid.NewGuid():N}";
+        int exit = await WharfApp.RunAsync([
+            "run", "--manifest", "old.json", "--output-directory", output]);
+        Assert.Equal(1, exit);
+        Assert.False(Directory.Exists(output));
+        Assert.Empty(root.Parse(["analytics", "manifest", "--help"]).Errors);
+    }
+
+    [Theory]
     [InlineData("--no-op")]
     [InlineData("--oracle")]
     public void RunAcceptsBaselineFlagsWithoutChangingDryRun(string flag)

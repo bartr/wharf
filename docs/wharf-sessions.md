@@ -1,5 +1,9 @@
 # Wharf MVP implementation sessions
 
+Historical implementation plan: its Session 2 run-input contract is superseded.
+`--manifest` is removed; current operator defaults and migration are documented
+in [README](../README.md#operator-defaults). Original session evidence is retained.
+
 Status: Wharf 1.0.0 released; MVP implementation, benchmark evidence, and
 acceptance matrix complete
 Source: `docs/wharf.jsonl`

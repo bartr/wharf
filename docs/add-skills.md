@@ -14,9 +14,10 @@ task checksum, verifier environment, or grading input.
 
 ## Configuration
 
-Add `--agent-package <directory>`, manifest field `agentPackage`, and environment
+Add `--agent-package <directory>` and environment
 variable `WHARF_AGENT_PACKAGE`. Follow existing precedence:
-flag > environment > manifest > default. Default is no package and must
+flag > environment > default. This run-specific input does not belong in user
+configuration. Default is no package and must
 preserve current behavior. Resolve relative paths against the invocation's
 working directory and retain the absolute path in the effective configuration.
 
@@ -28,7 +29,7 @@ prepare a combined package locally if needed.
 Example:
 
 ```bash
-wharf run --manifest benchmark.json --agent-package ./agent-packages/fe
+wharf run --agent-package ./agent-packages/fe
 ```
 
 ## Source and destination layout

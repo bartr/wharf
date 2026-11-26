@@ -60,11 +60,17 @@ Start repository examples at the repository root, then `cd wharf-swe` (or
 `cd deep-swe`) and use the CLI's default suite paths. Do not rewrite pinned
 task payloads, task checksums, or retained run evidence when updating paths.
 
-Session 2 established strict `1.0` JSON run manifests and an explicit
-flag-over-environment-over-manifest-over-default precedence contract.
-`wharf run --manifest <path> --dry-run` validates and renders a deterministic
+Session 2's per-run JSON input was superseded by
+`~/.wharf/config.json` operator defaults. `--manifest` is removed.
+Precedence is flag over supported environment over user config over default;
+keep run-specific choices and credentials outside the user file.
+Every CLI invocation initializes missing user directory/config with built-in
+defaults before parsing, even no arguments/help/dry-run. Never overwrite existing
+files; initialization failures are explicit. This is the sole startup-write
+exception to otherwise read-only commands; resume does not load current defaults.
+`wharf run --dry-run` validates and renders a deterministic
 plan without creating output directories, run state, Docker resources, or
-network activity. Manifest and `WHARF_API_KEY`, `WHARF_TOKEN`, and
+network activity. `WHARF_API_KEY`, `WHARF_TOKEN`, and
 `WHARF_PASSWORD` values are redacted in rendered output. Keep configuration
 validation before any output-directory creation.
 
@@ -227,8 +233,9 @@ release-close memory, then create and push the replacement `1.0.0` tag at that
 new HEAD with `54c887b` as its validated runtime ancestor.
 
 Copilot CLI selection follows
-`--cli-version` over `WHARF_CLI_VERSION` over manifest `cliVersion` over
-`latest`. Exact requested/effective version equality remains mandatory. Run
+`--cli-version` over selected-provider `latest`; user config cannot pin it.
+`WHARF_CLI_VERSION` and `CLI_VERSION` are rejected. Exact requested/effective
+version equality remains mandatory. Run
 phase timeout overrides take precedence over task timeouts, which take
 precedence over built-in defaults; `reportSeconds` is rejected because the
 current pipeline has no report phase.

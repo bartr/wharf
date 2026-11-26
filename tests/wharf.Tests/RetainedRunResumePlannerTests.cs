@@ -8,6 +8,23 @@ namespace Wharf.Tests;
 
 public sealed class RetainedRunResumePlannerTests : IDisposable
 {
+    [Fact]
+    public async Task ResumeAndBatchPreviewIgnoreInvalidCurrentUserConfig()
+    {
+        RetainedRunFixture fixture = CreateRun(k: 1);
+        const string invalid = """{"unknown":true}""";
+        var resume = await WharfAppTests.InvokeWithUserConfig(invalid,
+            "resume", "--run-directory", fixture.RunDirectory, "--dry-run");
+        Assert.Equal(0, resume.ExitCode);
+        Assert.Contains("1.0.95", resume.Output);
+        var batch = await WharfAppTests.InvokeWithUserConfig(invalid,
+            "run", "--run-directory", fixture.RunDirectory, "-b", "1", "--dry-run");
+        Assert.Equal(0, batch.ExitCode);
+        Assert.Contains("1.0.95", batch.Output);
+        Assert.DoesNotContain("user configuration", resume.Error);
+        Assert.DoesNotContain("user configuration", batch.Error);
+    }
+
     [Theory]
     [InlineData("claude")]
     [InlineData("codex")]

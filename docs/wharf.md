@@ -89,8 +89,8 @@ agent containers. Images are still prepared from
 the task environment, so these baselines do not measure Copilot payload
 installation.
 
-Manifests accept `"noOp": true` and `"oracle": true`. Flags override manifest
-settings. `--dry-run` renders the mode without Docker, credential access, or
+Baseline modes are explicit flags, not user-config defaults.
+`--dry-run` renders the mode without Docker, credential access, or
 output creation. Job parents are `baseline-no-op`, `baseline-oracle`, or
 `baseline-no-op-oracle`. Retained configuration preserves the mode on resume;
 oracle resume also checks a digest of the complete reference solution directory.
@@ -144,7 +144,8 @@ does not cause an unexpected cold start.
 
 `prebuild -p` limits the number of tasks preparing images concurrently. Each task
 prepares its agent and verifier images sequentially, so their combined build
-concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, then 4; prebuild
+concurrency stays within P. Precedence is `-p`, `P`, `WHARF_P`, user config `p`,
+then 4; prebuild
 has no N cap. `--p` is not accepted. CLI version selection is `--cli-version`,
 then the selected provider's `latest`, resolved once to an exact version without
 reading credentials. Pin the same version for prebuild and run.
@@ -242,8 +243,8 @@ container and reuse the task's configured environment image. After MVP,
 - Delete terminal agent workspaces after the patch, stdout, stderr, trajectory,
   Copilot logs, verifier output, and final result have been persisted. This
   removes build outputs, package caches, and tool homes without changing the
-  retained scoring evidence. Use `--retain-workspaces`, manifest
-  `retainWorkspaces: true`, or `WHARF_RETAIN_WORKSPACES=1` for a diagnostic run
+  retained scoring evidence. Use `--retain-workspaces`, user config
+  `"retainWorkspaces": true`, or `WHARF_RETAIN_WORKSPACES=1` for a diagnostic run
   that must preserve writable workspaces. Cleanup failures remain visible in
   the lifecycle log and `result.json`.
 - Remove each task-derived agent image after its logical trial and each
@@ -439,7 +440,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   - `wharf repair`
   - `wharf compare`
 - reserve and document stable exit codes for success, invalid input, unsupported host, blocked run, partial run, and internal failure
-- configuration precedence is command flag, environment variable, manifest, then built-in default
+- configuration precedence is command flag, supported environment variable, user config, then built-in default
 - Use `-k`, `-n`, and `-p` for run attempts and concurrency; resume accepts
   `-n` and `-p`. Do not accept the double-dash forms `--k`, `--n`, or `--p`.
 - Accept `-m` as an alias for `--model` and `-e` for `--effort` on run and
@@ -475,8 +476,15 @@ later renamed WharfSWE. Java coverage remains a future goal.
 
 ## Run configuration
 
-- Support a manifest file for reproducible job configuration.
-- use a versioned manifest schema
+- Read operator defaults from `~/.wharf/config.json`; `--manifest`
+  is removed. See [supported fields and migration](../README.md#operator-defaults).
+- Every CLI invocation creates missing `~/.wharf/` and `config.json` using
+  built-in defaults, including no arguments, help, invalid flags and dry-run.
+  Never overwrite existing files; initialization failures are explicit.
+- Use a strict versioned user-config schema; malformed, unknown, duplicate or
+  invalid settings fail explicitly when commands load defaults. Startup alone
+  does not validate existing config. User-config initialization is the sole
+  startup-write exception for otherwise read-only commands.
 - Support CLI overrides for common settings.
 - Support `K`, the number of attempts per task.
 - Default full DeepSWE runs to `K=4`.
@@ -494,11 +502,13 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - Default preparation concurrency from available CPU, with operator override.
 - Support per-phase timeout multipliers and explicit timeout overrides.
 - Support bounded trial retries with configurable included and excluded exception types.
-- Support force-build, environment retention, resource-policy, mount, and artifact options.
+- Support environment retention. Historical resource-policy, mount, artifact
+  and retention-day input fields had no runtime implementation and are not user
+  defaults; preserve their effective-configuration fields for retained-run compatibility.
 - Validate all run settings before creating output directories or consuming model quota.
 - Pin agent CLI versions with `--cli-version` on run, smoke, and prebuild,
-  or `cliVersion` in run manifests, and record the effective version for every
-  trial. Version precedence is flag, manifest, then `latest`; obsolete
+  and record the effective version for every trial. Version precedence is flag,
+  then selected-provider `latest`; user config cannot pin versions. Obsolete
   `WHARF_CLI_VERSION` and `CLI_VERSION` settings are rejected with migration
   guidance. Exact versions drive version-specific image preparation without
   consulting the host-installed CLI; `latest` resolves the selected provider's
@@ -512,7 +522,11 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - Keep provider-native effort values in raw results.
 - record the effective merged configuration with every run
 - keep secret values out of the effective configuration record
-- environment variable names and manifest keys are part of the versioned configuration contract
+- environment variable names and user-config keys are part of the versioned configuration contract
+- Keep provider/model/effort, CLI version, tasks, output location, batch size and
+  baseline modes outside the user file; never store credentials there.
+- Resume and batch continuation restore retained configuration without loading
+  current user defaults; retain secret-free resolved settings with every new run.
 
 ## Task ordering and selection
 
