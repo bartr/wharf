@@ -11,6 +11,8 @@ helped us recognize a full-circle story: evaluate HVE, slim it into skills,
 build Wharf, learn from its operation, and feed the learning back into the
 skills. The method improves systems and expertise, not only agents.
 
+<img src="Continuous-Agent-Improvement-Evaluations.png" alt="Continuous agent improvement with evaluations" width="320">
+
 ## Why the journey started
 
 Positive HVE customer feedback lacked generated-code evidence.

@@ -8,6 +8,12 @@ harnesses, skills, and operating practices.
 
 ## Executive takeaway
 
+What began as an engineering question about HVE produced actionable feedback,
+a trusted relationship with GitHub's Performance Engineering team, and a
+reusable evaluation practice. That relationship did not previously exist in
+Frontier Co and is key to turning independent findings into product feedback
+and joint customer engagement.
+
 This journey started with HVE: would its engineering guidance improve
 outcomes? We tested that hypothesis, and the findings informed our
 recommendation to retain the useful discipline in a much smaller form.
@@ -73,6 +79,9 @@ a revised assumption, or an actionable finding for a product team.
 **Outcome and domain insight.** The original purpose of the journey was to
 evaluate whether HVE improves engineering outcomes. More guidance consumes
 context and may help, do nothing, or interfere; its value should be measured.
+Customer feedback was positive, but we lacked generated-code evidence.
+The [DeepSWE benchmark](https://deepswe.datacurve.ai/) supplied 113 real-world
+tasks across five languages, scored by functional and regression tests.
 We tested the hypothesis rather than treating the presence of HVE as proof
 of better engineering.
 
@@ -410,7 +419,9 @@ hours**. These are differently sized evaluations of different task suites.
 **Decision and reuse.** Use [recurring canary runs](published-benchmarks.md#cadence-and-arms)
 for early signals across CLI releases, with fixed-model reference points and
 deeper evaluation where needed. Domain knowledge changed the evaluation target,
-not just the execution machinery.
+not just the execution machinery. We are working with GitHub's Performance
+Engineering team to include the C# tests in MSBench; inclusion is ongoing
+work, not a completed outcome.
 
 **Evidence boundary.** The figures demonstrate the practical size/cost of
 these observations, not comparable accuracy or an isolated speedup. WharfSWE
@@ -451,6 +462,13 @@ evaluation is needed to establish any resulting improvement.
 
 **Outcome and domain insight.** Automatic selection should be tested against
 the engineering workload, not assumed to select an effective configuration.
+
+**Recommendation.** Do not use the tested Copilot Auto configuration for
+repository-level engineering work; prefer an explicitly selected, evaluated
+model-harness configuration. In our discussions, GitHub agreed that Auto's
+performance was inadequate for this workload. HydraFusion is being developed
+to improve automatic orchestration. This is not a blanket recommendation
+against every future routing system or workload.
 
 **Evaluation and response.** The [Auto campaign](ANALYTICS.md#auto-model-selection)
 passed **209/565 trials (37.0%)**. Even removing 27 agent timeouts as a
@@ -575,6 +593,47 @@ The recommended practice is to retain the conditions, evidence, decision, and
 learning together. Keep demonstrated improvements; revise weak assumptions;
 evaluate proposed fixes before claiming their benefit. This turns the slide
 from a presentation into a repeatable engineering practice.
+
+## Product partnership: a key outcome
+
+Sharing reproducible findings established the relationship with GitHub's
+Performance Engineering team. It connects our evaluation work to product
+engineering and customer needs, rather than ending at a benchmark report.
+The team now wants to jointly engage customers and is willing to present at
+our HVE workshops.
+
+The team has already delivered a Frontier Co enablement session on evaluations,
+introducing [Vally](https://microsoft.github.io/vally/) for repeatable
+evaluations, [TOAST](https://aka.ms/evals/toast) for human side-by-side agent
+comparisons, and the
+[MSBench DeepSWE report](https://msbenchapp.azurewebsites.net/reports/compete?bin=2026-09-28&benchmark=deepswe1-1&metric=avgRate%2CcostP50).
+
+Independent Muse and Claude Code runs closely reproduced Meta's published
+aggregate results, providing a cross-check that strengthened confidence in
+our evaluation pipeline. As the [results notes](RESULTS.md#cross-evaluation-corroboration)
+explain, this is aggregate corroboration, not paired replication.
+
+The original success criterion, actionable HVE feedback, is being met.
+The partnership extends it into customer engagements, ongoing work to include
+WharfSWE tests in MSBench, and a scalable feedback path into GitHub Copilot
+engineering. These relationship milestones reflect the project lead's update;
+delivered enablement, willingness to participate, and ongoing benchmark work
+are distinct outcomes.
+
+## Close the loop
+
+- Rerun the HVE tests on the first HVE release in 2027 to evaluate the updated
+  guidance against the baseline.
+- Work with the HVE team to incorporate the skills changes we adapted from
+  the Ignite slide: **outcome, evidence, hypothesis, evaluation, decision, and
+  learning**.
+
+## TLT discussion and ask
+
+1. Help identify customer/partner opportunities for joint engagement with
+   GitHub's Performance Engineering team.
+2. Is there an opportunity to use Wharf as a working example of the approach
+   recommended in the Ignite slide?
 
 ## Extending this record
 
