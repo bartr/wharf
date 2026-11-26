@@ -167,7 +167,7 @@ State model, Progress and operations]
 | `wharf run` | v1 | Start a configured task or dataset run |
 | `wharf resume` | v1 | Resume missing or retryable work without duplicating completed attempts |
 | `wharf progress` | v1 | Read lifecycle progress from retained run logs without mutating the run |
-| `wharf analytics export` | v1 | Export one canonical JSONL row per retained logical trial |
+| `wharf analytics export` | v1 | Discover completed all-N jobs under ./jobs, combine per arm, skip existing files unless --recompute |
 | `wharf analytics manifest` | v1 | Rebuild the data-only index from canonical JSONL exports |
 | `wharf prebuild` | v1 | Warm the Docker image cache before execution |
 | `wharf completion` | v1 | Generate Bash and Zsh completion |
@@ -246,6 +246,12 @@ Image pulls and builds]
 - Quiet mode suppresses nonessential console output without suppressing
   durable evidence. [Source: Language, Image pulls and builds, Progress and
   operations]
+
+Analytics export skips incomplete/resumable runs with reasons and infers labels
+from retained configuration (legacy arm/log fallback). Unrecorded subagents
+remain null. Exports use `(job, trial)` identity and retained task checksums.
+Default output is sibling `data/<arm>.jsonl`; existing files are untouched
+unless `--recompute` is requested. [Source: Auditing and trustworthy scoring]
 
 ### 7.3 Dashboards
 

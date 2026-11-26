@@ -30,7 +30,7 @@ public sealed class DataManifestBuilder
                 throw new AnalyticsEvidenceException(
                     $"analytics file '{path}' contains multiple arms");
             }
-            if (rows.Select(row => row.Trial).Distinct(StringComparer.Ordinal).Count() != rows.Count)
+            if (rows.Select(row => (row.Job, row.Trial)).Distinct().Count() != rows.Count)
             {
                 throw new AnalyticsEvidenceException(
                     $"analytics file '{path}' contains duplicate logical trials");

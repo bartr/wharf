@@ -717,6 +717,14 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - Build a data-only manifest without requiring access to raw jobs.
 - Use `wharf analytics export` for canonical run export and
   `wharf analytics manifest` for the data-only index.
+- Export defaults to `./jobs`, discovers completed `all-N` runs recursively,
+  combines completed jobs per arm, and writes sibling `data/<arm>.jsonl`.
+- Skip incomplete/resumable runs and existing exports with explicit reasons;
+  `--recompute` atomically replaces exports using discovered completed jobs.
+- Infer run labels from retained configuration, or legacy arm/log evidence;
+  reject contradictory labels and leave unrecorded subagent availability null.
+- Use `(job, trial)` identity within each arm and preserve retained checksums
+  without requiring current task payloads to match historical runs.
 - retain everything by default
 - preserve source file hashes and schema versions in exports
 - canonical JSONL exports and data-only JSON manifests are the analytics surfaces

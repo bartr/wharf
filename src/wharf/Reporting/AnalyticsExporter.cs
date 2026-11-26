@@ -21,7 +21,16 @@ public sealed class AnalyticsExporter(RunEvidenceReader? reader = null)
         IReadOnlyList<AnalyticsTrial> rows = reader.Read(runDirectory, options)
             .OrderBy(row => row.Trial, StringComparer.Ordinal)
             .ToArray();
-        if (rows.Select(row => row.Trial).Distinct(StringComparer.Ordinal).Count() != rows.Count)
+        Write(outputPath, rows, overwrite: true);
+        return rows;
+    }
+
+    internal static bool Write(
+        string outputPath,
+        IReadOnlyList<AnalyticsTrial> rows,
+        bool overwrite)
+    {
+        if (rows.Select(row => (row.Job, row.Trial)).Distinct().Count() != rows.Count)
         {
             throw new AnalyticsEvidenceException(
                 "analytics rows must have unique logical-trial identities");
@@ -38,7 +47,11 @@ public sealed class AnalyticsExporter(RunEvidenceReader? reader = null)
         {
             Directory.CreateDirectory(outputDirectory);
         }
-        AtomicFile.Replace(fullOutputPath, jsonl.ToString());
-        return rows;
+        if (overwrite)
+        {
+            AtomicFile.Replace(fullOutputPath, jsonl.ToString());
+            return true;
+        }
+        return AtomicFile.TryCreate(fullOutputPath, jsonl.ToString());
     }
 }

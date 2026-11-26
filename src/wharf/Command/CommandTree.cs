@@ -764,20 +764,28 @@ public static class CommandTree
     {
         var command = new CliCommand(
             "export",
-            "Export one canonical JSONL row per retained logical trial.");
+            "Discover completed all-N runs and export combined JSONL per arm.");
         var runDirectory = new Option<string>("--run-directory")
         {
-            Description = "Completed Wharf run directory."
+            Description = "Jobs tree, arm directory, or individual all-N run.",
+            DefaultValueFactory = _ => "jobs"
         };
         var output = new Option<string>("--output")
         {
-            Description = "Analytics JSONL output path."
+            Description = "Explicit JSONL output path for a single arm."
+        };
+        var outputDirectory = new Option<string?>("--output-directory")
+        {
+            Description = "Export directory. Defaults to data beside the jobs directory."
+        };
+        var recompute = new Option<bool>("--recompute")
+        {
+            Description = "Rebuild and replace existing arm JSONL exports."
         };
         var arm = new Option<string>("--arm") { Description = "Canonical benchmark arm name." };
         var agent = new Option<string>("--agent")
         {
-            Description = "Agent product name.",
-            DefaultValueFactory = _ => "copilot-cli"
+            Description = "Agent product name; inferred from retained evidence."
         };
         var agentVersion = new Option<string?>("--agent-version")
         {
@@ -787,18 +795,18 @@ public static class CommandTree
         model.Aliases.Add("-m");
         var effort = new Option<string>("--effort")
         {
-            Description = "Effective reasoning effort.",
-            DefaultValueFactory = _ => "max"
+            Description = "Effective reasoning effort; inferred from retained evidence."
         };
         effort.Aliases.Add("-e");
-        var subagents = new Option<bool>("--subagents")
+        var subagents = new Option<bool?>("--subagents")
         {
-            Description = "Whether subagent tools were available.",
-            DefaultValueFactory = _ => true
+            Description = "Explicit subagent availability; unknown when omitted."
         };
-        var job = new Option<string?>("--job") { Description = "Optional batch or job name." };
+        var job = new Option<string?>("--job") { Description = "Retained job directory name; inferred when omitted." };
         command.Options.Add(runDirectory);
         command.Options.Add(output);
+        command.Options.Add(outputDirectory);
+        command.Options.Add(recompute);
         command.Options.Add(arm);
         command.Options.Add(agent);
         command.Options.Add(agentVersion);
@@ -810,29 +818,31 @@ public static class CommandTree
         {
             try
             {
-                string runPath = RequiredOption(parseResult.GetValue(runDirectory), "run directory");
-                string outputPath = RequiredOption(parseResult.GetValue(output), "analytics output");
-                var options = new AnalyticsExportOptions(
-                    RequiredOption(parseResult.GetValue(arm), "analytics arm"),
-                    RequiredOption(parseResult.GetValue(agent), "agent"),
-                    parseResult.GetValue(agentVersion),
-                    RequiredOption(parseResult.GetValue(model), "model"),
-                    RequiredOption(parseResult.GetValue(effort), "effort"),
-                    parseResult.GetValue(subagents),
-                    parseResult.GetValue(job));
-                IReadOnlyList<AnalyticsTrial> rows =
-                    new AnalyticsExporter().Export(runPath, outputPath, options);
-                Console.WriteLine(
-                    $"exported trials={rows.Count} tasks={rows.Select(row => row.TaskId).Distinct().Count()} " +
-                    $"output={Path.GetFullPath(outputPath)}");
+                int trials = new AnalyticsExportDiscovery().Export(
+                    new AnalyticsDiscoveryOptions(
+                        RequiredOption(parseResult.GetValue(runDirectory), "run directory"),
+                        parseResult.GetValue(outputDirectory),
+                        parseResult.GetValue(recompute),
+                        parseResult.GetValue(output),
+                        parseResult.GetValue(arm),
+                        parseResult.GetValue(agent),
+                        parseResult.GetValue(agentVersion),
+                        parseResult.GetValue(model),
+                        parseResult.GetValue(effort),
+                        parseResult.GetValue(subagents),
+                        parseResult.GetValue(job)),
+                    Console.WriteLine);
+                Console.WriteLine($"analytics exported-trials={trials}");
                 return ExitCode.Success.Value;
             }
-            catch (AnalyticsEvidenceException exception)
+            catch (Exception exception) when (
+                exception is AnalyticsEvidenceException or RecoveryException or
+                    RunException or RunConfigurationException)
             {
                 Console.Error.WriteLine(exception.Message);
                 return ExitCode.InvalidInput.Value;
             }
-            catch (IOException exception)
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 Console.Error.WriteLine($"unable to export analytics: {exception.Message}");
                 return ExitCode.InternalFailure.Value;

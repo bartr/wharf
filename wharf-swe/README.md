@@ -2,7 +2,26 @@
 
 WharfSWE is a 14-task C# software-engineering benchmark built from Wharf's own
 development history. The Wharf CLI runs this suite separately from DeepSWE.
-At K=4, each arm contains 56 logical trials.
+At K=4, each job contains 56 logical trials.
+
+## Export completed runs
+
+From this directory:
+
+```bash
+wharf analytics export
+wharf analytics manifest
+```
+
+Export discovers completed `all-N` jobs under `./jobs`, combines them per arm,
+and creates missing `data/<arm>.jsonl` files. Incomplete/resumable jobs and
+existing exports are skipped. Use `wharf analytics export --recompute` to
+replace exports from all currently completed jobs. Run labels are inferred
+from retained evidence; unrecorded subagent availability stays null.
+
+The published comparisons below use one 56-trial job per arm. Combining more
+jobs changes that arm's trial count; the current revision charts still require
+56-trial inputs. Export does not automatically update charts or this README.
 
 ## Passing trials by CLI revision
 

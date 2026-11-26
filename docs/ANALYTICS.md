@@ -6,30 +6,65 @@ reproduce every number without re-deriving it from the website. Nothing here dep
 
 ## Exporting retained Wharf runs
 
-Wharf exports one canonical JSONL row per logical trial directly from retained
-run evidence. Infrastructure retries remain nested evidence and never create
-additional rows.
+Wharf discovers completed `all-N` runs and exports one canonical JSONL row per
+logical trial directly from retained evidence. Infrastructure retries remain
+nested evidence and never create additional rows. Completed jobs for the same
+arm are combined; logical-trial identity is `(job, trial)` within that arm.
 
 Wharf PASS@1 always uses the planned benchmark universe as its denominator:
 `K * 113` for the canonical suite. Missing, cancelled, errored, or otherwise
 unmeasured scheduled attempts contribute zero passes and never reduce the
 denominator. JSONL row count and score coverage remain separate diagnostics.
 
+Start at the repository root, then select the suite:
+
 ```bash
-wharf analytics export \
-  --run-directory deep-swe/jobs/<arm>/<job> \
-  --output deep-swe/data/<arm>.jsonl \
-  --arm <arm> \
-  --agent copilot-cli \
-  --agent-version <version> \
-  --model <model> \
-  --effort <effort> \
-  --job <job>
+cd wharf-swe
+wharf analytics export
+wharf analytics manifest
 ```
+
+Export defaults to `./jobs` and writes `data/<arm>.jsonl` beside that jobs
+directory. It stops traversing once it reaches an `all-N` directory and does
+not follow directory symlinks. Runs with missing terminal slots, invalid
+terminal identity, pending quota cleanup, or an unfinished latest batch are
+skipped with an explicit reason. Terminal failures remain included.
+Discovery refuses to combine different jobs trees; select one suite at a time
+so WharfSWE and DeepSWE exports cannot be mixed.
+
+Existing JSONL files are skipped before their jobs are read. New completed
+jobs do not update an existing arm until recomputation is requested:
+
+```bash
+wharf analytics export --recompute
+```
+
+Recomputation replaces each eligible arm file using all discovered completed
+jobs. Incomplete jobs stay excluded; an arm with no completed jobs leaves an
+existing export untouched. Without recomputation, creation is atomic and
+does not overwrite even if another process creates the file concurrently.
+
+`--run-directory` also accepts one arm or one `all-N` run, including `.` from
+inside a run. The default destination is still `data` beside the nearest
+ancestor `jobs` directory; otherwise it is `./data`. `--output-directory`
+selects another destination. `--output` selects a file only when exactly one
+arm is discovered.
+
+Model, effort, CLI and CLI version come from the retained configuration.
+If an older plan records the request `latest`, the resolved version comes from
+its arm directory and a warning makes that distinction explicit.
+Legacy runs use their arm name and plan log, with a warning; missing task
+checksums remain null rather than being guessed from a changed checkout.
+Explicit `--arm`, `--job`, `--agent`, `--agent-version`, `--model`, and `--effort` must
+agree with retained values. Subagent availability is null when unrecorded,
+unless explicitly supplied with `--subagents true` or `--subagents false`.
 
 The exporter preserves terminal failures and missing measurements. An explicit
 unknown terminal cost remains null even if partial agent telemetry exists.
-This keeps cost coverage separate from score coverage.
+This keeps cost coverage separate from score coverage. Export does not update
+manifests, READMEs or charts, and does not run agents or consume quota.
+Current revision charts require 56-trial arms; combining multiple completed
+jobs requires a separate chart-methodology update before plotting those arms.
 
 Rebuild the portable index without reading `deep-swe/jobs/`:
 

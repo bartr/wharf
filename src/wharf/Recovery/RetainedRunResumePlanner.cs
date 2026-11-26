@@ -56,7 +56,7 @@ public sealed class RetainedRunResumePlanner
             RetainedRunMetadataStore.Read(resolvedRun);
         bool baseline = retainedMetadata?.Configuration is { NoOp: true } or { Oracle: true };
         string parentName = Directory.GetParent(resolvedRun)?.Name ?? string.Empty;
-        Match arm = ArmPattern.Match(parentName);
+        Match arm = ParseArmName(parentName);
         if (baseline && parentName != BaselineRunService.BuildJobDirectoryName(retainedMetadata!.Configuration))
             throw new RecoveryException("baseline resume directory does not match the retained execution mode");
         if (!arm.Success && !baseline)
@@ -254,16 +254,19 @@ public sealed class RetainedRunResumePlanner
         $"{Sanitize(taskId)}__{checksum[..8]}" +
         (k > 1 ? $"__attempt-{attempt}" : string.Empty);
 
-    private static Match ReadPlanMetadata(string logPath)
+    internal static Match ParseArmName(string name) => ArmPattern.Match(name);
+
+    internal static Match ReadPlanMetadata(string logPath)
     {
         foreach (string line in File.ReadLines(logPath))
         {
             try
             {
                 using JsonDocument document = JsonDocument.Parse(line);
-                string? message = document.RootElement
-                    .GetProperty("message")
-                    .GetString();
+                if (document.RootElement.ValueKind != JsonValueKind.Object)
+                    throw new RecoveryException($"resume run log contains a non-object record: {logPath}");
+                string? message = document.RootElement.TryGetProperty("message", out JsonElement value) &&
+                    value.ValueKind == JsonValueKind.String ? value.GetString() : null;
                 Match match = PlanPattern.Match(message ?? string.Empty);
                 if (match.Success)
                     return match;
@@ -376,7 +379,13 @@ public sealed class RetainedRunResumePlanner
 
     private static bool IsValidTerminalResult(
         string path,
-        TaskAttempt attempt)
+        TaskAttempt attempt) =>
+        IsValidTerminalResult(path, attempt.Task.TaskId, attempt.AttemptNumber);
+
+    internal static bool IsValidTerminalResult(
+        string path,
+        string expectedTaskId,
+        int expectedAttempt)
     {
         try
         {
@@ -384,13 +393,15 @@ public sealed class RetainedRunResumePlanner
             JsonElement root = document.RootElement;
             return root.ValueKind == JsonValueKind.Object &&
                 root.TryGetProperty("taskId", out JsonElement taskId) &&
+                taskId.ValueKind == JsonValueKind.String &&
                 string.Equals(
                     taskId.GetString(),
-                    attempt.Task.TaskId,
+                    expectedTaskId,
                     StringComparison.Ordinal) &&
                 root.TryGetProperty("attempt", out JsonElement attemptNumber) &&
+                attemptNumber.ValueKind == JsonValueKind.Number &&
                 attemptNumber.TryGetInt32(out int retainedAttempt) &&
-                retainedAttempt == attempt.AttemptNumber &&
+                retainedAttempt == expectedAttempt &&
                 root.TryGetProperty("status", out JsonElement status) &&
                 status.ValueKind == JsonValueKind.String &&
                 !string.IsNullOrWhiteSpace(status.GetString());

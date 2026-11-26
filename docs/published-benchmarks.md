@@ -121,11 +121,12 @@ configuration whenever they appear on the same chart.
 
 Every published point must trace to retained evidence:
 
-1. Export the completed run with `./wharf analytics export` to one JSONL row
+1. From the repository root, `cd wharf-swe` and run `wharf analytics export`
+   (or `--recompute` to replace an existing arm), producing one JSONL row
    per logical trial. Infrastructure and verifier retries remain nested
    evidence and never become additional trials.
 2. Rebuild the manifest with
-   `./wharf analytics manifest --data-directory wharf-swe/data`.
+   `wharf analytics manifest` from that suite directory.
 3. Validate row count, unique logical-trial identity, task coverage, K depth,
    reward totals, P2P counts, cost conversion, and duration coverage before
    publishing.

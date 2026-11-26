@@ -21,6 +21,7 @@ public sealed class WharfAppTests
     [InlineData("smoke --help", 0)]
     [InlineData("resume --help", 0)]
     [InlineData("analytics manifest --help", 0)]
+    [InlineData("analytics export --help", 0)]
     [InlineData("--unknown-flag", 1)]
     [InlineData("unknown-command", 1)]
     public async Task EveryInvocationInitializesMissingUserConfig(string arguments, int expectedExit)
@@ -97,6 +98,18 @@ public sealed class WharfAppTests
         var help = await InvokeWithUserConfig(null, "--help");
         Assert.Equal(0, help.ExitCode);
         Assert.DoesNotContain($"{command} ", help.Output);
+    }
+
+    [Fact]
+    public async Task AnalyticsExportDefaultsToJobsAndAcceptsFriendlyFlags()
+    {
+        RootCommand root = CommandTree.Create(new WharfConfiguration());
+        Assert.Empty(root.Parse(["analytics", "export", "--recompute", "--output-directory", "data"]).Errors);
+        var result = await InvokeWithUserConfig(null, "analytics", "export");
+        Assert.Equal(2, result.ExitCode);
+        Assert.Contains("jobs", result.Error);
+        Assert.DoesNotContain("analytics output", result.Error);
+        Assert.DoesNotContain("model is required", result.Error);
     }
 
     internal static async Task<(int ExitCode, string Output, string Error)> InvokeWithUserConfig(

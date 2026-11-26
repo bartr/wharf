@@ -84,8 +84,28 @@ without attaching to its tmux session. Ctrl+C in the running pane requests
 cancellation so Wharf can retain evidence and clean up its owned resources.
 Use `wharf resume --run-directory <run-directory>` to continue unfinished work.
 
-Export completed runs with `wharf analytics export`, then rebuild the data-only
-index with `wharf analytics manifest`. Choose N/P explicitly from measured host
+From `wharf-swe`, export completed runs and rebuild the data-only index:
+
+```bash
+wharf analytics export
+wharf analytics manifest
+```
+
+Export defaults to `./jobs`, discovers completed `all-N` runs recursively, and
+combines completed jobs for each arm into `data/<arm>.jsonl`. Incomplete runs
+and runs needing resume are skipped with a reason. Existing JSONL files are
+left unchanged; use `wharf analytics export --recompute` to rebuild them.
+Discovery stops at run directories and does not follow directory symlinks.
+It reads retained evidence only and does not consume model quota.
+
+`--run-directory` can select a jobs tree, one arm, or one `all-N` run.
+CLI/model/version/effort are inferred; contradictory explicit labels fail.
+Unrecorded subagent availability is null unless supplied with `--subagents`.
+Use `--output-directory` for a different export destination, or `--output`
+for a single arm. Explicit paths inside an `all-N` run still default to the
+suite's sibling `data` directory. No manifest, README or chart is auto-updated.
+
+Choose N/P explicitly from measured host
 capacity; Wharf does not automatically tune concurrency.
 
 ## Operator defaults

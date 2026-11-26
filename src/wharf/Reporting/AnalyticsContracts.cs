@@ -8,7 +8,7 @@ public sealed record AnalyticsExportOptions(
     string? AgentVersion,
     string Model,
     string Effort,
-    bool Subagents,
+    bool? Subagents,
     string? Job = null);
 
 public sealed record AnalyticsTrial(
@@ -21,7 +21,7 @@ public sealed record AnalyticsTrial(
     [property: JsonPropertyName("agent_version")] string? AgentVersion,
     [property: JsonPropertyName("model")] string Model,
     [property: JsonPropertyName("effort")] string Effort,
-    [property: JsonPropertyName("subagents")] bool Subagents,
+    [property: JsonPropertyName("subagents")] bool? Subagents,
     [property: JsonPropertyName("reward")] double? Reward,
     [property: JsonPropertyName("f2p_passed")] int? FunctionalTestsPassed,
     [property: JsonPropertyName("f2p_total")] int? FunctionalTestsTotal,

@@ -63,7 +63,14 @@ internal static class RetainedRunMetadataStore
                     $"unsupported resume run plan schema: {metadata.SchemaVersion}");
             }
 
-            if (string.IsNullOrWhiteSpace(metadata.TaskRoot) || metadata.Tasks.Count == 0)
+            if (string.IsNullOrWhiteSpace(metadata.TaskRoot) ||
+                metadata.Configuration is null || metadata.Tasks is null || metadata.Tasks.Count == 0 ||
+                string.IsNullOrWhiteSpace(metadata.Configuration.Model) ||
+                string.IsNullOrWhiteSpace(metadata.Configuration.Effort) ||
+                string.IsNullOrWhiteSpace(metadata.Configuration.CliVersion) ||
+                string.IsNullOrWhiteSpace(metadata.Configuration.Cli) ||
+                metadata.Tasks.Any(task => task is null ||
+                    string.IsNullOrWhiteSpace(task.TaskId) || string.IsNullOrWhiteSpace(task.SourceChecksum)))
                 throw new RecoveryException("resume run plan is incomplete");
             if (metadata.Tasks.Select(task => task.TaskId).Distinct(StringComparer.Ordinal).Count() !=
                 metadata.Tasks.Count)
