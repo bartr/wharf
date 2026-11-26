@@ -24,6 +24,31 @@ recommendation to retain the useful discipline in a much smaller form.
 The "skills" used to develop Wharf are a **very slimmed-down subset of HVE**,
 packaged as reusable workflows and refined locally, not the full HVE offering.
 
+### The full-circle engineering story
+
+1. **Evaluate HVE.** Test whether the guidance improves engineering outcomes,
+   rather than assume that more guidance means better results.
+2. **Slim it down.** Turn the findings into a recommendation: retain useful
+   HVE discipline in a small, reusable skills subset.
+3. **Build a real CLI with those skills.** Use them to develop Wharf, retaining
+   requirements, decisions, tests, and operational evidence along the way.
+4. **Encounter the slide and recognize the method.** The slide arrived after
+   the development work. We recognized its improvement loop as a description
+   of how we had already developed and refined Wharf.
+5. **Use the repositories as the case study.** Wharf and DeepSWE's retained
+   engineering records supplied concrete examples of the loop, including
+   successful changes, rejected assumptions, and new domain knowledge.
+6. **Feed the learning back into the skills.** Incorporate the slide's
+   guidance into our HVE-derived skills through the shared evaluation contract,
+   so the next engineering effort can reuse what this one taught us.
+
+This is a **full-circle, 360-degree engineering accomplishment**: evaluation
+shaped the skills, the skills helped produce a working platform, the platform's
+development supplied evidence, and that evidence improved the skills again.
+The outputs are not just a CLI, but also better domain understanding and a
+reusable engineering practice. The slide did not cause the original work;
+it helped us recognize, explain, and deliberately extend the loop.
+
 Improving an agent-powered engineering system is not limited to selecting a
 better model. Outcomes depend on the **model, harness, and skills**, and how
 they interact with the user's environment and constraints.
