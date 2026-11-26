@@ -261,37 +261,62 @@ See the [batch requirements](batched-runs-prd.md) for the complete contract.
 
 Inspection on November 25, 2026 covered the
 [Claude Code 2.1.332 run](../wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.332/all-1)
-with a fixed 14-task, K=4 plan: **56 logical trials**.
+with a fixed 14-task, K=4 plan: **all 56 logical trials are now complete**.
+The operator reports completing the suite across two quota sessions on a
+**$25/month plan**.
 
 | Observed measure | Result |
 |---|---|
-| Batch budgets | 14, 4, 10, 5, 1, 1, 1 |
-| Accepted trials across seven invocations | 36; each batch stayed within its budget |
+| Actual batch sizes | 14, 4, 10, 5, 1, 1, 1, 20 |
+| Accepted trials across eight invocations | 56; each batch stayed within its budget |
+| Final invocation | Accepted the remaining 20 trials, within its budget of 28 |
 | Duplicate admissions | 0 |
-| Remaining logical slots | 20 |
-| Agent execution | All 36 exited successfully; no recorded agent errors |
-| Lifecycle completion | All 36 completed preparation, agent, verifier, and cleanup stages |
-| Benchmark outcomes | 32 passing trials, 4 failed trials |
-| Read-only continuation | Correctly selected one pending slot without executing it |
+| Remaining logical slots | 0 |
+| Agent execution | All 56 completed; no recorded agent exceptions |
+| Benchmark outcomes | 48 passing trials, 8 failed trials; PASS@1 85.71% |
+| Regression outcomes | 4 P2P-error trials; regression-adjusted score 84.71% |
 
-The four failed trials were model-output failures: two scheduler compatibility
-test failures and two generated-patch compilation failures. Retaining those
-failures is evidence of honest accounting, not a batch-process defect.
+The earlier seven-invocation snapshot had 32 passes and four failures; the
+final invocation added 16 passes and four failures. All eight failed trials
+remain in the denominator rather than being rerun until they pass.
 
 The [batch ledger](../wharf-swe/jobs/claude-claude-opus-5-5-default-2.1.332/all-1/batches.json)
 reconciled selected, admitted, agent-started, accepted, and pending identities.
-Each invocation ended with `batch-limit`; no quota signals or rejected
-executions were recorded.
+The first seven invocations ended with `batch-limit`; the final invocation
+ended `completed`. No quota signals or rejected executions were recorded.
+The [completed export validation](../.github/tracking/2026-11-25-claude-332-analytics.md)
+reconciles all 56 results and their retained evidence.
+
+### Subscription observations
+
+The operator recorded the following in
+[Quota Aware Economics](QuotaAwareEconomics.md):
+
+| Reported measure | Observation |
+|---|---|
+| Subscription price | $25/month |
+| First quota session | 36 trial evaluations; deliberately stopped at 99% usage |
+| Second quota session | 20 trial evaluations used 54% of the five-hour quota |
+| Full 56-trial WharfSWE run | Used 13% of the weekly quota across two sessions |
+
+These observations connect the batching mechanism to actual allowance usage.
+They are operator-reported quota measurements, not counters retained by Wharf
+or a general promise about plan capacity. The monthly subscription price is
+not the cost of this one run. The export's $26.011176 in retained Claude USD
+usage telemetry is also not an allocation of subscription fees; keep those
+different accounting bases separate.
 
 ### What the evidence supports
 
 **Verified:** bounded batching, retention of completed results, no duplicate
-admissions, clean execution lifecycles, and a valid next-batch plan.
+admissions, all 56 terminal results, and completion of the unchanged experiment
+with zero pending slots. The operator's observations additionally establish
+the reported allowance use across two sessions.
 
-**Not established by this Claude snapshot:** automatic stopping on a live quota
-signal, successful execution after a quota reset, or completion of all 56 trials.
-The operator deliberately stopped at 99% usage, so no quota-stop event was
-expected. Earlier exhausted-quota testing is separate evidence.
+**Not established by this Claude run:** automatic stopping on a live quota
+signal or a controlled estimate of economic savings. The first session was
+deliberately stopped at 99% usage, so no quota-stop event was expected.
+Earlier exhausted-quota testing is separate evidence.
 
 ### Live evidence: Codex quota rejection and recovery
 
@@ -338,10 +363,12 @@ while preserving its evaluation integrity. Leaders should assess that
 operational outcome alongside answer quality, rather than using model accuracy
 as the only measure of progress.
 
-The next evidence is continuation after reset on the same pinned plan, plus
-provider-specific stop/drain checks where the existing observations leave gaps.
+The completed Claude run now demonstrates continuity of the same pinned plan
+across the two reported sessions. Next, collect provider-specific stop/drain
+checks where observations leave gaps and evaluate the economics against
+actual charges, waiting, and useful completions.
 Success means no starts after the quota latch, no accepted interrupted trials,
-no duplicated completed work, and eventual completion with unchanged scoring.
+no duplicated completed work, and completion with unchanged scoring.
 
 ## From an evaluation need to a Copilot-capable harness
 

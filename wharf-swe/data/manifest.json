@@ -18,6 +18,24 @@
     "with_cost": 56
   },
   {
+    "arm": "claude-claude-opus-5-5-default-2.1.332",
+    "bytes_jsonl": 38146,
+    "cli": "claude",
+    "cli_version": "2.1.332",
+    "effort": "default",
+    "model": "claude-opus-5-5",
+    "passes": 48,
+    "p2p_errors": 4,
+    "score": 0.8471428571428571428571428571,
+    "scored": 56,
+    "tasks": 14,
+    "cost_per_trial_usd": 0.4645,
+    "average_agent_seconds": 120,
+    "total_cost_usd": 26.01,
+    "trials": 56,
+    "with_cost": 56
+  },
+  {
     "arm": "codex-gpt-6-astra-default-0.169.0",
     "bytes_jsonl": 67548,
     "cli": "codex",
