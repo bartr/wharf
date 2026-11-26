@@ -66,7 +66,7 @@ public static class CommandTree
         });
 
         root.Subcommands.Add(CreateVersionCommand());
-        root.Subcommands.Add(CreateCompletionCommand());
+        root.Subcommands.Add(CreateCompletionsCommand());
         root.Subcommands.Add(CreatePrebuildCommand(() => configuration, cancellationToken));
         root.Subcommands.Add(CreateRunCommand(configuration, logFormat, cancellationToken));
         root.Subcommands.Add(CreateResumeCommand(configuration, cancellationToken));
@@ -1043,21 +1043,46 @@ public static class CommandTree
         return option;
     }
 
-    private static CliCommand CreateCompletionCommand()
+    private static CliCommand CreateCompletionsCommand()
     {
         var shell = new Argument<string>("shell");
-        var command = new CliCommand("completion", "Print shell completion instructions.");
+        shell.CompletionSources.Add("zsh");
+        var command = new CliCommand("completions", "Print a sourceable Zsh completion script.");
+        command.Aliases.Add("completion");
         command.Arguments.Add(shell);
         command.SetAction(parseResult =>
         {
             string? value = parseResult.GetValue(shell);
-            if (value is not ("bash" or "zsh"))
+            if (value != "zsh")
             {
-                Console.Error.WriteLine("completion shell must be bash or zsh");
+                Console.Error.WriteLine("completions currently supports only zsh");
                 return ExitCode.InvalidInput.Value;
             }
 
-            Console.WriteLine($"# Wharf {value} completion will be available in a later session.");
+            Console.WriteLine("""
+                #compdef wharf
+
+                _wharf() {
+                    local line="${BUFFER[1,CURSOR]}"
+                    local character output
+                    local -i position=0
+                    local -a suggestions
+
+                    # System.CommandLine cursor positions use UTF-16 code units.
+                    for character in "${(@s::)line}"; do
+                        (( position += 1 + (#character > 65535) ))
+                    done
+                    output=$(command wharf "[suggest:$position]" "$line") || return $?
+                    if [[ -n "$output" ]]; then
+                        suggestions=("${(@f)output}")
+                        _describe 'wharf' suggestions
+                    else
+                        _files
+                    fi
+                }
+
+                compdef _wharf wharf
+                """);
             return ExitCode.Success.Value;
         });
         return command;

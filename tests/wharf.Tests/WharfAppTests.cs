@@ -22,6 +22,7 @@ public sealed class WharfAppTests
     [InlineData("resume --help", 0)]
     [InlineData("analytics manifest --help", 0)]
     [InlineData("analytics export --help", 0)]
+    [InlineData("completions --help", 0)]
     [InlineData("--unknown-flag", 1)]
     [InlineData("unknown-command", 1)]
     public async Task EveryInvocationInitializesMissingUserConfig(string arguments, int expectedExit)

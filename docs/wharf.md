@@ -327,7 +327,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   - --version - return the semver with no additional text or punctuation
   - --help -h - display the help (for that command)
   - --dry-run -d - dry run support
-  - completion - support for dynamic tab completion and typeahead for bash and zsh
+  - completion - dynamic Zsh tab completion is implemented; Bash completion and inline typeahead remain planned
 - structured logging
   - tab delimited by default for readability
   - json optional for programattic access
@@ -435,7 +435,7 @@ later renamed WharfSWE. Java coverage remains a future goal.
   - `wharf analytics export`
   - `wharf analytics manifest`
   - `wharf prebuild`
-  - `wharf completion`
+  - `wharf completions zsh` (`wharf completion zsh` remains an alias)
   - `wharf version`
 - the repair and replay phase adds
   - `wharf repair`

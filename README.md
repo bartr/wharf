@@ -43,6 +43,16 @@ execution environments, and automated verification of the resulting code.
   `setup/wharf.sh` installs Copilot, Claude Code, Codex, and Muse, then builds
   and installs Wharf. Node.js and npm must already be available for Codex;
   also ensure `$HOME/.local/bin` is on your `PATH` for Claude Code and Muse.
+- Enable Zsh tab completion (optional)
+  ```zsh
+  autoload -Uz compinit
+  compinit
+  source <(wharf completions zsh)
+  ```
+  Add the `source` line to `~/.zshrc` after completion initialization to load it
+  in future shells. Suggestions follow the installed CLI's current commands and
+  flags, with filename completion as a fallback. `wharf completion zsh` remains
+  an alias; Bash completion and inline typeahead are not yet implemented.
 - Run `wharf check` to validate setup
     ```bash
     wharf check

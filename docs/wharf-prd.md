@@ -170,7 +170,7 @@ State model, Progress and operations]
 | `wharf analytics export` | v1 | Discover completed all-N jobs under ./jobs, combine per arm, skip existing files unless --recompute |
 | `wharf analytics manifest` | v1 | Rebuild the data-only index from canonical JSONL exports |
 | `wharf prebuild` | v1 | Warm the Docker image cache before execution |
-| `wharf completion` | v1 | Generate Bash and Zsh completion |
+| `wharf completions zsh` | v1 | Emit sourceable dynamic Zsh tab completion; singular completion remains an alias; Bash and inline typeahead remain planned |
 | `wharf version` | v1 | Print only the effective semantic version |
 | `wharf repair` | post-v1 | Run repair/replay from a retained patch and sanitized failure summary |
 | `wharf compare` | post-v1 | Compare fresh, repair, model, or CLI-version runs |
