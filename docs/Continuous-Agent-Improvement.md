@@ -317,6 +317,16 @@ There is no controlled before/after estimate of engineering time saved, cost
 reduction, or accuracy improvement. Those benefits should not be quantified
 from this observation alone.
 
+### Research opportunity: quota-aware economics
+
+Batching suggests a further hypothesis: fitting engineering work into
+subscription quota windows may improve utilization of allowances users already
+pay for and lower actual cost per useful completion. The evidence above
+demonstrates continuity, not savings. Evaluating this opportunity requires
+actual subscription spend, useful completions, waiting across resets, and
+operator effort; API-equivalent token costs must remain separate from actual
+charges.
+
 ### Leadership implication and next evaluation
 
 This is a concrete example of **human domain expertise improving the harness**.
@@ -634,6 +644,8 @@ are distinct outcomes.
    GitHub's Performance Engineering team.
 2. Is there an opportunity to use Wharf as a working example of the approach
    recommended in the Ignite slide?
+3. Is there an opportunity to research quota-aware economics as engineering
+   shifts from interactive chat to longer-running agent work?
 
 ## Extending this record
 
@@ -649,6 +661,8 @@ This keeps the document focused on an evidence-backed improvement loop rather
 than a feature inventory. The
 [research catalog](../.github/tracking/2026-11-25-continuous-improvement-candidates-research.md)
 retains ten additional candidates and publication gaps for subsequent updates.
+Quota-aware economics is a further research proposal arising from the batching
+observations in this document.
 
 ## Other potential cases for further research
 
@@ -669,3 +683,9 @@ has been measured.
 | **Execute the packaged product** | Running an extracted Debian package caught missing runtime files that metadata and checksum checks missed. Document how validating the deliverable changed release qualification. |
 | **Cloud-aware preflight** | An Azure data disk exposed the error of checking root-volume space instead of Docker's actual filesystem. Show how deployment knowledge corrected the probe without weakening safety thresholds. |
 | **Failure evidence and scoring discipline** | Lost logs and incomplete costs limit learning; post-result exclusions can distort conclusions. Trace how durable failure records and predeclared scoring rules improved auditability. |
+
+- **Quota-aware economics:** Investigate whether batching can turn more
+  subscription allowance into useful completed engineering work at lower actual
+  cost. Compare subscription-based and usage-priced execution while measuring
+  quality, allowance utilization, waiting, and operator effort. Keep actual
+  charges separate from API-equivalent estimates; savings are not yet measured.
