@@ -176,82 +176,24 @@ public sealed class RunConfigurationTests
         Assert.Equal(1, result.Retries.MaxAttempts);
         Assert.False(result.RetainWorkspaces);
         Assert.False(result.ShortestFirst);
-        Assert.Null(result.ContainerCpus);
-    }
-
-    [Theory]
-    [InlineData(2, "4", 6, 2)]
-    [InlineData(null, "4", 6, 4)]
-    [InlineData(null, null, 6, 6)]
-    [InlineData(null, null, null, null)]
-    public void ContainerCpusUsesFlagEnvironmentUserConfigDefaultPrecedence(
-        int? flag, string? environment, int? defaults, int? expected)
-    {
-        RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new UserConfiguration(ContainerCpus: defaults),
-            new RunConfigurationOverrides(ContainerCpus: flag),
-            new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = environment });
-
-        Assert.Equal(expected, configuration.ContainerCpus);
-        RunConfigurationValidator.Validate(configuration);
-    }
-
-    [Fact]
-    public void ContainerCpuEnvironmentUsesOnlyTheDocumentedWharfName()
-    {
-        RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            null, new RunConfigurationOverrides(),
-            new Dictionary<string, string?>
-            {
-                ["CONTAINER_CPUS"] = "2",
-                ["WHARF_CONTAINER_CPUS"] = "4"
-            });
-
-        Assert.Equal(4, configuration.ContainerCpus);
     }
 
     [Theory]
     [InlineData("")]
-    [InlineData("unlimited")]
-    [InlineData("zero")]
-    [InlineData("1.5")]
-    public void RejectsNonIntegerContainerCpuEnvironmentValues(string value)
+    [InlineData("8")]
+    [InlineData("invalid")]
+    public void RejectsRemovedContainerCpuEnvironmentEvenForSingleTrial(string value)
     {
-        Assert.Throws<RunConfigurationException>(() => RunConfigurationResolver.Resolve(
-            null, new RunConfigurationOverrides(),
-            new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = value }));
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void RejectsNonPositiveContainerCpuLimits(int limit)
-    {
-        RunConfiguration configuration = RunConfigurationResolver.Resolve(
-            new UserConfiguration(ContainerCpus: limit),
-            new RunConfigurationOverrides(),
-            new Dictionary<string, string?>());
-
         RunConfigurationException exception = Assert.Throws<RunConfigurationException>(() =>
-            RunConfigurationValidator.Validate(configuration));
-        Assert.Contains("containerCpus", exception.Message);
+            RunConfigurationResolver.Resolve(
+            null, new RunConfigurationOverrides(K: 1, N: 1),
+            new Dictionary<string, string?> { ["WHARF_CONTAINER_CPUS"] = value }));
+        Assert.Contains("no longer supported", exception.Message);
+        Assert.Contains("unset WHARF_CONTAINER_CPUS", exception.Message);
     }
 
     [Fact]
-    public void RendersCpuLimitInBothDryRunFormats()
-    {
-        string json = DryRunService.Execute(new RunConfigurationOverrides(ContainerCpus: 12),
-            "json", new Dictionary<string, string?>(), new UserConfiguration());
-        string text = DryRunService.Execute(new RunConfigurationOverrides(ContainerCpus: 12),
-            "text", new Dictionary<string, string?>(), new UserConfiguration());
-        using JsonDocument document = JsonDocument.Parse(json);
-
-        Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
-        Assert.Contains("containerCpus\t12", text);
-    }
-
-    [Fact]
-    public void RendersUnrestrictedCpuDefaultInBothDryRunFormats()
+    public void DryRunNoLongerRendersContainerCpuSetting()
     {
         string json = DryRunService.Execute(new RunConfigurationOverrides(),
             "json", new Dictionary<string, string?>(), new UserConfiguration());
@@ -259,8 +201,8 @@ public sealed class RunConfigurationTests
             "text", new Dictionary<string, string?>(), new UserConfiguration());
         using JsonDocument document = JsonDocument.Parse(json);
 
-        Assert.Equal(JsonValueKind.Null, document.RootElement.GetProperty("containerCpus").ValueKind);
-        Assert.Contains("containerCpus\tunrestricted", text);
+        Assert.False(document.RootElement.TryGetProperty("containerCpus", out _));
+        Assert.DoesNotContain("containerCpus", text);
     }
 
     [Fact]
@@ -270,7 +212,7 @@ public sealed class RunConfigurationTests
         string directory = Path.Combine(home, ".wharf");
         Directory.CreateDirectory(directory);
         File.WriteAllText(Path.Combine(directory, "config.json"), """
-            {"schemaVersion":"1.0","k":2,"n":8,"p":6,"containerCpus":12,
+            {"schemaVersion":"1.0","k":2,"n":8,"p":6,
              "timeouts":{"setupSeconds":90,"agentSeconds":180,"verifierSeconds":60},
              "retries":{"maxAttempts":2,"backoffSeconds":3},"outputFormat":"json",
              "retainWorkspaces":true,"shortestFirst":true}
@@ -285,7 +227,6 @@ public sealed class RunConfigurationTests
             Assert.Equal(2, document.RootElement.GetProperty("k").GetInt32());
             Assert.Equal(8, document.RootElement.GetProperty("n").GetInt32());
             Assert.Equal(6, document.RootElement.GetProperty("p").GetInt32());
-            Assert.Equal(12, document.RootElement.GetProperty("containerCpus").GetInt32());
             Assert.Equal(180, document.RootElement.GetProperty("timeouts").GetProperty("agentSeconds").GetInt32());
             Assert.Equal(2, document.RootElement.GetProperty("retries").GetProperty("maxAttempts").GetInt32());
             Assert.True(document.RootElement.GetProperty("retainWorkspaces").GetBoolean());
@@ -502,6 +443,7 @@ public sealed class RunConfigurationTests
     [Theory]
     [InlineData("""{"unknown":true}""")]
     [InlineData("""{"b":2}""")]
+    [InlineData("""{"containerCpus":8}""")]
     [InlineData("""{"cliVersion":"1.2.3"}""")]
     [InlineData("""{"credentials":{"token":"synthetic"}}""")]
     [InlineData("""{"model":"custom"}""")]

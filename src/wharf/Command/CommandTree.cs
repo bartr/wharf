@@ -164,6 +164,7 @@ public static class CommandTree
                     {
                         ["P"] = Environment.GetEnvironmentVariable("P"),
                         ["WHARF_P"] = Environment.GetEnvironmentVariable("WHARF_P"),
+                        ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS"),
                         ["WHARF_CLI"] = Environment.GetEnvironmentVariable("WHARF_CLI"),
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
                         ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
@@ -233,10 +234,6 @@ public static class CommandTree
         {
             Description = "Continue this exact retained run with -b; otherwise use the current run directory."
         };
-        var containerCpus = new Option<int?>("--container-cpus")
-        {
-            Description = "Optional logical CPU limit per agent/verifier container (default: unrestricted). No affinity restriction when available CPUs are at or below this limit."
-        };
         var outputFormat = new Option<string?>("--output-format") { Description = "Output format: text or json." };
         var outputDirectory = new Option<string?>("--output-directory") { Description = "Relative output directory." };
         var logFile = new Option<string?>("--log-file")
@@ -275,7 +272,6 @@ public static class CommandTree
         command.Options.Add(runDirectory);
         command.Options.Add(n);
         command.Options.Add(p);
-        command.Options.Add(containerCpus);
         command.Options.Add(outputFormat);
         command.Options.Add(outputDirectory);
         command.Options.Add(logFile);
@@ -294,6 +290,7 @@ public static class CommandTree
             try
             {
                 RunBatch.ValidateSize(requestedBatch);
+                RunConfigurationResolver.RejectObsoleteEnvironment(RunConfigurationResolver.ReadEnvironment());
                 string? directory = parseResult.GetValue(runDirectory);
                 if (directory is not null && string.IsNullOrWhiteSpace(directory))
                     throw new RunException("--run-directory must name an existing run");
@@ -310,7 +307,7 @@ public static class CommandTree
                 {
                     Option[] immutableOptions =
                     [
-                        noOp, oracle, k, n, p, containerCpus, outputFormat,
+                        noOp, oracle, k, n, p, outputFormat,
                         outputDirectory, model, effort, cliVersion, cli, retainWorkspaces,
                         shortestFirst, include, tasks, logFile
                     ];
@@ -363,7 +360,6 @@ public static class CommandTree
                             K: parseResult.GetValue(k),
                             N: parseResult.GetValue(n),
                             P: parseResult.GetValue(p),
-                            ContainerCpus: parseResult.GetValue(containerCpus),
                             OutputFormat: parseResult.GetValue(outputFormat),
                             OutputDirectory: parseResult.GetValue(outputDirectory),
                             Model: parseResult.GetValue(model),
@@ -471,7 +467,6 @@ public static class CommandTree
                         K: parseResult.GetValue(k),
                         N: parseResult.GetValue(n),
                         P: parseResult.GetValue(p),
-                        ContainerCpus: parseResult.GetValue(containerCpus),
                         OutputFormat: parseResult.GetValue(outputFormat),
                         OutputDirectory: parseResult.GetValue(outputDirectory),
                         Model: parseResult.GetValue(model),
@@ -538,11 +533,12 @@ public static class CommandTree
                 if (string.IsNullOrWhiteSpace(requestedRun))
                     throw new RecoveryException("resume run directory is required");
 
-                RunConfigurationResolver.RejectObsoleteVersionEnvironment(
+                RunConfigurationResolver.RejectObsoleteEnvironment(
                     new Dictionary<string, string?>
                     {
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
-                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
+                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION"),
+                        ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS")
                     });
                 RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
                     requestedRun,
@@ -552,8 +548,7 @@ public static class CommandTree
                 Console.WriteLine(
                     $"resume completed={plan.CompletedCount} pending={plan.Attempts.Count} " +
                     $"K={plan.K} N={plan.N} P={plan.P} model={plan.Model} " +
-                    $"effort={plan.Effort} cli={plan.CliVersion} " +
-                    $"container-cpus={plan.Configuration.ContainerCpus?.ToString() ?? "unrestricted"}");
+                    $"effort={plan.Effort} cli={plan.CliVersion}");
                 if (parseResult.GetValue(dryRun) || plan.Attempts.Count == 0)
                 {
                     foreach (RetainedResumeAttempt attempt in plan.Attempts)
@@ -1011,11 +1006,12 @@ public static class CommandTree
                 string? selectedTaskRoot = parseResult.GetValue(taskRoot);
                 if (selectedTaskRoot is null)
                     throw new SmokeException("smoke task directory is required");
-                RunConfigurationResolver.RejectObsoleteVersionEnvironment(
+                RunConfigurationResolver.RejectObsoleteEnvironment(
                     new Dictionary<string, string?>
                     {
                         ["WHARF_CLI_VERSION"] = Environment.GetEnvironmentVariable("WHARF_CLI_VERSION"),
-                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION")
+                        ["CLI_VERSION"] = Environment.GetEnvironmentVariable("CLI_VERSION"),
+                        ["WHARF_CONTAINER_CPUS"] = Environment.GetEnvironmentVariable("WHARF_CONTAINER_CPUS")
                     });
                 UserConfiguration defaults = UserConfigurationLoader.Load();
                 var docker = new DockerProbe();

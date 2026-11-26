@@ -121,13 +121,6 @@ public sealed class RunService
                 tasks = taskLoader.Load(resolvedRoot).Where(task => ids.Contains(task.TaskId)).ToArray();
             }
         }
-        int? containerCpuLimit = ResolveContainerCpuLimit(
-            configuration.ContainerCpus,
-            tasks.Count,
-            configuration.K,
-            configuration.N,
-            attemptPrefix,
-            resume?.RunDirectory);
         IReadOnlyList<TaskAttempt> scheduledAttempts = resume is null
             ? TaskSelector.OrderAttemptsForAdmission(
                 TaskSelector.ExpandAttempts(tasks, configuration.K),
@@ -197,7 +190,6 @@ public sealed class RunService
         using var preparationGate = new PreparationGate(
             configuration.P,
             logger.PreparationGateChanged);
-        using var cpuAllocator = new DockerCpuSetAllocator();
         bool batchFinished = false;
         try
         {
@@ -374,14 +366,6 @@ public sealed class RunService
                                     }
                                 }
                                 logger.Info($"{prefix} status=image-ready image={image}");
-                                string? cpuSet = await cpuAllocator.AllocateAsync(
-                                    image,
-                                    containerCpuLimit,
-                                    item.index,
-                                    preparationCancellationToken);
-                                logger.Info(
-                                    $"{prefix} container-cpus={containerCpuLimit?.ToString() ?? "unrestricted"} " +
-                                    $"cpu-set={cpuSet ?? "unrestricted"}");
                                 var request = new AgentExecutionRequest(
                                     task.TaskId,
                                     image,
@@ -403,7 +387,6 @@ public sealed class RunService
                                         task.AgentTimeoutSeconds,
                                         5400)),
                                     RetainWorkspace: configuration.RetainWorkspaces,
-                                    CpuSet: cpuSet,
                                     AgentStarting: () => batch.AgentStarting(attempt.AttemptId),
                                     QuotaDetected: failure =>
                                     {
@@ -663,8 +646,7 @@ public sealed class RunService
                                                             [],
                                                             verifierImage,
                                                             verifierDirectory,
-                                                            artifactsDirectory,
-                                                            CpuSet: verifierImage is null ? null : agentRequest?.CpuSet);
+                                                            artifactsDirectory);
                                                         PreparedVerifierRun prepared =
                                                             await verifierService.PrepareAsync(
                                                                 verifierRequest,
@@ -813,8 +795,6 @@ public sealed class RunService
                         taskManifest = Path.Combine(task.RootPath, "task.toml"),
                         datasetManifest,
                         agentImage = image,
-                        containerCpus = configuration.ContainerCpus,
-                        cpuSet = agentRequest?.CpuSet,
                         agentWorkspace = Directory.Exists(workspaceDirectory)
                             ? workspaceDirectory
                             : null,
@@ -1318,22 +1298,6 @@ public sealed class RunService
 
     internal static IReadOnlyList<string> BuildPromptArguments(string prompt, string cli) =>
         cli is "claude" or "codex" ? ["--", prompt] : [BuildPromptArgument(prompt)];
-
-    internal static int? ResolveContainerCpuLimit(
-        int? configuredLimit,
-        int taskCount,
-        int k,
-        int n,
-        string attemptPrefix,
-        string? resumeDirectory = null)
-    {
-        int selectedTaskCount = resumeDirectory is null
-            ? taskCount
-            : RetainedRunMetadataStore.Read(resumeDirectory)?.Tasks.Count ?? taskCount;
-        return attemptPrefix == "smoke" || n == 1 || (selectedTaskCount == 1 && k == 1)
-            ? null
-            : configuredLimit;
-    }
 
     internal static bool ShouldRunVerifier(string? patch) =>
         !string.IsNullOrWhiteSpace(patch);

@@ -13,8 +13,7 @@ internal sealed record BaselineRequest(
     string WorkspaceDirectory,
     string? SolutionDirectory,
     TimeSpan Timeout,
-    bool RetainWorkspace,
-    string? CpuSet);
+    bool RetainWorkspace);
 
 internal sealed record BaselineCommandResult(
     string Step,
@@ -139,7 +138,6 @@ internal sealed class DockerBaselineRunner : IBaselineRunner
             "create", "--name", request.ContainerName,
             "--label", "com.bartr.wharf.managed=true",
             "--network", "bridge", "--memory", "8g", "--pids-limit", "1024",
-            .. request.CpuSet is null ? Array.Empty<string>() : new[] { "--cpuset-cpus", request.CpuSet },
             "--user", "1000:1000", "--entrypoint", "/bin/bash",
             request.Image, "-lc", "exec sleep infinity"
         ];

@@ -70,6 +70,16 @@ public sealed class WharfAppTests
         Assert.Contains("invalid user configuration", result.Error);
     }
 
+    [Fact]
+    public async Task RemovedCpuUserConfigFailsWithoutRewritingIt()
+    {
+        var result = await InvokeWithUserConfig("""{"containerCpus":8}""",
+            "run", "--dry-run");
+        Assert.Equal(2, result.ExitCode);
+        Assert.Contains("invalid user configuration", result.Error);
+        Assert.Contains("containerCpus", result.Error);
+    }
+
     internal static async Task<(int ExitCode, string Output, string Error)> InvokeWithUserConfig(
         string? json, params string[] arguments)
     {
@@ -159,21 +169,19 @@ public sealed class WharfAppTests
     }
 
     [Fact]
-    public void RunAcceptsContainerCpuOption()
+    public void RunRejectsRemovedContainerCpuOption()
     {
         RootCommand root = CommandTree.Create(new WharfConfiguration());
         var command = root.Subcommands.Single(command => command.Name == "run");
-        Option<int?> option = Assert.IsType<Option<int?>>(
-            command.Options.Single(option => option.Name == "--container-cpus"));
+        Assert.DoesNotContain(command.Options, option => option.Name == "--container-cpus");
 
         var result = root.Parse(["run", "--container-cpus", "12", "--dry-run"]);
 
-        Assert.Empty(result.Errors);
-        Assert.Equal(12, result.GetValue(option));
+        Assert.NotEmpty(result.Errors);
     }
 
     [Fact]
-    public async Task InvalidContainerCpuLimitFailsBeforeCreatingRunOutput()
+    public async Task RemovedContainerCpuFlagFailsBeforeCreatingRunOutput()
     {
         string output = $"wharf-invalid-cpu-{Guid.NewGuid():N}";
 
@@ -181,7 +189,7 @@ public sealed class WharfAppTests
             "run", "--container-cpus", "0", "--output-directory", output
         ]);
 
-        Assert.Equal(2, exit);
+        Assert.Equal(1, exit);
         Assert.False(Directory.Exists(output));
     }
 

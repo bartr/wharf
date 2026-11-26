@@ -15,7 +15,6 @@ public static class RunConfigurationRenderer
     {
         RunConfigurationView view = new(
             configuration.P,
-            configuration.ContainerCpus,
             configuration.NoOp,
             configuration.Oracle,
             configuration.Cli,
@@ -48,7 +47,6 @@ public static class RunConfigurationRenderer
         List<string> lines =
         [
             $"p\t{view.P}",
-            $"containerCpus\t{view.ContainerCpus?.ToString() ?? "unrestricted"}",
             $"noOp\t{view.NoOp.ToString().ToLowerInvariant()}",
             $"oracle\t{view.Oracle.ToString().ToLowerInvariant()}",
             $"cli\t{view.Cli}",
@@ -79,7 +77,6 @@ public static class RunConfigurationRenderer
 
     private sealed record RunConfigurationView(
         [property: JsonPropertyName("p")] int P,
-        [property: JsonPropertyName("containerCpus")] int? ContainerCpus,
         [property: JsonPropertyName("noOp")] bool NoOp,
         [property: JsonPropertyName("oracle")] bool Oracle,
         [property: JsonPropertyName("cli")] string Cli,

@@ -47,13 +47,12 @@ public sealed class AgentExecutionTests
         var service = new AgentExecutionService(runner);
 
         AgentEvidenceSummary summary = await service.ExecuteAsync(
-            Request(source.Path, workspace.Path) with { CpuSet = "0,1,2,3" },
+            Request(source.Path, workspace.Path),
             evidence.Path);
 
         Assert.Equal("completed", summary.Status);
         Assert.Equal(100, summary.Tokens);
-        Assert.Equal("0,1,2,3", summary.CpuSet);
-        Assert.Contains("\"cpuSet\":\"0,1,2,3\"",
+        Assert.DoesNotContain("\"cpuSet\"",
             File.ReadAllText(Path.Combine(evidence.Path, "result.json")));
         Assert.Equal("diff --git a/file b/file", File.ReadAllText(Path.Combine(evidence.Path, "patch.diff")));
         Assert.True(File.Exists(Path.Combine(evidence.Path, "result.json")));
@@ -184,6 +183,7 @@ public sealed class AgentExecutionTests
         AssertArgumentsContain(create, "--memory", "8g");
         AssertArgumentsContain(create, "--pids-limit", "1024");
         Assert.DoesNotContain("--cpuset-cpus", create);
+        Assert.DoesNotContain("--cpus", create);
         AssertNoMountArguments(create);
         Assert.Equal("exec", arguments[0]);
         AssertArgumentsContain(arguments, "--user", "0:0");
@@ -193,23 +193,6 @@ public sealed class AgentExecutionTests
             arguments,
             argument => argument.Contains("cp -a /app/. /workspace/", StringComparison.Ordinal) &&
                 argument.Contains("chown -R 1000:1000", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void AppliesCpuAffinityWhenCreatingAgentContainer()
-    {
-        using TemporaryDirectory source = new();
-        using TemporaryDirectory workspace = new();
-        AgentExecutionRequest request = Request(source.Path, workspace.Path) with
-        {
-            CpuSet = "8,9,10,11,12,13,14,15"
-        };
-
-        IReadOnlyList<string> arguments =
-            DockerAgentWorkspacePreparer.BuildContainerCreateArguments(request, "task-agent");
-
-        AssertArgumentsContain(arguments, "--cpuset-cpus", request.CpuSet);
-        Assert.DoesNotContain("--cpus", arguments);
     }
 
     [Fact]

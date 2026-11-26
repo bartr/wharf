@@ -597,7 +597,7 @@ The loop is not a mechanism for justifying every idea we implement. "Keep the
 improvement" also means revising or removing a change that does not demonstrate
 useful value. A rejected hypothesis is reusable knowledge, not wasted work.
 
-### Container CPU controls: a plausible hypothesis without useful benefit
+### Container CPU controls: remove a plausible hypothesis without useful benefit
 
 We thought `--container-cpus` would make concurrent execution more predictable
 and improve resource use. The project lead's assessment of the experiments
@@ -610,9 +610,16 @@ windows. Their operational value has concrete gate, cache, admission, and
 recovery evidence in the cases above; CPU controls did not show a comparable
 benefit. This is not a claim that CPU limits are never useful elsewhere.
 
-**Direction:** likely remove `--container-cpus`. It is still supported;
-this document records the negative finding and intended simplification,
-not an implemented removal or a quantified performance effect.
+**Decision:** removed `--container-cpus`, its user-config setting, Docker CPU
+probe and agent/verifier/baseline affinity allocation. Obsolete environment
+and user-config inputs fail explicitly instead of silently accepting a retired
+control. Historical evidence remains readable and unchanged, but resumed
+execution no longer applies the old restrictions. N/P concurrency, memory and
+PID safety limits remain in place. See [migration guidance](../README.md#operator-defaults).
+
+This is an implemented simplification based on the negative operating finding,
+not a quantified performance gain. The reusable lesson is that understanding
+the domain also tells us which controls to remove, not just which ones to add.
 
 ### Run configuration: remove per-run manifests, keep useful defaults
 

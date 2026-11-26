@@ -371,6 +371,11 @@ before run-output creation. Credentials and run-specific choices stay
 outside the file. Historical resource-policy/mount/artifact/retention-day input
 fields were not implemented operationally; only their retained fields remain.
 
+Container CPU controls are removed: reject the old flag, `WHARF_CONTAINER_CPUS`
+and user-config `containerCpus`; no CPU probe or affinity allocation remains.
+Old retained CPU metadata stays readable without being reapplied during resume.
+N/P, memory and PID safety limits are unchanged. [Source: Run configuration]
+
 ## 12. Inner-Loop Dev Process
 
 1. Install the documented .NET SDK and Docker prerequisites.

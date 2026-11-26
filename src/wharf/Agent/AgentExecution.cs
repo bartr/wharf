@@ -50,8 +50,7 @@ public sealed class AgentExecutionService
             evidenceDirectory,
             request.TaskId,
             status,
-            result,
-            request.CpuSet);
+            result);
         if (result.DebugLogDirectory is not null &&
             Directory.Exists(result.DebugLogDirectory))
         {
@@ -199,8 +198,7 @@ public sealed class AgentExecutionService
         string directory,
         string taskId,
         string status,
-        AgentRunResult result,
-        string? cpuSet)
+        AgentRunResult result)
     {
         string stdoutPath = Path.Combine(directory, "stdout.log");
         string stderrPath = Path.Combine(directory, "stderr.log");
@@ -236,7 +234,6 @@ public sealed class AgentExecutionService
                 : result.OutOfMemory
                 ? "agent container reported a cgroup OOM kill"
                 : result.TimedOut ? "agent execution exceeded its timeout" : null,
-            cpuSet,
             result.Quota);
         AtomicFile.Replace(
             summaryPath,
@@ -868,7 +865,6 @@ public sealed class DockerAgentWorkspacePreparer : IAgentWorkspacePreparer
             "--label", "com.bartr.wharf.managed=true",
             "--network", request.Network,
             "--memory", "8g",
-            .. request.CpuSet is null ? Array.Empty<string>() : new[] { "--cpuset-cpus", request.CpuSet },
             "--pids-limit", "1024",
             "--env", "HOME=/home/wharf",
             "--env", "XDG_CACHE_HOME=/home/wharf/.cache",

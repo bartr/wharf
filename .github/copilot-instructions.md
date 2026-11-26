@@ -68,6 +68,10 @@ Every CLI invocation initializes missing user directory/config with built-in
 defaults before parsing, even no arguments/help/dry-run. Never overwrite existing
 files; initialization failures are explicit. This is the sole startup-write
 exception to otherwise read-only commands; resume does not load current defaults.
+`--container-cpus`, user-config `containerCpus` and Docker CPU-affinity
+allocation are removed. Reject `WHARF_CONTAINER_CPUS` with migration guidance.
+Preserve historical CPU evidence, but never reapply its restrictions on resume.
+Keep N/P concurrency, container memory limits and agent/baseline PID limits.
 `wharf run --dry-run` validates and renders a deterministic
 plan without creating output directories, run state, Docker resources, or
 network activity. `WHARF_API_KEY`, `WHARF_TOKEN`, and

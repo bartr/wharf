@@ -66,10 +66,6 @@ internal sealed class BaselineRunService(
             $"mode={BuildJobDirectoryName(configuration)}");
         string runId = Guid.NewGuid().ToString("N")[..8];
         using var gate = new PreparationGate(configuration.P, logger.PreparationGateChanged);
-        using var allocator = new DockerCpuSetAllocator();
-        int? cpuLimit = RunService.ResolveContainerCpuLimit(
-            configuration.ContainerCpus, tasks.Count, configuration.K, configuration.N,
-            attemptPrefix, resume?.RunDirectory);
         try
         {
             Parallel.ForEachAsync(
@@ -155,18 +151,14 @@ internal sealed class BaselineRunService(
                                 image = await imagePreparer.PrepareAsync(
                                     task, evidenceDirectory, requestedImage,
                                     message => logger.Info($"{prefix} status={message}"), timeout.Token);
-                                string? cpuSet = await allocator.AllocateAsync(
-                                    image, cpuLimit, item.index, timeout.Token);
                                 logger.Info($"{prefix} status=image-ready image={image}");
-                                logger.Info($"{prefix} container-cpus={cpuLimit?.ToString() ?? "unrestricted"} " +
-                                    $"cpu-set={cpuSet ?? "unrestricted"}");
                                 request = new BaselineRequest(
                                     task.TaskId, image, RunService.BuildAgentContainerName(executionName),
                                     evidenceDirectory, artifactsDirectory, workspace,
                                     configuration.Oracle ? Path.Combine(task.RootPath, "solution") : null,
                                     TimeSpan.FromSeconds(RunService.ResolveTimeoutSeconds(
                                         configuration.Timeouts.AgentSeconds, task.AgentTimeoutSeconds, 5400)),
-                                    configuration.RetainWorkspaces, cpuSet);
+                                    configuration.RetainWorkspaces);
                                 await runner.PrepareAsync(request, timeout.Token);
                                 return true;
                             }, token));
@@ -193,7 +185,7 @@ internal sealed class BaselineRunService(
                             baselineCleaned = true;
                             VerifierRetryOutcome outcome = await Measure("verifier", () => VerifyAsync(
                                 task, trialDirectory, workspace, artifactsDirectory,
-                                configuration, request!.CpuSet, runId, attempt.AttemptNumber,
+                                configuration, runId, attempt.AttemptNumber,
                                 gate, runNumber, logger, prefix, token));
                             verification = outcome.Result;
                             verifierRetry = outcome.RetryCount;
@@ -283,8 +275,6 @@ internal sealed class BaselineRunService(
                             attempt = attempt.AttemptNumber,
                             configuration.NoOp,
                             configuration.Oracle,
-                            configuration.ContainerCpus,
-                            cpuSet = request?.CpuSet,
                             image,
                             totalCost = 0m,
                             agentSeconds = 0,
@@ -317,7 +307,7 @@ internal sealed class BaselineRunService(
 
     private static async Task<VerifierRetryOutcome> VerifyAsync(
         HarborTask task, string trialDirectory, string workspace, string artifacts,
-        RunConfiguration configuration, string? cpuSet, string runId, int attempt,
+        RunConfiguration configuration, string runId, int attempt,
         PreparationGate gate, int runNumber, WharfLogger logger, string prefix, CancellationToken token)
     {
         string evidence = Path.Combine(trialDirectory, "verifier");
@@ -353,7 +343,7 @@ internal sealed class BaselineRunService(
                                 image is null ? RunService.VerifierCommandFor(task.Language) : "/tests/test.sh",
                                 TimeSpan.FromSeconds(RunService.ResolveTimeoutSeconds(
                                     configuration.Timeouts.VerifierSeconds, task.VerifierTimeoutSeconds, 1800)))],
-                                [], [], image, evidence, artifacts, cpuSet, AllowEmptyPatch: true);
+                                [], [], image, evidence, artifacts, AllowEmptyPatch: true);
                             return (service, await service.PrepareAsync(request, patch, evidence, preparationToken));
                         }, verifierToken);
                 return await prepared.Service.VerifyPreparedAsync(prepared.Prepared, verifierToken);

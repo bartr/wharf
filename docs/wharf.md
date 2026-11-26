@@ -525,6 +525,11 @@ later renamed WharfSWE. Java coverage remains a future goal.
 - environment variable names and user-config keys are part of the versioned configuration contract
 - Keep provider/model/effort, CLI version, tasks, output location, batch size and
   baseline modes outside the user file; never store credentials there.
+- Remove `--container-cpus`, user-config `containerCpus`, CPU discovery and
+  CPU-affinity application. Reject `WHARF_CONTAINER_CPUS`; see
+  [migration guidance](../README.md#operator-defaults). Keep historical evidence
+  readable without applying retired CPU restrictions on resume. Preserve N/P
+  concurrency, memory and PID safety limits.
 - Resume and batch continuation restore retained configuration without loading
   current user defaults; retain secret-free resolved settings with every new run.
 

@@ -100,8 +100,7 @@ The generated default configuration is:
 }
 ```
 
-All fields are optional; omitted `schemaVersion` means `1.0`. The other supported
-field is positive integer `containerCpus`; omit it for unrestricted CPUs.
+All fields are optional; omitted `schemaVersion` means `1.0`.
 Precedence is **flags > supported environment variables > user config > defaults**.
 Run concurrency still caps P at N; prebuild uses configured P without an N cap;
 smoke always uses K=N=P=1. Timeout values must be positive seconds; omitted
@@ -114,7 +113,7 @@ such as `--retain-workspaces false` or `--shortest-first false` override default
 Supported run environment settings remain `K`, `N`, `P` (preferred over
 `WHARF_K`, `WHARF_N`, `WHARF_P`), `MODEL`/`WHARF_MODEL`, `WHARF_EFFORT`,
 `WHARF_CLI`, `WHARF_OUTPUT_FORMAT`, `WHARF_OUTPUT_DIRECTORY`,
-`WHARF_RETAIN_WORKSPACES`, and `WHARF_CONTAINER_CPUS`. Timeouts and retries
+and `WHARF_RETAIN_WORKSPACES`. Timeouts and retries
 are configured in the user file, not through new flags or environment aliases.
 
 Missing configuration is atomically initialized without overwriting a concurrent
@@ -140,6 +139,13 @@ user config; dry-run prints effective settings without Docker or run-output crea
 User-config initialization is the sole startup write for otherwise read-only
 commands, including dry-run and retained-run previews.
 Harbor task manifests and `wharf analytics manifest` are unchanged.
+
+`--container-cpus` is also removed. Unset `WHARF_CONTAINER_CPUS` and remove
+`containerCpus` from user config; obsolete input fails explicitly. Wharf no longer
+probes Docker CPU availability or restricts agent, verifier or baseline CPU
+affinity. Existing run evidence is unchanged and remains readable, but resumed
+execution no longer applies historical CPU restrictions. N/P concurrency,
+8 GiB container memory limits and agent/baseline PID limits are unchanged.
 
 ## Choosing the agent CLI
 

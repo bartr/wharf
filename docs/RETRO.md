@@ -502,6 +502,11 @@ The useful lesson is to evaluate a plausible resource policy rather than
 assume that more constraints improve throughput. No controlled affinity
 advantage is claimed here.
 
+The later simplification removed `--container-cpus`, its configuration input,
+CPU discovery and affinity application. Historical trials remain unchanged;
+resumed execution now uses unrestricted CPU affinity too. N/P, memory and PID
+safety controls remain. See [migration](../README.md#operator-defaults).
+
 ### Verified cache warm-up: 1.3.0
 
 The 1.3.0 tag points to `2077851`. Inspection found that the earlier build

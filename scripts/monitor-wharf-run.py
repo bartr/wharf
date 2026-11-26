@@ -173,7 +173,7 @@ def main():
         "benchmarkPid": args.pid, "processStartTicks": identity, "runId": args.run_id,
         "runDirectory": str(run), "runPlanSha256": hashlib.sha256(plan_bytes).hexdigest(),
         "configuration": {key: plan["configuration"].get(key)
-                          for key in ("k", "n", "p", "model", "effort", "cliVersion", "containerCpus")},
+                          for key in ("k", "n", "p", "model", "effort", "cliVersion")},
         "taskCount": len(plan["tasks"]), "lateStart": True,
         "notes": [
             "Samples begin after benchmark launch; missing earlier samples cannot be recovered.",

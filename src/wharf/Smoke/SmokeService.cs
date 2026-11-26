@@ -71,8 +71,6 @@ public sealed class SmokeService
 
         RunConfiguration configuration = ResolveConfiguration(
             resolvedOutput, cli, model, effort, cliVersion, defaults: defaults);
-        if (configuration.ContainerCpus is <= 0)
-            throw new SmokeException("containerCpus must be positive");
         RunResult result = runService.Execute(
             resolvedTaskRoot,
             resolvedOutput,

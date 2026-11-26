@@ -13,7 +13,6 @@ public sealed record UserConfiguration(
     [property: JsonPropertyName("retries")] RetryPolicy? Retries = null,
     [property: JsonPropertyName("outputFormat")] string? OutputFormat = null,
     [property: JsonPropertyName("retainWorkspaces")] bool? RetainWorkspaces = null,
-    [property: JsonPropertyName("containerCpus")] int? ContainerCpus = null,
     [property: JsonPropertyName("shortestFirst")] bool? ShortestFirst = null);
 
 public sealed record PhaseTimeouts(
@@ -58,7 +57,6 @@ public sealed record RunConfiguration(
     string ResourcePolicy,
     SecretSettings Credentials,
     bool ShortestFirst = false,
-    int? ContainerCpus = null,
     bool NoOp = false,
     bool Oracle = false,
     string Cli = "copilot");
@@ -74,7 +72,6 @@ public sealed record RunConfigurationOverrides(
     bool? RetainWorkspaces = null,
     bool? ShortestFirst = null,
     string? CliVersion = null,
-    int? ContainerCpus = null,
     bool? NoOp = null,
     bool? Oracle = null,
     string? Cli = null);
@@ -153,7 +150,6 @@ public static class UserConfigurationLoader
                 Retries: configuration.Retries,
                 OutputFormat: configuration.OutputFormat,
                 RetainWorkspaces: configuration.RetainWorkspaces,
-                ContainerCpus: configuration.ContainerCpus,
                 ShortestFirst: configuration.ShortestFirst);
             try
             {
@@ -233,7 +229,7 @@ public static class RunConfigurationResolver
         RunConfigurationOverrides overrides,
         IReadOnlyDictionary<string, string?> environment)
     {
-        RejectObsoleteVersionEnvironment(environment);
+        RejectObsoleteEnvironment(environment);
         defaults ??= new UserConfiguration();
         string? EnvironmentValue(string name)
         {
@@ -250,11 +246,6 @@ public static class RunConfigurationResolver
         int p = PickInt(overrides.P, EnvironmentValue("WHARF_P"), defaults.P, 4, "P");
         if (p <= 0)
             throw new RunConfigurationException("P must be positive");
-        int? containerCpus = PickOptionalInt(
-            overrides.ContainerCpus,
-            environment.GetValueOrDefault("WHARF_CONTAINER_CPUS"),
-            defaults.ContainerCpus,
-            "containerCpus");
         p = Math.Min(p, n);
         string format = Pick(
             overrides.OutputFormat,
@@ -311,14 +302,17 @@ public static class RunConfigurationResolver
             "default",
             credentials,
             overrides.ShortestFirst ?? defaults.ShortestFirst ?? false,
-            containerCpus,
             overrides.NoOp ?? false,
             overrides.Oracle ?? false,
             cli);
     }
 
-    internal static void RejectObsoleteVersionEnvironment(IReadOnlyDictionary<string, string?> environment)
+    internal static void RejectObsoleteEnvironment(IReadOnlyDictionary<string, string?> environment)
     {
+        if (environment.GetValueOrDefault("WHARF_CONTAINER_CPUS") is not null)
+            throw new RunConfigurationException(
+                "WHARF_CONTAINER_CPUS is no longer supported; unset WHARF_CONTAINER_CPUS. " +
+                "Wharf no longer applies container CPU limits or affinity");
         foreach (string name in new[] { "WHARF_CLI_VERSION", "CLI_VERSION" })
         {
             if (environment.GetValueOrDefault(name) is not null)
@@ -384,8 +378,6 @@ public static class RunConfigurationValidator
         RequirePositive(configuration.N, "N");
         RequirePositive(configuration.P, "P");
         _ = AgentCli.For(configuration.Cli);
-        if (configuration.ContainerCpus is { } containerCpus)
-            RequirePositive(containerCpus, "containerCpus");
         ValidateTimeout(configuration.Timeouts.SetupSeconds, "setupSeconds");
         ValidateTimeout(configuration.Timeouts.AgentSeconds, "agentSeconds");
         ValidateTimeout(configuration.Timeouts.VerifierSeconds, "verifierSeconds");

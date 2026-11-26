@@ -163,18 +163,17 @@ public sealed class BaselineRunTests
         Assert.False(File.Exists(Path.Combine(fixture.Root, "scores.jsonl")));
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("0,1")]
-    public void DockerBaselineUsesExplicitOwnershipLimitsAndNoCredentials(string? cpuSet)
+    [Fact]
+    public void DockerBaselineUsesExplicitOwnershipLimitsAndNoCredentials()
     {
         var request = new BaselineRequest("task", "agent-task:latest", "agent-baseline",
-            "/evidence", "/artifacts", "/workspace", null, TimeSpan.FromSeconds(10), false, cpuSet);
+            "/evidence", "/artifacts", "/workspace", null, TimeSpan.FromSeconds(10), false);
         IReadOnlyList<string> arguments = DockerBaselineRunner.BuildCreateArguments(request);
         Assert.Contains("com.bartr.wharf.managed=true", arguments);
         Assert.Contains("1000:1000", arguments);
         Assert.Contains("8g", arguments);
-        Assert.Equal(cpuSet is not null, arguments.Contains("--cpuset-cpus"));
+        Assert.DoesNotContain("--cpuset-cpus", arguments);
+        Assert.DoesNotContain("--cpus", arguments);
         Assert.DoesNotContain("--volume", arguments);
         Assert.DoesNotContain("--env", arguments);
         Assert.Contains("no-op.stdout.log",

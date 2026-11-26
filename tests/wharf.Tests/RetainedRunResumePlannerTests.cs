@@ -62,7 +62,6 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal(2, plan.Attempts.Count);
         Assert.Equal("test-model", plan.Model);
         Assert.Equal("1.0.95", plan.CliVersion);
-        Assert.Equal(3, plan.Configuration.ContainerCpus);
     }
 
     private static string FixtureRoot =>
@@ -200,24 +199,27 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
         Assert.Equal(321, plan.Configuration.Timeouts.AgentSeconds);
         Assert.Equal(3, plan.Configuration.Retries.MaxAttempts);
         Assert.True(plan.Configuration.RetainWorkspaces);
-        Assert.Equal(3, plan.Configuration.ContainerCpus);
         Assert.DoesNotContain("should-not-persist", metadata);
         Assert.Null(plan.Configuration.Credentials.Token);
     }
 
     [Fact]
-    public void GivenLegacyMetadataWithoutCpuPolicy_WhenPlanning_RemainsUnrestricted()
+    public void GivenLegacyMetadataWithCpuPolicy_WhenPlanning_IgnoresItWithoutRewritingEvidence()
     {
         RetainedRunFixture fixture = CreateRun(k: 1);
         string path = Path.Combine(fixture.RunDirectory, RetainedRunMetadataStore.FileName);
         JsonNode metadata = JsonNode.Parse(File.ReadAllText(path))!;
-        Assert.True(metadata["configuration"]!.AsObject().Remove("containerCpus"));
-        File.WriteAllText(path, metadata.ToJsonString());
+        metadata["configuration"]!["containerCpus"] = 3;
+        string legacy = metadata.ToJsonString();
+        File.WriteAllText(path, legacy);
 
         RetainedResumePlan plan = new RetainedRunResumePlanner().Plan(
             fixture.RunDirectory, FixtureRoot);
 
-        Assert.Null(plan.Configuration.ContainerCpus);
+        Assert.Equal(321, plan.Configuration.Timeouts.AgentSeconds);
+        Assert.True(plan.Configuration.RetainWorkspaces);
+        Assert.DoesNotContain("containerCpus", RunConfigurationRenderer.Render(plan.Configuration, "json"));
+        Assert.Equal(legacy, File.ReadAllText(path));
     }
 
     [Fact]
@@ -320,7 +322,6 @@ public sealed class RetainedRunResumePlannerTests : IDisposable
             true,
             "default",
             new SecretSettings(Token: "should-not-persist"),
-            ContainerCpus: 3,
             NoOp: noOp,
             Cli: cli);
         WriteJson(
